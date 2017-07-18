@@ -1,8 +1,11 @@
 <template>
   <div id="app">
     <img src="./assets/logo.png">
-    <router-view></router-view>
+    <div>Hi.  This text and the image above are in our main template, outside of the router.
+      They will appear on every page.</div>
 
+
+    <router-view></router-view>
   </div>
 </template>
 
