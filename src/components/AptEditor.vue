@@ -76,7 +76,7 @@
       saveGraph: function () {
         this.graph = this.graphPreview
         // TODO React to this event in a parent component, e.g. copy the graph into the drag-and-drop UI.
-        this.$emit('graphSaved')
+        this.$emit('graphSaved', this.graph)
       }
     },
     watch: {

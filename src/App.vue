@@ -2,26 +2,40 @@
   <div id="app">
     <img src="./assets/logo.png">
     <div>Hi.  This text and the image above are in our main template, outside of the router.
-      They will appear on every page.</div>
+      They will appear on every page.
+    </div>
 
-
-    <router-view></router-view>
+    <AptEditor v-on:graphSaved='onAptSaved'></AptEditor>
+    <GraphEditor></GraphEditor>
   </div>
 </template>
 
 <script>
-export default {
-  name: 'app'
-}
+  import AptEditor from '@/components/AptEditor'
+  import GraphEditor from '@/components/GraphEditor'
+
+  export default {
+    name: 'app',
+    components: {
+      'AptEditor': AptEditor,
+      'GraphEditor': GraphEditor
+    },
+    methods: {
+      onAptSaved: function (graph) {
+        console.log('Got graph from APT editor:')
+        console.log(graph)
+      }
+    }
+  }
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+  #app {
+    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 60px;
+  }
 </style>
