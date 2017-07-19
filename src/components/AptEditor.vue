@@ -1,6 +1,6 @@
 <template>
   <div id="apt-editor">
-    <h2>Editor</h2>
+    <h2>APT Editor</h2>
     Here is the text in the editor:
     <div id="editor-content">
       {{ textInput }}
@@ -26,7 +26,9 @@
   import * as axios from 'axios'
   import * as MockAdapter from 'axios-mock-adapter'
 
-  let mock = new MockAdapter(axios)
+  let mock = new MockAdapter(axios, {
+//    delayResponse: 100
+  })
 
   mock.onPost('/aptToGraph', {
     params: {
@@ -59,7 +61,7 @@
           nodes: [],
           edges: []
         },
-        textInput: '# Type APT into here.  \nClick "Send" to send it to ADAM and turn it into a graph.'
+        textInput: '# Type APT into here.  \nIt will automatically get sent to ADAM and turned into a graph.'
       }
     },
     methods: {
@@ -75,7 +77,6 @@
       },
       saveGraph: function () {
         this.graph = this.graphPreview
-        // TODO React to this event in a parent component, e.g. copy the graph into the drag-and-drop UI.
         this.$emit('graphSaved', this.graph)
       }
     },
