@@ -1,12 +1,28 @@
 <template>
   <div id="graph-editor">
-    <h2>Graph Editor</h2>
-    parentGraph (A property given to us by our parent):
-    <div>{{ parentGraph }}</div>
-    graphDrawn (A data element that belongs to us):
-    <div>{{ graphDrawn }}</div>
-    Cytoscape graph:
-    <div id='cy'></div>
+    <div class="row">
+      <div class="col-12">
+        <h2>Graph Editor</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6">
+        parentGraph (A property given to us by our parent):
+        {{ parentGraph }}
+      </div>
+
+      <div class="col-6">
+        graphDrawn (A data element that belongs to us):
+        <div>{{ graphDrawn }}</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <button v-on:click="refreshCytoscape">Refresh Cytoscape</button>
+        Cytoscape graph:
+        <div id='cy'></div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -22,6 +38,9 @@
         graphDrawn: this.parentGraph,
         cy: undefined
       }
+    },
+    mounted: function () {
+      this.refreshCytoscape()
     },
     methods: {
       convertGraphToCytoscapeElements: function (graph) {
@@ -46,6 +65,11 @@
           })
         }
         return elements
+      },
+      refreshCytoscape: function () {
+        let elements = this.convertGraphToCytoscapeElements(this.parentGraph)
+        console.log('Converted graph into cytoscapes format: ' + elements)
+        this.cy = this.makeCytoscape(elements)
       },
       makeCytoscape: function (elements) {
         let cy = cytoscape({
@@ -72,10 +96,12 @@
           ],
           layout: {
             name: 'grid',
-            rows: 1
+            rows: 2
           }
         })
         console.log('initialized cytoscape: ' + cy)
+        cy.resize()
+        console.log('called cy.resize()')
         return cy
       }
     },
@@ -105,6 +131,9 @@
   #cy {
     width: 100%;
     height: 300px;
-    display: block;
+    display: flex;
+    /*position: absolute;*/
+    top: 0px;
+    left: 0px;
   }
 </style>

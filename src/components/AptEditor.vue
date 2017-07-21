@@ -1,21 +1,25 @@
 <template>
   <div id="apt-editor">
-    <h2>APT Editor</h2>
-    Here is the text in the editor:
-    <div id="editor-content">
-      {{ textInput }}
-    </div>
-    Here is the graph we have:
-    <div id="saved-graph">
-      {{ graph }}
-    </div>
-    Here is the graph we are previewing:
-    <div id="graph-preview">
-      {{ graphPreview }}
-    </div>
-    <div>
-      <textarea id="text-entry" class="form-control" v-model="textInput"></textarea>
-      <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Save Graph</button>
+    <div class="row">
+      <div class="col-md-12">
+        <h2>APT Editor</h2>
+        Here is the text in the editor:
+        <div id="editor-content">
+          {{ textInput }}
+        </div>
+        Here is the graph we have:
+        <div id="saved-graph">
+          {{ graph }}
+        </div>
+        Here is the graph we are previewing:
+        <div id="graph-preview">
+          {{ graphPreview }}
+        </div>
+        <div>
+          <textarea id="text-entry" class="form-control" v-model="textInput"></textarea>
+          <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Save Graph</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -61,7 +65,7 @@
           nodes: [],
           edges: []
         },
-        textInput: '# Type APT into here.  \nIt will automatically get sent to ADAM and turned into a graph.'
+        textInput: '1 -> 2'
       }
     },
     methods: {
