@@ -96,8 +96,6 @@
           }
         })
         console.log('initialized cytoscape: ' + cy)
-        cy.resize()
-        console.log('called cy.resize()')
         return cy
       }
     },
