@@ -6,20 +6,15 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-6">
-        parentGraph (A property given to us by our parent):
-        {{ parentGraph }}
-      </div>
-
-      <div class="col-6">
-        graphDrawn (A data element that belongs to us):
-        <div>{{ graphDrawn }}</div>
+      <div class="col-12">
+        ourGraph
+        <div>{{ ourGraph }}</div>
       </div>
     </div>
     <div class="row">
       <div class="col-12">
         <button v-on:click="refreshCytoscape">Refresh Cytoscape</button>
-        Cytoscape graph:
+        <div>Cytoscape graph:</div>
         <div id='cy'></div>
       </div>
     </div>
@@ -35,7 +30,7 @@
     components: {},
     data () {
       return {
-        graphDrawn: this.parentGraph,
+        ourGraph: this.parentGraph,
         cy: undefined
       }
     },
@@ -115,8 +110,8 @@
 
         In response, we will update the graph that is being edited in the drag-and-drop GUI of this component.
          */
-        this.graphDrawn = graph
         // TODO: Figure out how to get decent debug output instead of a bunch of [object Object]
+        this.ourGraph = graph
         let elements = this.convertGraphToCytoscapeElements(graph)
         console.log('Converted graph into cytoscapes format: ' + elements)
         this.cy = this.makeCytoscape(elements)
@@ -129,11 +124,12 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   #cy {
+    text-align: left;
     width: 100%;
     height: 300px;
-    display: flex;
+    /*display: flex;*/
     /*position: absolute;*/
-    top: 0px;
-    left: 0px;
+    /*top: 0px;*/
+    /*left: 0px;*/
   }
 </style>

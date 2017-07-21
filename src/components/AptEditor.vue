@@ -7,11 +7,8 @@
         <div id="editor-content">
           {{ textInput }}
         </div>
-        Here is the graph we have:
-        <div id="saved-graph">
-          {{ graph }}
-        </div>
-        Here is the graph we are previewing:
+        Here is the graph we have received from the backend: (Note that at the moment, the backend is a mockup, and
+        will only respond to the exact string "1 -> 2".)
         <div id="graph-preview">
           {{ graphPreview }}
         </div>
@@ -61,12 +58,11 @@
           nodes: [],
           edges: []
         },
-        graph: {
-          nodes: [],
-          edges: []
-        },
         textInput: '1 -> 2'
       }
+    },
+    mounted: function () {
+      this.renderGraph()
     },
     methods: {
       renderGraph: function () {
@@ -80,8 +76,7 @@
         })
       },
       saveGraph: function () {
-        this.graph = this.graphPreview
-        this.$emit('graphSaved', this.graph)
+        this.$emit('graphSaved', this.graphPreview)
       }
     },
     watch: {

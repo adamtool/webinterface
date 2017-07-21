@@ -2,9 +2,7 @@
   <div id="app">
     <div class="row">
       <div class="col-md-12">
-        Hi.  This text and the image above are in our main template, outside of the router.
-        They will appear on every page.
-        <GraphEditor v-bind:parentGraph='graph'></GraphEditor>
+        Hi.  This is the header of our main template in App.vue.
       </div>
     </div>
     <div class="row">
@@ -12,6 +10,7 @@
         <AptEditor v-on:graphSaved='onAptSaved'></AptEditor>
       </div>
       <div class="col-md-6">
+        <GraphEditor v-bind:parentGraph='graph'></GraphEditor>
       </div>
     </div>
   </div>
