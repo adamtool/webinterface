@@ -63,6 +63,7 @@
       },
       refreshCytoscape: function () {
         let elements = this.convertGraphToCytoscapeElements(this.parentGraph)
+        // TODO: Figure out how to get decent debug output instead of a bunch of [object Object]
         console.log('Converted graph into cytoscapes format: ' + elements)
         this.cy = this.makeCytoscape(elements)
       },
@@ -110,11 +111,8 @@
 
         In response, we will update the graph that is being edited in the drag-and-drop GUI of this component.
          */
-        // TODO: Figure out how to get decent debug output instead of a bunch of [object Object]
         this.ourGraph = graph
-        let elements = this.convertGraphToCytoscapeElements(graph)
-        console.log('Converted graph into cytoscapes format: ' + elements)
-        this.cy = this.makeCytoscape(elements)
+        this.refreshCytoscape()
       }
     }
   }
