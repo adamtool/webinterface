@@ -6,7 +6,7 @@
     </div>
 
     <AptEditor v-on:graphSaved='onAptSaved'></AptEditor>
-    <GraphEditor></GraphEditor>
+    <GraphEditor v-bind:parentGraph='graph'></GraphEditor>
   </div>
 </template>
 
@@ -20,10 +20,19 @@
       'AptEditor': AptEditor,
       'GraphEditor': GraphEditor
     },
+    data: function () {
+      return {
+        graph: {
+          nodes: [],
+          edges: []
+        }
+      }
+    },
     methods: {
       onAptSaved: function (graph) {
         console.log('Got graph from APT editor:')
         console.log(graph)
+        this.graph = graph
       }
     }
   }

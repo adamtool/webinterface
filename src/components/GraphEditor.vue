@@ -1,6 +1,10 @@
 <template>
   <div id="graph-editor">
     <h2>Graph Editor</h2>
+    parentGraph (A property given to us by our parent):
+    <div>{{ parentGraph }}</div>
+    graphDrawn (A data element that belongs to us):
+    <div>{{ graphDrawn }}</div>
   </div>
 </template>
 
@@ -17,14 +21,7 @@
     components: {},
     data () {
       return {
-        graphPreview: {
-          nodes: [],
-          edges: []
-        },
-        graph: {
-          nodes: [],
-          edges: []
-        }
+        graphDrawn: this.parentGraph
       }
     },
     methods: {
@@ -33,7 +30,16 @@
       saveGraph: function () {
       }
     },
+    props: ['parentGraph'],
     watch: {
+      parentGraph: function (graph) {
+        /* When parentGraph changes, this should mean the user did one of the following things:
+        1. Changed something in the APT editor, causing the APT to be parsed on the server, yielding a new graph
+
+        In response, we will update the graph that is being edited in the drag-and-drop GUI of this component.
+         */
+        this.graphDrawn = graph
+      }
     }
   }
 </script>
