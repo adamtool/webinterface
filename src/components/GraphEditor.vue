@@ -13,6 +13,12 @@
     </div>
     <div class="row">
       <div class="col-12">
+        exportedGraph
+        <div>{{ exportedGraph }}</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
         <button v-on:click="refreshCytoscape">Refresh Cytoscape</button>
         <div>Cytoscape graph:</div>
         <div id='cy'></div>
@@ -31,6 +37,7 @@
     data () {
       return {
         ourGraph: this.parentGraph,
+        exportedGraph: null,
         cy: undefined
       }
     },
@@ -96,6 +103,17 @@
           }
         })
         console.log('initialized cytoscape: ' + cy)
+
+        cy.nodes().on('click', function (event) {
+          console.log(`Clicked node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
+        })
+
+        let self = this
+        cy.nodes().on('free', function (event) {
+          console.log(`Let go of node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
+          self.exportedGraph = cy.json().elements
+        })
+        console.log('Added free event handler')
         return cy
       }
     },
