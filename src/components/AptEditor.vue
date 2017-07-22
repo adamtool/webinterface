@@ -3,10 +3,6 @@
     <div class="row">
       <div class="col-md-12">
         <h2>APT Editor</h2>
-        Here is the text in the editor:
-        <div id="editor-content">
-          {{ textInput }}
-        </div>
         Here is the graph we have received from the backend: (Note that at the moment, the backend is a mockup, and
         will only respond to the exact string "1 -> 2".)
         <div id="graph-preview">
@@ -14,7 +10,7 @@
         </div>
         <div>
           <textarea id="text-entry" class="form-control" v-model="textInput"></textarea>
-          <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Save Graph</button>
+          <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Send Graph to Editor</button>
         </div>
       </div>
     </div>
@@ -52,13 +48,14 @@
   export default {
     name: 'apt-editor',
     components: {},
+    props: ['apt'],
     data () {
       return {
         graphPreview: {
           nodes: [],
           edges: []
         },
-        textInput: '1 -> 2'
+        textInput: this.apt
       }
     },
     mounted: function () {
@@ -80,6 +77,10 @@
       }
     },
     watch: {
+      apt: function (newApt) {
+        console.log('Updating text editor contents')
+        this.textInput = newApt
+      },
       textInput: function (oldText, newText) {
         console.log('textInput(' + oldText + ', ' + newText + ')')
         if (oldText !== newText) {
@@ -92,4 +93,7 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+ #text-entry {
+   height: 350px;
+ }
 </style>

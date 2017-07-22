@@ -7,14 +7,22 @@
     </div>
     <div class="row">
       <div class="col-12">
-        ourGraph
-        <div>{{ ourGraph }}</div>
+        Graph passed in from our parent:
+        <div>{{ parentGraph }}</div>
       </div>
     </div>
+    <!--<div class="row">-->
+    <!--<div class="col-12">-->
+    <!--exportedGraphJson-->
+    <!--<div>{{ exportedGraphJson }}</div>-->
+    <!--</div>-->
+    <!--</div>-->
     <div class="row">
       <div class="col-12">
-        exportedGraph
-        <div>{{ exportedGraph }}</div>
+        apt of graph
+        <div style="text-align: left">
+          <pre><code>{{ graphApt }}</code></pre>
+        </div>
       </div>
     </div>
     <div class="row">
@@ -36,8 +44,7 @@
     components: {},
     data () {
       return {
-        ourGraph: this.parentGraph,
-        exportedGraph: null,
+        exportedGraphJson: {},
         cy: undefined
       }
     },
@@ -73,6 +80,7 @@
         // TODO: Figure out how to get decent debug output instead of a bunch of [object Object]
         console.log('Converted graph into cytoscapes format: ' + elements)
         this.cy = this.makeCytoscape(elements)
+        this.exportedGraphJson = this.cy.json()
       },
       makeCytoscape: function (elements) {
         let cy = cytoscape({
@@ -104,22 +112,69 @@
         })
         console.log('initialized cytoscape: ' + cy)
 
+        let self = this
         cy.nodes().on('click', function (event) {
           console.log(`Clicked node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
+          self.updateJson()
         })
 
-        let self = this
         cy.nodes().on('free', function (event) {
           console.log(`Let go of node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
-          self.exportedGraph = cy.json().elements
+          event.target.lock()
+          console.log('locked node')
+          self.updateJson()
         })
         console.log('Added free event handler')
+
+        cy.nodes().on('grabon', function (event) {
+          console.log('Grabbing node')
+        })
+        console.log('Added grabon event handler')
+
+        cy.nodes().on('mousedown', function (event) {
+          console.log('mousedown on node')
+          event.target.unlock()
+          console.log('unlocking node')
+          self.updateJson()
+        })
+        console.log('Added mousedown event handler')
         return cy
+      },
+      updateJson: function () {
+        this.exportedGraphJson = this.cy.json()
       }
     },
-    computed: {},
+    computed: {
+      graphApt: function () {
+        if (!this.exportedGraphJson.hasOwnProperty('elements')) {
+          return ''
+        }
+        let nodes = this.exportedGraphJson.elements.nodes
+        let nodesApt = ''
+        // TODO Program more defensively here -- if invalid data comes in, it throws an exception,
+        // and everything seems to stop working until I refresh the page.
+        for (let i = 0; i < nodes.length; i++) {
+          let node = nodes[i]
+          let coordinateString = node.locked ? `["x"="${node.position.x}", "y"="${node.position.y}"]` : ''
+          let nodeRepresentation = node.data.id + coordinateString
+          nodesApt += (nodeRepresentation + '\n')
+        }
+        let edges = this.exportedGraphJson.elements.edges
+        let edgesApt = ''
+        for (let i = 0; i < edges.length; i++) {
+          let edge = edges[i]
+          let edgeString = `${edge.data.source} -> ${edge.data.target}`
+          edgesApt += (edgeString + '\n')
+        }
+        return `# Nodes\n${nodesApt}\n\n# Edges\n${edgesApt}`
+      }
+    },
     props: ['parentGraph'],
     watch: {
+      graphApt: function (apt) {
+        this.$emit('graphModified', apt)
+        console.log('Emitting graphModified event: ' + apt)
+      },
       parentGraph: function (graph) {
         console.log('GraphEditor: parentGraph changed: ' + graph)
         /* When parentGraph changes, this should mean the user did one of the following things:
@@ -127,7 +182,6 @@
 
         In response, we will update the graph that is being edited in the drag-and-drop GUI of this component.
          */
-        this.ourGraph = graph
         this.refreshCytoscape()
       }
     }
