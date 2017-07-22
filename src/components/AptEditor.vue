@@ -3,8 +3,8 @@
     <div class="row">
       <div class="col-md-12">
         <h2>APT Editor</h2>
-        Here is the graph we have received from the backend: (Note that at the moment, the backend is a mockup, and
-        will only respond to the exact string "1 -> 2".)
+        Here is the graph we have received from the backend: (Note that at the moment, the backend is being mocked, and
+        will only respond to the exact string "1 -> 2" -- Otherwise, it will simply return an empty graph.)
         <div id="graph-preview">
           {{ graphPreview }}
         </div>
@@ -63,11 +63,13 @@
     },
     methods: {
       renderGraph: function () {
+        console.log('Sending APT source code to backend: ' + this.textInput)
         axios.post('/aptToGraph', {
           params: {
             aptSourceCode: this.textInput
           }
         }).then(response => {
+          console.log('Received graph from backend:')
           console.log(response.data)
           this.graphPreview = response.data.graph
         })
@@ -81,11 +83,9 @@
         console.log('Updating text editor contents')
         this.textInput = newApt
       },
-      textInput: function (oldText, newText) {
-        console.log('textInput(' + oldText + ', ' + newText + ')')
-        if (oldText !== newText) {
-          this.renderGraph()
-        }
+      textInput: function (newText) {
+        console.log('textInput("' + newText + '")')
+        this.renderGraph()
       }
     }
   }
@@ -93,7 +93,7 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
- #text-entry {
-   height: 350px;
- }
+  #text-entry {
+    height: 350px;
+  }
 </style>
