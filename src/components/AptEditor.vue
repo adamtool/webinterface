@@ -3,15 +3,15 @@
     <div class="row">
       <div class="col-md-12">
         <h2>APT Editor</h2>
+        <div>
+          <textarea id="text-entry" class="form-control" v-model="textInput"></textarea>
+        </div>
         Here is the graph we have received from the backend: (Note that at the moment, the backend is being mocked, and
         will only respond to the exact string "1 -> 2" -- Otherwise, it will simply return an empty graph.)
         <div id="graph-preview">
           {{ graphPreview }}
         </div>
-        <div>
-          <textarea id="text-entry" class="form-control" v-model="textInput"></textarea>
-          <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Send Graph to Editor</button>
-        </div>
+        <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Send Graph to Editor</button>
       </div>
     </div>
   </div>
