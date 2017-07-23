@@ -237,7 +237,7 @@
         }
         let nodes = json.elements.nodes
         let nodesApt = !nodes ? '' : nodes.map(node => {
-          let coordinateString = node.data.fixedByUser ? `["x"="${node.position.x}", "y"="${node.position.y}"]` : ''
+          let coordinateString = `["x"="${node.position.x.toFixed(0)}", "y"="${node.position.y.toFixed(0)}, "fixed"="${node.data.fixedByUser ? 'true' : 'false'}"]`
           let nodeRepresentation = node.data.id + coordinateString
           return nodeRepresentation
         }).join('\n')
