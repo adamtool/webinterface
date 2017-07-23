@@ -41,7 +41,9 @@
   import * as cytoscapeCola from 'cytoscape-cola'
   import * as cytoscapeEuler from 'cytoscape-euler'
   import * as cytoscapeSpread from 'cytoscape-spread'
+  import * as cytoscapeSpringy from 'cytoscape-springy'
 
+  cytoscapeSpringy(cytoscape)
   cytoscapeSpread(cytoscape)
 
   cytoscapeCola(cytoscape) // Register the cola.js layout extension with cytoscape
@@ -134,7 +136,12 @@
           })
 //          const layout = cy.layout({name: 'cose', fit: false})
 //          const layout = cy.layout({name: 'cose', fit: false, animate: true, maxSimulationTime: 200})
-          const layout = cy.layout({name: 'cola', fit: false, animate: true, maxSimulationTime: 200})
+          let layout = cy.layout({
+            name: 'cola',
+            fit: false,
+            animate: true,
+            maxSimulationTime: 200
+          })
           layout.run()
           layout.on('layoutstop', function (event) {
             console.log('layoutUnfixedNodes: Unlocking fixed nodes: ')
