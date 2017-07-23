@@ -38,6 +38,14 @@
 <script>
   //  import * as Vue from 'vue'
   import * as cytoscape from 'cytoscape'
+  import * as cytoscapeCola from 'cytoscape-cola'
+  import * as cytoscapeEuler from 'cytoscape-euler'
+  import * as cytoscapeSpread from 'cytoscape-spread'
+
+  cytoscapeSpread(cytoscape)
+
+  cytoscapeCola(cytoscape) // Register the cola.js layout extension with cytoscape
+  cytoscape.use(cytoscapeEuler) // Register the Euler layout extension
 
   export default {
     name: 'graph-editor',
@@ -71,7 +79,14 @@
        * @param elements See http://js.cytoscape.org/#notation/elements-json
        */
       makeCytoscape: function (elements) {
-        let cy = cytoscape({
+        let cy
+
+        const initialLayout = {
+          name: 'cola',
+          fit: true,
+          animate: false
+        }
+        cy = cytoscape({
           container: document.getElementById('cy'),
           elements: elements,
           style: [ // the stylesheet for the graph
@@ -82,13 +97,13 @@
               }
             },
             {
-              selector: ':locked',
+              selector: '[?fixedByUser]',
               style: {
                 'background-color': '#111'
               }
             },
             {
-              selector: ':unlocked',
+              selector: '[!fixedByUser]',
               style: {
                 'background-color': '#777'
               }
@@ -104,39 +119,81 @@
               }
             }
           ],
-          layout: {
-            name: 'grid',
-            rows: 2
-          }
+          layout: initialLayout
         })
         console.log('initialized cytoscape: ' + cy)
+
+        function layoutNodes () {
+          const nodes = cy.nodes().filter(function (ele, i, eles) {
+            return ele.data('fixedByUser')
+          })
+          console.log('layoutUnfixedNodes: Locking fixed nodes: ')
+          console.log(nodes)
+          nodes.forEach(node => {
+            node.lock()
+          })
+//          const layout = cy.layout({name: 'cose', fit: false})
+//          const layout = cy.layout({name: 'cose', fit: false, animate: true, maxSimulationTime: 200})
+          const layout = cy.layout({name: 'cola', fit: false, animate: true, maxSimulationTime: 200})
+          layout.run()
+          layout.on('layoutstop', function (event) {
+            console.log('layoutUnfixedNodes: Unlocking fixed nodes: ')
+            nodes.forEach(node => {
+              node.unlock()
+            })
+          })
+        }
+
+//          const layout = nodes.layout({
+//            name: 'cola',
+//            animate: true,
+//            infinite: true,
+//            fit: false,
+//          })
+
+//        const layout = cy.layout({ name: 'euler' })
+//        layout.run()
+//         Run the euler layout in an infinite loop
+//        layout.on('layoutstop', function (event) {
+//          console.log('restarting layout')
+//          layout.run()
+//        })
+//        layout.pon('layoutstop').then(function (event) {
+//          console.log('layout stop promise fulfilled')
+//        })
 
         let self = this
         cy.nodes().on('click', function (event) {
           console.log(`Clicked node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
+//          console.log(`Unlocking node: ${event.target.id()}`)
+//          event.target.unlock()
+          // console.log(`Set fixedByUser=false for node id: ${event.target.id()}`)
+          // event.target.data('fixedByUser', false)
+          // layoutUnfixedNodes()
+          // self.exportJson()
+        })
+
+        cy.nodes().on('drag', function (event) {
+          console.log(`Event: Dragging node ${event.target.id()}`)
+        })
+
+        cy.nodes().on('cxttap', function (rightClickEvent) {
+          console.log(`Event: Right clicked node ${rightClickEvent.target.id()}`)
+          rightClickEvent.target.data('fixedByUser', false)
+          layoutNodes()
           self.exportJson()
         })
 
         cy.nodes().on('free', function (event) {
           console.log(`Let go of node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
-          event.target.lock()
-          console.log('locked node')
+          console.log(event)
+          event.target.data('fixedByUser', true)
+          console.log(`Set fixedByUser=true for node id: ${event.target.id()}`)
+          layoutNodes()
           self.exportJson()
         })
         console.log('Added free event handler')
 
-        cy.nodes().on('grabon', function (event) {
-          console.log('Grabbing node')
-        })
-        console.log('Added grabon event handler')
-
-        cy.nodes().on('mousedown', function (event) {
-          console.log('mousedown on node')
-          event.target.unlock()
-          console.log('unlocking node')
-          self.exportJson()
-        })
-        console.log('Added mousedown event handler')
         return cy
       },
       exportJson: function () {
@@ -146,7 +203,7 @@
        * Convert my own custom graph JSON format into Cytoscape's own JSON format.
        * TODO: Support X and Y coordinates.  Consider just using Cytoscape's format to begin with.
        *
-      */
+       */
       convertCustomGraphJsonToCytoscape: function (graph) {
         let elements = []
         for (let i = 0; i < graph.nodes.length; i++) {
@@ -180,7 +237,7 @@
         }
         let nodes = json.elements.nodes
         let nodesApt = !nodes ? '' : nodes.map(node => {
-          let coordinateString = node.locked ? `["x"="${node.position.x}", "y"="${node.position.y}"]` : ''
+          let coordinateString = node.data.fixedByUser ? `["x"="${node.position.x}", "y"="${node.position.y}"]` : ''
           let nodeRepresentation = node.data.id + coordinateString
           return nodeRepresentation
         }).join('\n')
