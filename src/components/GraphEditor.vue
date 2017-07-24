@@ -1,35 +1,37 @@
 <template>
   <div id="graph-editor">
-    <div class="row">
-      <div class="col-12">
-        <h2>Graph Editor</h2>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-12">
-        Graph passed in from our parent:
-        <div>{{ parentGraph }}</div>
-      </div>
-    </div>
-    <!--<div class="row">-->
-    <!--<div class="col-12">-->
-    <!--exportedGraphJson-->
-    <!--<div>{{ exportedGraphJson }}</div>-->
-    <!--</div>-->
-    <!--</div>-->
-    <div class="row">
-      <div class="col-12">
-        apt of graph
-        <div style="text-align: left">
-          <pre><code>{{ graphApt }}</code></pre>
+    <div id='cy'></div>
+    <div id='overlay'>
+      <div class="row">
+        <div class="col-12">
+          <h2>Graph Editor</h2>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-12">
-        <button class="btn btn-primary" v-on:click="refreshCytoscape">Refresh Cytoscape</button>
-        <div>Cytoscape graph:</div>
-        <div id='cy'></div>
+      <div class="row">
+        <div class="col-12">
+          Graph passed in from our parent:
+          <div>{{ parentGraph }}</div>
+        </div>
+      </div>
+      <!--<div class="row">-->
+      <!--<div class="col-12">-->
+      <!--exportedGraphJson-->
+      <!--<div>{{ exportedGraphJson }}</div>-->
+      <!--</div>-->
+      <!--</div>-->
+      <!--<div class="row">-->
+      <!--<div class="col-12">-->
+      <!--apt of graph-->
+      <!--<div style="text-align: left">-->
+      <!--<pre><code>{{ graphApt }}</code></pre>-->
+      <!--</div>-->
+      <!--</div>-->
+      <!--</div>-->
+      <div class="row">
+        <div class="col-12">
+          <button class="btn btn-primary" v-on:click="refreshCytoscape">Refresh Cytoscape</button>
+          <div>Cytoscape graph:</div>
+        </div>
       </div>
     </div>
   </div>
@@ -84,7 +86,7 @@
         let cy
 
         const initialLayout = {
-          name: 'cola',
+          name: 'cose',
           fit: true,
           animate: false
         }
@@ -96,6 +98,8 @@
               selector: 'node',
               style: {
                 'label': 'data(id)'
+//                'width': 10,
+//                'height': 10
               }
             },
             {
@@ -115,7 +119,7 @@
               style: {
                 'width': 3,
                 'line-color': '#ccc',
-                'curve-style': 'haystack',
+                'curve-style': 'bezier',
                 'target-arrow-color': '#ccc',
                 'target-arrow-shape': 'triangle'
               }
@@ -137,7 +141,7 @@
 //          const layout = cy.layout({name: 'cose', fit: false})
 //          const layout = cy.layout({name: 'cose', fit: false, animate: true, maxSimulationTime: 200})
           let layout = cy.layout({
-            name: 'cola',
+            name: 'cose',
             fit: false,
             animate: true,
             maxSimulationTime: 200
@@ -288,10 +292,23 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+  #graph-editor {
+    height: 95vh;
+    position: relative;
+    text-align: center;
+  }
+  #overlay {
+    z-index: 2;
+    position: relative;
+  }
   #cy {
     text-align: left;
     width: 100%;
-    height: 300px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
     /*display: flex;*/
     /*position: absolute;*/
     /*top: 0px;*/

@@ -1,15 +1,10 @@
 <template>
-  <div id='app'>
+  <div id='app' class="container-fluid">
     <div class='row'>
-      <div class='col-md-12'>
-        Hi.  This is the header of our main template in App.vue.
-      </div>
-    </div>
-    <div class='row'>
-      <div class='col-md-6'>
+      <div class='col-md-4'>
         <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
       </div>
-      <div class='col-md-6'>
+      <div class='col-md-8'>
         <GraphEditor v-bind:parentGraph='graph' v-on:graphModified='onGraphModified'></GraphEditor>
       </div>
     </div>
@@ -34,14 +29,33 @@
     },
     data: function () {
       return {
-        graph: {
-          nodes: [1, 2, 3],
-          edges: [[1, 2], [2, 3], [3, 1]]
-        },
+        graph: this.makeRandomGraph(5, 5),
         apt: '1 -> 2'
       }
     },
     methods: {
+      makeRandomGraph: function (numberOfNodes, numberOfEdges) {
+        const nodes = []
+        for (let i = 0; i < numberOfNodes; i++) {
+          nodes.push(i)
+        }
+        const edges = []
+        for (let i = 0; i < numberOfEdges; i++) {
+          let randomNode = function () {
+            return Math.floor((Math.random() * numberOfNodes - 1) + 1)
+          }
+          let first = randomNode()
+          let second = randomNode()
+          while (second === first) {
+            second = randomNode()
+          }
+          edges.push([first, second])
+        }
+        return {
+          nodes: nodes,
+          edges: edges
+        }
+      },
       onGraphModified: function (apt) {
         console.log('Got APT from graph editor:')
         console.log(apt)
@@ -63,6 +77,6 @@
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: #2c3e50;
-    margin-top: 60px;
+    margin-top: 20px;
   }
 </style>
