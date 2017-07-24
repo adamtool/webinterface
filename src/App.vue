@@ -1,7 +1,21 @@
 <template>
   <div id='app' class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+
+      </div>
+    </div>
     <div class='row'>
       <div class='col-md-4'>
+        <div>Number of nodes
+          <input type="number" v-model="numberOfNodes">
+        </div>
+        <div>Number of edges
+          <input type="number" v-model="numberOfEdges">
+        </div>
+        <div>
+          <button v-on:click="replaceGraph">Create new random graph</button>
+        </div>
         <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
       </div>
       <div class='col-md-8'>
@@ -29,11 +43,16 @@
     },
     data: function () {
       return {
-        graph: this.makeRandomGraph(5, 5),
+        numberOfNodes: 5,
+        numberOfEdges: 5,
+        graph: this.makeRandomGraph(this.numberOfNodes, this.numberOfEdges),
         apt: '1 -> 2'
       }
     },
     methods: {
+      replaceGraph: function () {
+        this.graph = this.makeRandomGraph(this.numberOfNodes, this.numberOfEdges)
+      },
       makeRandomGraph: function (numberOfNodes, numberOfEdges) {
         const nodes = []
         for (let i = 0; i < numberOfNodes; i++) {
