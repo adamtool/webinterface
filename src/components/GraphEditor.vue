@@ -191,13 +191,11 @@
           // self.exportJson()
         })
 
-        cy.nodes().on('drag', function (event) {
-          console.log(`Event: Dragging node ${event.target.id()}`)
-        })
-
         cy.nodes().on('cxttap', function (rightClickEvent) {
           console.log(`Event: Right clicked node ${rightClickEvent.target.id()}`)
           rightClickEvent.target.data('fixedByUser', false)
+          rightClickEvent.target.unlock()
+
           layoutNodes()
           self.exportJson()
         })
@@ -206,6 +204,8 @@
           console.log(`Let go of node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
           console.log(event)
           event.target.data('fixedByUser', true)
+          event.target.lock()
+          console.log(`Locking node id: ${event.target.id()}`)
           console.log(`Set fixedByUser=true for node id: ${event.target.id()}`)
           layoutNodes()
           self.exportJson()
