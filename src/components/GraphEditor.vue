@@ -93,6 +93,9 @@
         cy = cytoscape({
           container: document.getElementById('cy'),
           elements: elements,
+          minZoom: 0.5,
+          maxZoom: 2,
+          wheelSensitivity: 0.3,
           style: [ // the stylesheet for the graph
             {
               selector: 'node',
@@ -240,6 +243,7 @@
       },
       /**
        * Convert Cytograph's JSON format into APT
+       * // TODO skip the step of JSON export.  Just export the data structure directly
        * @param json
        */
       convertCytographJsonToApt: function (json) {
