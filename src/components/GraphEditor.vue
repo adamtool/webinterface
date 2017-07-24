@@ -74,7 +74,6 @@
         // TODO: Figure out how to get decent debug output instead of a bunch of [object Object]
         console.log('Converted graph into cytoscapes format: ' + elements)
         this.cy = this.makeCytoscape(elements)
-        this.exportedGraphJson = this.cy.json()
       },
       /**
        * Create a new instance of Cytoscape and embed it in the div #cy.
@@ -86,7 +85,7 @@
         let cy
 
         const initialLayout = {
-          name: 'cose',
+          name: 'null',
           fit: true,
           animate: false
         }
@@ -122,9 +121,9 @@
               style: {
                 'width': 3,
                 'line-color': '#ccc',
-                'curve-style': 'bezier',
-                'target-arrow-color': '#ccc',
-                'target-arrow-shape': 'triangle'
+                'curve-style': 'haystack',
+                'mid-target-arrow-color': '#000',
+                'mid-target-arrow-shape': 'triangle'
               }
             }
           ],
@@ -132,38 +131,43 @@
         })
         console.log('initialized cytoscape: ' + cy)
 
-        function layoutNodes () {
-          const nodes = cy.nodes().filter(function (ele, i, eles) {
-            return ele.data('fixedByUser')
-          })
-          console.log('layoutUnfixedNodes: Locking fixed nodes: ')
-          console.log(nodes)
-          nodes.forEach(node => {
-            node.lock()
-          })
+//        function layoutNodes () {
+//          const nodes = cy.nodes().filter(function (ele, i, eles) {
+//            return ele.data('fixedByUser')
+//          })
+//          console.log('layoutUnfixedNodes: Locking fixed nodes: ')
+//          console.log(nodes)
+//          nodes.forEach(node => {
+//            node.lock()
+//          })
 //          const layout = cy.layout({name: 'cose', fit: false})
 //          const layout = cy.layout({name: 'cose', fit: false, animate: true, maxSimulationTime: 200})
-          let layout = cy.layout({
-            name: 'cose',
-            fit: false,
-            animate: true,
-            maxSimulationTime: 200
-          })
-          layout.run()
-          layout.on('layoutstop', function (event) {
-            console.log('layoutUnfixedNodes: Unlocking fixed nodes: ')
-            nodes.forEach(node => {
-              node.unlock()
-            })
-          })
-        }
-
-//          const layout = nodes.layout({
-//            name: 'cola',
-//            animate: true,
-//            infinite: true,
+//          let layout = cy.layout({
+//            name: 'cose',
 //            fit: false,
+//            animate: true,
+//            maxSimulationTime: 200
 //          })
+//          layout.run()
+//          layout.on('layoutstop', function (event) {
+//            console.log('layoutUnfixedNodes: Unlocking fixed nodes: ')
+//            nodes.forEach(node => {
+//              node.unlock()
+//            })
+//          })
+//        }
+
+        const layout = cy.layout({
+          name: 'cola',
+          animate: true,
+          infinite: true,
+          fit: false
+        })
+        layout.run()
+
+        function layoutNodes () {
+
+        }
 
 //        const layout = cy.layout({ name: 'euler' })
 //        layout.run()
@@ -210,6 +214,7 @@
 
         return cy
       },
+      // Export graph as Json.  TODO eliminate this step of the process.  (It's unnecessary.)
       exportJson: function () {
         this.exportedGraphJson = this.cy.json()
       },
@@ -301,10 +306,12 @@
     position: relative;
     text-align: center;
   }
+
   #overlay {
     z-index: 2;
     position: relative;
   }
+
   #cy {
     text-align: left;
     width: 100%;
