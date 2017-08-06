@@ -1,6 +1,5 @@
 <template>
   <div id="graph-editor">
-    <div id='cy'></div>
     <div id='overlay'>
       <div class="row">
         <div class="col-12">
@@ -13,20 +12,6 @@
           <div>{{ parentGraph }}</div>
         </div>
       </div>
-      <!--<div class="row">-->
-      <!--<div class="col-12">-->
-      <!--exportedGraphJson-->
-      <!--<div>{{ exportedGraphJson }}</div>-->
-      <!--</div>-->
-      <!--</div>-->
-      <!--<div class="row">-->
-      <!--<div class="col-12">-->
-      <!--apt of graph-->
-      <!--<div style="text-align: left">-->
-      <!--<pre><code>{{ graphApt }}</code></pre>-->
-      <!--</div>-->
-      <!--</div>-->
-      <!--</div>-->
       <div class="row">
         <div class="col-12">
           <button class="btn btn-primary" v-on:click="refreshCytoscape">Refresh Cytoscape</button>
@@ -34,8 +19,25 @@
         </div>
       </div>
     </div>
+    <div id='cy'>
+
+    </div>
   </div>
 </template>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+  #graph-editor {
+    height: 95vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #cy {
+    flex-grow: 1;
+    text-align: left;
+  }
+</style>
 
 <script>
   //  import * as Vue from 'vue'
@@ -57,7 +59,8 @@
     data () {
       return {
         exportedGraphJson: {},
-        cy: undefined
+        cy: undefined,
+        layout: undefined
       }
     },
     mounted: function () {
@@ -131,39 +134,13 @@
         })
         console.log('initialized cytoscape: ' + cy)
 
-//        function layoutNodes () {
-//          const nodes = cy.nodes().filter(function (ele, i, eles) {
-//            return ele.data('fixedByUser')
-//          })
-//          console.log('layoutUnfixedNodes: Locking fixed nodes: ')
-//          console.log(nodes)
-//          nodes.forEach(node => {
-//            node.lock()
-//          })
-//          const layout = cy.layout({name: 'cose', fit: false})
-//          const layout = cy.layout({name: 'cose', fit: false, animate: true, maxSimulationTime: 200})
-//          let layout = cy.layout({
-//            name: 'cose',
-//            fit: false,
-//            animate: true,
-//            maxSimulationTime: 200
-//          })
-//          layout.run()
-//          layout.on('layoutstop', function (event) {
-//            console.log('layoutUnfixedNodes: Unlocking fixed nodes: ')
-//            nodes.forEach(node => {
-//              node.unlock()
-//            })
-//          })
-//        }
-
-        const layout = cy.layout({
+        this.layout = cy.layout({
           name: 'cola',
           animate: true,
           infinite: true,
           fit: false
         })
-        layout.run()
+        this.layout.run()
 
         function layoutNodes () {
 
@@ -211,7 +188,16 @@
           self.exportJson()
         })
         console.log('Added free event handler')
-
+        cy.nodes().on('mouseover', function (event) {
+          if (event.target.data('fixedByUser')) { event.target.unlock() }
+          self.layout.stop()
+          console.log('stopping layout')
+        })
+        cy.nodes().on('mouseout', function (event) {
+          if (event.target.data('fixedByUser')) { event.target.lock() }
+          self.layout.run()
+          console.log('starting layout')
+        })
         return cy
       },
       // Export graph as Json.  TODO eliminate this step of the process.  (It's unnecessary.)
