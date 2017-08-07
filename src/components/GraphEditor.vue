@@ -284,31 +284,3 @@
   }
 
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-  #graph-editor {
-    height: 95vh;
-    position: relative;
-    text-align: center;
-  }
-
-  #overlay {
-    z-index: 2;
-    position: relative;
-  }
-
-  #cy {
-    text-align: left;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    /*display: flex;*/
-    /*position: absolute;*/
-    /*top: 0px;*/
-    /*left: 0px;*/
-  }
-</style>
