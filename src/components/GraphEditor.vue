@@ -33,7 +33,7 @@
     flex-direction: column;
   }
 
-  #cy {
+  #graph {
     flex-grow: 1;
     text-align: left;
   }
@@ -120,8 +120,8 @@
         var svg = d3.select('#graph')
           .append('svg')
           .attr('oncontextmenu', 'return false;')
-          .attr('width', width)
-          .attr('height', height)
+          .attr('width', '100%')
+          .attr('height', '100%')
 
         // set up initial nodes and links
         //  - nodes are known by 'id', not by index in array.
