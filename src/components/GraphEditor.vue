@@ -115,7 +115,7 @@
         // set up SVG for D3
         var width = 960
         var height = 500
-        var colors = d3.scale.category10()
+        var colors = d3.scaleOrdinal(d3.schemeCategory10)
 
         var svg = d3.select('#graph')
           .append('svg')
@@ -139,7 +139,7 @@
         ]
 
         // init D3 force layout
-        var force = d3.layout.force()
+        var force = d3.force()
           .nodes(nodes)
           .links(links)
           .size([width, height])
