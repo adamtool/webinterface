@@ -148,7 +148,7 @@
           .selectAll('circle')
           .data(nodes)
           .enter().append('circle')
-          .attr('r', 10)
+          .attr('r', 20)
           .attr('fill', getNodeColor)
 
         const textElements = svg.append('g')
@@ -180,8 +180,27 @@
           .selectAll('line')
           .data(links)
           .enter().append('line')
-          .attr('stroke-width', 5)
+          .attr('stroke-width', 3)
           .attr('stroke', '#E5E5E5')
+
+        const dragDrop = d3.drag()
+          .on('start', node => {
+            node.fx = node.x
+            node.fy = node.y
+          })
+          .on('drag', node => {
+            simulation.alphaTarget(0.7).restart()
+            node.fx = d3.event.x
+            node.fy = d3.event.y
+          })
+          .on('end', node => {
+            if (!d3.event.active) {
+              simulation.alphaTarget(0)
+            }
+            node.fx = null
+            node.fy = null
+          })
+        nodeElements.call(dragDrop)
 
         d3.selectAll('*').on('click', function (d) { console.log(d) })
       },
