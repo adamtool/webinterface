@@ -131,9 +131,14 @@
           .attr('width', width)
           .attr('height', height)
 
+        const linkForce = d3.forceLink()
+          .id(link => link.id)
+          .strength(link => link.strength)
+
         const simulation = d3.forceSimulation()
           .force('charge', d3.forceManyBody().strength(-120))
           .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('link', linkForce)
 
         function getNodeColor (node) {
           return node.level === 1 ? 'red' : 'gray'
@@ -168,9 +173,6 @@
             .attr('x2', link => link.target.x)
             .attr('y2', link => link.target.y)
         })
-        simulation.force('link', d3.forceLink()
-          .id(link => link.id)
-          .strength(link => link.strength))
 
         simulation.force('link').links(links)
 
@@ -183,7 +185,6 @@
 
         d3.selectAll('*').on('click', function (d) { console.log(d) })
       },
-
       // Export graph as Json.  TODO eliminate this step of the process.  (It's unnecessary.)
       exportJson: function () {
         this.exportedGraphJson = this.cy.json()
