@@ -246,32 +246,38 @@
         this.exportedGraphJson = this.cy.json()
       },
       /**
-       * Convert my own custom graph JSON format into Cytoscape's own JSON format.
-       * TODO: Support X and Y coordinates.  Consider just using Cytoscape's format to begin with.
+       * Convert my own custom graph JSON format into D3's own JSON format.
+       * TODO: Use x and y coordinates provided in JSON.  Consider just using D3's format to begin with.
        *
        */
-      convertCustomGraphJsonToCytoscape: function (graph) {
-        let elements = []
+      convertCustomGraphJsonToD3: function (graph) {
+        let nodes = []
         for (let i = 0; i < graph.nodes.length; i++) {
           let node = graph.nodes[i]
           console.log('converting node:' + node)
-          elements.push({
-            data: {id: node.toString()}
+          nodes.push({
+            id: node.toString(),
+            label: node.toString(),
+            group: 0,
+            level: 0
           })
         }
+
+        let links = []
         console.log('converting edges: ' + graph.edges)
         for (let i = 0; i < graph.edges.length; i++) {
           let edge = graph.edges[i]
           console.log('converting edge: ' + edge)
-          elements.push({
-            data: {
-              id: edge[0].toString() + '->' + edge[1].toString(),
-              source: edge[0].toString(),
-              target: edge[1].toString()
-            }
+          links.push({
+            source: edge[0].toString(),
+            target: edge[1].toString(),
+            strength: 0.1
           })
         }
-        return elements
+        return {
+          nodes: nodes,
+          links: links
+        }
       },
       /**
        * Convert Cytograph's JSON format into APT
