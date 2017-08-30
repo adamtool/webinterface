@@ -118,12 +118,9 @@
         const nodes = this.nodes
         const links = this.links
 
-        const width = window.innerWidth
-        const height = window.innerHeight
-
         const svg = d3.select('#graph')
-          .attr('width', width)
-          .attr('height', height)
+          .attr('width', '100%')
+          .attr('height', '100%')
 
         const linkGroup = svg.append('g').attr('class', 'links')
         const nodeGroup = svg.append('g').attr('class', 'nodes')
@@ -132,12 +129,15 @@
 
         const linkForce = d3.forceLink()
           .id(link => link.id)
-          .strength(link => link.strength)
+          .strength(0.1)
 
         const simulation = d3.forceSimulation()
-          .force('charge', d3.forceManyBody().strength(-120))
-          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('gravity', d3.forceManyBody().strength(100).distanceMin(450))
+          .force('charge', d3.forceManyBody().strength(-50))
+//          .force('center', d3.forceCenter(width / 2, height / 2))
           .force('link', linkForce)
+          .alphaMin(0.002)
+        console.log('force simulation minimum alpha value: ' + simulation.alphaMin())
 
         const dragDrop = d3.drag()
           .on('start', node => {
@@ -157,9 +157,10 @@
             node.fy = null
           })
 
-        const insertNode = (id, x, y) => {
+        const insertNode = (id, label, x, y) => {
           nodes.push({
             id: id,
+            label: label,
             x: x,
             y: y
           })
@@ -169,7 +170,8 @@
           const coordinates = d3.mouse(svg.node())
           console.log('Click event registered.  Coordinates:')
           console.log(coordinates)
-          insertNode(Math.random(), coordinates[0], coordinates[1])
+          const label = Math.random().toString()
+          insertNode(label, label, coordinates[0], coordinates[1])
         }
 
         svg.on('click', insertNodeOnClick)
@@ -227,6 +229,11 @@
 
             // Let the simulation know what links it is working with
             simulation.force('link').links(links)
+
+            // Raise the temperature of the force simulation, because otherwise, if the temperature is below alphaMin, the newly
+            // inserted nodes' positions will not get updated, and they will appear in the upper left corner of the svg
+            // until something causes the temperature to increase again past the threshold.
+            simulation.alpha(0.7)
           })
         }
 
