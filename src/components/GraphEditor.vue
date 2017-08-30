@@ -23,9 +23,12 @@
         </div>
       </div>
     </div>
-    <div id='graph'>
+    <svg id='graph'>
+      <g id='graph-links'></g>
+      <g id='graph-nodes'></g>
+      <g id='graph-texts'></g>
 
-    </div>
+    </svg>
   </div>
 </template>
 
@@ -115,11 +118,6 @@
     },
     methods: {
       initializeD3: function () {
-//        const groups = {
-//          0: 'mammal',
-//          1: 'insect',
-//          2: 'fish'
-//        }
         const nodes = this.nodes
         const links = this.links
 
@@ -127,9 +125,12 @@
         const height = window.innerHeight
 
         const svg = d3.select('#graph')
-          .append('svg')
           .attr('width', width)
           .attr('height', height)
+
+        const linkGroup = svg.select('#graph-links')
+        const nodeGroup = svg.select('#graph-nodes')
+        const textGroup = svg.select('#graph-texts')
 
         const linkForce = d3.forceLink()
           .id(link => link.id)
@@ -139,49 +140,6 @@
           .force('charge', d3.forceManyBody().strength(-120))
           .force('center', d3.forceCenter(width / 2, height / 2))
           .force('link', linkForce)
-
-        function getNodeColor (node) {
-          return node.level === 1 ? 'red' : 'gray'
-        }
-
-        const nodeElements = svg.append('g')
-          .selectAll('circle')
-          .data(nodes)
-          .enter().append('circle')
-          .attr('r', 20)
-          .attr('fill', getNodeColor)
-
-        const textElements = svg.append('g')
-          .selectAll('text')
-          .data(nodes)
-          .enter().append('text')
-          .text(node => node.label)
-          .attr('font-size', 15)
-          .attr('dx', 15)
-          .attr('dy', 4)
-
-        simulation.nodes(nodes).on('tick', () => {
-          nodeElements
-            .attr('cx', node => node.x)
-            .attr('cy', node => node.y)
-          textElements
-            .attr('x', node => node.x)
-            .attr('y', node => node.y)
-          linkElements
-            .attr('x1', link => link.source.x)
-            .attr('y1', link => link.source.y)
-            .attr('x2', link => link.target.x)
-            .attr('y2', link => link.target.y)
-        })
-
-        simulation.force('link').links(links)
-
-        const linkElements = svg.append('g')
-          .selectAll('line')
-          .data(links)
-          .enter().append('line')
-          .attr('stroke-width', 3)
-          .attr('stroke', '#E5E5E5')
 
         const dragDrop = d3.drag()
           .on('start', node => {
@@ -200,7 +158,50 @@
             node.fx = null
             node.fy = null
           })
-        nodeElements.call(dragDrop)
+
+        const nodeElements = nodeGroup
+          .selectAll('circle')
+          .data(nodes, node => node.id)
+          .enter().append('circle')
+          .attr('r', 20)
+          .attr('fill', node => node.level === 1 ? 'red' : 'gray')
+          .call(dragDrop)
+
+        const textElements = textGroup
+          .selectAll('text')
+          .data(nodes, node => node.id)
+          .enter().append('text')
+          .text(node => node.label)
+          .attr('font-size', 15)
+          .attr('dx', 15)
+          .attr('dy', 4)
+
+        const linkElements = linkGroup
+          .selectAll('line')
+          .data(links)
+          .enter().append('line')
+          .attr('stroke-width', 3)
+          .attr('stroke', '#E5E5E5')
+
+        function updateSimulation () {
+          simulation.nodes(nodes).on('tick', () => {
+            nodeElements
+              .attr('cx', node => node.x)
+              .attr('cy', node => node.y)
+            textElements
+              .attr('x', node => node.x)
+              .attr('y', node => node.y)
+            linkElements
+              .attr('x1', link => link.source.x)
+              .attr('y1', link => link.source.y)
+              .attr('x2', link => link.target.x)
+              .attr('y2', link => link.target.y)
+          })
+
+          // Let the simulation know what links it is working with
+          simulation.force('link').links(links)
+        }
+        updateSimulation()
 
         d3.selectAll('*').on('click', function (d) { console.log(d) })
       },
