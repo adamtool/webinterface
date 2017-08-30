@@ -169,40 +169,44 @@
           const coordinates = d3.mouse(svg.node())
           console.log('Click event registered.  Coordinates:')
           console.log(coordinates)
-          console.log(d)
-          console.log(i)
           insertNode(Math.random(), coordinates[0], coordinates[1])
         }
 
         svg.on('click', insertNodeOnClick)
-//        linkGroup.on('click', insertNodeOnClick)
-//        textGroup.on('click', insertNodeOnClick)
-//        nodeGroup.on('click', insertNodeOnClick)
 
         function refreshD3 () {
           nodeElements = nodeGroup
             .selectAll('circle')
             .data(nodes, node => node.id)
+          const nodeEnter = nodeElements
             .enter().append('circle')
             .attr('r', 20)
             .attr('fill', node => node.level === 1 ? 'red' : 'gray')
             .call(dragDrop)
+          nodeElements.exit().remove()
+          nodeElements = nodeEnter.merge(nodeElements)
 
           textElements = textGroup
             .selectAll('text')
             .data(nodes, node => node.id)
+          const textEnter = textElements
             .enter().append('text')
             .text(node => node.label)
             .attr('font-size', 15)
             .attr('dx', 15)
             .attr('dy', 4)
+          textElements.exit().remove()
+          textElements = textEnter.merge(textElements)
 
           linkElements = linkGroup
             .selectAll('line')
             .data(links)
+          const linkEnter = linkElements
             .enter().append('line')
             .attr('stroke-width', 3)
             .attr('stroke', '#E5E5E5')
+          linkElements.exit().remove()
+          linkElements = linkEnter.merge(linkElements)
 
           updateSimulation()
         }
