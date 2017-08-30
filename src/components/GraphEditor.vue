@@ -24,9 +24,6 @@
       </div>
     </div>
     <svg id='graph'>
-      <g id='graph-links'></g>
-      <g id='graph-nodes'></g>
-      <g id='graph-texts'></g>
 
     </svg>
   </div>
@@ -128,9 +125,9 @@
           .attr('width', width)
           .attr('height', height)
 
-        const linkGroup = svg.select('#graph-links')
-        const nodeGroup = svg.select('#graph-nodes')
-        const textGroup = svg.select('#graph-texts')
+        const linkGroup = svg.append('g').attr('class', 'links')
+        const nodeGroup = svg.append('g').attr('class', 'nodes')
+        const textGroup = svg.append('g').attr('class', 'texts')
 
         const linkForce = d3.forceLink()
           .id(link => link.id)
