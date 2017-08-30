@@ -128,6 +128,7 @@
         const linkGroup = svg.append('g').attr('class', 'links')
         const nodeGroup = svg.append('g').attr('class', 'nodes')
         const textGroup = svg.append('g').attr('class', 'texts')
+        let nodeElements, linkElements, textElements
 
         const linkForce = d3.forceLink()
           .id(link => link.id)
@@ -156,29 +157,55 @@
             node.fy = null
           })
 
-        const nodeElements = nodeGroup
-          .selectAll('circle')
-          .data(nodes, node => node.id)
-          .enter().append('circle')
-          .attr('r', 20)
-          .attr('fill', node => node.level === 1 ? 'red' : 'gray')
-          .call(dragDrop)
+        const insertNode = (id, x, y) => {
+          nodes.push({
+            id: id,
+            x: x,
+            y: y
+          })
+          refreshD3()
+        }
+        const insertNodeOnClick = (d, i) => {
+          const coordinates = d3.mouse(svg.node())
+          console.log('Click event registered.  Coordinates:')
+          console.log(coordinates)
+          console.log(d)
+          console.log(i)
+          insertNode(Math.random(), coordinates[0], coordinates[1])
+        }
 
-        const textElements = textGroup
-          .selectAll('text')
-          .data(nodes, node => node.id)
-          .enter().append('text')
-          .text(node => node.label)
-          .attr('font-size', 15)
-          .attr('dx', 15)
-          .attr('dy', 4)
+        svg.on('click', insertNodeOnClick)
+//        linkGroup.on('click', insertNodeOnClick)
+//        textGroup.on('click', insertNodeOnClick)
+//        nodeGroup.on('click', insertNodeOnClick)
 
-        const linkElements = linkGroup
-          .selectAll('line')
-          .data(links)
-          .enter().append('line')
-          .attr('stroke-width', 3)
-          .attr('stroke', '#E5E5E5')
+        function refreshD3 () {
+          nodeElements = nodeGroup
+            .selectAll('circle')
+            .data(nodes, node => node.id)
+            .enter().append('circle')
+            .attr('r', 20)
+            .attr('fill', node => node.level === 1 ? 'red' : 'gray')
+            .call(dragDrop)
+
+          textElements = textGroup
+            .selectAll('text')
+            .data(nodes, node => node.id)
+            .enter().append('text')
+            .text(node => node.label)
+            .attr('font-size', 15)
+            .attr('dx', 15)
+            .attr('dy', 4)
+
+          linkElements = linkGroup
+            .selectAll('line')
+            .data(links)
+            .enter().append('line')
+            .attr('stroke-width', 3)
+            .attr('stroke', '#E5E5E5')
+
+          updateSimulation()
+        }
 
         function updateSimulation () {
           simulation.nodes(nodes).on('tick', () => {
@@ -193,14 +220,15 @@
               .attr('y1', link => link.source.y)
               .attr('x2', link => link.target.x)
               .attr('y2', link => link.target.y)
+
+            // Let the simulation know what links it is working with
+            simulation.force('link').links(links)
           })
-
-          // Let the simulation know what links it is working with
-          simulation.force('link').links(links)
         }
-        updateSimulation()
 
-        d3.selectAll('*').on('click', function (d) { console.log(d) })
+        refreshD3()
+
+//        d3.selectAll('*').on('click', function (d) { console.log(d) })
       },
       // Export graph as Json.  TODO eliminate this step of the process.  (It's unnecessary.)
       exportJson: function () {
