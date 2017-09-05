@@ -180,12 +180,18 @@
         this.svg.on('click', insertNodeOnClick)
 
         console.log(this.svg.node())
-        const svgX = this.svg.node().clientWidth
-        const svgY = this.svg.node().clientHeight
-        const centerStrength = 0.03
-//        this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
-        this.simulation.force('centerX', d3.forceX(svgX / 2).strength(centerStrength))
-        this.simulation.force('centerY', d3.forceY(svgY / 2).strength(centerStrength))
+        const updateCenterForce = () => {
+          console.log('Updating center force')
+          const svgWidth = this.svg.node().clientWidth
+          const svgHeight = this.svg.node().clientHeight
+          // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
+          // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
+          const centerStrength = 0.01
+          this.simulation.force('centerX', d3.forceX(svgWidth / 2).strength(centerStrength))
+          this.simulation.force('centerY', d3.forceY(svgHeight / 2).strength(centerStrength))
+        }
+        window.addEventListener('resize', updateCenterForce)
+        updateCenterForce()
 
         this.refreshD3()
 
