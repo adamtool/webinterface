@@ -53,16 +53,7 @@
       this.initializeD3()
     },
     props: ['parentGraph'],
-    computed: {
-      graphApt: function () {
-        return this.convertCytographJsonToApt(this.exportedGraphJson)
-      }
-    },
     watch: {
-      graphApt: function (apt) {
-        console.log('Emitting graphModified event: ' + apt)
-        this.$emit('graphModified', apt)
-      },
       parentGraph: function (graph) {
         console.log('GraphEditor: parentGraph changed: ' + graph)
         /* When parentGraph changes, this most likely means that the user changed something in the
@@ -143,10 +134,16 @@
             if (!d3.event.active) {
               this.simulation.alphaTarget(0)
             }
+            this.onGraphModified()
           })
       }
     },
     methods: {
+      onGraphModified: function () {
+        const apt = this.convertGraphToApt(this.nodes, this.links)
+        console.log('Emitting graphModified event: ' + apt)
+        this.$emit('graphModified', apt)
+      },
       initializeD3: function () {
         this.svg = d3.select('#graph')
           .attr('width', '100%')
@@ -166,6 +163,7 @@
             y: y
           })
           this.refreshD3()
+          this.onGraphModified()
         }
         const insertNodeOnClick = () => {
           const coordinates = d3.mouse(this.svg.node())
@@ -208,6 +206,7 @@
             d3.event.stopPropagation() // Do this, or else a new node will be placed underneath the node you clicked
             d.fx = null
             d.fy = null
+            this.onGraphModified()
           })
         newNodeElements.exit().remove()
         this.nodeElements = nodeEnter.merge(newNodeElements)
@@ -265,10 +264,6 @@
           this.simulation.alpha(0.7)
         })
       },
-      // Export graph as Json.  TODO eliminate this step of the process.  (It's unnecessary.)
-      exportJson: function () {
-        this.exportedGraphJson = this.cy.json()
-      },
       /**
        * Convert my custom graph JSON format into D3's own JSON format.
        */
@@ -304,27 +299,20 @@
           links: links
         }
       },
-      /**
-       * Convert Cytograph's JSON format into APT
-       * // TODO skip the step of JSON export.  Just export the data structure directly
-       * @param json
-       */
-      convertCytographJsonToApt: function (json) {
-        if (!json.elements) {
-          return ''
-        }
-        let nodes = json.elements.nodes
-        let nodesApt = !nodes ? '' : nodes.map(node => {
-          let coordinateString = `["x"="${node.position.x.toFixed(0)}", "y"="${node.position.y.toFixed(0)}, "fixed"="${node.data.fixedByUser ? 'true' : 'false'}"]`
-          let nodeRepresentation = node.data.id + coordinateString
+      convertGraphToApt: function (nodes, links) {
+        const nodesApt = nodes.map(node => {
+          const isNodeFixed = !!node.fx // This is a possibly confusing way of checking if node.fx is defined.  node.fy could also be used here.
+          const xCoord = isNodeFixed ? node.fx : node.x
+          const yCoord = isNodeFixed ? node.fy : node.y
+          const coordinateString = `["x"="${xCoord.toFixed(0)}", "y"="${yCoord.toFixed(0)}", "fixed"="${isNodeFixed}"]`
+          const nodeRepresentation = node.id + coordinateString
           return nodeRepresentation
         }).join('\n')
-        let edges = json.elements.edges
-        let edgesApt = !edges ? '' : edges.map(edge => {
-          let edgeString = `${edge.data.source} -> ${edge.data.target}`
-          return edgeString
+        const linksApt = links.map(link => {
+          const linkString = `${link.source.id} -> ${link.target.id}`
+          return linkString
         }).join('\n')
-        return `# Nodes\n${nodesApt}\n\n# Edges\n${edgesApt}`
+        return `# Nodes\n${nodesApt}\n\n# Links\n${linksApt}`
       }
     }
   }

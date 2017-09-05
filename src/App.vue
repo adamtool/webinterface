@@ -16,7 +16,7 @@
         <div>
           <button v-on:click="replaceGraph">Create new random graph</button>
         </div>
-        <!--<AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>-->
+        <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
       </div>
       <div class='col-md-8'>
         <GraphEditor v-bind:parentGraph='graph' v-on:graphModified='onGraphModified'></GraphEditor>
