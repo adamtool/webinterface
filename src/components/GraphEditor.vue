@@ -122,12 +122,12 @@
         linkElements: undefined,
         textElements: undefined,
         simulation: d3.forceSimulation()
-          .force('gravity', d3.forceManyBody().strength(100).distanceMin(450))
+          .force('gravity', d3.forceManyBody().strength(100).distanceMin(1000))
           .force('charge', d3.forceManyBody().strength(-62))
           //          .force('center', d3.forceCenter(width / 2, height / 2))
           .force('link', d3.forceLink()
             .id(link => link.id)
-            .strength(0.1))
+            .strength(0.05))
           .alphaMin(0.002),
         dragDrop: d3.drag()
           .on('start', node => {
@@ -205,7 +205,7 @@
           .attr('fill', node => node.level === 1 ? 'red' : 'gray')
           .call(this.dragDrop)
           .on('click', (d) => {
-            d3.event.stopPropagation()
+            d3.event.stopPropagation() // Do this, or else a new node will be placed underneath the node you clicked
             d.fx = null
             d.fy = null
           })
@@ -221,6 +221,12 @@
           .attr('font-size', 15)
           .attr('dx', 15)
           .attr('dy', 4)
+          .call(this.dragDrop)
+          .on('click', (d) => {
+            d3.event.stopPropagation()
+            d.fx = null
+            d.fy = null
+          })
         newTextElements.exit().remove()
         this.textElements = textEnter.merge(newTextElements)
 
@@ -264,9 +270,7 @@
         this.exportedGraphJson = this.cy.json()
       },
       /**
-       * Convert my own custom graph JSON format into D3's own JSON format.
-       * TODO: Use x and y coordinates provided in JSON.  Consider just using D3's format to begin with.
-       *
+       * Convert my custom graph JSON format into D3's own JSON format.
        */
       convertCustomGraphJsonToD3: function (graph) {
         let nodes = []
@@ -277,7 +281,10 @@
             id: node.toString(),
             label: node.toString(),
             group: 0,
-            level: 0
+            level: 0,
+            // TODO: Use the x/y coordinates given to us if they're provided
+            x: this.svg.node().clientWidth / 2,
+            y: this.svg.node().clientHeight / 2
           })
         }
 
