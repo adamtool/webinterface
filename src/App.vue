@@ -43,8 +43,8 @@
     },
     data: function () {
       return {
-        numberOfNodes: 5,
-        numberOfEdges: 5,
+        numberOfNodes: 50,
+        numberOfEdges: 50,
         graph: this.makeRandomGraph(this.numberOfNodes, this.numberOfEdges),
         apt: '1 -> 2'
       }
