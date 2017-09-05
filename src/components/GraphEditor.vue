@@ -123,7 +123,7 @@
         textElements: undefined,
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().strength(100).distanceMin(450))
-          .force('charge', d3.forceManyBody().strength(-50))
+          .force('charge', d3.forceManyBody().strength(-62))
           //          .force('center', d3.forceCenter(width / 2, height / 2))
           .force('link', d3.forceLink()
             .id(link => link.id)
@@ -143,8 +143,6 @@
             if (!d3.event.active) {
               this.simulation.alphaTarget(0)
             }
-            node.fx = null
-            node.fy = null
           })
       }
     },
@@ -206,6 +204,11 @@
           .attr('r', 20)
           .attr('fill', node => node.level === 1 ? 'red' : 'gray')
           .call(this.dragDrop)
+          .on('click', (d) => {
+            d3.event.stopPropagation()
+            d.fx = null
+            d.fy = null
+          })
         newNodeElements.exit().remove()
         this.nodeElements = nodeEnter.merge(newNodeElements)
 
