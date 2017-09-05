@@ -75,7 +75,10 @@
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
          this component.
          */
-        this.initializeD3()
+        const convertedGraph = this.convertCustomGraphJsonToD3(graph)
+        this.nodes = convertedGraph.nodes
+        this.links = convertedGraph.links
+        this.refreshD3()
       }
     },
     data () {
