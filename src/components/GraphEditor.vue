@@ -150,8 +150,6 @@
     },
     methods: {
       initializeD3: function () {
-        const nodes = this.nodes
-
         this.svg = d3.select('#graph')
           .attr('width', '100%')
           .attr('height', '100%')
@@ -163,7 +161,7 @@
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
         const insertNode = (id, label, x, y) => {
-          nodes.push({
+          this.nodes.push({
             id: id,
             label: label,
             x: x,
@@ -180,6 +178,15 @@
         }
 
         this.svg.on('click', insertNodeOnClick)
+
+        console.log(this.svg.node())
+        const svgX = this.svg.node().clientWidth
+        const svgY = this.svg.node().clientHeight
+        const centerStrength = 0.03
+//        this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
+        this.simulation.force('centerX', d3.forceX(svgX / 2).strength(centerStrength))
+        this.simulation.force('centerY', d3.forceY(svgY / 2).strength(centerStrength))
+
         this.refreshD3()
 
 //        d3.selectAll('*').on('click', function (d) { console.log(d) })
