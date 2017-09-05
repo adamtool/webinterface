@@ -18,7 +18,7 @@
       </div>
       <div class="row">
         <div class="col-12">
-          <button class="btn btn-primary" v-on:click="initializeD3">Refresh Graph</button>
+          <button class="btn btn-primary" v-on:click="refreshD3">Refresh Graph</button>
           <div>Cytoscape graph:</div>
         </div>
       </div>
@@ -49,6 +49,35 @@
   export default {
     name: 'graph-editor',
     components: {},
+    mounted: function () {
+      this.initializeD3()
+    },
+    props: ['parentGraph'],
+    computed: {
+      graphApt: function () {
+        return this.convertCytographJsonToApt(this.exportedGraphJson)
+      }
+    },
+    watch: {
+      graphApt: function (apt) {
+        console.log('Emitting graphModified event: ' + apt)
+        this.$emit('graphModified', apt)
+      },
+      parentGraph: function (graph) {
+        console.log('GraphEditor: parentGraph changed: ' + graph)
+        /* When parentGraph changes, this most likely means that the user changed something in the
+         APT editor, causing the APT to be parsed on the server, yielding a new graph.
+         And then they hit the button "Send Graph to Editor".
+
+         This would also be fired if the 'parentGraph' prop changed in response to any other
+         events, such as after "Load"ing a saved graph in the main App's UI.
+
+         In response, we will update the graph that is being edited in the drag-and-drop GUI of
+         this component.
+         */
+        this.initializeD3()
+      }
+    },
     data () {
       return {
         exportedGraphJson: {},
@@ -81,81 +110,54 @@
           {target: 'dog', source: 'cat', strength: 0.1},
           {target: 'fox', source: 'ant', strength: 0.1},
           {target: 'pike', source: 'dog', strength: 0.1}
-        ]
-      }
-    },
-    mounted: function () {
-      this.initializeD3()
-    },
-    props: ['parentGraph'],
-    computed: {
-      graphApt: function () {
-        return this.convertCytographJsonToApt(this.exportedGraphJson)
-      }
-    },
-    watch: {
-      graphApt: function (apt) {
-        console.log('Emitting graphModified event: ' + apt)
-        this.$emit('graphModified', apt)
-      },
-      parentGraph: function (graph) {
-        console.log('GraphEditor: parentGraph changed: ' + graph)
-        /* When parentGraph changes, this most likely means that the user changed something in the
-         APT editor, causing the APT to be parsed on the server, yielding a new graph.
-         And then they hit the button "Send Graph to Editor".
-
-         This would also be fired if the 'parentGraph' prop changed in response to any other
-         events, such as after "Load"ing a saved graph in the main App's UI.
-
-         In response, we will update the graph that is being edited in the drag-and-drop GUI of
-         this component.
-         */
-        this.initializeD3()
-      }
-    },
-    methods: {
-      initializeD3: function () {
-        const nodes = this.nodes
-        const links = this.links
-
-        const svg = d3.select('#graph')
-          .attr('width', '100%')
-          .attr('height', '100%')
-
-        const linkGroup = svg.append('g').attr('class', 'links')
-        const nodeGroup = svg.append('g').attr('class', 'nodes')
-        const textGroup = svg.append('g').attr('class', 'texts')
-        let nodeElements, linkElements, textElements
-
-        const linkForce = d3.forceLink()
-          .id(link => link.id)
-          .strength(0.1)
-
-        const simulation = d3.forceSimulation()
+        ],
+        svg: undefined,
+        linkGroup: undefined,
+        nodeGroup: undefined,
+        textGroup: undefined,
+        nodeElements: undefined,
+        linkElements: undefined,
+        textElements: undefined,
+        simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().strength(100).distanceMin(450))
           .force('charge', d3.forceManyBody().strength(-50))
-//          .force('center', d3.forceCenter(width / 2, height / 2))
-          .force('link', linkForce)
-          .alphaMin(0.002)
-        console.log('force simulation minimum alpha value: ' + simulation.alphaMin())
-
-        const dragDrop = d3.drag()
+          //          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('link', d3.forceLink()
+            .id(link => link.id)
+            .strength(0.1))
+          .alphaMin(0.002),
+        dragDrop: d3.drag()
           .on('start', node => {
             node.fx = node.x
             node.fy = node.y
           })
           .on('drag', node => {
-            simulation.alphaTarget(0.7).restart()
+            this.simulation.alphaTarget(0.7).restart()
             node.fx = d3.event.x
             node.fy = d3.event.y
           })
           .on('end', node => {
             if (!d3.event.active) {
-              simulation.alphaTarget(0)
+              this.simulation.alphaTarget(0)
             }
             node.fx = null
             node.fy = null
           })
+      }
+    },
+    methods: {
+      initializeD3: function () {
+        const nodes = this.nodes
+
+        this.svg = d3.select('#graph')
+          .attr('width', '100%')
+          .attr('height', '100%')
+
+        this.linkGroup = this.svg.append('g').attr('class', 'links')
+        this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
+        this.textGroup = this.svg.append('g').attr('class', 'texts')
+
+        console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
         const insertNode = (id, label, x, y) => {
           nodes.push({
@@ -164,82 +166,79 @@
             x: x,
             y: y
           })
-          refreshD3()
+          this.refreshD3()
         }
-        const insertNodeOnClick = (d, i) => {
-          const coordinates = d3.mouse(svg.node())
+        const insertNodeOnClick = () => {
+          const coordinates = d3.mouse(this.svg.node())
           console.log('Click event registered.  Coordinates:')
           console.log(coordinates)
           const label = Math.random().toString()
           insertNode(label, label, coordinates[0], coordinates[1])
         }
 
-        svg.on('click', insertNodeOnClick)
-
-        function refreshD3 () {
-          nodeElements = nodeGroup
-            .selectAll('circle')
-            .data(nodes, node => node.id)
-          const nodeEnter = nodeElements
-            .enter().append('circle')
-            .attr('r', 20)
-            .attr('fill', node => node.level === 1 ? 'red' : 'gray')
-            .call(dragDrop)
-          nodeElements.exit().remove()
-          nodeElements = nodeEnter.merge(nodeElements)
-
-          textElements = textGroup
-            .selectAll('text')
-            .data(nodes, node => node.id)
-          const textEnter = textElements
-            .enter().append('text')
-            .text(node => node.label)
-            .attr('font-size', 15)
-            .attr('dx', 15)
-            .attr('dy', 4)
-          textElements.exit().remove()
-          textElements = textEnter.merge(textElements)
-
-          linkElements = linkGroup
-            .selectAll('line')
-            .data(links)
-          const linkEnter = linkElements
-            .enter().append('line')
-            .attr('stroke-width', 3)
-            .attr('stroke', '#E5E5E5')
-          linkElements.exit().remove()
-          linkElements = linkEnter.merge(linkElements)
-
-          updateSimulation()
-        }
-
-        function updateSimulation () {
-          simulation.nodes(nodes).on('tick', () => {
-            nodeElements
-              .attr('cx', node => node.x)
-              .attr('cy', node => node.y)
-            textElements
-              .attr('x', node => node.x)
-              .attr('y', node => node.y)
-            linkElements
-              .attr('x1', link => link.source.x)
-              .attr('y1', link => link.source.y)
-              .attr('x2', link => link.target.x)
-              .attr('y2', link => link.target.y)
-
-            // Let the simulation know what links it is working with
-            simulation.force('link').links(links)
-
-            // Raise the temperature of the force simulation, because otherwise, if the temperature is below alphaMin, the newly
-            // inserted nodes' positions will not get updated, and they will appear in the upper left corner of the svg
-            // until something causes the temperature to increase again past the threshold.
-            simulation.alpha(0.7)
-          })
-        }
-
-        refreshD3()
+        this.svg.on('click', insertNodeOnClick)
+        this.refreshD3()
 
 //        d3.selectAll('*').on('click', function (d) { console.log(d) })
+      },
+      refreshD3: function () {
+        const newNodeElements = this.nodeGroup
+          .selectAll('circle')
+          .data(this.nodes, node => node.id)
+        const nodeEnter = newNodeElements
+          .enter().append('circle')
+          .attr('r', 20)
+          .attr('fill', node => node.level === 1 ? 'red' : 'gray')
+          .call(this.dragDrop)
+        newNodeElements.exit().remove()
+        this.nodeElements = nodeEnter.merge(newNodeElements)
+
+        const newTextElements = this.textGroup
+          .selectAll('text')
+          .data(this.nodes, node => node.id)
+        const textEnter = newTextElements
+          .enter().append('text')
+          .text(node => node.label)
+          .attr('font-size', 15)
+          .attr('dx', 15)
+          .attr('dy', 4)
+        newTextElements.exit().remove()
+        this.textElements = textEnter.merge(newTextElements)
+
+        const newLinkElements = this.linkGroup
+          .selectAll('line')
+          .data(this.links)
+        const linkEnter = newLinkElements
+          .enter().append('line')
+          .attr('stroke-width', 3)
+          .attr('stroke', '#E5E5E5')
+        newLinkElements.exit().remove()
+        this.linkElements = linkEnter.merge(newLinkElements)
+
+        this.updateSimulation()
+      },
+      updateSimulation: function () {
+        this.simulation.nodes(this.nodes).on('tick', () => {
+          this.nodeElements
+            .attr('cx', node => node.x)
+            .attr('cy', node => node.y)
+          this.textElements
+            .attr('x', node => node.x)
+            .attr('y', node => node.y)
+          this.linkElements
+            .attr('x1', link => link.source.x)
+            .attr('y1', link => link.source.y)
+            .attr('x2', link => link.target.x)
+            .attr('y2', link => link.target.y)
+
+          // Let the simulation know what links it is working with
+          this.simulation.force('link').links(this.links)
+
+          // Raise the temperature of the force simulation, because otherwise, if the temperature is below alphaMin, the newly
+          // inserted nodes' positions will not get updated, and they will appear in the upper left corner of the svg
+          // until something causes the temperature to increase again past the threshold.
+          this.simulation.alpha(0.7)
+        })
       },
       // Export graph as Json.  TODO eliminate this step of the process.  (It's unnecessary.)
       exportJson: function () {
