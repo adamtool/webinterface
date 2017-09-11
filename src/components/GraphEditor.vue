@@ -114,7 +114,7 @@
         textElements: undefined,
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().strength(100).distanceMin(1000))
-          .force('charge', d3.forceManyBody().strength(-62))
+          .force('charge', d3.forceManyBody().strength(-80))
           //          .force('center', d3.forceCenter(width / 2, height / 2))
           .force('link', d3.forceLink()
             .id(link => link.id)
@@ -218,7 +218,7 @@
           .enter().append('text')
           .text(node => node.label)
           .attr('font-size', 15)
-          .attr('dx', 15)
+          .attr('dx', 25)
           .attr('dy', 4)
           .call(this.dragDrop)
           .on('click', (d) => {
