@@ -23,27 +23,30 @@
   import * as axios from 'axios'
   import * as MockAdapter from 'axios-mock-adapter'
 
-  let mock = new MockAdapter(axios, {
+  function activateMock (axios) {
+    const mock = new MockAdapter(axios, {
 //    delayResponse: 100
-  })
+    })
 
-  mock.onPost('/aptToGraph', {
-    params: {
-      aptSourceCode: '1 -> 2'
-    }
-  }).reply(200, {
-    graph: {
-      nodes: [1, 2],
-      edges: [[1, 2]]
-    }
-  })
+    mock.onPost('/aptToGraph', {
+      params: {
+        aptSourceCode: '1 -> 2'
+      }
+    }).reply(200, {
+      graph: {
+        nodes: [1, 2],
+        edges: [[1, 2]]
+      }
+    })
 
-  mock.onPost('/aptToGraph').reply(200, {
-    graph: {
-      nodes: [],
-      edges: []
-    }
-  })
+    mock.onPost('/aptToGraph').reply(200, {
+      graph: {
+        nodes: [],
+        edges: []
+      }
+    })
+  }
+  activateMock // This has to be here so the code will compile.  TODO: refactor
 
   export default {
     name: 'apt-editor',
@@ -64,7 +67,7 @@
     methods: {
       renderGraph: function () {
         console.log('Sending APT source code to backend: ' + this.textInput)
-        axios.post('/aptToGraph', {
+        axios.post('http://localhost:4567/convertAptToGraph', {
           params: {
             aptSourceCode: this.textInput
           }

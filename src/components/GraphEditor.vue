@@ -66,7 +66,7 @@
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
          this component.
          */
-        const convertedGraph = this.convertCustomGraphJsonToD3(graph)
+        const convertedGraph = this.validateGraphJson(graph)
         this.nodes = convertedGraph.nodes
         this.links = convertedGraph.links
         this.refreshD3()
@@ -265,39 +265,34 @@
         })
       },
       /**
-       * Convert my custom graph JSON format into D3's own JSON format.
+       * Validate the json graph representation given to us from the backend.
+       * Make sure it has all the properties we expect to see.
        */
-      convertCustomGraphJsonToD3: function (graph) {
-        let nodes = []
-        for (let i = 0; i < graph.nodes.length; i++) {
-          let node = graph.nodes[i]
+      validateGraphJson: function (graphJson) {
+        for (let i = 0; i < graphJson.nodes.length; i++) {
+          let node = graphJson.nodes[i]
           console.log('converting node:' + node)
-          nodes.push({
-            id: node.toString(),
-            label: node.toString(),
-            group: 0,
-            level: 0,
-            // TODO: Use the x/y coordinates given to us if they're provided
-            x: this.svg.node().clientWidth / 2,
-            y: this.svg.node().clientHeight / 2
-          })
+          if (!node.x) {
+            console.log('x coordinate not specified.  Placing node at center of screen')
+            node.x = this.svg.node().clientWidth / 2
+          }
+          if (!node.y) {
+            console.log('y coordinate not specified.  Placing node at center of screen')
+            node.y = this.svg.node().clientHeight / 2
+          }
+
+          node.group = 0
+          node.level = 0
+          // TODO: Check that all nodes have their id/label/type specified.
+          // TODO: Make a defensive copy of the graph.  Otherwise, weird bugs may pop up.
         }
 
-        let links = []
-        console.log('converting edges: ' + graph.edges)
-        for (let i = 0; i < graph.edges.length; i++) {
-          let edge = graph.edges[i]
-          console.log('converting edge: ' + edge)
-          links.push({
-            source: edge[0].toString(),
-            target: edge[1].toString(),
-            strength: 0.1
-          })
+        console.log('converting links: ' + graphJson.links)
+        for (let i = 0; i < graphJson.links.length; i++) {
+          let link = graphJson.links[i]
+          console.log('converting link: ' + link)
         }
-        return {
-          nodes: nodes,
-          links: links
-        }
+        return graphJson
       },
       convertGraphToApt: function (nodes, links) {
         const nodesApt = nodes.map(node => {
