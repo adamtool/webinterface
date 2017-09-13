@@ -280,6 +280,10 @@
             console.log('y coordinate not specified.  Placing node at center of screen')
             node.y = this.svg.node().clientHeight / 2
           }
+          if (node.isPositionFixed) {
+            node.fx = node.x
+            node.fy = node.y
+          }
 
           node.group = 0
           node.level = 0
