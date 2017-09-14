@@ -178,13 +178,11 @@
         console.log(this.svg.node())
         const updateCenterForce = () => {
           console.log('Updating center force')
-          const svgWidth = this.svg.node().clientWidth
-          const svgHeight = this.svg.node().clientHeight
           // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
           // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
           const centerStrength = 0.01
-          this.simulation.force('centerX', d3.forceX(svgWidth / 2).strength(centerStrength))
-          this.simulation.force('centerY', d3.forceY(svgHeight / 2).strength(centerStrength))
+          this.simulation.force('centerX', d3.forceX(this.svgWidth() / 2).strength(centerStrength))
+          this.simulation.force('centerY', d3.forceY(this.svgHeight() / 2).strength(centerStrength))
         }
         window.addEventListener('resize', updateCenterForce)
         updateCenterForce()
@@ -278,8 +276,8 @@
             group: 0,
             level: 0,
             // TODO: Use the x/y coordinates given to us if they're provided
-            x: this.svg.node().clientWidth / 2,
-            y: this.svg.node().clientHeight / 2
+            x: this.svgWidth() / 2,
+            y: this.svgHeight() / 2
           })
         }
 
@@ -313,6 +311,12 @@
           return linkString
         }).join('\n')
         return `# Nodes\n${nodesApt}\n\n# Links\n${linksApt}`
+      },
+      svgWidth: function () {
+        return this.svg.node().getBoundingClientRect().width
+      },
+      svgHeight: function () {
+        return this.svg.node().getBoundingClientRect().height
       }
     }
   }
