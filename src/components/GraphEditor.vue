@@ -10,262 +10,50 @@
         <div class="col-12">
           Graph passed in from our parent:
           <div>{{ parentGraph }}</div>
+          <!--Our nodes:-->
+          <!--<div>{{ nodes }}</div>-->
+          <!--Our links:-->
+          <!--<div>{{ links }}</div>-->
         </div>
       </div>
       <div class="row">
         <div class="col-12">
-          <button class="btn btn-primary" v-on:click="refreshCytoscape">Refresh Cytoscape</button>
+          <button class="btn btn-primary" v-on:click="refreshD3">Refresh Graph</button>
           <div>Cytoscape graph:</div>
         </div>
       </div>
     </div>
-    <div id='cy'>
+    <svg id='graph'>
 
-    </div>
+    </svg>
   </div>
 </template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style>
   #graph-editor {
     height: 95vh;
     display: flex;
     flex-direction: column;
   }
 
-  #cy {
+  #graph {
     flex-grow: 1;
     text-align: left;
   }
 </style>
 
 <script>
-  //  import * as Vue from 'vue'
-  import * as cytoscape from 'cytoscape'
-  import * as cytoscapeCola from 'cytoscape-cola'
-  import * as cytoscapeEuler from 'cytoscape-euler'
-  import * as cytoscapeSpread from 'cytoscape-spread'
-  import * as cytoscapeSpringy from 'cytoscape-springy'
-
-  cytoscapeSpringy(cytoscape)
-  cytoscapeSpread(cytoscape)
-
-  cytoscapeCola(cytoscape) // Register the cola.js layout extension with cytoscape
-  cytoscape.use(cytoscapeEuler) // Register the Euler layout extension
+  import * as d3 from 'd3'
 
   export default {
     name: 'graph-editor',
     components: {},
-    data () {
-      return {
-        exportedGraphJson: {},
-        cy: undefined,
-        layout: undefined
-      }
-    },
     mounted: function () {
-      this.refreshCytoscape()
-    },
-    methods: {
-
-      /**
-       * Re-initialize our instance of Cytoscape using the graph given to us through the
-       * 'parentGraph' prop.
-       */
-      refreshCytoscape: function () {
-        let elements = this.convertCustomGraphJsonToCytoscape(this.parentGraph)
-        // TODO: Figure out how to get decent debug output instead of a bunch of [object Object]
-        console.log('Converted graph into cytoscapes format: ' + elements)
-        this.cy = this.makeCytoscape(elements)
-      },
-      /**
-       * Create a new instance of Cytoscape and embed it in the div #cy.
-       * Set up all of our UI input event handlers.
-       *
-       * @param elements See http://js.cytoscape.org/#notation/elements-json
-       */
-      makeCytoscape: function (elements) {
-        let cy
-
-        const initialLayout = {
-          name: 'null',
-          fit: true,
-          animate: false
-        }
-        cy = cytoscape({
-          container: document.getElementById('cy'),
-          elements: elements,
-          minZoom: 0.5,
-          maxZoom: 2,
-          wheelSensitivity: 0.3,
-          style: [ // the stylesheet for the graph
-            {
-              selector: 'node',
-              style: {
-                'label': 'data(id)'
-//                'width': 10,
-//                'height': 10
-              }
-            },
-            {
-              selector: '[?fixedByUser]',
-              style: {
-                'background-color': '#111'
-              }
-            },
-            {
-              selector: '[!fixedByUser]',
-              style: {
-                'background-color': '#777'
-              }
-            },
-            {
-              selector: 'edge',
-              style: {
-                'width': 3,
-                'line-color': '#ccc',
-                'curve-style': 'haystack',
-                'mid-target-arrow-color': '#000',
-                'mid-target-arrow-shape': 'triangle'
-              }
-            }
-          ],
-          layout: initialLayout
-        })
-        console.log('initialized cytoscape: ' + cy)
-
-        this.layout = cy.layout({
-          name: 'cola',
-          animate: true,
-          infinite: true,
-          fit: false
-        })
-        this.layout.run()
-
-        function layoutNodes () {
-
-        }
-
-//        const layout = cy.layout({ name: 'euler' })
-//        layout.run()
-//         Run the euler layout in an infinite loop
-//        layout.on('layoutstop', function (event) {
-//          console.log('restarting layout')
-//          layout.run()
-//        })
-//        layout.pon('layoutstop').then(function (event) {
-//          console.log('layout stop promise fulfilled')
-//        })
-
-        let self = this
-        cy.nodes().on('click', function (event) {
-          console.log(`Clicked node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
-//          console.log(`Unlocking node: ${event.target.id()}`)
-//          event.target.unlock()
-          // console.log(`Set fixedByUser=false for node id: ${event.target.id()}`)
-          // event.target.data('fixedByUser', false)
-          // layoutUnfixedNodes()
-          // self.exportJson()
-        })
-
-        cy.nodes().on('cxttap', function (rightClickEvent) {
-          console.log(`Event: Right clicked node ${rightClickEvent.target.id()}`)
-          rightClickEvent.target.data('fixedByUser', false)
-          rightClickEvent.target.unlock()
-
-          layoutNodes()
-          self.exportJson()
-        })
-
-        cy.nodes().on('free', function (event) {
-          console.log(`Let go of node:${event.target.id()} with position x: ${event.target.position('x')}, y: ${event.target.position('y')}`)
-          console.log(event)
-          event.target.data('fixedByUser', true)
-          event.target.lock()
-          console.log(`Locking node id: ${event.target.id()}`)
-          console.log(`Set fixedByUser=true for node id: ${event.target.id()}`)
-          layoutNodes()
-          self.exportJson()
-        })
-        console.log('Added free event handler')
-        cy.nodes().on('mouseover', function (event) {
-          if (event.target.data('fixedByUser')) { event.target.unlock() }
-          self.layout.stop()
-          console.log('stopping layout')
-        })
-        cy.nodes().on('mouseout', function (event) {
-          if (event.target.data('fixedByUser')) { event.target.lock() }
-          self.layout.run()
-          console.log('starting layout')
-        })
-        return cy
-      },
-      // Export graph as Json.  TODO eliminate this step of the process.  (It's unnecessary.)
-      exportJson: function () {
-        this.exportedGraphJson = this.cy.json()
-      },
-      /**
-       * Convert my own custom graph JSON format into Cytoscape's own JSON format.
-       * TODO: Support X and Y coordinates.  Consider just using Cytoscape's format to begin with.
-       *
-       */
-      convertCustomGraphJsonToCytoscape: function (graph) {
-        let elements = []
-        for (let i = 0; i < graph.nodes.length; i++) {
-          let node = graph.nodes[i]
-          console.log('converting node:' + node)
-          elements.push({
-            data: {id: node.toString()}
-          })
-        }
-        console.log('converting edges: ' + graph.edges)
-        for (let i = 0; i < graph.edges.length; i++) {
-          let edge = graph.edges[i]
-          console.log('converting edge: ' + edge)
-          elements.push({
-            data: {
-              id: edge[0].toString() + '->' + edge[1].toString(),
-              source: edge[0].toString(),
-              target: edge[1].toString()
-            }
-          })
-        }
-        return elements
-      },
-      /**
-       * Convert Cytograph's JSON format into APT
-       * // TODO skip the step of JSON export.  Just export the data structure directly
-       * @param json
-       */
-      convertCytographJsonToApt: function (json) {
-        if (!json.elements) {
-          return ''
-        }
-        let nodes = json.elements.nodes
-        let nodesApt = !nodes ? '' : nodes.map(node => {
-          let coordinateString = `["x"="${node.position.x.toFixed(0)}", "y"="${node.position.y.toFixed(0)}, "fixed"="${node.data.fixedByUser ? 'true' : 'false'}"]`
-          let nodeRepresentation = node.data.id + coordinateString
-          return nodeRepresentation
-        }).join('\n')
-        let edges = json.elements.edges
-        let edgesApt = !edges ? '' : edges.map(edge => {
-          let edgeString = `${edge.data.source} -> ${edge.data.target}`
-          return edgeString
-        }).join('\n')
-        return `# Nodes\n${nodesApt}\n\n# Edges\n${edgesApt}`
-      }
-    },
-    computed: {
-      graphApt: function () {
-        return this.convertCytographJsonToApt(this.exportedGraphJson)
-      }
+      this.initializeD3()
     },
     props: ['parentGraph'],
     watch: {
-      graphApt: function (apt) {
-        console.log('Emitting graphModified event: ' + apt)
-        this.$emit('graphModified', apt)
-      },
       parentGraph: function (graph) {
         console.log('GraphEditor: parentGraph changed: ' + graph)
         /* When parentGraph changes, this most likely means that the user changed something in the
@@ -278,7 +66,253 @@
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
          this component.
          */
-        this.refreshCytoscape()
+        const convertedGraph = this.convertCustomGraphJsonToD3(graph)
+        this.nodes = convertedGraph.nodes
+        this.links = convertedGraph.links
+        this.refreshD3()
+      }
+    },
+    data () {
+      return {
+        exportedGraphJson: {},
+        nodes: [
+          {id: 'mammal', group: 0, label: 'Mammals', level: 1},
+          {id: 'dog', group: 0, label: 'Dogs', level: 2},
+          {id: 'cat', group: 0, label: 'Cats', level: 2},
+          {id: 'fox', group: 0, label: 'Foxes', level: 2},
+          {id: 'elk', group: 0, label: 'Elk', level: 2},
+          {id: 'insect', group: 1, label: 'Insects', level: 1},
+          {id: 'ant', group: 1, label: 'Ants', level: 2},
+          {id: 'bee', group: 1, label: 'Bees', level: 2},
+          {id: 'fish', group: 2, label: 'Fish', level: 1},
+          {id: 'carp', group: 2, label: 'Carp', level: 2},
+          {id: 'pike', group: 2, label: 'Pikes', level: 2}
+        ],
+        links: [
+          {target: 'mammal', source: 'dog', strength: 0.7},
+          {target: 'mammal', source: 'cat', strength: 0.7},
+          {target: 'mammal', source: 'fox', strength: 0.7},
+          {target: 'mammal', source: 'elk', strength: 0.7},
+          {target: 'insect', source: 'ant', strength: 0.7},
+          {target: 'insect', source: 'bee', strength: 0.7},
+          {target: 'fish', source: 'carp', strength: 0.7},
+          {target: 'fish', source: 'pike', strength: 0.7},
+
+          {target: 'cat', source: 'elk', strength: 0.1},
+          {target: 'carp', source: 'ant', strength: 0.1},
+          {target: 'elk', source: 'bee', strength: 0.1},
+          {target: 'dog', source: 'cat', strength: 0.1},
+          {target: 'fox', source: 'ant', strength: 0.1},
+          {target: 'pike', source: 'dog', strength: 0.1}
+        ],
+        svg: undefined,
+        linkGroup: undefined,
+        nodeGroup: undefined,
+        textGroup: undefined,
+        nodeElements: undefined,
+        linkElements: undefined,
+        textElements: undefined,
+        simulation: d3.forceSimulation()
+          .force('gravity', d3.forceManyBody().strength(100).distanceMin(1000))
+          .force('charge', d3.forceManyBody().strength(-80))
+          //          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('link', d3.forceLink()
+            .id(link => link.id)
+            .strength(0.05))
+          .alphaMin(0.002),
+        dragDrop: d3.drag()
+          .on('start', node => {
+            node.fx = node.x
+            node.fy = node.y
+          })
+          .on('drag', node => {
+            this.simulation.alphaTarget(0.7).restart()
+            node.fx = d3.event.x
+            node.fy = d3.event.y
+          })
+          .on('end', node => {
+            if (!d3.event.active) {
+              this.simulation.alphaTarget(0)
+            }
+            this.onGraphModified()
+          })
+      }
+    },
+    methods: {
+      onGraphModified: function () {
+        const apt = this.convertGraphToApt(this.nodes, this.links)
+        console.log('Emitting graphModified event: ' + apt)
+        this.$emit('graphModified', apt)
+      },
+      initializeD3: function () {
+        this.svg = d3.select('#graph')
+          .attr('width', '100%')
+          .attr('height', '100%')
+
+        this.linkGroup = this.svg.append('g').attr('class', 'links')
+        this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
+        this.textGroup = this.svg.append('g').attr('class', 'texts')
+
+        console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
+
+        const insertNode = (id, label, x, y) => {
+          this.nodes.push({
+            id: id,
+            label: label,
+            x: x,
+            y: y
+          })
+          this.refreshD3()
+          this.onGraphModified()
+        }
+        const insertNodeOnClick = () => {
+          const coordinates = d3.mouse(this.svg.node())
+          console.log('Click event registered.  Coordinates:')
+          console.log(coordinates)
+          const label = Math.random().toString()
+          insertNode(label, label, coordinates[0], coordinates[1])
+        }
+
+        this.svg.on('click', insertNodeOnClick)
+
+        console.log(this.svg.node())
+        const updateCenterForce = () => {
+          console.log('Updating center force')
+          const svgWidth = this.svg.node().clientWidth
+          const svgHeight = this.svg.node().clientHeight
+          // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
+          // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
+          const centerStrength = 0.01
+          this.simulation.force('centerX', d3.forceX(svgWidth / 2).strength(centerStrength))
+          this.simulation.force('centerY', d3.forceY(svgHeight / 2).strength(centerStrength))
+        }
+        window.addEventListener('resize', updateCenterForce)
+        updateCenterForce()
+
+        this.refreshD3()
+
+//        d3.selectAll('*').on('click', function (d) { console.log(d) })
+      },
+      refreshD3: function () {
+        const newNodeElements = this.nodeGroup
+          .selectAll('circle')
+          .data(this.nodes, node => node.id)
+        const nodeEnter = newNodeElements
+          .enter().append('circle')
+          .attr('r', 20)
+          .attr('fill', node => node.level === 1 ? 'red' : 'gray')
+          .call(this.dragDrop)
+          .on('click', (d) => {
+            d3.event.stopPropagation() // Do this, or else a new node will be placed underneath the node you clicked
+            d.fx = null
+            d.fy = null
+            this.onGraphModified()
+          })
+        newNodeElements.exit().remove()
+        this.nodeElements = nodeEnter.merge(newNodeElements)
+
+        const newTextElements = this.textGroup
+          .selectAll('text')
+          .data(this.nodes, node => node.id)
+        const textEnter = newTextElements
+          .enter().append('text')
+          .text(node => node.label)
+          .attr('font-size', 15)
+          .attr('dx', 25)
+          .attr('dy', 4)
+          .call(this.dragDrop)
+          .on('click', (d) => {
+            d3.event.stopPropagation()
+            d.fx = null
+            d.fy = null
+          })
+        newTextElements.exit().remove()
+        this.textElements = textEnter.merge(newTextElements)
+
+        const newLinkElements = this.linkGroup
+          .selectAll('line')
+          .data(this.links)
+        const linkEnter = newLinkElements
+          .enter().append('line')
+          .attr('stroke-width', 3)
+          .attr('stroke', '#E5E5E5')
+        newLinkElements.exit().remove()
+        this.linkElements = linkEnter.merge(newLinkElements)
+
+        this.updateSimulation()
+      },
+      updateSimulation: function () {
+        this.simulation.nodes(this.nodes).on('tick', () => {
+          this.nodeElements
+            .attr('cx', node => node.x)
+            .attr('cy', node => node.y)
+          this.textElements
+            .attr('x', node => node.x)
+            .attr('y', node => node.y)
+          this.linkElements
+            .attr('x1', link => link.source.x)
+            .attr('y1', link => link.source.y)
+            .attr('x2', link => link.target.x)
+            .attr('y2', link => link.target.y)
+
+          // Let the simulation know what links it is working with
+          this.simulation.force('link').links(this.links)
+
+          // Raise the temperature of the force simulation, because otherwise, if the temperature is below alphaMin, the newly
+          // inserted nodes' positions will not get updated, and they will appear in the upper left corner of the svg
+          // until something causes the temperature to increase again past the threshold.
+          this.simulation.alpha(0.7)
+        })
+      },
+      /**
+       * Convert my custom graph JSON format into D3's own JSON format.
+       */
+      convertCustomGraphJsonToD3: function (graph) {
+        let nodes = []
+        for (let i = 0; i < graph.nodes.length; i++) {
+          let node = graph.nodes[i]
+          console.log('converting node:' + node)
+          nodes.push({
+            id: node.toString(),
+            label: node.toString(),
+            group: 0,
+            level: 0,
+            // TODO: Use the x/y coordinates given to us if they're provided
+            x: this.svg.node().clientWidth / 2,
+            y: this.svg.node().clientHeight / 2
+          })
+        }
+
+        let links = []
+        console.log('converting edges: ' + graph.edges)
+        for (let i = 0; i < graph.edges.length; i++) {
+          let edge = graph.edges[i]
+          console.log('converting edge: ' + edge)
+          links.push({
+            source: edge[0].toString(),
+            target: edge[1].toString(),
+            strength: 0.1
+          })
+        }
+        return {
+          nodes: nodes,
+          links: links
+        }
+      },
+      convertGraphToApt: function (nodes, links) {
+        const nodesApt = nodes.map(node => {
+          const isNodeFixed = !!node.fx // This is a possibly confusing way of checking if node.fx is defined.  node.fy could also be used here.
+          const xCoord = isNodeFixed ? node.fx : node.x
+          const yCoord = isNodeFixed ? node.fy : node.y
+          const coordinateString = `["x"="${xCoord.toFixed(0)}", "y"="${yCoord.toFixed(0)}", "fixed"="${isNodeFixed}"]`
+          const nodeRepresentation = node.id + coordinateString
+          return nodeRepresentation
+        }).join('\n')
+        const linksApt = links.map(link => {
+          const linkString = `${link.source.id} -> ${link.target.id}`
+          return linkString
+        }).join('\n')
+        return `# Nodes\n${nodesApt}\n\n# Links\n${linksApt}`
       }
     }
   }
