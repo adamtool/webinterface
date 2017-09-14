@@ -8,8 +8,10 @@
       </div>
       <div class="row">
         <div class="col-12">
-          Graph passed in from our parent:
-          <div>{{ parentGraph }}</div>
+          <!--Graph passed in from our parent:-->
+          <!--<div>{{ parentGraph }}</div>-->
+          Nodes in our graph:
+          <pre>{{ prettyGraphJson }}</pre>
           <!--Our nodes:-->
           <!--<div>{{ nodes }}</div>-->
           <!--Our links:-->
@@ -53,6 +55,11 @@
       this.initializeD3()
     },
     props: ['parentGraph'],
+    computed: {
+      prettyGraphJson: function () {
+        return JSON.stringify(this.nodes, null, '\t')
+      }
+    },
     watch: {
       parentGraph: function (graph) {
         console.log('GraphEditor: parentGraph changed: ' + graph)
@@ -178,13 +185,11 @@
         console.log(this.svg.node())
         const updateCenterForce = () => {
           console.log('Updating center force')
-          const svgWidth = this.svg.node().clientWidth
-          const svgHeight = this.svg.node().clientHeight
           // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
           // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
           const centerStrength = 0.01
-          this.simulation.force('centerX', d3.forceX(svgWidth / 2).strength(centerStrength))
-          this.simulation.force('centerY', d3.forceY(svgHeight / 2).strength(centerStrength))
+          this.simulation.force('centerX', d3.forceX(this.svgWidth() / 2).strength(centerStrength))
+          this.simulation.force('centerY', d3.forceY(this.svgHeight() / 2).strength(centerStrength))
         }
         window.addEventListener('resize', updateCenterForce)
         updateCenterForce()
@@ -274,11 +279,11 @@
           console.log('converting node:' + node)
           if (!node.x) {
             console.log('x coordinate not specified.  Placing node at center of screen')
-            node.x = this.svg.node().clientWidth / 2
+            node.x = this.svgWidth() / 2
           }
           if (!node.y) {
             console.log('y coordinate not specified.  Placing node at center of screen')
-            node.y = this.svg.node().clientHeight / 2
+            node.y = this.svgHeight() / 2
           }
           if (node.isPositionFixed) {
             node.fx = node.x
@@ -312,6 +317,12 @@
           return linkString
         }).join('\n')
         return `# Nodes\n${nodesApt}\n\n# Links\n${linksApt}`
+      },
+      svgWidth: function () {
+        return this.svg.node().getBoundingClientRect().width
+      },
+      svgHeight: function () {
+        return this.svg.node().getBoundingClientRect().height
       }
     }
   }
