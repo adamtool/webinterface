@@ -10,8 +10,8 @@
         <div class="col-12">
           <!--Graph passed in from our parent:-->
           <!--<div>{{ parentGraph }}</div>-->
-          Nodes in our graph:
-          <pre>{{ prettyGraphJson }}</pre>
+          <!--Nodes in our graph:-->
+          <!--<pre>{{ prettyGraphJson }}</pre>-->
           <!--Our nodes:-->
           <!--<div>{{ nodes }}</div>-->
           <!--Our links:-->
