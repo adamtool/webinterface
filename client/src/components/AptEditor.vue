@@ -21,29 +21,6 @@
   //  import * as Vue from 'vue'
 
   import * as axios from 'axios'
-  import * as MockAdapter from 'axios-mock-adapter'
-
-  let mock = new MockAdapter(axios, {
-//    delayResponse: 100
-  })
-
-  mock.onPost('/aptToGraph', {
-    params: {
-      aptSourceCode: '1 -> 2'
-    }
-  }).reply(200, {
-    graph: {
-      nodes: [1, 2],
-      edges: [[1, 2]]
-    }
-  })
-
-  mock.onPost('/aptToGraph').reply(200, {
-    graph: {
-      nodes: [],
-      edges: []
-    }
-  })
 
   export default {
     name: 'apt-editor',
@@ -64,9 +41,9 @@
     methods: {
       renderGraph: function () {
         console.log('Sending APT source code to backend: ' + this.textInput)
-        axios.post('/aptToGraph', {
+        axios.post('http://localhost:4567/convertAptToGraph', {
           params: {
-            aptSourceCode: this.textInput
+            apt: this.textInput
           }
         }).then(response => {
           console.log('Received graph from backend:')
