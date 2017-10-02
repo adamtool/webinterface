@@ -2,7 +2,7 @@ How to build and deploy server and client
 
 Run the following commands:
 cd server/
-mvn clean install && mvn assembly:single && java -jar target/web-frontend-1.0-SNAPSHOT-jar-with-dependencies.jar
+mvn clean package && java -jar target/web-frontend-1.0-SNAPSHOT-jar-with-dependencies.jar
     
 Then open localhost:4567 in your browser.
 
