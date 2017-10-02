@@ -2,6 +2,10 @@
 
 > A web frontend for ADAM
 
+## Requirements
+
+npm 3.10.10 and node version v6.11.3
+
 ## Build Setup
 
 ``` bash
