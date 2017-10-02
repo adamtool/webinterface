@@ -67,15 +67,25 @@
             <!--</plugin>-->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>jar-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
                     <archive>
                         <manifest>
                             <mainClass>uniolunisaar.adamwebfrontend.App</mainClass>
                         </manifest>
                     </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
                 </configuration>
             </plugin>
             <plugin>
