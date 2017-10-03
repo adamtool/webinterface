@@ -128,25 +128,6 @@ public class App {
         return graph;
     }
 
-    private static String mockResponse() {
-        JsonObject graph = new JsonObject();
-        JsonArray links = new JsonArray();
-        links.add(makeLink("1", "2"));
-        links.add(makeLink("2", "3"));
-
-        JsonArray nodes = new JsonArray();
-        nodes.add(makeNode("1", "First place", "place", 3, 242, 311, true));
-        nodes.add(makeNode("2", "A transition", "transition", -1, 201, 300, true));
-        nodes.add(makeNode("3", "Second place", "place", 1, 154, 309, true));
-        graph.add("links", links);
-        graph.add("nodes", nodes);
-
-        JsonObject responseJson = new JsonObject();
-        responseJson.addProperty("status", "success");
-        responseJson.add("graph", graph);
-        return responseJson.toString();
-    }
-
     private static JsonObject makeNode(String id, String label, String type, int tokens, double x, double y, boolean isPositionFixed) {
         JsonObject node = new JsonObject();
         node.addProperty("id", id);
