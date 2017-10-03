@@ -6,8 +6,7 @@
         <div>
           <textarea id="text-entry" class="form-control" v-model="textInput"></textarea>
         </div>
-        Here is the graph we have received from the backend: (Note that at the moment, the backend is being mocked, and
-        will only respond to the exact string "1 -> 2" -- Otherwise, it will simply return an empty graph.)
+        Here is the graph we have received from the backend:
         <div id="graph-preview">
           {{ graphPreview }}
         </div>
