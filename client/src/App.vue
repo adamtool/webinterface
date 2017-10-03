@@ -34,6 +34,7 @@
   Vue.use(BootstrapVue)
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
+  import aptExample from './mutex.apt'
 
   export default {
     name: 'app',
@@ -46,7 +47,7 @@
         numberOfNodes: 50,
         numberOfEdges: 50,
         graph: this.makeRandomGraph(this.numberOfNodes, this.numberOfEdges),
-        apt: '1 -> 2'
+        apt: aptExample
       }
     },
     methods: {
