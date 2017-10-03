@@ -271,37 +271,26 @@
       },
       /**
        * Validate the json graph representation given to us from the backend.
-       * Make sure it has all the properties we expect to see.
+       * TODO Make sure it has all the properties we expect to see.
        */
       validateGraphJson: function (graphJson) {
-        for (let i = 0; i < graphJson.nodes.length; i++) {
-          let node = graphJson.nodes[i]
-          console.log('converting node:' + node)
-          if (!node.x) {
-            console.log('x coordinate not specified.  Placing node at center of screen')
-            node.x = this.svgWidth() / 2
-          }
-          if (!node.y) {
-            console.log('y coordinate not specified.  Placing node at center of screen')
-            node.y = this.svgHeight() / 2
-          }
-          if (node.isPositionFixed) {
-            node.fx = node.x
-            node.fy = node.y
-          }
-
-          node.group = 0
-          node.level = 0
-          // TODO: Check that all nodes have their id/label/type specified.
-          // TODO: Make a defensive copy of the graph.  Otherwise, weird bugs may pop up.
-        }
-
-        console.log('converting links: ' + graphJson.links)
-        for (let i = 0; i < graphJson.links.length; i++) {
-          let link = graphJson.links[i]
-          console.log('converting link: ' + link)
-        }
-        return graphJson
+        const graphJsonCopy = JSON.parse(JSON.stringify(graphJson))
+        return graphJsonCopy
+//        return {
+//          links: graphJsonCopy.links.map(link => ({
+//            source: link.source,
+//            target: link.target
+//          })),
+//          nodes: graphJsonCopy.nodes.map(node => ({
+//            id: node.id,
+//            label: node.label,
+//            type: node.type,
+//            x: this.svgWidth() / 2,
+//            y: this.svgHeight() / 2,
+//            group: 0,
+//            level: 0
+//          }))
+//        }
       },
       convertGraphToApt: function (nodes, links) {
         const nodesApt = nodes.map(node => {
