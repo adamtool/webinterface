@@ -6,7 +6,6 @@ package uniolunisaar.adamwebfrontend;
 import static spark.Spark.*;
 
 import com.google.gson.*;
-import uniol.apt.adt.pn.Flow;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
@@ -92,14 +91,7 @@ public class App {
         }
 
         for (Transition transition : net.getTransitions()) {
-            /*
-            TODO Find out if it is relevant whether a transition is "system" or "environment"
-            Manuel sent me a code skeleton that uses this loop, which does not make it possible
-            to tell this difference.  So, for now, in this version, I am encoding all transitions
-            as environment transitions, even though this is technically incorrect.
-            (The client does not yet distinguish between the two, either.)
-            */
-            GraphNode transitionNode = GraphNode.envTransition(transition.getId(), transition.getLabel());
+            GraphNode transitionNode = GraphNode.transition(transition.getId(), transition.getLabel());
             nodes.add(transitionNode);
         }
 

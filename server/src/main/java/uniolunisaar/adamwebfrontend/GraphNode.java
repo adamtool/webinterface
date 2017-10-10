@@ -23,12 +23,8 @@ public class GraphNode {
         return type;
     }
 
-    public static GraphNode envTransition(String id, String label) {
-        return new GraphNode(id, label, GraphNodeType.ENVTRANSITION);
-    }
-
-    public static GraphNode sysTransition(String id, String label) {
-        return new GraphNode(id, label, GraphNodeType.SYSTRANSITION);
+    public static GraphNode transition(String id, String label) {
+        return new GraphNode(id, label, GraphNodeType.TRANSITION);
     }
 
     public static GraphNode envPlace(String id, String label) {
