@@ -64,7 +64,8 @@
     },
     watch: {
       parentGraph: function (graph) {
-        console.log('GraphEditor: parentGraph changed: ' + graph)
+        console.log('GraphEditor: parentGraph changed:')
+        console.log(graph)
         /* When parentGraph changes, this most likely means that the user changed something in the
          APT editor, causing the APT to be parsed on the server, yielding a new graph.
          And then they hit the button "Send Graph to Editor".
@@ -149,9 +150,14 @@
     },
     methods: {
       onGraphModified: function () {
-        const apt = this.convertGraphToApt(this.nodes, this.links)
-        console.log('Emitting graphModified event: ' + apt)
-        this.$emit('graphModified', apt)
+        // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.
+        const graph = {
+          links: this.deepCopy(this.links),
+          nodes: this.deepCopy(this.nodes)
+        }
+        console.log('GraphEditor: Emitting graphModified event: ')
+        console.log(graph)
+        this.$emit('graphModified', graph)
       },
       initializeD3: function () {
         this.svg = d3.select('#graph')
@@ -280,7 +286,7 @@
        * TODO Validate it -- make sure it has all the properties we expect to see.
        */
       importGraph: function (graphJson) {
-        const graphJsonCopy = JSON.parse(JSON.stringify(graphJson))
+        const graphJsonCopy = this.deepCopy(graphJson)
         return graphJsonCopy
 //        We should put up some kind of error message if any of the expected properties aren't there.
 //        return {
@@ -319,6 +325,17 @@
       },
       svgHeight: function () {
         return this.svg.node().getBoundingClientRect().height
+      },
+      /**
+       * Perform a deep copy of an arbitrary object.
+       * This has some caveats.
+       * See https://stackoverflow.com/questions/20662319/javascript-deep-copy-using-json
+       * TODO: Consider refactoring this out into its own little module if a similar trick is used in other components.
+       * @param object
+       * @returns A deep copy/clone of object
+       */
+      deepCopy: function (object) {
+        return JSON.parse(JSON.stringify(object))
       }
     }
   }

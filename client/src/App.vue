@@ -76,13 +76,13 @@
           edges: edges
         }
       },
-      onGraphModified: function (apt) {
-        console.log('Got APT from graph editor:')
-        console.log(apt)
-        this.apt = apt
+      onGraphModified: function (graph) {
+        console.log('App: Received graphModified event from graph editor:')
+        console.log(graph)
+        // TODO: Implement undo/redo.
       },
       onAptSaved: function (graph) {
-        console.log('Got graph from APT editor:')
+        console.log('App: Got graph from APT editor:')
         console.log(graph)
         this.graph = graph
       }
