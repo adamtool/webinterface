@@ -20,7 +20,7 @@
       </div>
       <div class="row">
         <div class="col-12">
-          <button class="btn btn-primary" v-on:click="refreshD3">Refresh Graph</button>
+          <button class="btn btn-primary" v-on:click="updateD3">Refresh Graph</button>
           <div>Cytoscape graph:</div>
         </div>
       </div>
@@ -76,7 +76,7 @@
         const convertedGraph = this.importGraph(graph)
         this.nodes = convertedGraph.nodes
         this.links = convertedGraph.links
-        this.refreshD3()
+        this.updateD3()
       }
     },
     data () {
@@ -169,7 +169,7 @@
             x: x,
             y: y
           })
-          this.refreshD3()
+          this.updateD3()
           this.onGraphModified()
         }
         const insertNodeOnClick = () => {
@@ -194,11 +194,15 @@
         window.addEventListener('resize', updateCenterForce)
         updateCenterForce()
 
-        this.refreshD3()
+        this.updateD3()
 
 //        d3.selectAll('*').on('click', function (d) { console.log(d) })
       },
-      refreshD3: function () {
+      /**
+       * This method should be called every time the "nodes" or "links" arrays are updated.
+       * It causes our visualization to update accordingly, showing new nodes and removing deleted ones.
+       */
+      updateD3: function () {
         const newNodeElements = this.nodeGroup
           .selectAll('circle')
           .data(this.nodes, node => node.id)
