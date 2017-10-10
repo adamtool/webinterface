@@ -217,7 +217,17 @@
         const nodeEnter = newNodeElements
           .enter().append('circle')
           .attr('r', 20)
-          .attr('fill', node => node.level === 1 ? 'red' : 'gray')
+          .attr('fill', node => {
+            if (node.type === 'ENVPLACE') {
+              return 'red'
+            } else if (node.type === 'SYSPLACE') {
+              return 'green'
+            } else if (node.type === 'TRANSITION') {
+              return 'grey'
+            } else {
+              return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
+            }
+          })
           .call(this.dragDrop)
           .on('click', (d) => {
             d3.event.stopPropagation() // Do this, or else a new node will be placed underneath the node you clicked
