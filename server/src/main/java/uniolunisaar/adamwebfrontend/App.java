@@ -13,7 +13,7 @@ import uniol.apt.adt.pn.Transition;
 import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.ds.util.PetriNetAnnotator;
+import uniolunisaar.adam.ds.util.AdamExtensions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +74,7 @@ public class App {
         List<GraphNode> nodes = new ArrayList<>();
 
         for (Place place : net.getPlaces()) {
-            if (PetriNetAnnotator.isEnviroment(place)) {
+            if (AdamExtensions.isEnviroment(place)) {
                 nodes.add(GraphNode.envPlace(place.getId(), place.getId()));
             } else {
                 nodes.add(GraphNode.sysPlace(place.getId(), place.getId()));
