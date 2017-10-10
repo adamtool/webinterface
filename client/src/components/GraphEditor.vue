@@ -20,8 +20,6 @@
       </div>
       <div class="row">
         <div class="col-12">
-          <button class="btn btn-primary" v-on:click="updateD3">Refresh Graph</button>
-          <div>Cytoscape graph:</div>
         </div>
       </div>
     </div>
@@ -32,7 +30,7 @@
 </template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
+<style scoped>
   #graph-editor {
     height: 95vh;
     display: flex;
@@ -42,6 +40,10 @@
   #graph {
     flex-grow: 1;
     text-align: left;
+  }
+
+  #overlay {
+    text-align: center;
   }
 </style>
 

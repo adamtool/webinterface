@@ -6,11 +6,13 @@
         <div>
           <textarea id="text-entry" class="form-control" v-model="textInput"></textarea>
         </div>
+        <div>
+          <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Send Graph to Editor</button>
+        </div>
         Here is the graph we have received from the backend:
         <div id="graph-preview">
           {{ graphPreview }}
         </div>
-        <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Send Graph to Editor</button>
       </div>
     </div>
   </div>
@@ -71,5 +73,8 @@
 <style scoped>
   #text-entry {
     height: 350px;
+  }
+  #apt-editor {
+    text-align: center;
   }
 </style>

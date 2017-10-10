@@ -7,15 +7,15 @@
     </div>
     <div class='row'>
       <div class='col-md-4'>
-        <div>Number of nodes
-          <input type="number" v-model="numberOfNodes">
-        </div>
-        <div>Number of edges
-          <input type="number" v-model="numberOfEdges">
-        </div>
-        <div>
-          <button v-on:click="replaceGraph">Create new random graph</button>
-        </div>
+        <!--<div>Number of nodes-->
+          <!--<input type="number" v-model="numberOfNodes">-->
+        <!--</div>-->
+        <!--<div>Number of edges-->
+          <!--<input type="number" v-model="numberOfEdges">-->
+        <!--</div>-->
+        <!--<div>-->
+          <!--<button v-on:click="replaceGraph">Create new random graph</button>-->
+        <!--</div>-->
         <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
       </div>
       <div class='col-md-8'>
