@@ -73,7 +73,7 @@
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
          this component.
          */
-        const convertedGraph = this.validateGraphJson(graph)
+        const convertedGraph = this.importGraph(graph)
         this.nodes = convertedGraph.nodes
         this.links = convertedGraph.links
         this.refreshD3()
@@ -270,12 +270,13 @@
         })
       },
       /**
-       * Validate the json graph representation given to us from the backend.
-       * TODO Make sure it has all the properties we expect to see.
+       * Perform a defensive copy of the graph JSON given to us from the backend.
+       * TODO Validate it -- make sure it has all the properties we expect to see.
        */
-      validateGraphJson: function (graphJson) {
+      importGraph: function (graphJson) {
         const graphJsonCopy = JSON.parse(JSON.stringify(graphJson))
         return graphJsonCopy
+//        We should put up some kind of error message if any of the expected properties aren't there.
 //        return {
 //          links: graphJsonCopy.links.map(link => ({
 //            source: link.source,
