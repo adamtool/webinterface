@@ -164,6 +164,20 @@
           .attr('width', '100%')
           .attr('height', '100%')
 
+        // Define arrows
+        this.svg.append('svg:defs').selectAll('marker')
+          .data(['end'])      // Different link/path types can be defined here
+          .enter().append('svg:marker')    // This section adds in the arrows
+          .attr('id', 'arrowhead')
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 15)
+          .attr('refY', -1.5)
+          .attr('markerWidth', 6)
+          .attr('markerHeight', 6)
+          .attr('orient', 'auto')
+          .append('svg:path')
+          .attr('d', 'M0,-5L10,0L0,5')
+
         this.linkGroup = this.svg.append('g').attr('class', 'links')
         this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
         this.textGroup = this.svg.append('g').attr('class', 'texts')
@@ -263,6 +277,7 @@
           .enter().append('line')
           .attr('stroke-width', 3)
           .attr('stroke', '#E5E5E5')
+          .attr('marker-end', 'url(#arrowhead)')
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
 
