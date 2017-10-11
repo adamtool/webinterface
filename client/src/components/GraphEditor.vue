@@ -330,21 +330,6 @@
 //          }))
 //        }
       },
-      convertGraphToApt: function (nodes, links) {
-        const nodesApt = nodes.map(node => {
-          const isNodeFixed = !!node.fx // This is a possibly confusing way of checking if node.fx is defined.  node.fy could also be used here.
-          const xCoord = isNodeFixed ? node.fx : node.x
-          const yCoord = isNodeFixed ? node.fy : node.y
-          const coordinateString = `["x"="${xCoord.toFixed(0)}", "y"="${yCoord.toFixed(0)}", "fixed"="${isNodeFixed}"]`
-          const nodeRepresentation = node.id + coordinateString
-          return nodeRepresentation
-        }).join('\n')
-        const linksApt = links.map(link => {
-          const linkString = `${link.source.id} -> ${link.target.id}`
-          return linkString
-        }).join('\n')
-        return `# Nodes\n${nodesApt}\n\n# Links\n${linksApt}`
-      },
       svgWidth: function () {
         return this.svg.node().getBoundingClientRect().width
       },
