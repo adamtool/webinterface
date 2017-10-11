@@ -233,9 +233,9 @@
           .attr('r', 20)
           .attr('fill', node => {
             if (node.type === 'ENVPLACE') {
-              return 'red'
+              return 'tomato'
             } else if (node.type === 'SYSPLACE') {
-              return 'green'
+              return 'skyblue'
             } else if (node.type === 'TRANSITION') {
               return 'grey'
             } else {
