@@ -6,16 +6,9 @@ package uniolunisaar.adamwebfrontend;
 import static spark.Spark.*;
 
 import com.google.gson.*;
-import uniol.apt.adt.pn.PetriNet;
-import uniol.apt.adt.pn.Place;
-import uniol.apt.adt.pn.Transition;
 import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.ds.util.AdamExtensions;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class App {
     public static void main(String[] args) {
@@ -31,11 +24,12 @@ public class App {
             System.out.println("body: " + body.toString());
             String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
             PetriGame petriGame = Adam.getPetriGame(apt);
-            JsonElement petriNetGraph = petriNetToJson(petriGame.getNet());
+            PetriNetD3 petriNetD3 = PetriNetD3.of(petriGame.getNet());
+            JsonElement petriNetD3Json = gson.toJsonTree(petriNetD3);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.add("graph", petriNetGraph);
+            responseJson.add("graph", petriNetD3Json);
             return responseJson.toString();
         });
 
@@ -67,77 +61,4 @@ public class App {
 
         before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
     }
-
-    private static JsonElement petriNetToJson(PetriNet net) {
-        List<GraphLink> links = new ArrayList<>();
-        List<GraphNode> nodes = new ArrayList<>();
-
-        for (Place place : net.getPlaces()) {
-            if (AdamExtensions.isEnviroment(place)) {
-                nodes.add(GraphNode.envPlace(place.getId(), place.getId()));
-            } else {
-                nodes.add(GraphNode.sysPlace(place.getId(), place.getId()));
-            }
-
-            // TODO: Can this be done neater using a loop like "for (Flow edge : net.getEdges()) {...}"?
-            for (Transition preTransition : place.getPreset()) {
-                GraphLink link = new GraphLink(preTransition.getId(), place.getId());
-                links.add(link);
-            }
-            for (Transition postTransition : place.getPostset()) {
-                GraphLink link = new GraphLink(place.getId(), postTransition.getId());
-                links.add(link);
-            }
-        }
-
-        for (Transition transition : net.getTransitions()) {
-            GraphNode transitionNode = GraphNode.transition(transition.getId(), transition.getLabel());
-            nodes.add(transitionNode);
-        }
-
-//        for (Flow edge : net.getEdges()) {
-//            Place p = edge.getPlace();
-//            Transition t = edge.getTransition();
-//            // In which direction does the edge run?  Is that piece of information not available here?
-//        }
-
-        return makePetriNet(nodes, links);
-    }
-
-    private static JsonObject makePetriNet(List<GraphNode> nodes, List<GraphLink> links) {
-        JsonObject graph = new JsonObject();
-        JsonArray linksJson = new JsonArray();
-        JsonArray nodesJson = new JsonArray();
-        for (GraphLink link : links) {
-            linksJson.add(makeLink(link.getSource(), link.getTarget()));
-        }
-        for (GraphNode node : nodes) {
-            nodesJson.add(makeNode(node.getId(), node.getLabel(), node.getType().toString(), -1, -1, -1, false));
-        }
-        graph.add("links", linksJson);
-        graph.add("nodes", nodesJson);
-
-        return graph;
-    }
-
-    private static JsonObject makeNode(String id, String label, String type, int tokens, double x, double y, boolean isPositionFixed) {
-        JsonObject node = new JsonObject();
-        node.addProperty("id", id);
-        node.addProperty("label", label);
-        node.addProperty("type", type);
-        node.addProperty("tokens", tokens);
-        node.addProperty("x", x);
-        node.addProperty("y", y);
-        node.addProperty("isPositionFixed", isPositionFixed);
-        return node;
-    }
-
-    private static JsonObject makeLink(String source, String target) {
-        JsonObject link = new JsonObject();
-        link.addProperty("source", source);
-        link.addProperty("target", target);
-        return link;
-    }
-
-
 }
