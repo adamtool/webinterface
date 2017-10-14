@@ -11,5 +11,5 @@ You can build the frontend itself and have your changes immediately compiled and
 
 Misc. notes
 In server/pom.xml, we pull adam_core.jar as a dependency into our Maven project via a "file repository" that was created using the following Maven command:
-mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file -Dfile=adam-core/adam_core.jar -DgroupId=uniolunisaar.adam -DartifactId=adam-core -Dversion=1.0 -Dpackaging=jar -DlocalRepositoryPath=adam-core
+mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file -Dfile=adam_core.jar -DgroupId=uniolunisaar.adam -DartifactId=adam-core -Dversion=<Version> -Dpackaging=jar -DlocalRepositoryPath=server/adam-core
 This is the best practice, according to Pascal Thivent in his answer on StackOverflow: https://stackoverflow.com/questions/2229757/maven-add-a-dependency-to-a-jar-by-relative-path
