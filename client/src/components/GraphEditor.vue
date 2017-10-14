@@ -8,6 +8,7 @@
       </div>
       <div class="row">
         <div class="col-12">
+           <button type="button" class="btn btn-primary pull-right" v-on:click="existsWinningStrategy">Exists winning strategy?</button>
           <!--Graph passed in from our parent:-->
           <!--<div>{{ parentGraph }}</div>-->
           <!--Nodes in our graph:-->
@@ -49,6 +50,7 @@
 
 <script>
   import * as d3 from 'd3'
+  import * as axios from 'axios'
 
   export default {
     name: 'graph-editor',
@@ -149,6 +151,14 @@
       }
     },
     methods: {
+      existsWinningStrategy: function () {
+        axios.post('http://localhost:4567/existsWinningStrategy', {
+          petriGameId: this.parentGraph.petriGameId
+        }).then(response => {
+          console.log('Got response from existsWinningStrategy:')
+          console.log(response)
+        })
+      },
       onGraphModified: function () {
         // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.
         const graph = {

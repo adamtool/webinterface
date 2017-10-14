@@ -10,10 +10,17 @@ import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class App {
     public static void main(String[] args) {
-        Gson gson = new Gson();
-        JsonParser parser = new JsonParser();
+        // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
+        final Map<String, PetriGame> petriGamesReadFromApt = new ConcurrentHashMap<>();
+        final Gson gson = new Gson();
+        final JsonParser parser = new JsonParser();
+
         staticFiles.location("/static");
         enableCORS();
 
@@ -24,12 +31,36 @@ public class App {
             System.out.println("body: " + body.toString());
             String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
             PetriGame petriGame = Adam.getPetriGame(apt);
-            PetriNetD3 petriNetD3 = PetriNetD3.of(petriGame.getNet());
-            JsonElement petriNetD3Json = gson.toJsonTree(petriNetD3);
 
+            String petriGameUUID = UUID.randomUUID().toString();
+            petriGamesReadFromApt.put(petriGameUUID, petriGame);
+            System.out.println("Generated petri game with ID " + petriGameUUID);
+            PetriNetD3 petriNetD3 = PetriNetD3.of(petriGame.getNet(), petriGameUUID);
+
+            JsonElement petriNetD3Json = gson.toJsonTree(petriNetD3);
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.add("graph", petriNetD3Json);
+            return responseJson.toString();
+        });
+
+        post("/existsWinningStrategy", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+
+            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
+            System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
+            boolean existsStrategy = Adam.existsWinningStrategyBDD(petriGame.getNet());
+            if (existsStrategy) {
+                System.out.println("Yes, there is a strategy.");
+            } else {
+                System.out.println("No, there is not a strategy to solve the game.");
+            }
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("result", existsStrategy);
             return responseJson.toString();
         });
 

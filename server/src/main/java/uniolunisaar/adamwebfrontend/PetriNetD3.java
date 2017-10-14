@@ -15,26 +15,29 @@ import java.util.List;
 public class PetriNetD3 {
     private final List<GraphLink> links;
     private final List<GraphNode> nodes;
+    private final String petriGameId;
 
-    private PetriNetD3(List<GraphLink> links, List<GraphNode> nodes) {
+    private PetriNetD3(List<GraphLink> links, List<GraphNode> nodes, String petriGameId) {
         this.links = links;
         this.nodes = nodes;
+        this.petriGameId = petriGameId;
     }
 
     /**
      * Extract all the information needed to display a PetriNet in our graph editor.
      * @param net - A PetriNet
+     * @param petriGameId
      * @return A serializable object containing the relevant information from the PetriNet
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static PetriNetD3 of(PetriNet net) {
+    public static PetriNetD3 of(PetriNet net, String petriGameId) {
         List<GraphLink> links = new ArrayList<>();
         List<GraphNode> nodes = new ArrayList<>();
 
         for (Place place : net.getPlaces()) {
             boolean isBad = AdamExtensions.isBad(place);
-            if (AdamExtensions.isEnviroment(place)) {
+            if (AdamExtensions.isEnvironment(place)) {
                 nodes.add(GraphNode.envPlace(place.getId(), place.getId(), isBad));
             } else {
                 nodes.add(GraphNode.sysPlace(place.getId(), place.getId(), isBad));
@@ -56,7 +59,7 @@ public class PetriNetD3 {
             nodes.add(transitionNode);
         }
 
-        return new PetriNetD3(links, nodes);
+        return new PetriNetD3(links, nodes, petriGameId);
     }
 
 }
