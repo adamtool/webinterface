@@ -8,7 +8,8 @@
       </div>
       <div class="row">
         <div class="col-12">
-           <button type="button" class="btn btn-primary pull-right" v-on:click="existsWinningStrategy">Exists winning strategy?</button>
+          <button type="button" class="btn btn-primary pull-right" v-on:click="existsWinningStrategy">Exists winning strategy?</button>
+          <button type="button" class="btn btn-primary pull-right" v-on:click="getStrategyBDD">Get Graph Strategy BDD</button>
           <!--Graph passed in from our parent:-->
           <!--<div>{{ parentGraph }}</div>-->
           <!--Nodes in our graph:-->
@@ -156,6 +157,14 @@
           petriGameId: this.parentGraph.petriGameId
         }).then(response => {
           console.log('Got response from existsWinningStrategy:')
+          console.log(response)
+        })
+      },
+      getStrategyBDD: function () {
+        axios.post('http://localhost:4567/solve', {
+          petriGameId: this.parentGraph.petriGameId
+        }).then(response => {
+          console.log('Got response from getStrategyBDD:')
           console.log(response)
         })
       },

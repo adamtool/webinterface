@@ -6,9 +6,11 @@ package uniolunisaar.adamwebfrontend;
 import static spark.Spark.*;
 
 import com.google.gson.*;
+import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
 import java.util.Map;
 import java.util.UUID;
@@ -64,6 +66,43 @@ public class App {
             return responseJson.toString();
         });
 
+        post("/solve", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+
+            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
+            System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
+            PetriNet solution = Adam.getStrategyBDD(petriGame.getNet());
+
+            /**
+             * TODO: Decide how to differentiate between the PetriNets that represent PetriGames and
+             * TODO the PetriNets that represent the strategy BDDs of those PetriGames.
+             * TODO This is a necessary refactor, as indicated by the fact thaet PetriNetD3.of(...) requires a UUID.
+             * TODO Basically right now, PetriNetD3 has a feature that it shouldn't really have.
+             * TODO The UUID really belongs to a PetriGame.
+             *
+             * I think a slick way to do this would be, PetriNetD3 gets a new optional member.
+             * "strategyBdd".
+             * When it's there, then the client pops up a second tab.
+             * I think PetriNetD3 needs to be renamed, also.
+             * It should actulaly be.. like.. PetriGameD3
+             * and have two members.  "petriGameNet" and "graphStrategyNet"
+             * both containing a PetriNet as we have currently encoded it in PetriNetD3.
+             * The UUID will however belong simply to PetriGameD3.  PetriNetD3 doesn't need a UUID right now, I think.
+             *
+             * Finally, the "D3" can be dropped.  It's actually a PetriGame with two PetriNets.  JUst put them into
+             * a descriptive package, like adamwebfrontend.jsonmodels or something.
+             * TODO What do you call a class that is meant to be instantiated just so it can be converted into JSON by GSON.toJsonTree(Object)?
+             */
+            PetriNetD3 resultModel = PetriNetD3.of(solution);
+            JsonElement result = gson.toJsonTree(resultModel);
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("result", result);
+            return responseJson.toString();
+        });
         exception(ParseException.class, (exception, request, response) -> {
             // Handle the exception here
             response.body("There was a parsing exception");
