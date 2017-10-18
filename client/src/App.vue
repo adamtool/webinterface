@@ -7,19 +7,10 @@
     </div>
     <div class='row'>
       <div class='col-md-4'>
-        <!--<div>Number of nodes-->
-          <!--<input type="number" v-model="numberOfNodes">-->
-        <!--</div>-->
-        <!--<div>Number of edges-->
-          <!--<input type="number" v-model="numberOfEdges">-->
-        <!--</div>-->
-        <!--<div>-->
-          <!--<button v-on:click="replaceGraph">Create new random graph</button>-->
-        <!--</div>-->
         <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
       </div>
       <div class='col-md-8'>
-        <GraphEditor v-bind:parentGraph='graph' v-on:graphModified='onGraphModified'></GraphEditor>
+        <GraphEditor v-bind:petriNet='petriGame.net' v-on:graphModified='onGraphModified'></GraphEditor>
       </div>
     </div>
   </div>
@@ -46,45 +37,26 @@
       return {
         numberOfNodes: 50,
         numberOfEdges: 50,
-        graph: this.makeRandomGraph(this.numberOfNodes, this.numberOfEdges),
+        petriGame: {
+          net: {
+            links: [],
+            nodes: []
+          },
+          uuid: 'abcfakeuuid123'
+        },
         apt: aptExample
       }
     },
     methods: {
-      replaceGraph: function () {
-        this.graph = this.makeRandomGraph(this.numberOfNodes, this.numberOfEdges)
-      },
-      makeRandomGraph: function (numberOfNodes, numberOfEdges) {
-        const nodes = []
-        for (let i = 0; i < numberOfNodes; i++) {
-          nodes.push(i)
-        }
-        const edges = []
-        for (let i = 0; i < numberOfEdges; i++) {
-          let randomNode = function () {
-            return Math.floor((Math.random() * numberOfNodes - 1) + 1)
-          }
-          let first = randomNode()
-          let second = randomNode()
-          while (second === first) {
-            second = randomNode()
-          }
-          edges.push([first, second])
-        }
-        return {
-          nodes: nodes,
-          edges: edges
-        }
-      },
       onGraphModified: function (graph) {
         console.log('App: Received graphModified event from graph editor:')
         console.log(graph)
         // TODO: Implement undo/redo.
       },
-      onAptSaved: function (graph) {
+      onAptSaved: function (petriGame) {
         console.log('App: Got graph from APT editor:')
-        console.log(graph)
-        this.graph = graph
+        console.log(petriGame)
+        this.petriGame = petriGame
       }
     }
   }

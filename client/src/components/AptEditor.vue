@@ -10,8 +10,8 @@
           <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Send Graph to Editor</button>
         </div>
         Here is the graph we have received from the backend:
-        <div id="graph-preview">
-          {{ graphPreview }}
+        <div id="petri-game-preview">
+          {{ petriGamePreview }}
         </div>
       </div>
     </div>
@@ -29,9 +29,12 @@
     props: ['apt'],
     data () {
       return {
-        graphPreview: {
-          nodes: [],
-          edges: []
+        petriGamePreview: {
+          net: {
+            nodes: [],
+            links: []
+          },
+          uuid: '123fakeuuid'
         },
         textInput: this.apt
       }
@@ -49,11 +52,11 @@
         }).then(response => {
           console.log('Received graph from backend:')
           console.log(response.data)
-          this.graphPreview = response.data.graph
+          this.petriGamePreview = response.data.graph
         })
       },
       saveGraph: function () {
-        this.$emit('graphSaved', this.graphPreview)
+        this.$emit('graphSaved', this.petriGamePreview)
       }
     },
     watch: {

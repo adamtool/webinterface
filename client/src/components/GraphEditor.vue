@@ -11,7 +11,7 @@
           <button type="button" class="btn btn-primary pull-right" v-on:click="existsWinningStrategy">Exists winning strategy?</button>
           <button type="button" class="btn btn-primary pull-right" v-on:click="getStrategyBDD">Get Graph Strategy BDD</button>
           <!--Graph passed in from our parent:-->
-          <!--<div>{{ parentGraph }}</div>-->
+          <!--<div>{{ petriNet }}</div>-->
           <!--Nodes in our graph:-->
           <!--<pre>{{ prettyGraphJson }}</pre>-->
           <!--Our nodes:-->
@@ -59,21 +59,21 @@
     mounted: function () {
       this.initializeD3()
     },
-    props: ['parentGraph'],
+    props: ['petriNet'],
     computed: {
       prettyGraphJson: function () {
         return JSON.stringify(this.nodes, null, '\t')
       }
     },
     watch: {
-      parentGraph: function (graph) {
-        console.log('GraphEditor: parentGraph changed:')
+      petriNet: function (graph) {
+        console.log('GraphEditor: petriNet changed:')
         console.log(graph)
-        /* When parentGraph changes, this most likely means that the user changed something in the
+        /* When petriNet changes, this most likely means that the user changed something in the
          APT editor, causing the APT to be parsed on the server, yielding a new graph.
          And then they hit the button "Send Graph to Editor".
 
-         This would also be fired if the 'parentGraph' prop changed in response to any other
+         This would also be fired if the 'petriNet' prop changed in response to any other
          events, such as after "Load"ing a saved graph in the main App's UI.
 
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
@@ -152,17 +152,19 @@
       }
     },
     methods: {
+      // TODO Move this method into App.vue
       existsWinningStrategy: function () {
         axios.post('http://localhost:4567/existsWinningStrategy', {
-          petriGameId: this.parentGraph.petriGameId
+          petriGameId: this.petriNet.petriGameId
         }).then(response => {
           console.log('Got response from existsWinningStrategy:')
           console.log(response)
         })
       },
+      // TODO Move this method into App.vue, it has no business being here.
       getStrategyBDD: function () {
         axios.post('http://localhost:4567/solve', {
-          petriGameId: this.parentGraph.petriGameId
+          petriGameId: this.petriNet.petriGameId
         }).then(response => {
           console.log('Got response from getStrategyBDD:')
           console.log(response)
