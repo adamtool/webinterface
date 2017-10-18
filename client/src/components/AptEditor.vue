@@ -44,7 +44,7 @@
     },
     methods: {
       renderGraph: function () {
-        console.log('Sending APT source code to backend: ' + this.textInput)
+        console.log('Sending APT source code to backend.')
         axios.post('http://localhost:4567/convertAptToGraph', {
           params: {
             apt: this.textInput

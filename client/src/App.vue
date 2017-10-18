@@ -15,6 +15,7 @@
       </div>
       <div class='col-md-8'>
         <GraphEditor v-bind:petriNet='petriGame.net' v-on:graphModified='onGraphModified'></GraphEditor>
+        <GraphEditor v-if="petriGameHasStrategyBDD" v-bind:petriNet='strategyBDD'></GraphEditor>
       </div>
     </div>
   </div>
@@ -49,7 +50,16 @@
           },
           uuid: 'abcfakeuuid123'
         },
-        apt: aptExample
+        apt: aptExample,
+        strategyBDD: null
+      }
+    },
+    computed: {
+      petriGameHasStrategyBDD: function () {
+        console.log('Do we have a strategy bdd?')
+        const answer = this.strategyBDD !== null
+        console.log('the answer is: ' + answer)
+        return answer
       }
     },
     methods: {
@@ -58,7 +68,7 @@
           petriGameId: this.petriGame.uuid
         }).then(response => {
           console.log('Got response from existsWinningStrategy:')
-          console.log(response)
+          console.log(response.data)
         })
       },
       getStrategyBDD: function () {
@@ -66,7 +76,8 @@
           petriGameId: this.petriGame.uuid
         }).then(response => {
           console.log('Got response from getStrategyBDD:')
-          console.log(response)
+          console.log(response.data)
+          this.strategyBDD = response.data.strategyBDD
         })
       },
       onGraphModified: function (graph) {
