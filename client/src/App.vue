@@ -5,7 +5,7 @@
         <button type="button" class="btn btn-primary pull-right" v-on:click="existsWinningStrategy">
           Exists winning strategy?
         </button>
-        <button type="button" class="btn btn-primary pull-right" v-on:click="getStrategyBDD">Get Graph Strategy BDD
+        <button type="button" class="btn btn-primary pull-right" v-on:click="getStrategyBDD">Get Strategy BDD
         </button>
       </div>
     </div>
@@ -62,7 +62,7 @@
         })
       },
       getStrategyBDD: function () {
-        axios.post('http://localhost:4567/solve', {
+        axios.post('http://localhost:4567/getStrategyBDD', {
           petriGameId: this.petriGame.uuid
         }).then(response => {
           console.log('Got response from getStrategyBDD:')
@@ -75,7 +75,7 @@
         // TODO: Implement undo/redo.
       },
       onAptSaved: function (petriGame) {
-        console.log('App: Got graph from APT editor:')
+        console.log('App: Got Petri Game from APT editor:')
         console.log(petriGame)
         this.petriGame = petriGame
       }

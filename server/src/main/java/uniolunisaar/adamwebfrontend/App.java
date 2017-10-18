@@ -66,21 +66,18 @@ public class App {
             return responseJson.toString();
         });
 
-        post("/solve", (req, res) -> {
+        post("/getStrategyBDD", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
             PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
-            System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
+            System.out.println("Getting strategy BDD for PetriGame id#" + petriGameId);
             PetriNet strategyBDD = Adam.getStrategyBDD(petriGame.getNet());
 
             /**
-             * TODO: Decide how to differentiate between the PetriNets that represent PetriGames and
-             * TODO the PetriNets that represent the strategy BDDs of those PetriGames.
-             * Finally, the "D3" can be dropped.  It's actually a PetriGame with two PetriNets.  JUst put them into
-             * a descriptive package, like adamwebfrontend.jsonmodels or something.
-             * TODO What do you call a class that is meant to be instantiated just so it can be converted into JSON by GSON.toJsonTree(Object)?
+             * TODO Consider dropping the "D3" suffix.  Just put those classes into a descriptive package, like
+             * adamwebfrontend.jsonmodels or something.
              */
             PetriNetD3 strategyBDDD3 = PetriNetD3.of(strategyBDD);
             JsonElement strategyBDDJson = gson.toJsonTree(strategyBDDD3);
