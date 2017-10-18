@@ -3,13 +3,11 @@
     <div id='overlay'>
       <div class="row">
         <div class="col-12">
-          <h2>Graph Editor</h2>
+          <h2>Petri Net Editor</h2>
         </div>
       </div>
       <div class="row">
         <div class="col-12">
-          <button type="button" class="btn btn-primary pull-right" v-on:click="existsWinningStrategy">Exists winning strategy?</button>
-          <button type="button" class="btn btn-primary pull-right" v-on:click="getStrategyBDD">Get Graph Strategy BDD</button>
           <!--Graph passed in from our parent:-->
           <!--<div>{{ petriNet }}</div>-->
           <!--Nodes in our graph:-->
@@ -51,7 +49,6 @@
 
 <script>
   import * as d3 from 'd3'
-  import * as axios from 'axios'
 
   export default {
     name: 'graph-editor',
@@ -152,24 +149,6 @@
       }
     },
     methods: {
-      // TODO Move this method into App.vue
-      existsWinningStrategy: function () {
-        axios.post('http://localhost:4567/existsWinningStrategy', {
-          petriGameId: this.petriNet.petriGameId
-        }).then(response => {
-          console.log('Got response from existsWinningStrategy:')
-          console.log(response)
-        })
-      },
-      // TODO Move this method into App.vue, it has no business being here.
-      getStrategyBDD: function () {
-        axios.post('http://localhost:4567/solve', {
-          petriGameId: this.petriNet.petriGameId
-        }).then(response => {
-          console.log('Got response from getStrategyBDD:')
-          console.log(response)
-        })
-      },
       onGraphModified: function () {
         // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.
         const graph = {

@@ -73,7 +73,7 @@ public class App {
 
             PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
             System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
-            PetriNet solution = Adam.getStrategyBDD(petriGame.getNet());
+            PetriNet strategyBDD = Adam.getStrategyBDD(petriGame.getNet());
 
             /**
              * TODO: Decide how to differentiate between the PetriNets that represent PetriGames and
@@ -82,12 +82,12 @@ public class App {
              * a descriptive package, like adamwebfrontend.jsonmodels or something.
              * TODO What do you call a class that is meant to be instantiated just so it can be converted into JSON by GSON.toJsonTree(Object)?
              */
-            PetriNetD3 resultModel = PetriNetD3.of(solution);
-            JsonElement result = gson.toJsonTree(resultModel);
+            PetriNetD3 strategyBDDD3 = PetriNetD3.of(strategyBDD);
+            JsonElement strategyBDDJson = gson.toJsonTree(strategyBDDD3);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.add("result", result);
+            responseJson.add("strategyBDD", strategyBDDJson);
             return responseJson.toString();
         });
         exception(ParseException.class, (exception, request, response) -> {

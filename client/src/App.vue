@@ -2,7 +2,11 @@
   <div id='app' class="container-fluid">
     <div class="row">
       <div class="col-12">
-
+        <button type="button" class="btn btn-primary pull-right" v-on:click="existsWinningStrategy">
+          Exists winning strategy?
+        </button>
+        <button type="button" class="btn btn-primary pull-right" v-on:click="getStrategyBDD">Get Graph Strategy BDD
+        </button>
       </div>
     </div>
     <div class='row'>
@@ -21,6 +25,7 @@
   import GraphEditor from '@/components/GraphEditor'
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
+  import * as axios from 'axios'
 
   Vue.use(BootstrapVue)
   import 'bootstrap/dist/css/bootstrap.css'
@@ -48,6 +53,22 @@
       }
     },
     methods: {
+      existsWinningStrategy: function () {
+        axios.post('http://localhost:4567/existsWinningStrategy', {
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          console.log('Got response from existsWinningStrategy:')
+          console.log(response)
+        })
+      },
+      getStrategyBDD: function () {
+        axios.post('http://localhost:4567/solve', {
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          console.log('Got response from getStrategyBDD:')
+          console.log(response)
+        })
+      },
       onGraphModified: function (graph) {
         console.log('App: Received graphModified event from graph editor:')
         console.log(graph)
