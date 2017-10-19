@@ -14,8 +14,14 @@
         <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
       </div>
       <div class='col-md-8'>
-        <GraphEditor v-bind:petriNet='petriGame.net' v-on:graphModified='onGraphModified'></GraphEditor>
-        <GraphEditor v-if="petriGameHasStrategyBDD" v-bind:petriNet='strategyBDD'></GraphEditor>
+        <tabs>
+          <tab name="Petri Game">
+            <GraphEditor v-bind:petriNet='petriGame.net' v-on:graphModified='onGraphModified'></GraphEditor>
+          </tab>
+          <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
+            <GraphEditor v-bind:petriNet='strategyBDD'></GraphEditor>
+          </tab>
+        </tabs>
       </div>
     </div>
   </div>
@@ -27,6 +33,9 @@
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
+  import {Tabs, Tab} from 'vue-tabs-component'
+  Vue.component('tabs', Tabs)
+  Vue.component('tab', Tab)
 
   Vue.use(BootstrapVue)
   import 'bootstrap/dist/css/bootstrap.css'
