@@ -1,6 +1,6 @@
 <template>
-  <div id="graph-editor">
-    <div id='overlay'>
+  <div class="graph-editor">
+    <div class='overlay'>
       <div class="row">
         <div class="col-12">
           <h2>Petri Net Editor</h2>
@@ -23,7 +23,7 @@
         </div>
       </div>
     </div>
-    <svg id='graph'>
+    <svg class='graph' v-bind:id='this.graphSvgId()'>
 
     </svg>
   </div>
@@ -31,18 +31,18 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  #graph-editor {
+  .graph-editor {
     height: 95vh;
     display: flex;
     flex-direction: column;
   }
 
-  #graph {
+  .graph {
     flex-grow: 1;
     text-align: left;
   }
 
-  #overlay {
+  .overlay {
     text-align: center;
   }
 </style>
@@ -121,6 +121,9 @@
       }
     },
     methods: {
+      graphSvgId: function () {
+        return 'graph-' + this._uid
+      },
       onGraphModified: function () {
         // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.
         const graph = {
@@ -132,7 +135,7 @@
         this.$emit('graphModified', graph)
       },
       initializeD3: function () {
-        this.svg = d3.select('#graph')
+        this.svg = d3.select('#' + this.graphSvgId())
           .attr('width', '100%')
           .attr('height', '100%')
 
