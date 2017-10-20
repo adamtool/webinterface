@@ -49,6 +49,8 @@
 
 <script>
   import * as d3 from 'd3'
+  // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
+  require('intersection-observer')
 
   export default {
     name: 'graph-editor',
@@ -179,7 +181,9 @@
 
         this.svg.on('click', insertNodeOnClick)
 
-        console.log(this.svg.node())
+        /**
+         * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
+         */
         const updateCenterForce = () => {
           console.log('Updating center force')
           // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
@@ -189,6 +193,25 @@
           this.simulation.force('centerY', d3.forceY(this.svgHeight() / 2).strength(centerStrength))
         }
         window.addEventListener('resize', updateCenterForce)
+
+        // We update the center force when the viewing area becomes visible, because until that point, there is no way of telling
+        // where the center of the viewing area is, so our center force ends up putting the graph in the upper-left
+        // corner of the screen.
+        // There is probably a way of setting things up so that the graph will just start in the center of the viewing area,
+        // but I'm not sure yet what the best way to do that would be.  This gets the job done for now.
+
+        // See https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+        const onGraphVisibilityChange = (entries, observer) => {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              updateCenterForce()
+            }
+          })
+        }
+        const observer = new IntersectionObserver(onGraphVisibilityChange, {
+          threshold: 0.01
+        })
+        observer.observe(this.svg.node())
         updateCenterForce()
 
         this.updateD3()
