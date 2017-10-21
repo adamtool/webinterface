@@ -65,6 +65,13 @@
         strategyBDD: null
       }
     },
+    watch: {
+      petriGame: function () {
+        // The strategy BDD we have may no longer be valid after the Petri Game changes.
+        this.strategyBDD = null
+        this.switchToPetriGameTab()
+      }
+    },
     computed: {
       petriGameHasStrategyBDD: function () {
         console.log('Do we have a strategy bdd?')
@@ -74,6 +81,12 @@
       }
     },
     methods: {
+      switchToStrategyBDDTab: function () {
+        window.location.href = '#strategy-bdd'
+      },
+      switchToPetriGameTab: function () {
+        window.location.href = '#petri-game'
+      },
       existsWinningStrategy: function () {
         axios.post('http://localhost:4567/existsWinningStrategy', {
           petriGameId: this.petriGame.uuid
@@ -86,9 +99,14 @@
         axios.post('http://localhost:4567/getStrategyBDD', {
           petriGameId: this.petriGame.uuid
         }).then(response => {
+          // TODO Fix race condition here.  If you click "get strategy BDD" and then quickly click "send graph to editor"
+          // in the APT Editor, then you can potentially end up with a Petri Game and a Strategy BDD that do not
+          // match up.  A solution would be to double-check the UUID of the petri game we have and reject the BDD
+          // if the petri game's UUID has changed since the request was sent to the server.
           console.log('Got response from getStrategyBDD:')
           console.log(response.data)
           this.strategyBDD = response.data.strategyBDD
+          this.switchToStrategyBDDTab()
         })
       },
       onGraphModified: function (graph) {
