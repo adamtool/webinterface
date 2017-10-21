@@ -1,19 +1,19 @@
 <template>
   <div id='app' class="container-fluid">
-    <div class="row">
-      <div class="col-12">
-        <button type="button" class="btn btn-primary pull-right" v-on:click="existsWinningStrategy">
-          Exists winning strategy?
-        </button>
-        <button type="button" class="btn btn-primary pull-right" v-on:click="getStrategyBDD">Get Strategy BDD
-        </button>
-      </div>
-    </div>
     <div class='row'>
       <div class='col-md-4'>
         <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
       </div>
       <div class='col-md-8'>
+        <div class="row action-buttons">
+          <div class="col-12">
+            <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
+              Exists winning strategy?
+            </button>
+            <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">Get Strategy BDD
+            </button>
+          </div>
+        </div>
         <tabs>
           <tab name="Petri Game">
             <GraphEditor v-bind:petriNet='petriGame.net' v-on:graphModified='onGraphModified'></GraphEditor>
@@ -33,7 +33,9 @@
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
-  import {Tabs, Tab} from 'vue-tabs-component'
+  import { Tabs, Tab } from 'vue-tabs-component'
+  import './tabs-component.css'
+
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
 
@@ -110,5 +112,8 @@
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
     margin-top: 20px;
+  }
+  .action-buttons {
+    /*text-align: center;*/
   }
 </style>

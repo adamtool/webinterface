@@ -1,28 +1,5 @@
 <template>
   <div class="graph-editor">
-    <div class='overlay'>
-      <div class="row">
-        <div class="col-12">
-          <h2>Petri Net Editor</h2>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12">
-          <!--Graph passed in from our parent:-->
-          <!--<div>{{ petriNet }}</div>-->
-          <!--Nodes in our graph:-->
-          <!--<pre>{{ prettyGraphJson }}</pre>-->
-          <!--Our nodes:-->
-          <!--<div>{{ nodes }}</div>-->
-          <!--Our links:-->
-          <!--<div>{{ links }}</div>-->
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12">
-        </div>
-      </div>
-    </div>
     <svg class='graph' v-bind:id='this.graphSvgId()'>
 
     </svg>
@@ -40,10 +17,6 @@
   .graph {
     flex-grow: 1;
     text-align: left;
-  }
-
-  .overlay {
-    text-align: center;
   }
 </style>
 
