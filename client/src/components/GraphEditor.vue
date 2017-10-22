@@ -1,6 +1,6 @@
 <template>
   <div class="graph-editor">
-    <svg class='graph' v-bind:id='this.graphSvgId()'>
+    <svg class='graph' v-bind:id='this.graphSvgId'>
 
     </svg>
   </div>
@@ -33,8 +33,11 @@
     },
     props: ['petriNet'],
     computed: {
-      prettyGraphJson: function () {
-        return JSON.stringify(this.nodes, null, '\t')
+      graphSvgId: function () {
+        return 'graph-' + this._uid
+      },
+      arrowheadId: function () {
+        return 'arrowhead-' + this._uid
       }
     },
     watch: {
@@ -96,9 +99,6 @@
       }
     },
     methods: {
-      graphSvgId: function () {
-        return 'graph-' + this._uid
-      },
       onGraphModified: function () {
         // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.
         const graph = {
@@ -110,7 +110,7 @@
         this.$emit('graphModified', graph)
       },
       initializeD3: function () {
-        this.svg = d3.select('#' + this.graphSvgId())
+        this.svg = d3.select('#' + this.graphSvgId)
           .attr('width', '100%')
           .attr('height', '100%')
 
@@ -118,7 +118,7 @@
         this.svg.append('svg:defs').selectAll('marker')
           .data(['end'])      // Different link/path types can be defined here
           .enter().append('svg:marker')    // This section adds in the arrows
-          .attr('id', 'arrowhead')
+          .attr('id', this.arrowheadId)
           .attr('viewBox', '0 -5 10 10')
           .attr('refX', 15)
           .attr('refY', -1.5)
@@ -167,20 +167,22 @@
         }
         window.addEventListener('resize', updateCenterForce)
 
+        // HACK HACK HACK HACK HACK
         // We update the center force when the viewing area becomes visible, because until that point, there is no way of telling
-        // where the center of the viewing area is, so our center force ends up putting the graph in the upper-left
-        // corner of the screen.
-        // There is probably a way of setting things up so that the graph will just start in the center of the viewing area,
-        // but I'm not sure yet what the best way to do that would be.  This gets the job done for now.
-
-        // See https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+        // where the center of the viewing area is from within this component.
+        // Our center force ends up putting the graph in the upper-left corner of the screen.
+        // TODO replace this workaround with a better solution.  E.g. Specify the center of the SVG as a property
+        // of this component.
+        // TODO note that this workaround/hack seems to hurt our performance.
         const onGraphVisibilityChange = (entries, observer) => {
           entries.forEach(function (entry) {
             if (entry.isIntersecting) {
+              console.log('Updating center force')
               updateCenterForce()
             }
           })
         }
+        // See https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API for info on how this works.
         const observer = new IntersectionObserver(onGraphVisibilityChange, {
           threshold: 0.01
         })
@@ -248,7 +250,7 @@
           .enter().append('line')
           .attr('stroke-width', 3)
           .attr('stroke', '#E5E5E5')
-          .attr('marker-end', 'url(#arrowhead)')
+          .attr('marker-end', 'url(#' + this.arrowheadId + ')')
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
 
