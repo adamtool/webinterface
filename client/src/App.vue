@@ -33,9 +33,10 @@
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
+  import * as iziToast from 'izitoast'
+  import 'izitoast/dist/css/iziToast.min.css'
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
-
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
 
@@ -67,7 +68,13 @@
     },
     watch: {
       petriGame: function () {
-        // The strategy BDD we have may no longer be valid after the Petri Game changes.
+        // The strategy BDD we have may no longer be valid after the Petri Game has changed, so we throw it out.
+        // TODO Consider refactoring to use an immutable data structure.  "petriGame" and "strategyBDD" should maybe
+        // be collapsed into one struct that is stored on the server.  This would prevent us from e.g.
+        // accidentally having at the same time a strategy BDD and a Petri Game that do not match up.
+        // (This can happen due to a race condition right now.  Try clicking "get strategy BDD" and then immediately
+        // click "send graph to editor" before "getStrategyBDD" is finished running. You end up with a mismatched
+        // combination of Petri Game and strategy BDD.
         this.strategyBDD = null
         this.switchToPetriGameTab()
       }
@@ -93,16 +100,34 @@
         }).then(response => {
           console.log('Got response from existsWinningStrategy:')
           console.log(response.data)
+          // TODO error handling
+          // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
+          // This is another piece of state that maybe should be kept on the server.
+          if (response.data.result) {
+            iziToast.show({
+              color: 'green',
+              timeout: 5000,
+              message: 'Yes, there is a winning strategy for this Petri Game.',
+              position: 'topRight'
+            })
+          } else {
+            iziToast.show({
+              color: 'red',
+              timeout: 5000,
+              message: 'No, there is no winning strategy for this Petri Game.',
+              position: 'topRight'
+            })
+          }
         })
       },
       getStrategyBDD: function () {
         axios.post('http://localhost:4567/getStrategyBDD', {
           petriGameId: this.petriGame.uuid
         }).then(response => {
-          // TODO Fix race condition here.  If you click "get strategy BDD" and then quickly click "send graph to editor"
-          // in the APT Editor, then you can potentially end up with a Petri Game and a Strategy BDD that do not
-          // match up.  A solution would be to double-check the UUID of the petri game we have and reject the BDD
-          // if the petri game's UUID has changed since the request was sent to the server.
+          // TODO Fix race condition here.  See above.
+          // A quick fix would be to double-check the UUID of the petri game we have and reject the BDD
+          // if the petri game's UUID has changed since the request was sent to the server, but I prefer the solution
+          // described above.
           console.log('Got response from getStrategyBDD:')
           console.log(response.data)
           this.strategyBDD = response.data.strategyBDD
@@ -131,6 +156,7 @@
     color: #2c3e50;
     margin-top: 20px;
   }
+
   .action-buttons {
     /*text-align: center;*/
   }
