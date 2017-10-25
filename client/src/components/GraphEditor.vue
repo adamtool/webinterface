@@ -1,5 +1,14 @@
 <template>
   <div class="graph-editor">
+    <div class="graph-editor-toolbar">
+      Repulsion Strength
+      <input type="range" min="30" max="500" step="1"
+             class="repulsionStrengthSlider"
+             v-model="repulsionStrength">
+      <input type="number" min="30" max="500" step="1"
+             class="repulsionStrengthNumber"
+             v-model="repulsionStrength">
+    </div>
     <svg class='graph' v-bind:id='this.graphSvgId'>
 
     </svg>
@@ -17,6 +26,15 @@
   .graph {
     flex-grow: 1;
     text-align: left;
+  }
+
+  .graph-editor-toolbar {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .repulsionStrengthSlider {
+    flex-grow: 0.5;
   }
 </style>
 
@@ -41,6 +59,9 @@
       }
     },
     watch: {
+      repulsionStrength: function (strength) {
+        this.simulation.force('charge').strength(-strength)
+      },
       petriNet: function (graph) {
         console.log('GraphEditor: petriNet changed:')
         console.log(graph)
@@ -62,6 +83,7 @@
     },
     data () {
       return {
+        repulsionStrength: 80,
         exportedGraphJson: {},
         nodes: this.deepCopy(this.petriNet.nodes),
         links: this.deepCopy(this.petriNet.links),
