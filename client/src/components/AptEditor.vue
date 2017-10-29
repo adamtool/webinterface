@@ -64,8 +64,7 @@
         console.log('Updating text editor contents')
         this.textInput = newApt
       },
-      textInput: function (newText) {
-        console.log('textInput("' + newText + '")')
+      textInput: function () {
         this.renderGraph()
       }
     }
