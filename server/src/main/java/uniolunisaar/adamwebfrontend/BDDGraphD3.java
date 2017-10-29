@@ -11,12 +11,12 @@ import java.util.stream.Collectors;
  * This class is meant to be serialized using GSON.
  */
 public class BDDGraphD3 {
-    private final List<State> states;
-    private final List<Flow> flows;
+    private final List<State> nodes;
+    private final List<Flow> links;
 
     private BDDGraphD3(List<State> states, List<Flow> flows) {
-        this.states = states;
-        this.flows = flows;
+        this.nodes = states;
+        this.links = flows;
     }
 
     public static BDDGraphD3 of(BDDGraph bddGraph) {
@@ -40,7 +40,7 @@ public class BDDGraphD3 {
     }
 
     private static class State {
-        private final int id;
+        private final String id;
         private final boolean isMcut;
         private final boolean isSpecial;
         private final String content;
@@ -50,7 +50,7 @@ public class BDDGraphD3 {
         }
 
         private State(int id, boolean isMcut, boolean isSpecial, String content) {
-            this.id = id;
+            this.id = Integer.toString(id);
             this.isMcut = isMcut;
             this.isSpecial = isSpecial;
             this.content = content;
