@@ -83,7 +83,8 @@
     },
     data () {
       return {
-        repulsionStrength: 80,
+        nodeSize: 50,
+        repulsionStrength: 120,
         exportedGraphJson: {},
         nodes: this.deepCopy(this.petriNet.nodes),
         links: this.deepCopy(this.petriNet.links),
@@ -96,7 +97,7 @@
         textElements: undefined,
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().strength(100).distanceMin(1000))
-          .force('charge', d3.forceManyBody().strength(-80))
+          .force('charge', d3.forceManyBody().strength(-120))
           //          .force('center', d3.forceCenter(width / 2, height / 2))
           .force('link', d3.forceLink()
             .id(link => link.id)
@@ -142,7 +143,7 @@
           .enter().append('svg:marker')    // This section adds in the arrows
           .attr('id', this.arrowheadId)
           .attr('viewBox', '0 -5 10 10')
-          .attr('refX', 15)
+          .attr('refX', this.nodeSize / 2)
           .attr('refY', -1.5)
           .attr('markerWidth', 6)
           .attr('markerHeight', 6)
@@ -220,19 +221,27 @@
        * It causes our visualization to update accordingly, showing new nodes and removing deleted ones.
        */
       updateD3: function () {
-        const newNodeElements = this.nodeGroup
-          .selectAll('circle')
+        const nodeElements = this.nodeGroup
+          .selectAll('.petri-net-node')
           .data(this.nodes, node => node.id)
-        const nodeEnter = newNodeElements
-          .enter().append('circle')
-          .attr('r', 20)
-          .attr('fill', node => {
-            if (node.type === 'ENVPLACE') {
-              return 'tomato'
-            } else if (node.type === 'SYSPLACE') {
-              return 'skyblue'
-            } else if (node.type === 'TRANSITION') {
-              return 'grey'
+        const newNodeElements = nodeElements.enter().append((node) => {
+          const shape = (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') ? 'circle' : 'rect'
+          return document.createElementNS('http://www.w3.org/2000/svg', shape)
+        })
+        newNodeElements
+          .attr('class', d => `petri-net-node ${d.type}`)
+          .attr('r', this.nodeSize / 1.85)
+          .attr('width', this.nodeSize)
+          .attr('height', this.nodeSize)
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('fill', data => {
+            if (data.type === 'ENVPLACE') {
+              return 'white'
+            } else if (data.type === 'SYSPLACE') {
+              return 'lightgrey'
+            } else if (data.type === 'TRANSITION') {
+              return 'white'
             } else {
               return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
             }
@@ -245,7 +254,7 @@
             this.onGraphModified()
           })
         newNodeElements.exit().remove()
-        this.nodeElements = nodeEnter.merge(newNodeElements)
+        this.nodeElements = nodeElements.merge(newNodeElements)
 
         const newTextElements = this.textGroup
           .selectAll('text')
@@ -254,8 +263,6 @@
           .enter().append('text')
           .text(node => node.label)
           .attr('font-size', 15)
-          .attr('dx', 25)
-          .attr('dy', 4)
           .call(this.dragDrop)
           .on('click', (d) => {
             d3.event.stopPropagation()
@@ -280,12 +287,13 @@
       },
       updateSimulation: function () {
         this.simulation.nodes(this.nodes).on('tick', () => {
-          this.nodeElements
-            .attr('cx', node => node.x)
-            .attr('cy', node => node.y)
+          this.nodeElements.filter('rect')
+            .attr('transform', node => `translate(${node.x - this.nodeSize / 2},${node.y - this.nodeSize / 2})`)
+          this.nodeElements.filter('circle')
+            .attr('transform', node => `translate(${node.x},${node.y})`)
           this.textElements
-            .attr('x', node => node.x)
-            .attr('y', node => node.y)
+            .attr('x', node => node.x - this.nodeSize / 2 + 5)
+            .attr('y', node => node.y + 3)
           this.linkElements
             .attr('x1', link => link.source.x)
             .attr('y1', link => link.source.y)
