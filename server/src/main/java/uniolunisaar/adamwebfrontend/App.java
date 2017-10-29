@@ -94,6 +94,8 @@ public class App {
             response.body("There was a parsing exception");
         });
 
+        // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.
+        // Right now you can crash the server just by sending a bunch of requests to this endpoint
         post("/getGraphStrategyBDD", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
@@ -108,7 +110,7 @@ public class App {
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.add("bddGraph", bddGraphJson);
+            responseJson.add("graphStrategyBDD", bddGraphJson);
             return responseJson.toString();
         });
 
