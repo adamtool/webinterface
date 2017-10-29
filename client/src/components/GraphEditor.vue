@@ -253,7 +253,7 @@
             d.fy = null
             this.onGraphModified()
           })
-        newNodeElements.exit().remove()
+        nodeElements.exit().remove()
         this.nodeElements = nodeElements.merge(newNodeElements)
 
         const newTextElements = this.textGroup
