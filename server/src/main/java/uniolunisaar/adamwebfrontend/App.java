@@ -10,6 +10,8 @@ import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
+import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolverOptions;
 
 import java.util.Map;
 import java.util.UUID;
@@ -90,6 +92,24 @@ public class App {
         exception(ParseException.class, (exception, request, response) -> {
             // Handle the exception here
             response.body("There was a parsing exception");
+        });
+
+        post("/getGraphStrategyBDD", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+
+            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
+            System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
+            BDDGraph bddGraph = Adam.getGraphStrategyBDD(petriGame.getNet(), new BDDSolverOptions());
+
+            BDDGraphD3 bddGraphD3 = BDDGraphD3.of(bddGraph);
+            JsonElement bddGraphJson = gson.toJsonTree(bddGraphD3);
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("bddGraph", bddGraphJson);
+            return responseJson.toString();
         });
 
     }

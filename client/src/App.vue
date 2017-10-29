@@ -12,6 +12,8 @@
             </button>
             <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">Get Strategy BDD
             </button>
+            <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">Get Graph Strategy BDD
+            </button>
           </div>
         </div>
         <tabs>
@@ -93,6 +95,14 @@
       },
       switchToPetriGameTab: function () {
         window.location.href = '#petri-game'
+      },
+      getGraphStrategyBDD: function () {
+        axios.post('http://localhost:4567/getGraphStrategyBDD', {
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          console.log('Got response from getGraphStrategyBDD:')
+          console.log(response.data)
+        })
       },
       existsWinningStrategy: function () {
         axios.post('http://localhost:4567/existsWinningStrategy', {
