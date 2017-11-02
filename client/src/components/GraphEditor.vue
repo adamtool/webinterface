@@ -157,26 +157,6 @@
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
-        const insertNode = (id, label, x, y) => {
-          this.nodes.push({
-            id: id,
-            label: label,
-            x: x,
-            y: y
-          })
-          this.updateD3()
-          this.onGraphModified()
-        }
-        const insertNodeOnClick = () => {
-          const coordinates = d3.mouse(this.svg.node())
-          console.log('Click event registered.  Coordinates:')
-          console.log(coordinates)
-          const label = Math.random().toString()
-          insertNode(label, label, coordinates[0], coordinates[1])
-        }
-
-        this.svg.on('click', insertNodeOnClick)
-
         /**
          * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
          */
