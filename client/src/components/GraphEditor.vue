@@ -222,14 +222,14 @@
        */
       updateD3: function () {
         const nodeElements = this.nodeGroup
-          .selectAll('.petri-net-node')
+          .selectAll('.graph-node')
           .data(this.nodes, node => node.id)
         const newNodeElements = nodeElements.enter().append((node) => {
           const shape = (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') ? 'circle' : 'rect'
           return document.createElementNS('http://www.w3.org/2000/svg', shape)
         })
         newNodeElements
-          .attr('class', d => `petri-net-node ${d.type}`)
+          .attr('class', d => `graph-node ${d.type}`)
           .attr('r', this.nodeSize / 1.85)
           .attr('width', this.nodeSize)
           .attr('height', this.nodeSize)
@@ -241,6 +241,8 @@
             } else if (data.type === 'SYSPLACE') {
               return 'lightgrey'
             } else if (data.type === 'TRANSITION') {
+              return 'white'
+            } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
               return 'white'
             } else {
               return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
