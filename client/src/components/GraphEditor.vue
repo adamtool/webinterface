@@ -118,7 +118,22 @@
               this.simulation.alphaTarget(0)
             }
             this.onGraphModified()
-          })
+          }),
+        onNodeClick: (d) => {
+          d3.event.stopPropagation() // Prevent the click event from reaching all the other elements that overlap the node.
+          d.fx = null
+          d.fy = null
+          this.onGraphModified()
+        },
+        onNodeRightClick: (d) => {
+          d3.event.preventDefault() // Prevent the right click menu from appearing
+          d3.event.stopPropagation()
+          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            d.shouldShowContent = (d.content !== null) && !d.shouldShowContent
+            console.log(`shouldShowContent: ${d.shouldShowContent}`)
+            this.updateD3()
+          }
+        }
       }
     },
     methods: {
@@ -136,6 +151,11 @@
         this.svg = d3.select('#' + this.graphSvgId)
           .attr('width', '100%')
           .attr('height', '100%')
+
+        // Prevent the right click menu from showing up.
+        this.svg.on('contextmenu', () => {
+          d3.event.preventDefault()
+        })
 
         // Define arrows
         this.svg.append('svg:defs').selectAll('marker')
@@ -229,12 +249,8 @@
             }
           })
           .call(this.dragDrop)
-          .on('click', (d) => {
-            d3.event.stopPropagation() // Do this, or else a new node will be placed underneath the node you clicked
-            d.fx = null
-            d.fy = null
-            this.onGraphModified()
-          })
+          .on('click', this.onNodeClick)
+          .on('contextmenu', this.onNodeRightClick)
         nodeElements.exit().remove()
         this.nodeElements = nodeElements.merge(newNodeElements)
 
@@ -243,16 +259,16 @@
           .data(this.nodes, node => node.id)
         const textEnter = newTextElements
           .enter().append('text')
-          .text(node => node.label)
           .attr('font-size', 15)
           .call(this.dragDrop)
-          .on('click', (d) => {
-            d3.event.stopPropagation()
-            d.fx = null
-            d.fy = null
-          })
+          .on('click', this.onNodeClick)
+          .on('contextmenu', this.onNodeRightClick)
         newTextElements.exit().remove()
         this.textElements = textEnter.merge(newTextElements)
+        this.textElements
+          .text(node => {
+            return node.shouldShowContent ? node.content : node.label
+          })
 
         const newLinkElements = this.linkGroup
           .selectAll('line')
