@@ -39,8 +39,7 @@ public class BDDGraphD3 {
         }
     }
 
-    private static class State {
-        private final String id;
+    private static class State extends GraphNode {
         private final boolean isMcut;
         private final boolean isSpecial;
         private final String content;
@@ -50,7 +49,7 @@ public class BDDGraphD3 {
         }
 
         private State(int id, boolean isMcut, boolean isSpecial, String content) {
-            this.id = Integer.toString(id);
+            super(Integer.toString(id), Integer.toString(id), GraphNodeType.GRAPH_STRATEGY_BDD_STATE);
             this.isMcut = isMcut;
             this.isSpecial = isSpecial;
             this.content = content;

@@ -13,10 +13,10 @@ import java.util.List;
  * This class is meant to be serialized using GSON and fed directly into our D3 code.
  */
 public class PetriNetD3 {
-    private final List<GraphLink> links;
-    private final List<GraphNode> nodes;
+    private final List<PetriNetLink> links;
+    private final List<PetriNetNode> nodes;
 
-    private PetriNetD3(List<GraphLink> links, List<GraphNode> nodes) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes) {
         this.links = links;
         this.nodes = nodes;
     }
@@ -29,34 +29,67 @@ public class PetriNetD3 {
      * See https://github.com/d3/d3-force
      */
     public static PetriNetD3 of(PetriNet net) {
-        List<GraphLink> links = new ArrayList<>();
-        List<GraphNode> nodes = new ArrayList<>();
+        List<PetriNetLink> links = new ArrayList<>();
+        List<PetriNetNode> nodes = new ArrayList<>();
 
         for (Place place : net.getPlaces()) {
             boolean isBad = AdamExtensions.isBad(place);
             if (AdamExtensions.isEnvironment(place)) {
-                nodes.add(GraphNode.envPlace(place.getId(), place.getId(), isBad));
+                nodes.add(PetriNetNode.envPlace(place.getId(), place.getId(), isBad));
             } else {
-                nodes.add(GraphNode.sysPlace(place.getId(), place.getId(), isBad));
+                nodes.add(PetriNetNode.sysPlace(place.getId(), place.getId(), isBad));
             }
 
             // TODO: Can this be done neater using a loop like "for (Flow edge : net.getEdges()) {...}"?
             for (Transition preTransition : place.getPreset()) {
-                GraphLink link = new GraphLink(preTransition.getId(), place.getId());
+                PetriNetLink link = PetriNetLink.of(preTransition, place);
                 links.add(link);
             }
             for (Transition postTransition : place.getPostset()) {
-                GraphLink link = new GraphLink(place.getId(), postTransition.getId());
+                PetriNetLink link = PetriNetLink.of(place, postTransition);
                 links.add(link);
             }
         }
 
         for (Transition transition : net.getTransitions()) {
-            GraphNode transitionNode = GraphNode.transition(transition.getId(), transition.getLabel());
+            PetriNetNode transitionNode = PetriNetNode.transition(transition.getId(), transition.getLabel());
             nodes.add(transitionNode);
         }
 
         return new PetriNetD3(links, nodes);
     }
 
+    static class PetriNetLink extends GraphLink {
+        private PetriNetLink(String source, String target) {
+            super(source, target);
+        }
+        static PetriNetLink of(Place place, Transition transition) {
+            return new PetriNetLink(place.getId(), transition.getId());
+        }
+        static PetriNetLink of(Transition transition, Place place) {
+            return new PetriNetLink(transition.getId(), place.getId());
+        }
+    }
+
+    static class PetriNetNode extends GraphNode {
+        private final boolean isBad;
+
+        PetriNetNode(String id, String label, GraphNodeType type, boolean isBad) {
+            super(id, label, type);
+            this.isBad = isBad;
+        }
+
+        static PetriNetNode transition(String id, String label) {
+            // Transitions are never bad
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false);
+        }
+
+        static PetriNetNode envPlace(String id, String label, boolean isBad) {
+            return new PetriNetNode(id, label, GraphNodeType.ENVPLACE, isBad);
+        }
+
+        static PetriNetNode sysPlace(String id, String label, boolean isBad) {
+            return new PetriNetNode(id, label, GraphNodeType.SYSPLACE, isBad);
+        }
+    }
 }
