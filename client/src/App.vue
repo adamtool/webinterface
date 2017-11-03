@@ -1,10 +1,7 @@
 <template>
   <div id='app' class="container-fluid">
     <div class='row'>
-      <div class='col-md-4'>
-        <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
-      </div>
-      <div class='col-md-8'>
+      <div class='col-md-12'>
         <div class="row action-buttons">
           <div class="col-12">
             <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
@@ -17,6 +14,9 @@
           </div>
         </div>
         <tabs>
+          <tab name="APT Editor">
+            <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
+          </tab>
           <tab name="Petri Game">
             <GraphEditor v-bind:petriNet='petriGame.net' v-on:graphModified='onGraphModified'></GraphEditor>
           </tab>

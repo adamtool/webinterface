@@ -1,22 +1,48 @@
 <template>
-  <div id="apt-editor">
-    <div class="row">
-      <div class="col-md-12">
-        <h2>APT Editor</h2>
-        <div>
-          <textarea id="text-entry" class="form-control" v-model="textInput"></textarea>
-        </div>
-        <div>
-          <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Send Graph to Editor</button>
-        </div>
-        Here is the graph we have received from the backend:
-        <div id="petri-game-preview">
-          {{ petriGamePreview }}
-        </div>
+  <div class="apt-editor">
+    <div class="text-editor">
+      <textarea class="form-control" v-model="textInput"></textarea>
+      <div>
+        <button type="button" class="btn btn-primary pull-right" v-on:click="saveGraph">Send Graph to Editor</button>
+      </div>
+    </div>
+    <div class="debug-output">
+      <h2>Debug output</h2>
+      Here is the last response we got from the server:
+      <div id="server-response">
+        <pre>{{ serverResponsePrettyPrinted }}</pre>
       </div>
     </div>
   </div>
 </template>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+  .apt-editor {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .text-editor {
+    height: 85vh;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    flex: 0.55;
+  }
+
+  .text-editor textarea {
+    box-sizing: border-box;
+    flex: 1;
+    height: 100%;
+    width: 100%;
+  }
+
+  .debug-output {
+    margin: 10px;
+    flex: 0.45;
+  }
+</style>
 
 <script>
   //  import * as Vue from 'vue'
@@ -29,14 +55,20 @@
     props: ['apt'],
     data () {
       return {
-        petriGamePreview: {
+        petriGameFromServer: {
           net: {
             nodes: [],
             links: []
           },
           uuid: '123fakeuuid'
         },
-        textInput: this.apt
+        textInput: this.apt,
+        serverResponse: {}
+      }
+    },
+    computed: {
+      serverResponsePrettyPrinted: function () {
+        return JSON.stringify(this.serverResponse, null, 2)
       }
     },
     mounted: function () {
@@ -52,11 +84,12 @@
         }).then(response => {
           console.log('Received graph from backend:')
           console.log(response.data)
-          this.petriGamePreview = response.data.graph
+          this.serverResponse = response.data
+          this.petriGameFromServer = response.data.graph
         })
       },
       saveGraph: function () {
-        this.$emit('graphSaved', this.petriGamePreview)
+        this.$emit('graphSaved', this.petriGameFromServer)
       }
     },
     watch: {
@@ -70,13 +103,3 @@
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-  #text-entry {
-    height: 350px;
-  }
-  #apt-editor {
-    text-align: center;
-  }
-</style>
