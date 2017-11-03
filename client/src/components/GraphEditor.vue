@@ -223,12 +223,18 @@
       updateD3: function () {
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')
-          .data(this.nodes, node => node.id)
+          .data(this.nodes, node => `${node.id}::${node.type}`)
         const newNodeElements = nodeElements.enter().append((node) => {
           const shape = (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') ? 'circle' : 'rect'
           return document.createElementNS('http://www.w3.org/2000/svg', shape)
         })
         newNodeElements
+          .call(this.dragDrop)
+          .on('click', this.onNodeClick)
+          .on('contextmenu', this.onNodeRightClick)
+        nodeElements.exit().remove()
+        this.nodeElements = nodeElements.merge(newNodeElements)
+        this.nodeElements
           .attr('class', d => `graph-node ${d.type}`)
           .attr('r', this.nodeSize / 1.85)
           .attr('width', this.nodeSize)
@@ -248,24 +254,19 @@
               return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
             }
           })
-          .call(this.dragDrop)
-          .on('click', this.onNodeClick)
-          .on('contextmenu', this.onNodeRightClick)
-        nodeElements.exit().remove()
-        this.nodeElements = nodeElements.merge(newNodeElements)
 
         const newTextElements = this.textGroup
           .selectAll('text')
-          .data(this.nodes, node => node.id)
+          .data(this.nodes, node => `${node.id}::${node.type}`)
         const textEnter = newTextElements
           .enter().append('text')
-          .attr('font-size', 15)
           .call(this.dragDrop)
           .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
         newTextElements.exit().remove()
         this.textElements = textEnter.merge(newTextElements)
         this.textElements
+          .attr('font-size', 15)
           .text(node => {
             return node.shouldShowContent ? node.content : node.label
           })
@@ -275,11 +276,11 @@
           .data(this.links)
         const linkEnter = newLinkElements
           .enter().append('line')
+        newLinkElements.exit().remove()
+        this.linkElements = linkEnter.merge(newLinkElements)
           .attr('stroke-width', 3)
           .attr('stroke', '#E5E5E5')
           .attr('marker-end', 'url(#' + this.arrowheadId + ')')
-        newLinkElements.exit().remove()
-        this.linkElements = linkEnter.merge(newLinkElements)
 
         this.updateSimulation()
       },
