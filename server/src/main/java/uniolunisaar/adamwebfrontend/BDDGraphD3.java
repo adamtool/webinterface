@@ -46,6 +46,9 @@ public class BDDGraphD3 {
 
         public static State of(BDDState bddState) {
             return new State(bddState.getId(), bddState.isMcut(), bddState.isSpecial(), bddState.getContent());
+            // TODO Isbad dicke schwarze Rahmen
+            // TODO isGood doppelter Rahmen (nicht so dick)
+            // TODO See Graphenspiele Beispiele in den Besipielen
         }
 
         private State(int id, boolean isMcut, boolean isSpecial, String content) {
