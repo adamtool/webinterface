@@ -41,20 +41,22 @@ public class BDDGraphD3 {
 
     private static class State extends GraphNode {
         private final boolean isMcut;
-        private final boolean isSpecial;
+        private final boolean isGood;
+        private final boolean isBad;
         private final String content;
 
         public static State of(BDDState bddState) {
-            return new State(bddState.getId(), bddState.isMcut(), bddState.isSpecial(), bddState.getContent());
+            return new State(bddState.getId(), bddState.isMcut(), bddState.isGood(), bddState.isBad(), bddState.getContent());
             // TODO Isbad dicke schwarze Rahmen
             // TODO isGood doppelter Rahmen (nicht so dick)
             // TODO See Graphenspiele Beispiele in den Besipielen
         }
 
-        private State(int id, boolean isMcut, boolean isSpecial, String content) {
+        private State(int id, boolean isMcut, boolean isGood, boolean isBad, String content) {
             super(Integer.toString(id), Integer.toString(id), GraphNodeType.GRAPH_STRATEGY_BDD_STATE);
             this.isMcut = isMcut;
-            this.isSpecial = isSpecial;
+            this.isGood = isGood;
+            this.isBad = isBad;
             this.content = content;
         }
     }
