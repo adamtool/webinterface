@@ -3,7 +3,7 @@ package uniolunisaar.adamwebfrontend;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -11,22 +11,26 @@ import java.util.stream.Collectors;
  * This class is meant to be serialized using GSON.
  */
 public class BDDGraphD3 {
-    private final List<State> nodes;
-    private final List<Flow> links;
+    private final Set<State> nodes;
+    private final Set<Flow> links;
 
-    private BDDGraphD3(List<State> states, List<Flow> flows) {
+    private BDDGraphD3(Set<State> states, Set<Flow> flows) {
         this.nodes = states;
         this.links = flows;
     }
 
     public static BDDGraphD3 of(BDDGraph bddGraph) {
-        List<State> states = bddGraph.getStates().stream()
+        return of(bddGraph.getStates(), bddGraph.getFlows());
+    }
+
+    public static BDDGraphD3 of(Set<BDDState> states, Set<uniolunisaar.adam.ds.graph.Flow> flows) {
+        Set<State> nodes = states.stream()
                 .map((BDDState state) -> State.of(state))
-                .collect(Collectors.toList());
-        List<Flow> flows = bddGraph.getFlows().stream()
+                .collect(Collectors.toSet());
+        Set<Flow> links = flows.stream()
                 .map((uniolunisaar.adam.ds.graph.Flow flow) -> Flow.of(flow))
-                .collect(Collectors.toList());
-        return new BDDGraphD3(states, flows);
+                .collect(Collectors.toSet());
+        return new BDDGraphD3(nodes, links);
     }
 
 
