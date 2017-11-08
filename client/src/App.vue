@@ -159,7 +159,7 @@
         this.petriGame = petriGame
       },
       withErrorHandling: function (response, onSuccessCallback) {
-        switch (String(response.data.status)) {
+        switch (response.data.status) {
           case 'success':
             onSuccessCallback(response)
             break
