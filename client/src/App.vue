@@ -42,6 +42,7 @@
   import 'izitoast/dist/css/iziToast.min.css'
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
+
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
 
@@ -111,51 +112,40 @@
         axios.post('http://localhost:4567/getGraphStrategyBDD', {
           petriGameId: this.petriGame.uuid
         }).then(response => {
-          console.log('Got response from getGraphStrategyBDD:')
-          console.log(response.data)
-          // TODO Fix race condition here.  See above.
-          this.graphStrategyBDD = response.data.graphStrategyBDD
-          this.switchToGraphStrategyBDDTab()
+          this.withErrorHandling(response, response => {
+            // TODO Fix race condition here.  See above.
+            this.graphStrategyBDD = response.data.graphStrategyBDD
+            this.switchToGraphStrategyBDDTab()
+          })
         })
       },
       existsWinningStrategy: function () {
         axios.post('http://localhost:4567/existsWinningStrategy', {
           petriGameId: this.petriGame.uuid
         }).then(response => {
-          console.log('Got response from existsWinningStrategy:')
-          console.log(response.data)
-          // TODO error handling
-          // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
-          // This is another piece of state that maybe should be kept on the server.
-          if (response.data.result) {
-            iziToast.show({
-              color: 'green',
-              timeout: 5000,
-              message: 'Yes, there is a winning strategy for this Petri Game.',
-              position: 'topRight'
-            })
-          } else {
-            iziToast.show({
-              color: 'red',
-              timeout: 5000,
-              message: 'No, there is no winning strategy for this Petri Game.',
-              position: 'topRight'
-            })
-          }
+          this.withErrorHandling(response, response => {
+            // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
+            // This is another piece of state that maybe should be kept on the server.
+            if (response.data.result) {
+              this.showSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
+            } else {
+              this.showErrorNotification('No, there is no winning strategy for this Petri Game.')
+            }
+          })
         })
       },
       getStrategyBDD: function () {
         axios.post('http://localhost:4567/getStrategyBDD', {
           petriGameId: this.petriGame.uuid
         }).then(response => {
-          // TODO Fix race condition here.  See above.
-          // A quick fix would be to double-check the UUID of the petri game we have and reject the BDD
-          // if the petri game's UUID has changed since the request was sent to the server, but I prefer the solution
-          // described above.
-          console.log('Got response from getStrategyBDD:')
-          console.log(response.data)
-          this.strategyBDD = response.data.strategyBDD
-          this.switchToStrategyBDDTab()
+          this.withErrorHandling(response, response => {
+            // TODO Fix race condition here.  See above.
+            // A quick fix would be to double-check the UUID of the petri game we have and reject the BDD
+            // if the petri game's UUID has changed since the request was sent to the server, but I prefer the solution
+            // described above.
+            this.strategyBDD = response.data.strategyBDD
+            this.switchToStrategyBDDTab()
+          })
         })
       },
       onGraphModified: function (graph) {
@@ -167,6 +157,34 @@
         console.log('App: Got Petri Game from APT editor:')
         console.log(petriGame)
         this.petriGame = petriGame
+      },
+      withErrorHandling: function (response, onSuccessCallback) {
+        switch (String(response.data.status)) {
+          case 'success':
+            onSuccessCallback(response)
+            break
+          case 'error':
+            this.showErrorNotification(response.data.message)
+            break
+          default:
+            this.showErrorNotification(`Received a malformed response from the server: ${response.data}`)
+        }
+      },
+      showErrorNotification (message) {
+        this.showNotification(message, 'red')
+      },
+      showSuccessNotification (message) {
+        this.showNotification(message, 'green')
+      },
+      showNotification: function (message, color) {
+        iziToast.show({
+          color: color,
+          timeout: 3000,
+          message: message,
+          position: 'bottomCenter',
+          overlayClose: true,
+          closeOnEscape: true
+        })
       }
     }
   }
@@ -183,5 +201,9 @@
 
   .action-buttons {
     /*text-align: center;*/
+  }
+
+  .iziToast > .iziToast-body {
+    white-space: pre;
   }
 </style>

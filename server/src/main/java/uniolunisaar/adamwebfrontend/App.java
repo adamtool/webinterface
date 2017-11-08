@@ -13,6 +13,8 @@ import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolverOptions;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -89,9 +91,18 @@ public class App {
             responseJson.add("strategyBDD", strategyBDDJson);
             return responseJson.toString();
         });
-        exception(ParseException.class, (exception, request, response) -> {
-            // Handle the exception here
-            response.body("There was a parsing exception");
+        exception(Exception.class, (exception, request, response) -> {
+            exception.printStackTrace();
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "error");
+            StringWriter sw = new StringWriter();
+            exception.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.getBuffer().toString();
+            responseJson.addProperty("message", exceptionAsString);
+
+            String responseBody = responseJson.toString();
+            response.body(responseBody);
         });
 
         // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.
