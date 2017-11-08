@@ -11,6 +11,8 @@
             </button>
             <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">Get Graph Strategy BDD
             </button>
+            <button type="button" class="btn btn-primary" v-on:click="getGraphGameBDD">Get Graph Game BDD
+            </button>
           </div>
         </div>
         <tabs>
@@ -25,6 +27,9 @@
           </tab>
           <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
             <GraphEditor v-bind:petriNet='graphStrategyBDD'></GraphEditor>
+          </tab>
+          <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
+            <GraphEditor v-bind:petriNet='graphGameBDD'></GraphEditor>
           </tab>
         </tabs>
       </div>
@@ -70,13 +75,15 @@
         },
         apt: aptExample,
         strategyBDD: null,
-        graphStrategyBDD: null
+        graphStrategyBDD: null,
+        graphGameBDD: null
       }
     },
     watch: {
       petriGame: function () {
         // The strategy BDD we have may no longer be valid after the Petri Game has changed, so we throw it out.
-        // TODO Consider refactoring to use a more appropriate data structure.  "petriGame", "strategyBDD" and "graphStrategyBDD"
+        // TODO Consider refactoring to use a more appropriate data structure.  "petriGame", "strategyBDD", "graphStrategyBDD"
+        // and "graphGameBDD"
         // should maybe be contained in one object that is stored on the server.  This would prevent us from e.g.
         // accidentally having at the same time a strategy BDD and a Petri Game that do not match up.
         // (This can happen due to a race condition right now.  Try clicking "get strategy BDD" and then immediately
@@ -84,18 +91,19 @@
         // combination of Petri Game and strategy BDD.
         this.strategyBDD = null
         this.graphStrategyBDD = null
+        this.graphGameBDD = null
         this.switchToPetriGameTab()
       }
     },
     computed: {
       petriGameHasStrategyBDD: function () {
-        console.log('Do we have a strategy bdd?')
-        const answer = this.strategyBDD !== null
-        console.log('the answer is: ' + answer)
-        return answer
+        return this.strategyBDD !== null
       },
       petriGameHasGraphStrategyBDD: function () {
         return this.graphStrategyBDD !== null
+      },
+      petriGameHasGraphGameBDD: function () {
+        return this.graphGameBDD !== null
       }
     },
     methods: {
@@ -108,6 +116,9 @@
       switchToGraphStrategyBDDTab: function () {
         window.location.href = '#graph-strategy-bdd'
       },
+      switchToGraphGameBDDTab: function () {
+        window.location.href = '#graph-game-bdd'
+      },
       getGraphStrategyBDD: function () {
         axios.post('http://localhost:4567/getGraphStrategyBDD', {
           petriGameId: this.petriGame.uuid
@@ -116,6 +127,17 @@
             // TODO Fix race condition here.  See above.
             this.graphStrategyBDD = response.data.graphStrategyBDD
             this.switchToGraphStrategyBDDTab()
+          })
+        })
+      },
+      getGraphGameBDD: function () {
+        axios.post('http://localhost:4567/getGraphGameBDD', {
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            // TODO Fix race condition here.  See above.
+            this.graphGameBDD = response.data.graphGameBDD
+            this.switchToGraphGameBDDTab()
           })
         })
       },
