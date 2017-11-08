@@ -8,9 +8,19 @@
     </div>
     <div class="debug-output">
       <h2>Debug output</h2>
-      Here is the last response we got from the server:
       <div id="server-response">
-        <pre>{{ serverResponsePrettyPrinted }}</pre>
+        <template v-if="serverResponse.status === 'success'">
+          Here is the result of parsing the APT:
+          <pre>{{ serverResponsePrettyPrinted }}</pre>
+        </template>
+        <template v-else-if="serverResponse.status === 'error'">
+          There was an error when we tried to parse the APT:
+          <pre>{{ serverResponse.message }}</pre>
+        </template>
+        <template v-else>
+          We got a totally malformed response from the server:
+          <pre>{{ serverResponse }}</pre>
+        </template>
       </div>
     </div>
   </div>
@@ -82,10 +92,18 @@
             apt: this.textInput
           }
         }).then(response => {
-          console.log('Received graph from backend:')
-          console.log(response.data)
-          this.serverResponse = response.data
-          this.petriGameFromServer = response.data.graph
+          switch (response.data.status) {
+            case 'success':
+              console.log('Received graph from backend:')
+              console.log(response.data)
+              this.serverResponse = response.data
+              this.petriGameFromServer = response.data.graph
+              break
+            default:
+              this.serverResponse = response.data
+              break
+          }
+          // TODO handle broken connection to server
         })
       },
       saveGraph: function () {
