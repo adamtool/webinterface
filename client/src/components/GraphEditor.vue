@@ -5,9 +5,6 @@
       <input type="range" min="30" max="500" step="1"
              class="repulsionStrengthSlider"
              v-model="repulsionStrength">
-      <input type="number" min="30" max="500" step="1"
-             class="repulsionStrengthNumber"
-             v-model="repulsionStrength">
     </div>
     <svg class='graph' v-bind:id='this.graphSvgId'>
 
@@ -328,27 +325,6 @@
         const newLinks = graphJsonCopy.links
         const newNodes = graphJsonCopy.nodes
 
-        // Delete the links that are no longer present
-        this.links = this.links.filter(oldLink => {
-          newLinks.some(newLink => {
-            const sourceMatches = oldLink.source.id === newLink.source
-            const targetMatches = oldLink.target.id === newLink.target
-            return sourceMatches && targetMatches
-          })
-        })
-
-        // Add the new links into our links array
-        newLinks.forEach(newLink => {
-          const linkIsAlreadyPresent = this.links.some(oldLink => {
-            const sourceMatches = oldLink.source.id === newLink.source
-            const targetMatches = oldLink.target.id === newLink.target
-            return sourceMatches && targetMatches
-          })
-          if (!linkIsAlreadyPresent) {
-            this.links.push(newLink)
-          }
-        })
-
         // Delete the nodes that are no longer present, and update the ones that are still present
         this.nodes = this.nodes.filter(oldNode => {
           const newEquivalentNode = newNodes.find(newNode => oldNode.id === newNode.id)
@@ -368,6 +344,41 @@
             newNode.x = this.svgWidth() / 2
             newNode.y = this.svgHeight() / 2
             this.nodes.push(newNode)
+          }
+        })
+
+        // Delete the links that are no longer present
+        this.links = this.links.filter(oldLink => {
+          newLinks.some(newLink => {
+            const sourceMatches = oldLink.source.id === newLink.source
+            const targetMatches = oldLink.target.id === newLink.target
+            return sourceMatches && targetMatches
+          })
+        })
+
+        // Add the new links into our links array
+        newLinks.forEach(newLink => {
+          const linkIsAlreadyPresent = this.links.some(oldLink => {
+            const sourceMatches = oldLink.source.id === newLink.source
+            const targetMatches = oldLink.target.id === newLink.target
+            return sourceMatches && targetMatches
+          })
+          if (!linkIsAlreadyPresent) {
+            // The way D3's force layout works is, if you want, you can supply it an array of links
+            // where each link just contains the ID of its source and target nodes.
+            // If you do this, D3 will automatically replace each ID with a reference to the node.
+            // This works great for a graph that never changes.
+            // But if you later want to update the graph, and you have a mixture of references and
+            // IDs in your links array, D3 will go through all the links and replace all the
+            // references again for you. This makes all the links disappear for a fraction
+            // of a second and then reappear.  It's an unsettling visual effect.
+            // To prevent this from happening, we manually replace the IDs with references ourselves,
+            // saving D3 the effort of doing it for us.
+            const newLinkWithReferences = {
+              source: this.nodes.find(node => node.id === newLink.source),
+              target: this.nodes.find(node => node.id === newLink.target)
+            }
+            this.links.push(newLinkWithReferences)
           }
         })
       },
