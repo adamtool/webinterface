@@ -81,10 +81,8 @@
         // TODO array, which contains the x/y coordinates of every node.
         // TODO To fix the bug, we have to diff the new set of nodes against our existing nodes
         // TODO and add the new nodes into our existing array (and as a refinement, give them
-        // TODO appropriate x/y coordinates near to the x/y coordinates of their parent nodes.)
-        const convertedGraph = this.importGraph(graph)
-        this.nodes = convertedGraph.nodes
-        this.links = convertedGraph.links
+        // TODO appropriate x/y coordinates near to the x/y coordinates of their parent nodes
+        this.importGraph(graph)
         this.updateD3()
       }
     },
@@ -235,7 +233,7 @@
       updateD3: function () {
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')
-          .data(this.nodes, node => `${node.id}::${node.type}`)
+          .data(this.nodes, this.keyFunction)
         const newNodeElements = nodeElements.enter().append((node) => {
           const shape = (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') ? 'circle' : 'rect'
           return document.createElementNS('http://www.w3.org/2000/svg', shape)
@@ -269,7 +267,7 @@
 
         const newTextElements = this.textGroup
           .selectAll('text')
-          .data(this.nodes, node => `${node.id}::${node.type}`)
+          .data(this.nodes, this.keyFunction)
         const textEnter = newTextElements
           .enter().append('text')
           .call(this.dragDrop)
@@ -321,28 +319,60 @@
         })
       },
       /**
-       * Perform a defensive copy of the graph JSON given to us from the backend.
-       * TODO Validate it -- make sure it has all the properties we expect to see.
+       * Perform a diff of the new graph against our existing graph, updating our graph in-place.
+       * Delete nodes/links that are gone, update nodes that have changed, add new nodes/links.
+       * TODO Validate the graphJson; make sure it has all the properties we expect to see.
        */
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
-        return graphJsonCopy
-//        We should put up some kind of error message if any of the expected properties aren't there.
-//        return {
-//          links: graphJsonCopy.links.map(link => ({
-//            source: link.source,
-//            target: link.target
-//          })),
-//          nodes: graphJsonCopy.nodes.map(node => ({
-//            id: node.id,
-//            label: node.label,
-//            type: node.type,
-//            x: this.svgWidth() / 2,
-//            y: this.svgHeight() / 2,
-//            group: 0,
-//            level: 0
-//          }))
-//        }
+        const newLinks = graphJsonCopy.links
+        const newNodes = graphJsonCopy.nodes
+
+        // Delete the links that are no longer present
+        this.links = this.links.filter(oldLink => {
+          newLinks.some(newLink => {
+            const sourceMatches = oldLink.source.id === newLink.source
+            const targetMatches = oldLink.target.id === newLink.target
+            return sourceMatches && targetMatches
+          })
+        })
+
+        // Add the new links into our links array
+        newLinks.forEach(newLink => {
+          const linkIsAlreadyPresent = this.links.some(oldLink => {
+            const sourceMatches = oldLink.source.id === newLink.source
+            const targetMatches = oldLink.target.id === newLink.target
+            return sourceMatches && targetMatches
+          })
+          if (!linkIsAlreadyPresent) {
+            this.links.push(newLink)
+          }
+        })
+
+        // Delete the nodes that are no longer present, and update the ones that are still present
+        this.nodes = this.nodes.filter(oldNode => {
+          const newEquivalentNode = newNodes.find(newNode => oldNode.id === newNode.id)
+          const nodeIsStillPresent = newEquivalentNode !== undefined
+          if (nodeIsStillPresent) {
+            // Update the node's id, label, etc. while retaining x/y coordinates
+            Object.assign(oldNode, newEquivalentNode)
+          }
+          return nodeIsStillPresent
+        })
+
+        // Add the new nodes into our nodes array
+        newNodes.forEach(newNode => {
+          const nodeIsAlreadyPresent = this.nodes.some(oldNode => oldNode.id === newNode.id)
+          if (!nodeIsAlreadyPresent) {
+            // TODO Place new nodes next to their parents, or next to the last place the user clicked or something
+            newNode.x = this.svgWidth() / 2
+            newNode.y = this.svgHeight() / 2
+            this.nodes.push(newNode)
+          }
+        })
+      },
+      keyFunction: function (data) {
+        return `${data.id}::${data.type}`
       },
       svgWidth: function () {
         return this.svg.node().getBoundingClientRect().width
