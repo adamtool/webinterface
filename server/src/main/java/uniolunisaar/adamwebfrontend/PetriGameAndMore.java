@@ -54,8 +54,16 @@ public class PetriGameAndMore {
         return PetriNetD3.of(strategyBDD);
     }
 
-    public void calculateGraphStrategyBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
-        this.graphStrategyBDD = Optional.ofNullable(Adam.getGraphStrategyBDD(this.petriGame.getNet()));
+    public JsonElement calculateGraphStrategyBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
+        // TODO It's still possible to crash the server by calling this method many times in succession.
+        // TODO Introduce some kind of thread safety and make sure that the calculation only happens once.
+        // TODO It might make sense to use Future to represent the ongoing computation.
+        // TODO This also applies to the other calculation methods like calculateStrategyBDD and calculateExistsWinningStrategy.
+        if (!this.graphStrategyBDD.isPresent()) {
+            BDDGraph graphStrategyBDD = Adam.getGraphStrategyBDD(this.petriGame.getNet());
+            this.graphStrategyBDD = Optional.of(graphStrategyBDD);
+        }
+        return BDDGraphD3.of(this.graphStrategyBDD.get());
     }
 
     public void calculateGraphGameBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {

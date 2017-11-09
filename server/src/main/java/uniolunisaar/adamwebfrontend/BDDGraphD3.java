@@ -1,5 +1,7 @@
 package uniolunisaar.adamwebfrontend;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
 
@@ -19,18 +21,19 @@ public class BDDGraphD3 {
         this.links = flows;
     }
 
-    public static BDDGraphD3 of(BDDGraph bddGraph) {
+    public static JsonElement of(BDDGraph bddGraph) {
         return of(bddGraph.getStates(), bddGraph.getFlows());
     }
 
-    public static BDDGraphD3 of(Set<BDDState> states, Set<uniolunisaar.adam.ds.graph.Flow> flows) {
+    public static JsonElement of(Set<BDDState> states, Set<uniolunisaar.adam.ds.graph.Flow> flows) {
         Set<State> nodes = states.stream()
                 .map((BDDState state) -> State.of(state))
                 .collect(Collectors.toSet());
         Set<Flow> links = flows.stream()
                 .map((uniolunisaar.adam.ds.graph.Flow flow) -> Flow.of(flow))
                 .collect(Collectors.toSet());
-        return new BDDGraphD3(nodes, links);
+        BDDGraphD3 bddGraphD3 = new BDDGraphD3(nodes, links);
+        return new Gson().toJsonTree(bddGraphD3);
     }
 
 

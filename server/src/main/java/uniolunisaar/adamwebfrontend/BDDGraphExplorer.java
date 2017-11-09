@@ -1,5 +1,6 @@
 package uniolunisaar.adamwebfrontend;
 
+import com.google.gson.JsonElement;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
 
@@ -10,6 +11,7 @@ import java.util.Set;
 
 /**
  * Wraps a BDDGraph and keeps track of the states that are meant to be visible in our client.
+ * Exposes a read-only view of the graph.
  */
 public class BDDGraphExplorer {
     private final BDDGraph bddGraph;
@@ -20,7 +22,7 @@ public class BDDGraphExplorer {
         this.visibleStates = new HashSet<>(Arrays.asList(bddGraph.getInitial()));
     }
 
-    public BDDGraphD3 getVisibleGraph() {
+    public JsonElement getVisibleGraph() {
         return BDDGraphD3.of(this.visibleStates, this.bddGraph.getFlows());
     }
 

@@ -97,24 +97,21 @@ public class App {
         // TODO Fix these methods and uncomment htem
         // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.
         // Right now you can crash the server just by sending a bunch of requests to this endpoint
-//        post("/getGraphStrategyBDD", (req, res) -> {
-//            JsonElement body = parser.parse(req.body());
-//            System.out.println("body: " + body.toString());
-//            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-//
-//            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
-//            System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
-//            BDDGraph bddGraph = Adam.getGraphStrategyBDD(petriGame.getNet(), new BDDSolverOptions());
-//
-//            BDDGraphD3 bddGraphD3 = BDDGraphD3.of(bddGraph);
-//            JsonElement bddGraphJson = gson.toJsonTree(bddGraphD3);
-//
-//            JsonObject responseJson = new JsonObject();
-//            responseJson.addProperty("status", "success");
-//            responseJson.add("graphStrategyBDD", bddGraphJson);
-//            return responseJson.toString();
-//        });
-//
+        post("/getGraphStrategyBDD", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+
+            PetriGameAndMore petriGame = petriGamesReadFromApt.get(petriGameId);
+            System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
+            JsonElement bddGraph = petriGame.calculateGraphStrategyBDD();
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("graphStrategyBDD", bddGraph);
+            return responseJson.toString();
+        });
+
 //        post("/getGraphGameBDD", (req, res) -> {
 //            JsonElement body = parser.parse(req.body());
 //            System.out.println("body: " + body.toString());
