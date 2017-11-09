@@ -229,6 +229,6 @@
   }
 
   .iziToast > .iziToast-body {
-    white-space: pre;
+    white-space: pre-wrap;
   }
 </style>
