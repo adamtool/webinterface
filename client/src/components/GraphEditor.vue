@@ -5,6 +5,9 @@
       <input type="range" min="30" max="500" step="1"
              class="repulsionStrengthSlider"
              v-model="repulsionStrength">
+      <input type="number" min="30" max="500" step="1"
+             class="repulsionStrengthNumber"
+             v-model="repulsionStrength">
     </div>
     <svg class='graph' v-bind:id='this.graphSvgId'>
 
