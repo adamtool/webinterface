@@ -131,13 +131,13 @@ public class App {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-            int nodeId = body.getAsJsonObject().get("nodeId").getAsInt();
+            int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
             // TODO Instead of using Map.get() directly, write a helper method that will throw
             // TODO an informative exception in case the petri game ID is not found in the map.
             // TODO e.g. PetriGameNotFound
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
-            JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNode(nodeId);
+            JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNode(stateId);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");

@@ -75,6 +75,13 @@
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
          this component.
          */
+        // TODO Bug fix: Right now, the graph warps up to the upper-left corner of the screen
+        // TODO every time you change it.
+        // TODO This is a result of the fact that we completely throw out our existing nodes
+        // TODO array, which contains the x/y coordinates of every node.
+        // TODO To fix the bug, we have to diff the new set of nodes against our existing nodes
+        // TODO and add the new nodes into our existing array (and as a refinement, give them
+        // TODO appropriate x/y coordinates near to the x/y coordinates of their parent nodes.)
         const convertedGraph = this.importGraph(graph)
         this.nodes = convertedGraph.nodes
         this.links = convertedGraph.links
@@ -124,6 +131,11 @@
           d.fx = null
           d.fy = null
           this.onGraphModified()
+          // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
+          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            // Toggle the state of the node (hiding/showing its postset) (assuming the event is appropriately bound in our parent)
+            this.$emit('expandOrCollapseState', d.id)
+          }
         },
         onNodeRightClick: (d) => {
           d3.event.preventDefault() // Prevent the right click menu from appearing

@@ -18,7 +18,7 @@ public class BDDGraphExplorer {
 
     private BDDGraphExplorer(BDDGraph bddGraph) {
         this.bddGraph = bddGraph;
-        this.expandedStates = Collections.emptySet();
+        this.expandedStates = new HashSet<>();
     }
 
     public JsonElement getVisibleGraph() {
@@ -52,6 +52,9 @@ public class BDDGraphExplorer {
         return new BDDGraphExplorer(graphGameBDD);
     }
 
+    // TODO There is weird behavior when collapsing a node whose children have been expanded.
+    // TODO Figure out a reasonable way to handle this situation.
+    // TODO (The fix can probably be implemented in visibleStates()/visibleFlows())
     public void toggleState(int stateId) {
         BDDState state = this.bddGraph.getState(stateId);
         if (state == null) {

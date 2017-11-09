@@ -32,7 +32,7 @@
             <GraphEditor v-bind:petriNet='graphStrategyBDD'></GraphEditor>
           </tab>
           <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
-            <GraphEditor v-bind:petriNet='graphGameBDD'></GraphEditor>
+            <GraphEditor v-bind:petriNet='graphGameBDD' v-on:expandOrCollapseState='expandOrCollapseGraphGameState'></GraphEditor>
           </tab>
         </tabs>
       </div>
@@ -122,28 +122,6 @@
       switchToGraphGameBDDTab: function () {
         window.location.href = '#graph-game-bdd'
       },
-      getGraphStrategyBDD: function () {
-        axios.post('http://localhost:4567/getGraphStrategyBDD', {
-          petriGameId: this.petriGame.uuid
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            // TODO Fix race condition here.  See above.
-            this.graphStrategyBDD = response.data.graphStrategyBDD
-            this.switchToGraphStrategyBDDTab()
-          })
-        })
-      },
-      getGraphGameBDD: function () {
-        axios.post('http://localhost:4567/getGraphGameBDD', {
-          petriGameId: this.petriGame.uuid
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            // TODO Fix race condition here.  See above.
-            this.graphGameBDD = response.data.graphGameBDD
-            this.switchToGraphGameBDDTab()
-          })
-        })
-      },
       existsWinningStrategy: function () {
         axios.post('http://localhost:4567/existsWinningStrategy', {
           petriGameId: this.petriGame.uuid
@@ -170,6 +148,38 @@
             // described above.
             this.strategyBDD = response.data.strategyBDD
             this.switchToStrategyBDDTab()
+          })
+        })
+      },
+      getGraphStrategyBDD: function () {
+        axios.post('http://localhost:4567/getGraphStrategyBDD', {
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            // TODO Fix race condition here.  See above.
+            this.graphStrategyBDD = response.data.graphStrategyBDD
+            this.switchToGraphStrategyBDDTab()
+          })
+        })
+      },
+      getGraphGameBDD: function () {
+        axios.post('http://localhost:4567/getGraphGameBDD', {
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            // TODO Fix race condition here.  See above.
+            this.graphGameBDD = response.data.graphGameBDD
+            this.switchToGraphGameBDDTab()
+          })
+        })
+      },
+      expandOrCollapseGraphGameState: function (stateId) {
+        axios.post('http://localhost:4567/expandGraphGameBDDNode', {
+          petriGameId: this.petriGame.uuid,
+          stateId: stateId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.graphGameBDD = response.data.graphGameBDD
           })
         })
       },
