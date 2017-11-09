@@ -66,38 +66,16 @@ public class PetriGameAndMore {
         return BDDGraphD3.of(this.graphStrategyBDD.get());
     }
 
-    public void calculateGraphGameBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
-        BDDGraph graphGameBDD = Adam.getGraphGameBDD(this.petriGame.getNet());
-        this.graphGameBDDExplorer = Optional.of(BDDGraphExplorer.of(graphGameBDD));
-    }
-
-    public Optional<Boolean> getExistsWinningStrategy() {
-        return this.existsWinningStrategy;
+    public JsonElement calculateGraphGameBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
+        if (!this.graphGameBDDExplorer.isPresent()) {
+            BDDGraph graphGameBDD = Adam.getGraphGameBDD(this.petriGame.getNet());
+            BDDGraphExplorer graphExplorer = BDDGraphExplorer.of(graphGameBDD);
+            this.graphGameBDDExplorer = Optional.of(graphExplorer);
+        }
+        return this.graphGameBDDExplorer.get().getVisibleGraph();
     }
 
     public JsonElement getPetriGameClient() {
         return PetriNetD3.of(petriGame.getNet());
-    }
-
-//    public Optional<JsonElement> getStrategyBDDClient() {
-//        return this.strategyBDD.map(bdd -> PetriNetD3.of(bdd));
-//    }
-//
-//    public Optional<JsonElement> getGraphStrategyBDDClient() {
-//        return this.graphStrategyBDD.map(bdd -> {
-//            BDDGraphD3 bddGraphD3 = BDDGraphD3.of(bdd);
-//            return jsonify(bddGraphD3);
-//        });
-//    }
-//
-//    public Optional<JsonElement> getGraphGameBDDClient() {
-//        return this.graphGameBDDExplorer.map(bddGraphExplorer -> {
-//            BDDGraphD3 visibleGraph = bddGraphExplorer.getVisibleGraph();
-//            return jsonify(visibleGraph);
-//        });
-//    }
-
-    private static JsonElement jsonify(Object o) {
-        return new Gson().toJsonTree(o);
     }
 }

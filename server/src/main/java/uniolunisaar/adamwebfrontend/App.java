@@ -112,23 +112,20 @@ public class App {
             return responseJson.toString();
         });
 
-//        post("/getGraphGameBDD", (req, res) -> {
-//            JsonElement body = parser.parse(req.body());
-//            System.out.println("body: " + body.toString());
-//            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-//
-//            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
-//            System.out.println("Getting graph game BDD for PetriGame id#" + petriGameId);
-//            BDDGraph graphGame = Adam.getGraphGameBDD(petriGame.getNet(), new BDDSolverOptions());
-//
-//            BDDGraphD3 graphGameD3 = BDDGraphD3.of(graphGame);
-//            JsonElement graphGameJson = gson.toJsonTree(graphGameD3);
-//
-//            JsonObject responseJson = new JsonObject();
-//            responseJson.addProperty("status", "success");
-//            responseJson.add("graphGameBDD", graphGameJson);
-//            return responseJson.toString();
-//        });
+        post("/getGraphGameBDD", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+
+            PetriGameAndMore petriGame = petriGamesReadFromApt.get(petriGameId);
+            System.out.println("Getting graph game BDD for PetriGame id#" + petriGameId);
+            JsonElement graphGame = petriGame.calculateGraphGameBDD();
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("graphGameBDD", graphGame);
+            return responseJson.toString();
+        });
     }
 
     private static void enableCORS() {
