@@ -6,14 +6,9 @@ package uniolunisaar.adamwebfrontend;
 import static spark.Spark.*;
 
 import com.google.gson.*;
-import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
-import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolverOptions;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,16 +80,14 @@ public class App {
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "error");
-            StringWriter sw = new StringWriter();
-            exception.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.getBuffer().toString();
+            String exceptionName = exception.getClass().getSimpleName();
+            String exceptionAsString = exceptionName + ": " + exception.getMessage();
             responseJson.addProperty("message", exceptionAsString);
 
             String responseBody = responseJson.toString();
             response.body(responseBody);
         });
 
-        // TODO Fix these methods and uncomment htem
         // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.
         // Right now you can crash the server just by sending a bunch of requests to this endpoint
         post("/getGraphStrategyBDD", (req, res) -> {
