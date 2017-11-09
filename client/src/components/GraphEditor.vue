@@ -256,7 +256,9 @@
             } else if (data.type === 'TRANSITION') {
               return 'white'
             } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
-              return 'white'
+              return data.isExpanded ? 'white' : 'lightgrey' // TODO Find out from Manuel how he thinks this should be depicted
+              // TODO Consider adding some visual indicator of whether a node has a Postset that includes other nodes
+              // TODO Consider showing a preview of a node's postset upon mouseover
             } else {
               return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
             }

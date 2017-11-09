@@ -22,7 +22,7 @@ public class BDDGraphExplorer {
     }
 
     public JsonElement getVisibleGraph() {
-        return BDDGraphD3.of(this.visibleStates(), this.visibleFlows());
+        return BDDGraphD3.of(this.visibleStates(), this.visibleFlows(), this.expandedStates);
     }
 
     private Set<BDDState> visibleStates() {
@@ -46,7 +46,6 @@ public class BDDGraphExplorer {
                     return isSourceVisible && isTargetVisible;
                 }).collect(Collectors.toSet());
     }
-
 
     public static BDDGraphExplorer of(BDDGraph graphGameBDD) {
         return new BDDGraphExplorer(graphGameBDD);
