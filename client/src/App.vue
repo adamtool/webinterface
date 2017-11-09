@@ -4,6 +4,9 @@
       <div class='col-md-12'>
         <div class="row action-buttons">
           <div class="col-12">
+            <!--TODO Grey out these buttons or something if these things have already been calculated.-->
+            <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
+            <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
             <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
               Exists winning strategy?
             </button>
