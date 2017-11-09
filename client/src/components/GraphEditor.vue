@@ -275,6 +275,7 @@
           .call(this.dragDrop)
           .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
+          .attr('text-anchor', 'middle')
         newTextElements.exit().remove()
         this.textElements = textEnter.merge(newTextElements)
         this.textElements
@@ -303,8 +304,8 @@
           this.nodeElements.filter('circle')
             .attr('transform', node => `translate(${node.x},${node.y})`)
           this.textElements
-            .attr('x', node => node.x - this.nodeSize / 2 + 5)
-            .attr('y', node => node.y + 3)
+            .attr('x', node => node.x)
+            .attr('y', node => node.y + this.nodeSize / 2 + 15)
           this.linkElements
             .attr('x1', link => link.source.x)
             .attr('y1', link => link.source.y)
