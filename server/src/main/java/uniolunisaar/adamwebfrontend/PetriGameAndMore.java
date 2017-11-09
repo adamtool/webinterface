@@ -1,6 +1,5 @@
 package uniolunisaar.adamwebfrontend;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.io.parser.ParseException;
@@ -76,6 +75,23 @@ public class PetriGameAndMore {
     }
 
     public JsonElement getPetriGameClient() {
-        return PetriNetD3.of(petriGame.getNet());
+        return PetriNetD3.of(this.petriGame.getNet());
+    }
+
+    public JsonElement toggleGraphGameBDDNode(int nodeId) throws GraphGameBDDNotYetCalculated {
+        if (this.graphGameBDDExplorer.isPresent()) {
+            BDDGraphExplorer bddGraphExplorer = this.graphGameBDDExplorer.get();
+            bddGraphExplorer.toggleState(nodeId);
+            return bddGraphExplorer.getVisibleGraph();
+        } else {
+            throw new GraphGameBDDNotYetCalculated("The graph game BDD for this Petri Game has not " +
+                    "yet been calculated.");
+        }
+    }
+
+    private class GraphGameBDDNotYetCalculated extends Exception {
+        public GraphGameBDDNotYetCalculated(String s) {
+            super(s);
+        }
     }
 }

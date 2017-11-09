@@ -5,10 +5,7 @@ import uniolunisaar.adam.ds.graph.Flow;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -17,49 +14,56 @@ import java.util.stream.Collectors;
  */
 public class BDDGraphExplorer {
     private final BDDGraph bddGraph;
-    private Set<BDDState> visibleStates;
+    private Set<BDDState> expandedStates;
 
     private BDDGraphExplorer(BDDGraph bddGraph) {
         this.bddGraph = bddGraph;
-        this.visibleStates = new HashSet<>(Arrays.asList(bddGraph.getInitial()));
+        this.expandedStates = Collections.emptySet();
     }
 
     public JsonElement getVisibleGraph() {
-        return BDDGraphD3.of(this.visibleStates, this.visibleFlows());
+        return BDDGraphD3.of(this.visibleStates(), this.visibleFlows());
+    }
+
+    private Set<BDDState> visibleStates() {
+        BDDState initial = bddGraph.getInitial();
+        HashSet<BDDState> visibleStates = new HashSet<>(Arrays.asList(initial));
+        for (BDDState expandedState : expandedStates) {
+            Set<BDDState> postset = bddGraph.getPostset(expandedState.getId());
+            visibleStates.addAll(postset);
+        }
+        return visibleStates;
     }
 
     private Set<Flow> visibleFlows() {
+        Set<BDDState> visibleStates = this.visibleStates();
         return this.bddGraph.getFlows().stream()
                 .filter(flow -> {
-                    boolean isSourceVisible = this.visibleStates.stream()
+                    boolean isSourceVisible = visibleStates.stream()
                             .anyMatch(state -> state.getId() == flow.getSourceid());
-                    boolean isTargetVisible = this.visibleStates.stream()
+                    boolean isTargetVisible = visibleStates.stream()
                             .anyMatch(state -> state.getId() == flow.getTargetid());
                     return isSourceVisible && isTargetVisible;
                 }).collect(Collectors.toSet());
     }
 
-    public void expandState(int id) {
-        BDDState state = this.bddGraph.getState(id);
-        if (state == null) {
-            throw new NoSuchElementException("No state was found with the given ID in this BDDGraph.");
-        } else {
-            Set<BDDState> postset = bddGraph.getPostset(id);
-            visibleStates.addAll(postset);
-        }
-    }
-
-    public void collapseState(int id) {
-        BDDState state = this.bddGraph.getState(id);
-        if (state == null) {
-            throw new NoSuchElementException("No state was found with the given ID in this BDDGraph.");
-        } else {
-            Set<BDDState> postset = bddGraph.getPostset(id);
-            visibleStates.removeAll(postset);
-        }
-    }
 
     public static BDDGraphExplorer of(BDDGraph graphGameBDD) {
         return new BDDGraphExplorer(graphGameBDD);
+    }
+
+    public void toggleState(int stateId) {
+        BDDState state = this.bddGraph.getState(stateId);
+        if (state == null) {
+            throw new NoSuchElementException("No state was found with the given ID (" + stateId
+                    + ") in this BDDGraph.");
+        } else {
+            boolean isStateExpanded = expandedStates.contains(state);
+            if (isStateExpanded) {
+                expandedStates.remove(state);
+            } else {
+                expandedStates.add(state);
+            }
+        }
     }
 }

@@ -126,6 +126,24 @@ public class App {
             responseJson.add("graphGameBDD", graphGame);
             return responseJson.toString();
         });
+
+        post("/expandGraphGameBDDNode", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            int nodeId = body.getAsJsonObject().get("nodeId").getAsInt();
+
+            // TODO Instead of using Map.get() directly, write a helper method that will throw
+            // TODO an informative exception in case the petri game ID is not found in the map.
+            // TODO e.g. PetriGameNotFound
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
+            JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNode(nodeId);
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("graphGameBDD", graphGameBdd);
+            return responseJson.toString();
+        });
     }
 
     private static void enableCORS() {
