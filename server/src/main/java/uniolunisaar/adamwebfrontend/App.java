@@ -42,12 +42,11 @@ public class App {
             System.out.println("Generated petri game with ID " + petriGameUUID);
 
             JsonElement petriNetD3Json = petriGameAndMore.getPetriGameClient();
-            // TODO Insert UUID into the response somehow.  This went lost in the recent refactor.
-            // TODO Reconsider whether it makes sense to completely hide the existence of PetriNetD3 objects
+            JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.add("graph", petriNetD3Json);
+            responseJson.add("graph", petriGameClient);
             return responseJson.toString();
         });
 

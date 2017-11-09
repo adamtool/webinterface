@@ -1,17 +1,19 @@
 package uniolunisaar.adamwebfrontend;
 
-import uniol.apt.adt.pn.PetriNet;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 public class PetriGameD3 {
-    final private PetriNetD3 net;
     final private String uuid;
+    final private JsonElement net;
 
-    private PetriGameD3(PetriNetD3 net, String uuid) {
-        this.net = net;
+    private PetriGameD3(JsonElement net, String uuid) {
         this.uuid = uuid;
+        this.net = net;
     }
 
-    public static PetriGameD3 of(PetriNet net, String uuid) {
-        return new PetriGameD3(PetriNetD3.of(net), uuid);
+    public static JsonElement of(JsonElement net, String uuid) {
+        PetriGameD3 petriGameD3 = new PetriGameD3(net, uuid);
+        return new Gson().toJsonTree(petriGameD3);
     }
 }
