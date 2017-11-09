@@ -27,10 +27,22 @@ public class BDDGraphExplorer {
 
     private Set<BDDState> visibleStates() {
         BDDState initial = bddGraph.getInitial();
-        HashSet<BDDState> visibleStates = new HashSet<>(Arrays.asList(initial));
-        for (BDDState expandedState : expandedStates) {
-            Set<BDDState> postset = bddGraph.getPostset(expandedState.getId());
-            visibleStates.addAll(postset);
+        Set<BDDState> visibleStates = new HashSet<>();
+        Stack<BDDState> statesToExplore = new Stack<>();
+        statesToExplore.add(initial);
+
+        // Partially traverse the graph, expanding only the nodes that are in expandedStates.
+        // All the nodes that we reach are visible.
+        while (!statesToExplore.isEmpty()) {
+            BDDState state = statesToExplore.pop();
+            visibleStates.add(state);
+            if (expandedStates.contains(state)) {
+                Set<BDDState> postset = bddGraph.getPostset(state.getId());
+                Set<BDDState> newUnexploredStates = postset.stream()
+                        .filter(s -> !visibleStates.contains(s))
+                        .collect(Collectors.toSet());
+                statesToExplore.addAll(newUnexploredStates);
+            }
         }
         return visibleStates;
     }
