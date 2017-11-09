@@ -1,5 +1,7 @@
 package uniolunisaar.adamwebfrontend;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
@@ -28,7 +30,7 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static PetriNetD3 of(PetriNet net) {
+    public static JsonElement of(PetriNet net) {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -56,7 +58,8 @@ public class PetriNetD3 {
             nodes.add(transitionNode);
         }
 
-        return new PetriNetD3(links, nodes);
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes);
+        return new Gson().toJsonTree(petriNetD3);
     }
 
     static class PetriNetLink extends GraphLink {

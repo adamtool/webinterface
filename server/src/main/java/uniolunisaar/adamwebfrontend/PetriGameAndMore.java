@@ -9,6 +9,8 @@ import uniolunisaar.adam.ds.exceptions.*;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
+import java.util.Optional;
+
 /**
  * Represents a Petri Game, plus all of the artifacts related to it that we might want to produce.
  * E.g. Strategy BDD, Graph Strategy BDD, Graph Game BDD.
@@ -18,46 +20,74 @@ import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
  */
 public class PetriGameAndMore {
     private final PetriGame petriGame;
-    private PetriNet strategyBDD = null;
-    private BDDGraph graphStrategyBDD = null;
-    private BDDGraphExplorer graphGameBDD = null;
+    private Optional<Boolean> existsWinningStrategy = Optional.empty();
+    private Optional<PetriNet> strategyBDD = Optional.empty();
+    private Optional<BDDGraph> graphStrategyBDD = Optional.empty();
+    private Optional<BDDGraphExplorer> graphGameBDDExplorer = Optional.empty();
 
-    public PetriGameAndMore(PetriGame petriGame) {
+    private PetriGameAndMore(PetriGame petriGame) {
         this.petriGame = petriGame;
     }
 
-    public void calculateStrategyBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
-        this.strategyBDD = Adam.getStrategyBDD(this.petriGame.getNet());
+    public static PetriGameAndMore of(PetriGame petriGame) {
+        return new PetriGameAndMore(petriGame);
+    }
+
+    public boolean calculateExistsWinningStrategy() throws NotSupportedGameException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, ParseException, NoSuitableDistributionFoundException {
+        if (existsWinningStrategy.isPresent()) {
+            return existsWinningStrategy.get();
+        } else {
+            boolean existsWinningStrategy = Adam.existsWinningStrategyBDD(this.petriGame.getNet());
+            this.existsWinningStrategy = Optional.of(existsWinningStrategy);
+            return existsWinningStrategy;
+        }
+    }
+
+    public JsonElement calculateStrategyBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
+        PetriNet strategyBDD;
+        if (this.strategyBDD.isPresent()) {
+            strategyBDD = this.strategyBDD.get();
+        } else {
+            strategyBDD = Adam.getStrategyBDD(this.petriGame.getNet());
+            this.strategyBDD = Optional.of(strategyBDD);
+        }
+        return PetriNetD3.of(strategyBDD);
     }
 
     public void calculateGraphStrategyBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
-        this.graphStrategyBDD = Adam.getGraphStrategyBDD(this.petriGame.getNet());
+        this.graphStrategyBDD = Optional.ofNullable(Adam.getGraphStrategyBDD(this.petriGame.getNet()));
     }
 
     public void calculateGraphGameBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
         BDDGraph graphGameBDD = Adam.getGraphGameBDD(this.petriGame.getNet());
-        this.graphGameBDD = BDDGraphExplorer.of(graphGameBDD);
+        this.graphGameBDDExplorer = Optional.of(BDDGraphExplorer.of(graphGameBDD));
+    }
+
+    public Optional<Boolean> getExistsWinningStrategy() {
+        return this.existsWinningStrategy;
     }
 
     public JsonElement getPetriGameClient() {
-        PetriNetD3 petriGameClient = PetriNetD3.of(petriGame.getNet());
-        return jsonify(petriGameClient);
+        return PetriNetD3.of(petriGame.getNet());
     }
 
-    public JsonElement getStrategyBDDClient() {
-        PetriNetD3 petriNetD3 = PetriNetD3.of(this.strategyBDD);
-        return jsonify(petriNetD3);
-    }
-
-    public JsonElement getGraphStrategyBDDClient() {
-        BDDGraphD3 bddGraphD3 = BDDGraphD3.of(this.graphStrategyBDD);
-        return jsonify(bddGraphD3);
-    }
-
-    public JsonElement getGraphGameBDDClient() {
-        BDDGraphD3 visibleGraph = this.graphGameBDD.getVisibleGraph();
-        return jsonify(visibleGraph);
-    }
+//    public Optional<JsonElement> getStrategyBDDClient() {
+//        return this.strategyBDD.map(bdd -> PetriNetD3.of(bdd));
+//    }
+//
+//    public Optional<JsonElement> getGraphStrategyBDDClient() {
+//        return this.graphStrategyBDD.map(bdd -> {
+//            BDDGraphD3 bddGraphD3 = BDDGraphD3.of(bdd);
+//            return jsonify(bddGraphD3);
+//        });
+//    }
+//
+//    public Optional<JsonElement> getGraphGameBDDClient() {
+//        return this.graphGameBDDExplorer.map(bddGraphExplorer -> {
+//            BDDGraphD3 visibleGraph = bddGraphExplorer.getVisibleGraph();
+//            return jsonify(visibleGraph);
+//        });
+//    }
 
     private static JsonElement jsonify(Object o) {
         return new Gson().toJsonTree(o);

@@ -7,7 +7,6 @@ import static spark.Spark.*;
 
 import com.google.gson.*;
 import uniol.apt.adt.pn.PetriNet;
-import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
@@ -22,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class App {
     public static void main(String[] args) {
         // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
-        final Map<String, PetriGame> petriGamesReadFromApt = new ConcurrentHashMap<>();
+        final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
         final Gson gson = new Gson();
         final JsonParser parser = new JsonParser();
 
@@ -38,11 +37,13 @@ public class App {
             PetriGame petriGame = Adam.getPetriGame(apt);
 
             String petriGameUUID = UUID.randomUUID().toString();
-            petriGamesReadFromApt.put(petriGameUUID, petriGame);
+            PetriGameAndMore petriGameAndMore = PetriGameAndMore.of(petriGame);
+            petriGamesReadFromApt.put(petriGameUUID, petriGameAndMore);
             System.out.println("Generated petri game with ID " + petriGameUUID);
 
-            PetriGameD3 petriGameD3 = PetriGameD3.of(petriGame.getNet(), petriGameUUID);
-            JsonElement petriNetD3Json = gson.toJsonTree(petriGameD3);
+            JsonElement petriNetD3Json = petriGameAndMore.getPetriGameClient();
+            // TODO Insert UUID into the response somehow.  This went lost in the recent refactor.
+            // TODO Reconsider whether it makes sense to completely hide the existence of PetriNetD3 objects
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
@@ -55,18 +56,14 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
+            PetriGameAndMore petriGame = petriGamesReadFromApt.get(petriGameId);
+
             System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
-            boolean existsStrategy = Adam.existsWinningStrategyBDD(petriGame.getNet());
-            if (existsStrategy) {
-                System.out.println("Yes, there is a strategy.");
-            } else {
-                System.out.println("No, there is not a strategy to solve the game.");
-            }
+            boolean existsWinningStrategy = petriGame.calculateExistsWinningStrategy();
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.addProperty("result", existsStrategy);
+            responseJson.addProperty("result", existsWinningStrategy);
             return responseJson.toString();
         });
 
@@ -75,16 +72,9 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
-            System.out.println("Getting strategy BDD for PetriGame id#" + petriGameId);
-            PetriNet strategyBDD = Adam.getStrategyBDD(petriGame.getNet());
-
-            /**
-             * TODO Consider dropping the "D3" suffix.  Just put those classes into a descriptive package, like
-             * adamwebfrontend.jsonmodels or something.
-             */
-            PetriNetD3 strategyBDDD3 = PetriNetD3.of(strategyBDD);
-            JsonElement strategyBDDJson = gson.toJsonTree(strategyBDDD3);
+            PetriGameAndMore petriGame = petriGamesReadFromApt.get(petriGameId);
+            System.out.println("Calculating strategy BDD for PetriGame id#" + petriGameId);
+            JsonElement strategyBDDJson = petriGame.calculateStrategyBDD();
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
@@ -105,44 +95,44 @@ public class App {
             response.body(responseBody);
         });
 
+        // TODO Fix these methods and uncomment htem
         // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.
         // Right now you can crash the server just by sending a bunch of requests to this endpoint
-        post("/getGraphStrategyBDD", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-
-            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
-            System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
-            BDDGraph bddGraph = Adam.getGraphStrategyBDD(petriGame.getNet(), new BDDSolverOptions());
-
-            BDDGraphD3 bddGraphD3 = BDDGraphD3.of(bddGraph);
-            JsonElement bddGraphJson = gson.toJsonTree(bddGraphD3);
-
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("graphStrategyBDD", bddGraphJson);
-            return responseJson.toString();
-        });
-
-        post("/getGraphGameBDD", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-
-            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
-            System.out.println("Getting graph game BDD for PetriGame id#" + petriGameId);
-            BDDGraph graphGame = Adam.getGraphGameBDD(petriGame.getNet(), new BDDSolverOptions());
-
-            BDDGraphD3 graphGameD3 = BDDGraphD3.of(graphGame);
-            JsonElement graphGameJson = gson.toJsonTree(graphGameD3);
-
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("graphGameBDD", graphGameJson);
-            return responseJson.toString();
-        });
-
+//        post("/getGraphStrategyBDD", (req, res) -> {
+//            JsonElement body = parser.parse(req.body());
+//            System.out.println("body: " + body.toString());
+//            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+//
+//            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
+//            System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
+//            BDDGraph bddGraph = Adam.getGraphStrategyBDD(petriGame.getNet(), new BDDSolverOptions());
+//
+//            BDDGraphD3 bddGraphD3 = BDDGraphD3.of(bddGraph);
+//            JsonElement bddGraphJson = gson.toJsonTree(bddGraphD3);
+//
+//            JsonObject responseJson = new JsonObject();
+//            responseJson.addProperty("status", "success");
+//            responseJson.add("graphStrategyBDD", bddGraphJson);
+//            return responseJson.toString();
+//        });
+//
+//        post("/getGraphGameBDD", (req, res) -> {
+//            JsonElement body = parser.parse(req.body());
+//            System.out.println("body: " + body.toString());
+//            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+//
+//            PetriGame petriGame = petriGamesReadFromApt.get(petriGameId);
+//            System.out.println("Getting graph game BDD for PetriGame id#" + petriGameId);
+//            BDDGraph graphGame = Adam.getGraphGameBDD(petriGame.getNet(), new BDDSolverOptions());
+//
+//            BDDGraphD3 graphGameD3 = BDDGraphD3.of(graphGame);
+//            JsonElement graphGameJson = gson.toJsonTree(graphGameD3);
+//
+//            JsonObject responseJson = new JsonObject();
+//            responseJson.addProperty("status", "success");
+//            responseJson.add("graphGameBDD", graphGameJson);
+//            return responseJson.toString();
+//        });
     }
 
     private static void enableCORS() {
