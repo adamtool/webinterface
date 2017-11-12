@@ -3,11 +3,21 @@
     <div class="graph-editor-toolbar">
       Repulsion Strength
       <input type="range" min="30" max="500" step="1"
-             class="repulsionStrengthSlider"
+             class="forceStrengthSlider"
              v-model="repulsionStrength">
       <input type="number" min="30" max="500" step="1"
-             class="repulsionStrengthNumber"
+             class="forceStrengthNumber"
              v-model="repulsionStrength">
+      Attraction strength
+      <input type="range" min="0.01" max="1" step="0.005"
+             class="forceStrengthSlider"
+             v-model="attractionStrength">
+      <input type="number" min="0.01" max="1" step="0.005"
+             class="forceStrengthNumber"
+             v-model="attractionStrength">
+      <button v-on:click="simulation.stop()">Stop simulation</button>
+      <button v-on:click="simulation.restart()">Restart simulation</button>
+      <button v-on:click="updateD3()">Update D3</button>
     </div>
     <svg class='graph' v-bind:id='this.graphSvgId'>
 
@@ -33,7 +43,7 @@
     flex-direction: row;
   }
 
-  .repulsionStrengthSlider {
+  .forceStrengthSlider {
     flex-grow: 0.5;
   }
 </style>
@@ -62,6 +72,9 @@
       repulsionStrength: function (strength) {
         this.simulation.force('charge').strength(-strength)
       },
+      attractionStrength: function (strength) {
+        this.simulation.force('link').strength(strength)
+      },
       petriNet: function (graph) {
         console.log('GraphEditor: petriNet changed:')
         console.log(graph)
@@ -75,13 +88,6 @@
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
          this component.
          */
-        // TODO Bug fix: Right now, the graph warps up to the upper-left corner of the screen
-        // TODO every time you change it.
-        // TODO This is a result of the fact that we completely throw out our existing nodes
-        // TODO array, which contains the x/y coordinates of every node.
-        // TODO To fix the bug, we have to diff the new set of nodes against our existing nodes
-        // TODO and add the new nodes into our existing array (and as a refinement, give them
-        // TODO appropriate x/y coordinates near to the x/y coordinates of their parent nodes
         this.importGraph(graph)
         this.updateD3()
       }
@@ -90,16 +96,19 @@
       return {
         nodeSize: 50,
         repulsionStrength: 120,
+        attractionStrength: 0.05,
         exportedGraphJson: {},
         nodes: this.deepCopy(this.petriNet.nodes),
         links: this.deepCopy(this.petriNet.links),
         svg: undefined,
         linkGroup: undefined,
         nodeGroup: undefined,
-        textGroup: undefined,
+        labelGroup: undefined,
+        contentGroup: undefined,
         nodeElements: undefined,
         linkElements: undefined,
-        textElements: undefined,
+        labelElements: undefined,
+        contentElements: undefined,
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().strength(100).distanceMin(1000))
           .force('charge', d3.forceManyBody().strength(-120))
@@ -138,10 +147,10 @@
         onNodeRightClick: (d) => {
           d3.event.preventDefault() // Prevent the right click menu from appearing
           d3.event.stopPropagation()
+          console.log(d)
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
-            d.shouldShowContent = (d.content !== null) && !d.shouldShowContent
-            console.log(`shouldShowContent: ${d.shouldShowContent}`)
-            this.updateD3()
+            // Toggle the state of the node (hiding/showing its postset) (assuming the event is appropriately bound in our parent)
+            this.$emit('expandOrCollapseState', d.id)
           }
         }
       }
@@ -173,6 +182,7 @@
           .enter().append('svg:marker')    // This section adds in the arrows
           .attr('id', this.arrowheadId)
           .attr('viewBox', '0 -5 10 10')
+          // TODO Make arrowheads work also for nodes of variable sizes
           .attr('refX', this.nodeSize / 2)
           .attr('refY', -1.5)
           .attr('markerWidth', 6)
@@ -183,7 +193,8 @@
 
         this.linkGroup = this.svg.append('g').attr('class', 'links')
         this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
-        this.textGroup = this.svg.append('g').attr('class', 'texts')
+        this.labelGroup = this.svg.append('g').attr('class', 'texts')
+        this.contentGroup = this.svg.append('g').attr('class', 'node-content')
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
@@ -231,6 +242,39 @@
        * It causes our visualization to update accordingly, showing new nodes and removing deleted ones.
        */
       updateD3: function () {
+        const newLabelElements = this.labelGroup
+          .selectAll('text')
+          .data(this.nodes, this.keyFunction)
+        const labelEnter = newLabelElements
+          .enter().append('text')
+          .call(this.dragDrop)
+          .on('click', this.onNodeClick)
+          .on('contextmenu', this.onNodeRightClick)
+          .attr('text-anchor', 'middle')
+        newLabelElements.exit().remove()
+        this.labelElements = labelEnter.merge(newLabelElements)
+        this.labelElements
+          .attr('font-size', 15)
+          .text(node => node.label)
+
+        const newContentElements = this.contentGroup
+          .selectAll('text')
+          .data(this.nodes.filter(node => node.content !== undefined), this.keyFunction)
+        const contentEnter = newContentElements
+          .enter().append('text')
+          .call(this.dragDrop)
+          .on('click', this.onNodeClick)
+          .on('contextmenu', this.onNodeRightClick)
+          .attr('text-anchor', 'middle')
+          // TODO Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
+          // TODO This means that our text will end up all on one line.  In Firefox it's ok, though.
+          .style('white-space', 'pre')
+        newContentElements.exit().remove()
+        this.contentElements = contentEnter.merge(newContentElements)
+        this.contentElements
+          .attr('font-size', 15)
+          .text(node => node.content)
+
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')
           .data(this.nodes, this.keyFunction)
@@ -247,8 +291,8 @@
         this.nodeElements
           .attr('class', d => `graph-node ${d.type}`)
           .attr('r', this.nodeSize / 1.85)
-          .attr('width', this.nodeSize)
-          .attr('height', this.nodeSize)
+          .attr('width', this.calculateNodeWidth)
+          .attr('height', this.calculateNodeHeight)
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
           .attr('fill', data => {
@@ -267,23 +311,6 @@
             }
           })
 
-        const newTextElements = this.textGroup
-          .selectAll('text')
-          .data(this.nodes, this.keyFunction)
-        const textEnter = newTextElements
-          .enter().append('text')
-          .call(this.dragDrop)
-          .on('click', this.onNodeClick)
-          .on('contextmenu', this.onNodeRightClick)
-          .attr('text-anchor', 'middle')
-        newTextElements.exit().remove()
-        this.textElements = textEnter.merge(newTextElements)
-        this.textElements
-          .attr('font-size', 15)
-          .text(node => {
-            return node.shouldShowContent ? node.content : node.label
-          })
-
         const newLinkElements = this.linkGroup
           .selectAll('line')
           .data(this.links)
@@ -300,12 +327,19 @@
       updateSimulation: function () {
         this.simulation.nodes(this.nodes).on('tick', () => {
           this.nodeElements.filter('rect')
-            .attr('transform', node => `translate(${node.x - this.nodeSize / 2},${node.y - this.nodeSize / 2})`)
+            .attr('transform', node =>
+              `translate(
+              ${node.x - this.calculateNodeWidth(node) / 2},
+              ${node.y - this.calculateNodeHeight(node) / 2})`)
           this.nodeElements.filter('circle')
             .attr('transform', node => `translate(${node.x},${node.y})`)
-          this.textElements
+          this.labelElements
             .attr('x', node => node.x)
-            .attr('y', node => node.y + this.nodeSize / 2 + 15)
+            // TODO Use function mentioned in other TODO to determine where the bottom of the node is
+            .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
+          this.contentElements
+            .attr('x', node => node.x)
+            .attr('y', node => node.y - this.calculateNodeHeight(node) / 2 + 30)
           this.linkElements
             .attr('x1', link => link.source.x)
             .attr('y1', link => link.source.y)
@@ -315,9 +349,10 @@
           // Let the simulation know what links it is working with
           this.simulation.force('link').links(this.links)
 
-          // Raise the temperature of the force simulation, because otherwise, if the temperature is below alphaMin, the newly
-          // inserted nodes' positions will not get updated, and they will appear in the upper left corner of the svg
-          // until something causes the temperature to increase again past the threshold.
+          // Raise the temperature of the force simulation, because otherwise, if the temperature is
+          // below alphaMin, the newly inserted nodes' positions will not get updated, and they will
+          // appear in the upper left corner of the svg until something causes the temperature to
+          // increase again past the threshold.
           this.simulation.alpha(0.7)
         })
       },
@@ -392,6 +427,20 @@
       },
       keyFunction: function (data) {
         return `${data.id}::${data.type}`
+      },
+      calculateNodeWidth: function (d) {
+        if (d.content !== undefined) {
+          return 125
+        } else {
+          return this.nodeSize
+        }
+      },
+      calculateNodeHeight: function (d) {
+        if (d.content !== undefined) {
+          return 90
+        } else {
+          return this.nodeSize
+        }
       },
       svgWidth: function () {
         return this.svg.node().getBoundingClientRect().width
