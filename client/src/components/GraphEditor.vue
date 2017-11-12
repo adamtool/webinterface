@@ -411,8 +411,9 @@
             // TODO Consider fixing nodes for which "isExpanded" is true.  Right now, nodes tend to
             // get pushed around in a disorienting way when their children are added to the graph.
             // TODO Place new nodes next to their parents, or next to the last place the user clicked or something
-            newNode.x = this.svgWidth() / 2
-            newNode.y = this.svgHeight() / 2
+            // Randomize the position slightly to stop the nodes from flying away from each other
+            newNode.x = this.svgWidth() / 2 + (Math.random() - 0.5) * 40
+            newNode.y = this.svgHeight() / 2 + (Math.random() - 0.5) * 40
             this.nodes.push(newNode)
           }
         })
