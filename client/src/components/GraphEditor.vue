@@ -137,6 +137,7 @@
         linkElements: undefined,
         labelElements: undefined,
         contentElements: undefined,
+        nodeSpawnPoint: {x: 0, y: 0},
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
           .force('charge', d3.forceManyBody())
@@ -167,6 +168,13 @@
           this.onGraphModified()
           // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            // Save the mouse coordinates so that the new nodes will appear where the user clicked.
+            // In practice, this will be inside of the parent node that is being expanded, which is
+            // what we want, but there may be edge cases where e.g. the user clicks on two nodes
+            // very quickly to expand them both, and the children of both parent nodes may appear
+            // at the location of the second parent.
+            const mouseCoordinates = d3.mouse(this.svg.node())
+            this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle the state of the node (hiding/showing its postset) (assuming the event is appropriately bound in our parent)
             this.$emit('expandOrCollapseState', d.id)
           }
@@ -175,7 +183,10 @@
           d3.event.preventDefault() // Prevent the right click menu from appearing
           d3.event.stopPropagation()
           console.log(d)
+          // TODO refactor duplicate code?
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            const mouseCoordinates = d3.mouse(this.svg.node())
+            this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle the state of the node (hiding/showing its postset) (assuming the event is appropriately bound in our parent)
             this.$emit('expandOrCollapseState', d.id)
           }
@@ -410,10 +421,9 @@
           if (!nodeIsAlreadyPresent) {
             // TODO Consider fixing nodes for which "isExpanded" is true.  Right now, nodes tend to
             // get pushed around in a disorienting way when their children are added to the graph.
-            // TODO Place new nodes next to their parents, or next to the last place the user clicked or something
             // Randomize the position slightly to stop the nodes from flying away from each other
-            newNode.x = this.svgWidth() / 2 + (Math.random() - 0.5) * 40
-            newNode.y = this.svgHeight() / 2 + (Math.random() - 0.5) * 40
+            newNode.x = this.nodeSpawnPoint.x + (Math.random() - 0.5) * 40
+            newNode.y = this.nodeSpawnPoint.y + (Math.random() - 0.5) * 40
             this.nodes.push(newNode)
           }
         })
