@@ -1,6 +1,6 @@
 <template>
   <div class="graph-editor">
-    <div class="graph-editor-toolbar">
+    <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
       Repulsion Strength
       <input type="range" min="30" max="500" step="1"
              class="forceStrengthSlider"
@@ -74,15 +74,19 @@
         type: Object,
         required: true
       },
-      repulsionStrength: {
+      shouldShowPhysicsControls: {
+        type: Boolean,
+        default: false
+      },
+      repulsionStrengthDefault: {
         type: Number,
         default: 120
       },
-      linkStrength: {
+      linkStrengthDefault: {
         type: Number,
         default: 0.05
       },
-      gravityStrength: {
+      gravityStrengthDefault: {
         type: Number,
         default: 100
       }
@@ -145,6 +149,9 @@
           .force('link', d3.forceLink()
             .id(link => link.id))
           .alphaMin(0.002),
+        repulsionStrength: this.repulsionStrengthDefault,
+        linkStrength: this.linkStrengthDefault,
+        gravityStrength: this.gravityStrengthDefault,
         dragDrop: d3.drag()
           .on('start', node => {
             node.fx = node.x

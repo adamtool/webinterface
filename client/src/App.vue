@@ -10,11 +10,14 @@
             <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
               Exists winning strategy?
             </button>
-            <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">Get Strategy BDD
+            <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">
+              Get Strategy BDD
             </button>
-            <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">Get Graph Strategy BDD
+            <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">
+              Get Graph Strategy BDD
             </button>
-            <button type="button" class="btn btn-primary" v-on:click="getGraphGameBDD">Get Graph Game BDD
+            <button type="button" class="btn btn-primary" v-on:click="getGraphGameBDD">
+              Get Graph Game BDD
             </button>
           </div>
         </div>
@@ -23,7 +26,8 @@
             <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
           </tab>
           <tab name="Petri Game">
-            <GraphEditor v-bind:petriNet='petriGame.net' v-on:graphModified='onGraphModified'></GraphEditor>
+            <GraphEditor v-bind:petriNet='petriGame.net'
+                         v-on:graphModified='onGraphModified'></GraphEditor>
           </tab>
           <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
             <GraphEditor v-bind:petriNet='strategyBDD'></GraphEditor>
@@ -32,8 +36,12 @@
             <GraphEditor v-bind:petriNet='graphStrategyBDD'></GraphEditor>
           </tab>
           <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
-            <GraphEditor v-bind:petriNet='graphGameBDD' v-on:expandOrCollapseState='expandOrCollapseGraphGameState'
-             repulsionStrength="415" linkStrength="0.04" gravityStrength="300"></GraphEditor>
+            <GraphEditor v-bind:petriNet='graphGameBDD'
+                         v-on:expandOrCollapseState='expandOrCollapseGraphGameState'
+                         shouldShowPhysicsControls="true"
+                         repulsionStrengthDefault="415"
+                         linkStrengthDefault="0.04"
+                         gravityStrengthDefault="300"></GraphEditor>
           </tab>
         </tabs>
       </div>
