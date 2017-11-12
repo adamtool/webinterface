@@ -32,7 +32,8 @@
             <GraphEditor v-bind:petriNet='graphStrategyBDD'></GraphEditor>
           </tab>
           <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
-            <GraphEditor v-bind:petriNet='graphGameBDD' v-on:expandOrCollapseState='expandOrCollapseGraphGameState'></GraphEditor>
+            <GraphEditor v-bind:petriNet='graphGameBDD' v-on:expandOrCollapseState='expandOrCollapseGraphGameState'
+             repulsionStrength="415" linkStrength="0.04" gravityStrength="300"></GraphEditor>
           </tab>
         </tabs>
       </div>

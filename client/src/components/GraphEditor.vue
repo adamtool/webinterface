@@ -8,13 +8,20 @@
       <input type="number" min="30" max="500" step="1"
              class="forceStrengthNumber"
              v-model="repulsionStrength">
-      Attraction strength
-      <input type="range" min="0.01" max="1" step="0.005"
+      Link strength
+      <input type="range" min="0" max="0.2" step="0.001"
              class="forceStrengthSlider"
-             v-model="attractionStrength">
-      <input type="number" min="0.01" max="1" step="0.005"
+             v-model="linkStrength">
+      <input type="number" min="0" max="0.2" step="0.001"
              class="forceStrengthNumber"
-             v-model="attractionStrength">
+             v-model="linkStrength">
+      Gravity strength
+      <input type="range" min="0" max="800" step="1"
+             class="forceStrengthSlider"
+             v-model="gravityStrength">
+      <input type="number" min="0" max="800" step="1"
+             class="forceStrengthNumber"
+             v-model="gravityStrength">
       <button v-on:click="simulation.stop()">Stop simulation</button>
       <button v-on:click="simulation.restart()">Restart simulation</button>
       <button v-on:click="updateD3()">Update D3</button>
@@ -58,8 +65,28 @@
     components: {},
     mounted: function () {
       this.initializeD3()
+      this.updateRepulsionStrength(this.repulsionStrength)
+      this.updateLinkStrength(this.linkStrength)
+      this.updateGravityStrength(this.gravityStrength)
     },
-    props: ['petriNet'],
+    props: {
+      petriNet: {
+        type: Object,
+        required: true
+      },
+      repulsionStrength: {
+        type: Number,
+        default: 120
+      },
+      linkStrength: {
+        type: Number,
+        default: 0.05
+      },
+      gravityStrength: {
+        type: Number,
+        default: 100
+      }
+    },
     computed: {
       graphSvgId: function () {
         return 'graph-' + this._uid
@@ -70,10 +97,13 @@
     },
     watch: {
       repulsionStrength: function (strength) {
-        this.simulation.force('charge').strength(-strength)
+        this.updateRepulsionStrength(strength)
       },
-      attractionStrength: function (strength) {
-        this.simulation.force('link').strength(strength)
+      linkStrength: function (strength) {
+        this.updateLinkStrength(strength)
+      },
+      gravityStrength: function (strength) {
+        this.updateGravityStrength(strength)
       },
       petriNet: function (graph) {
         console.log('GraphEditor: petriNet changed:')
@@ -95,8 +125,6 @@
     data () {
       return {
         nodeSize: 50,
-        repulsionStrength: 120,
-        attractionStrength: 0.05,
         exportedGraphJson: {},
         nodes: this.deepCopy(this.petriNet.nodes),
         links: this.deepCopy(this.petriNet.links),
@@ -110,12 +138,11 @@
         labelElements: undefined,
         contentElements: undefined,
         simulation: d3.forceSimulation()
-          .force('gravity', d3.forceManyBody().strength(100).distanceMin(1000))
-          .force('charge', d3.forceManyBody().strength(-120))
+          .force('gravity', d3.forceManyBody().distanceMin(1000))
+          .force('charge', d3.forceManyBody())
           //          .force('center', d3.forceCenter(width / 2, height / 2))
           .force('link', d3.forceLink()
-            .id(link => link.id)
-            .strength(0.05))
+            .id(link => link.id))
           .alphaMin(0.002),
         dragDrop: d3.drag()
           .on('start', node => {
@@ -447,6 +474,15 @@
       },
       svgHeight: function () {
         return this.svg.node().getBoundingClientRect().height
+      },
+      updateGravityStrength: function (strength) {
+        this.simulation.force('gravity').strength(strength)
+      },
+      updateLinkStrength: function (strength) {
+        this.simulation.force('link').strength(strength)
+      },
+      updateRepulsionStrength: function (strength) {
+        this.simulation.force('charge').strength(-strength)
       },
       /**
        * Perform a deep copy of an arbitrary object.
