@@ -228,8 +228,8 @@
           .attr('id', this.arrowheadId)
           .attr('viewBox', '0 -5 10 10')
           // TODO Make arrowheads work also for nodes of variable sizes
-          .attr('refX', this.nodeSize / 2)
-          .attr('refY', -1.5)
+          .attr('refX', 0)
+          .attr('refY', 0)
           .attr('markerWidth', 6)
           .attr('markerHeight', 6)
           .attr('orient', 'auto')
@@ -357,10 +357,10 @@
           })
 
         const newLinkElements = this.linkGroup
-          .selectAll('line')
+          .selectAll('path')
           .data(this.links)
         const linkEnter = newLinkElements
-          .enter().append('line')
+          .enter().append('path')
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
           .attr('stroke-width', 3)
@@ -385,11 +385,25 @@
           this.contentElements
             .attr('x', node => node.x)
             .attr('y', node => node.y - this.calculateNodeHeight(node) / 2 + 30)
+
+          // Draw a line from the edge of one node to the edge of another.
+          // We have to do this so that the arrowheads will be correctly aligned for nodes of varying size.
+          // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
           this.linkElements
-            .attr('x1', link => link.source.x)
-            .attr('y1', link => link.source.y)
-            .attr('x2', link => link.target.x)
-            .attr('y2', link => link.target.y)
+            .attr('d', d => {
+              const dx = d.target.x - d.source.x
+              const dy = d.target.y - d.source.y
+              const distance = Math.sqrt(dx * dx + dy * dy)
+              const normX = dx / distance
+              const normY = dy / distance
+              const sourcePadding = 0
+              const targetPadding = this.calculateNodeOffset(d.target) * 0.9
+              const sourceX = d.source.x + sourcePadding * normX
+              const sourceY = d.source.y + sourcePadding * normY
+              const targetX = d.target.x - targetPadding * normX
+              const targetY = d.target.y - targetPadding * normY
+              return `M${sourceX},${sourceY} L${targetX},${targetY}`
+            })
 
           // Let the simulation know what links it is working with
           this.simulation.force('link').links(this.links)
@@ -512,6 +526,19 @@
        */
       deepCopy: function (object) {
         return JSON.parse(JSON.stringify(object))
+      },
+      calculateNodeOffset: function (data) {
+        if (data.type === 'ENVPLACE') {
+          // Node is a circle
+          return this.nodeSize
+        } else if (data.type === 'SYSPLACE') {
+          return this.nodeSize
+        } else if (data.type === 'TRANSITION') {
+          // Node is a rectangle
+          return this.calculateNodeHeight(data)
+        } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
+          return this.calculateNodeHeight(data)
+        }
       }
     }
   }
