@@ -27,7 +27,8 @@
           </tab>
           <tab name="Petri Game">
             <GraphEditor v-bind:petriNet='petriGame.net'
-                         v-on:graphModified='onGraphModified'></GraphEditor>
+                         v-on:graphModified='onGraphModified'
+                         v-on:saveGraphAsAPT='savePetriGameAsAPT'></GraphEditor>
           </tab>
           <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
             <GraphEditor v-bind:petriNet='strategyBDD'></GraphEditor>
@@ -119,6 +120,9 @@
       }
     },
     methods: {
+      switchToAPTEditorTab: function () {
+        window.location.href = '#apt-editor'
+      },
       switchToPetriGameTab: function () {
         window.location.href = '#petri-game'
       },
@@ -189,6 +193,20 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.graphGameBDD = response.data.graphGameBDD
+          })
+        })
+      },
+      // Our graph editor may give us an object with Node IDs as keys and x,y coordinates as values.
+      // We send those x,y coordinates to the server and get back an APT with those coordinates in it.
+      // We put that APT into the APT editor .
+      savePetriGameAsAPT: function (mapNodeIDXY) {
+        axios.post('http://localhost:4567/savePetriGameAsAPT', {
+          petriGameId: this.petriGame.uuid,
+          nodeXYCoordinateAnnotations: mapNodeIDXY
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.apt = response.data.apt
+            this.switchToAPTEditorTab()
           })
         })
       },

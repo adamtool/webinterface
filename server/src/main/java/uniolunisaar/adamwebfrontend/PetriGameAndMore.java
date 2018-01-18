@@ -1,13 +1,17 @@
 package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonElement;
+import uniol.apt.adt.Node;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.io.parser.ParseException;
+import uniol.apt.io.renderer.RenderException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.exceptions.*;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -30,6 +34,37 @@ public class PetriGameAndMore {
 
     public static PetriGameAndMore of(PetriGame petriGame) {
         return new PetriGameAndMore(petriGame);
+    }
+
+    public class NodePositionAnnotation {
+        private final double x;
+        private final double y;
+
+        public NodePositionAnnotation(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    /**
+     * Print out the APT of our Petri Game with the nodes' x/y coordinates annotated.
+     *
+     * @param annotations a Map assigning a pair of x,y coordinates to every node ID.
+     * @return the APT representation of the annotated Petri Net.
+     */
+    public String savePetriGameWithXYCoordinates(Map<String, NodePositionAnnotation> annotations) throws RenderException {
+        for (Node node : petriGame.getNet().getNodes()) {
+            String nodeId = node.getId();
+            if (annotations.containsKey(nodeId)) {
+                NodePositionAnnotation annotation = annotations.get(nodeId);
+                AdamExtensions.setXCoord(node, annotation.x);
+                AdamExtensions.setYCoord(node, annotation.y);
+            } else {
+                throw new IllegalArgumentException(
+                        "APT generation failed: the x/y coordinates are missing for the node " + node);
+            }
+        }
+        return Adam.getAPT(petriGame.getNet());
     }
 
     public boolean calculateExistsWinningStrategy() throws NotSupportedGameException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, ParseException, NoSuitableDistributionFoundException {

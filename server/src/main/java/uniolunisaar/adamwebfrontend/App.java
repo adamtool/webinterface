@@ -6,9 +6,11 @@ package uniolunisaar.adamwebfrontend;
 import static spark.Spark.*;
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -135,6 +137,24 @@ public class App {
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.add("graphGameBDD", graphGameBdd);
+            return responseJson.toString();
+        });
+
+        post("/savePetriGameAsAPT", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            JsonObject nodesXYCoordinatesJson = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+            Type type = new TypeToken<Map<String,PetriGameAndMore.NodePositionAnnotation>>() {}.getType();
+            Map<String, PetriGameAndMore.NodePositionAnnotation> nodePositionAnnotations = gson.fromJson(nodesXYCoordinatesJson, type);
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
+            String apt = petriGameAndMore.savePetriGameWithXYCoordinates(nodePositionAnnotations);
+            JsonElement aptJson = new JsonPrimitive(apt);
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("apt", aptJson);
             return responseJson.toString();
         });
     }

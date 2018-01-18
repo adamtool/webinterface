@@ -1,5 +1,9 @@
 <template>
   <div class="graph-editor">
+    <button v-on:click="saveGraphAsAPT">Save graph as APT</button>
+    <div style="height:50px">
+      <pre>{{ saveGraphAPTRequestPreview }}</pre>
+    </div>
     <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
       Repulsion Strength
       <input type="range" min="30" max="500" step="1"
@@ -128,6 +132,7 @@
     },
     data () {
       return {
+        saveGraphAPTRequestPreview: {},
         nodeSize: 50,
         exportedGraphJson: {},
         nodes: this.deepCopy(this.petriNet.nodes),
@@ -201,6 +206,19 @@
       }
     },
     methods: {
+      saveGraphAsAPT: function () {
+        // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as value.
+        const mapNodeIDXY = this.nodes.reduce(function (map, node) {
+          map[node.id] = {
+            x: node.x.toFixed(2),
+            y: node.y.toFixed(2),
+            isFixed: node.fx === node.x // TODO Ask Manuel if this should be saved in the APT
+          }
+          return map
+        }, {})
+        this.saveGraphAPTRequestPreview = JSON.stringify(mapNodeIDXY, null, 2)
+        this.$emit('saveGraphAsAPT', mapNodeIDXY)
+      },
       onGraphModified: function () {
         // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.
         const graph = {
