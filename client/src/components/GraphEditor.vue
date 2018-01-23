@@ -1,7 +1,9 @@
 <template>
   <div class="graph-editor">
-    <button v-on:click="saveGraphAsAPT">Save graph as APT</button>
-    <div style="height:50px">
+    <button v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
+      Save graph as APT with X/Y coordinates
+    </button>
+    <div style="height:50px; display:none">
       <pre>{{ saveGraphAPTRequestPreview }}</pre>
     </div>
     <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
@@ -79,6 +81,10 @@
         required: true
       },
       shouldShowPhysicsControls: {
+        type: Boolean,
+        default: false
+      },
+      shouldShowSaveAPTButton: {
         type: Boolean,
         default: false
       },

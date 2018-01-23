@@ -28,7 +28,8 @@
           <tab name="Petri Game">
             <GraphEditor v-bind:petriNet='petriGame.net'
                          v-on:graphModified='onGraphModified'
-                         v-on:saveGraphAsAPT='savePetriGameAsAPT'></GraphEditor>
+                         v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                         shouldShowSaveAPTButton="true"></GraphEditor>
           </tab>
           <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
             <GraphEditor v-bind:petriNet='strategyBDD'></GraphEditor>
