@@ -2,13 +2,16 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import uniol.apt.adt.Node;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
 import uniolunisaar.adam.ds.util.AdamExtensions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the data needed to display a PetriNet in our graph editor.
@@ -17,10 +20,12 @@ import java.util.List;
 public class PetriNetD3 {
     private final List<PetriNetLink> links;
     private final List<PetriNetNode> nodes;
+    private final Map<String, NodePosition> nodePositions;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions) {
         this.links = links;
         this.nodes = nodes;
+        this.nodePositions = nodePositions;
     }
 
     /**
@@ -55,12 +60,22 @@ public class PetriNetD3 {
 
         for (Transition transition : net.getTransitions()) {
             PetriNetNode transitionNode = PetriNetNode.transition(transition.getId(), transition.getLabel());
-            double x = AdamExtensions.getXCoord(transition);
-            double y = AdamExtensions.getYCoord(transition);
             nodes.add(transitionNode);
         }
 
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes);
+        // Add X/Y coordinates for nodes that have them
+        Map<String, NodePosition> nodePositions = new HashMap<>();
+        for (Node node : net.getNodes()) {
+            // TODO note that this does not cover the strange case of a node having only one of X or Y specified.
+            // I won't bother checking for that here, since it would clutter up the code.
+            if (AdamExtensions.hasXCoord(node) && AdamExtensions.hasYCoord(node)) {
+                double x = AdamExtensions.getXCoord(node);
+                double y = AdamExtensions.getYCoord(node);
+                nodePositions.put(node.getId(), new NodePosition(x, y));
+            }
+        }
+
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
         return new Gson().toJsonTree(petriNetD3);
     }
 

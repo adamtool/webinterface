@@ -145,11 +145,11 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
             JsonObject nodesXYCoordinatesJson = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
-            Type type = new TypeToken<Map<String,PetriGameAndMore.NodePositionAnnotation>>() {}.getType();
-            Map<String, PetriGameAndMore.NodePositionAnnotation> nodePositionAnnotations = gson.fromJson(nodesXYCoordinatesJson, type);
+            Type type = new TypeToken<Map<String, NodePosition>>() {}.getType();
+            Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
 
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
-            String apt = petriGameAndMore.savePetriGameWithXYCoordinates(nodePositionAnnotations);
+            String apt = petriGameAndMore.savePetriGameWithXYCoordinates(nodePositions);
             JsonElement aptJson = new JsonPrimitive(apt);
 
             JsonObject responseJson = new JsonObject();

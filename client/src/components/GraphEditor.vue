@@ -448,6 +448,7 @@
         const graphJsonCopy = this.deepCopy(graphJson)
         const newLinks = graphJsonCopy.links
         const newNodes = graphJsonCopy.nodes
+        const newNodePositions = graphJsonCopy.nodePositions
 
         // Delete the nodes that are no longer present, and update the ones that are still present
         this.nodes = this.nodes.filter(oldNode => {
@@ -470,6 +471,18 @@
             newNode.x = this.nodeSpawnPoint.x + (Math.random() - 0.5) * 40
             newNode.y = this.nodeSpawnPoint.y + (Math.random() - 0.5) * 40
             this.nodes.push(newNode)
+          }
+        })
+
+        // Apply the x/y coordinates that are given to us by the server
+        // Note that this freezes the nodes.
+        // TODO Consider allowing some nodes to be frozen and others to be free-floating
+        // TODO (This would require a boolean AdamExtension to be added)
+        this.nodes.forEach(node => {
+          if (newNodePositions.hasOwnProperty(node.id)) {
+            const newPosition = newNodePositions[node.id]
+            node.fx = newPosition.x
+            node.fy = newPosition.y
           }
         })
 

@@ -36,29 +36,19 @@ public class PetriGameAndMore {
         return new PetriGameAndMore(petriGame);
     }
 
-    public class NodePositionAnnotation {
-        private final double x;
-        private final double y;
-
-        public NodePositionAnnotation(double x, double y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
     /**
      * Print out the APT of our Petri Game with the nodes' x/y coordinates annotated.
      *
-     * @param annotations a Map assigning a pair of x,y coordinates to every node ID.
+     * @param nodePositions a Map assigning a pair of x,y coordinates to every node ID.
      * @return the APT representation of the annotated Petri Net.
      */
-    public String savePetriGameWithXYCoordinates(Map<String, NodePositionAnnotation> annotations) throws RenderException {
+    public String savePetriGameWithXYCoordinates(Map<String, NodePosition> nodePositions) throws RenderException {
         for (Node node : petriGame.getNet().getNodes()) {
             String nodeId = node.getId();
-            if (annotations.containsKey(nodeId)) {
-                NodePositionAnnotation annotation = annotations.get(nodeId);
-                AdamExtensions.setXCoord(node, annotation.x);
-                AdamExtensions.setYCoord(node, annotation.y);
+            if (nodePositions.containsKey(nodeId)) {
+                NodePosition position = nodePositions.get(nodeId);
+                AdamExtensions.setXCoord(node, position.x);
+                AdamExtensions.setYCoord(node, position.y);
             } else {
                 throw new IllegalArgumentException(
                         "APT generation failed: the x/y coordinates are missing for the node " + node);
