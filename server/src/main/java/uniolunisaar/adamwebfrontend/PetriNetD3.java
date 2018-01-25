@@ -55,6 +55,8 @@ public class PetriNetD3 {
 
         for (Transition transition : net.getTransitions()) {
             PetriNetNode transitionNode = PetriNetNode.transition(transition.getId(), transition.getLabel());
+            double x = AdamExtensions.getXCoord(transition);
+            double y = AdamExtensions.getYCoord(transition);
             nodes.add(transitionNode);
         }
 

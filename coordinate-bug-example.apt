@@ -1,0 +1,14 @@
+.name "mutex"
+.description "mutex"
+.type LPN
+.options
+winningCondition="E_BUCHI"
+
+.places
+Env[yCoord=158, xCoord=481, env="true"]
+
+.transitions
+b1[label="b1", yCoord=269, xCoord=236, tfl="{Env} -> {Env}"]
+
+.flows
+b1: {1*Env} -> {1*Env}
