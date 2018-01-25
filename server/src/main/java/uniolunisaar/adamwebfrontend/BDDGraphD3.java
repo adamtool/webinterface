@@ -5,7 +5,8 @@ import com.google.gson.JsonElement;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,10 +17,12 @@ import java.util.stream.Collectors;
 public class BDDGraphD3 {
     private final Set<State> nodes;
     private final Set<Flow> links;
+    private final Map<String, NodePosition> nodePositions;
 
     private BDDGraphD3(Set<State> states, Set<Flow> flows) {
         this.nodes = states;
         this.links = flows;
+        this.nodePositions = new HashMap<>();
     }
 
     public static JsonElement of(BDDGraph bddGraph) {
