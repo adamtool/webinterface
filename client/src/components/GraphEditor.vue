@@ -328,7 +328,7 @@
 
         const newContentElements = this.contentGroup
           .selectAll('text')
-          .data(this.nodes.filter(node => node.content !== undefined), this.keyFunction)
+          .data(this.nodes.filter(node => node.content !== undefined || node.initialToken !== undefined), this.keyFunction)
         const contentEnter = newContentElements
           .enter().append('text')
           .call(this.dragDrop)
@@ -342,7 +342,13 @@
         this.contentElements = contentEnter.merge(newContentElements)
         this.contentElements
           .attr('font-size', 15)
-          .text(node => node.content)
+          .text(node => {
+            if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              return node.content
+            } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
+              return node.initialToken
+            }
+          })
 
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')

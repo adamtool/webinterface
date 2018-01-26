@@ -41,10 +41,11 @@ public class PetriNetD3 {
 
         for (Place place : net.getPlaces()) {
             boolean isBad = AdamExtensions.isBad(place);
+            long initialToken = place.getInitialToken().getValue();
             if (AdamExtensions.isEnvironment(place)) {
-                nodes.add(PetriNetNode.envPlace(place.getId(), place.getId(), isBad));
+                nodes.add(PetriNetNode.envPlace(place.getId(), place.getId(), isBad, initialToken));
             } else {
-                nodes.add(PetriNetNode.sysPlace(place.getId(), place.getId(), isBad));
+                nodes.add(PetriNetNode.sysPlace(place.getId(), place.getId(), isBad, initialToken));
             }
 
             // TODO: Can this be done neater using a loop like "for (Flow edge : net.getEdges()) {...}"?
@@ -93,23 +94,25 @@ public class PetriNetD3 {
 
     static class PetriNetNode extends GraphNode {
         private final boolean isBad;
+        private final long initialToken;
 
-        PetriNetNode(String id, String label, GraphNodeType type, boolean isBad) {
+        PetriNetNode(String id, String label, GraphNodeType type, boolean isBad, long initialToken) {
             super(id, label, type);
             this.isBad = isBad;
+            this.initialToken = initialToken;
         }
 
         static PetriNetNode transition(String id, String label) {
-            // Transitions are never bad
-            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false);
+            // Transitions are never bad and have no tokens
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1);
         }
 
-        static PetriNetNode envPlace(String id, String label, boolean isBad) {
-            return new PetriNetNode(id, label, GraphNodeType.ENVPLACE, isBad);
+        static PetriNetNode envPlace(String id, String label, boolean isBad, long initialToken) {
+            return new PetriNetNode(id, label, GraphNodeType.ENVPLACE, isBad, initialToken);
         }
 
-        static PetriNetNode sysPlace(String id, String label, boolean isBad) {
-            return new PetriNetNode(id, label, GraphNodeType.SYSPLACE, isBad);
+        static PetriNetNode sysPlace(String id, String label, boolean isBad, long initialToken) {
+            return new PetriNetNode(id, label, GraphNodeType.SYSPLACE, isBad, initialToken);
         }
     }
 }
