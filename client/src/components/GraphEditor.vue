@@ -3,6 +3,7 @@
     <button v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
       Save graph as APT with X/Y coordinates
     </button>
+    <button v-on:click="moveNodesToVisibleArea">Move all nodes into the visible area</button>
     <div style="height:50px; display:none">
       <pre>{{ saveGraphAPTRequestPreview }}</pre>
     </div>
@@ -212,6 +213,44 @@
       }
     },
     methods: {
+      // Sometimes nodes might get lost outside the borders of the screen.
+      // This procedure places them back within the visible area.
+      moveNodesToVisibleArea: function () {
+        const margin = 45
+        const boundingRect = this.svg.node().getBoundingClientRect()
+        const maxX = boundingRect.width - margin
+        const maxY = boundingRect.height - margin
+        this.nodes.forEach(node => {
+          const nodeIsFrozen = node.fx === node.x
+          if (nodeIsFrozen) {
+            if (node.x < margin) {
+              node.fx = margin
+            }
+            if (node.y < margin) {
+              node.fy = margin
+            }
+            if (node.x > maxX) {
+              node.fx = maxX
+            }
+            if (node.y > maxY) {
+              node.fy = maxY
+            }
+          } else {
+            if (node.x < margin) {
+              node.x = margin
+            }
+            if (node.y < margin) {
+              node.y = margin
+            }
+            if (node.x > maxX) {
+              node.x = maxX
+            }
+            if (node.y > maxY) {
+              node.y = maxY
+            }
+          }
+        })
+      },
       saveGraphAsAPT: function () {
         // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as value.
         const mapNodeIDXY = this.nodes.reduce(function (map, node) {
