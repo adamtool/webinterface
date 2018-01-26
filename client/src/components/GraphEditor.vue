@@ -33,7 +33,7 @@
       <button v-on:click="simulation.restart()">Restart simulation</button>
       <button v-on:click="updateD3()">Update D3</button>
     </div>
-    <svg class='graph' v-bind:id='this.graphSvgId'>
+    <svg class='graph' :id='this.graphSvgId'>
 
     </svg>
   </div>

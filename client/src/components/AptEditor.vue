@@ -4,8 +4,8 @@
       <textarea class="form-control" v-model="textEditorContents"></textarea>
       <div class="buttons">
         <div>
-          <input type="file" class="file-input" v-bind:id="filePickerUID" v-on:change="onFileSelected">
-          <label class="btn btn-primary file-input-label" v-bind:for="filePickerUID">Load APT from file</label>
+          <input type="file" class="file-input" :id="filePickerUID" v-on:change="onFileSelected">
+          <label class="btn btn-primary file-input-label" :for="filePickerUID">Load APT from file</label>
         </div>
         <button type="button" class="btn btn-primary" v-on:click="saveGraph">
           Send Graph to Editor

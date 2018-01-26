@@ -23,27 +23,27 @@
         </div>
         <tabs>
           <tab name="APT Editor">
-            <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
+            <AptEditor :apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
           </tab>
           <tab name="Petri Game" v-if="petriGameExists">
-            <GraphEditor v-bind:petriNet='petriGame.net'
+            <GraphEditor :petriNet='petriGame.net'
                          v-on:graphModified='onGraphModified'
                          v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                         shouldShowSaveAPTButton="true"></GraphEditor>
+                         :shouldShowSaveAPTButton="true"></GraphEditor>
           </tab>
           <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
-            <GraphEditor v-bind:petriNet='strategyBDD'></GraphEditor>
+            <GraphEditor :petriNet='strategyBDD'></GraphEditor>
           </tab>
           <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
-            <GraphEditor v-bind:petriNet='graphStrategyBDD'></GraphEditor>
+            <GraphEditor :petriNet='graphStrategyBDD'></GraphEditor>
           </tab>
           <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
-            <GraphEditor v-bind:petriNet='graphGameBDD'
+            <GraphEditor :petriNet='graphGameBDD'
                          v-on:expandOrCollapseState='expandOrCollapseGraphGameState'
-                         shouldShowPhysicsControls="true"
-                         repulsionStrengthDefault="415"
-                         linkStrengthDefault="0.04"
-                         gravityStrengthDefault="300"></GraphEditor>
+                         :shouldShowPhysicsControls="true"
+                         :repulsionStrengthDefault="415"
+                         :linkStrengthDefault="0.04"
+                         :gravityStrengthDefault="300"></GraphEditor>
           </tab>
         </tabs>
       </div>
