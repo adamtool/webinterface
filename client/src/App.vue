@@ -25,7 +25,7 @@
           <tab name="APT Editor">
             <AptEditor v-bind:apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
           </tab>
-          <tab name="Petri Game">
+          <tab name="Petri Game" v-if="petriGameExists">
             <GraphEditor v-bind:petriNet='petriGame.net'
                          v-on:graphModified='onGraphModified'
                          v-on:saveGraphAsAPT='savePetriGameAsAPT'
@@ -76,6 +76,9 @@
       'AptEditor': AptEditor,
       'GraphEditor': GraphEditor
     },
+    mounted: function () {
+      this.switchToAPTEditorTab()
+    },
     data: function () {
       return {
         numberOfNodes: 50,
@@ -110,6 +113,9 @@
       }
     },
     computed: {
+      petriGameExists: function () {
+        return this.petriGame.uuid !== 'abcfakeuuid123'
+      },
       petriGameHasStrategyBDD: function () {
         return this.strategyBDD !== null
       },
@@ -220,6 +226,7 @@
         console.log('App: Got Petri Game from APT editor:')
         console.log(petriGame)
         this.petriGame = petriGame
+        this.switchToPetriGameTab()
       },
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
