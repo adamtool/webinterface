@@ -30,6 +30,7 @@ public class PetriNetD3 {
 
     /**
      * Extract all the information needed to display a PetriNet in our graph editor.
+     *
      * @param net - A PetriNet
      * @return A serializable object containing the relevant information from the PetriNet
      * <p>
@@ -40,13 +41,11 @@ public class PetriNetD3 {
         List<PetriNetNode> nodes = new ArrayList<>();
 
         for (Place place : net.getPlaces()) {
+            boolean isEnvironment = AdamExtensions.isEnvironment(place);
             boolean isBad = AdamExtensions.isBad(place);
             long initialToken = place.getInitialToken().getValue();
-            if (AdamExtensions.isEnvironment(place)) {
-                nodes.add(PetriNetNode.envPlace(place.getId(), place.getId(), isBad, initialToken));
-            } else {
-                nodes.add(PetriNetNode.sysPlace(place.getId(), place.getId(), isBad, initialToken));
-            }
+            boolean isSpecial = AdamExtensions.isSpecial(place);
+            nodes.add(PetriNetNode.place(place.getId(), place.getId(), isEnvironment, isBad, initialToken, isSpecial));
 
             // TODO: Can this be done neater using a loop like "for (Flow edge : net.getEdges()) {...}"?
             for (Transition preTransition : place.getPreset()) {
@@ -84,35 +83,37 @@ public class PetriNetD3 {
         private PetriNetLink(String source, String target) {
             super(source, target);
         }
+
         static PetriNetLink of(Place place, Transition transition) {
             return new PetriNetLink(place.getId(), transition.getId());
         }
+
         static PetriNetLink of(Transition transition, Place place) {
             return new PetriNetLink(transition.getId(), place.getId());
         }
     }
 
     static class PetriNetNode extends GraphNode {
+        // TODO Ask Manuel if the attribute "isBad" has been deprecated. I think we use isSpecial instead now.
         private final boolean isBad;
         private final long initialToken;
+        private final boolean isSpecial;
 
-        PetriNetNode(String id, String label, GraphNodeType type, boolean isBad, long initialToken) {
+        private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad, long initialToken, boolean isSpecial) {
             super(id, label, type);
             this.isBad = isBad;
             this.initialToken = initialToken;
+            this.isSpecial = isSpecial;
         }
 
         static PetriNetNode transition(String id, String label) {
-            // Transitions are never bad and have no tokens
-            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1);
+            // Transitions are never bad or special and have no tokens
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false);
         }
 
-        static PetriNetNode envPlace(String id, String label, boolean isBad, long initialToken) {
-            return new PetriNetNode(id, label, GraphNodeType.ENVPLACE, isBad, initialToken);
-        }
-
-        static PetriNetNode sysPlace(String id, String label, boolean isBad, long initialToken) {
-            return new PetriNetNode(id, label, GraphNodeType.SYSPLACE, isBad, initialToken);
+        static PetriNetNode place(String id, String label, boolean isEnvironment, boolean isBad, long initialToken, boolean isSpecial) {
+            GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
+            return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial);
         }
     }
 }
