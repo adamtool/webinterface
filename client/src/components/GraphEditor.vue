@@ -385,7 +385,7 @@
             if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
               return node.content
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
-              return node.initialToken
+              return node.initialToken === 0 ? '' : node.initialToken
             }
           })
 
