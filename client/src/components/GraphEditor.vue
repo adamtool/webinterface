@@ -1,12 +1,5 @@
 <template>
   <div class="graph-editor">
-    <button v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
-      Save graph as APT with X/Y coordinates
-    </button>
-    <button v-on:click="moveNodesToVisibleArea">Move all nodes into the visible area</button>
-    <div style="height:50px; display:none">
-      <pre>{{ saveGraphAPTRequestPreview }}</pre>
-    </div>
     <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
       Repulsion Strength
       <input type="range" min="30" max="500" step="1"
@@ -29,10 +22,21 @@
       <input type="number" min="0" max="800" step="1"
              class="forceStrengthNumber"
              v-model="gravityStrength">
-      <button v-on:click="simulation.stop()">Stop simulation</button>
-      <button v-on:click="simulation.restart()">Restart simulation</button>
-      <button v-on:click="updateD3()">Update D3</button>
     </div>
+    <div class="graph-editor-toolbar">
+      <button style="margin-right: auto" v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
+        Save graph as APT with X/Y coordinates
+      </button>
+      <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
+        Move all nodes into the visible area
+      </button>
+      <button v-on:click="freezeAllNodes">Freeze all nodes</button>
+      <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+    </div>
+    <div style="height:50px; display:none">
+      <pre>{{ saveGraphAPTRequestPreview }}</pre>
+    </div>
+
     <svg class='graph' :id='this.graphSvgId'>
 
     </svg>
@@ -55,10 +59,22 @@
   .graph-editor-toolbar {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    padding: 5px;
+    font-size: 20px;
+  }
+
+  .graph-editor-toolbar button,
+  .graph-editor-toolbar input {
+    margin: 5px;
   }
 
   .forceStrengthSlider {
     flex-grow: 0.5;
+  }
+
+  .forceStrengthNumber {
+    width: 100px;
   }
 </style>
 
@@ -213,6 +229,22 @@
       }
     },
     methods: {
+      // Stop all the nodes from moving.
+      freezeAllNodes: function () {
+        this.nodes.forEach(node => {
+          node.fx = node.x
+          node.fy = node.y
+        })
+      },
+      unfreezeAllNodes: function () {
+        if (confirm('Are you sure you want to unfreeze all nodes?  ' +
+            'The fixed positions you have moved them to will be lost.')) {
+          this.nodes.forEach(node => {
+            node.fx = null
+            node.fy = null
+          })
+        }
+      },
       // Sometimes nodes might get lost outside the borders of the screen.
       // This procedure places them back within the visible area.
       moveNodesToVisibleArea: function () {
