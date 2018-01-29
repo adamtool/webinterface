@@ -384,6 +384,7 @@
        * It causes our visualization to update accordingly, showing new nodes and removing deleted ones.
        */
       updateD3: function () {
+        // Write the IDs/labels of nodes underneath them.
         const newLabelElements = this.labelGroup
           .selectAll('text')
           .data(this.nodes, this.keyFunction)
@@ -397,8 +398,21 @@
         this.labelElements = labelEnter.merge(newLabelElements)
         this.labelElements
           .attr('font-size', 15)
+          .attr('font-weight', d => {
+            if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && !d.isExpanded) {
+              // isExpanded refers to whether a node's children are being shown in our Graph Game BDD viewer.
+              // For very large BDDs, all nodes start off collapsed and are expanded by clicking on them.
+              // To show if a node has already been clicked on or not, we need some kind of visual
+              // indicator.  I've decided to try making the label of the node bold.
+              // TODO Consider showing a preview of a node's postset upon mouseover
+              return 'bold'
+            } else {
+              return 'normal'
+            }
+          })
           .text(node => node.label)
 
+        // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup
           .selectAll('text')
           .data(this.nodes.filter(node => node.content !== undefined || node.initialToken !== undefined), this.keyFunction)
@@ -423,6 +437,7 @@
             }
           })
 
+        // Draw circles around Places in Petri Nets with isSpecial = true
         const isSpecialElements = this.isSpecialGroup
           .selectAll('.isSpecialHighlight')
           .data(this.nodes.filter(node => node.isSpecial === true), this.keyFunction)
@@ -456,8 +471,27 @@
           .attr('r', this.nodeSize / 1.85)
           .attr('width', this.calculateNodeWidth)
           .attr('height', this.calculateNodeHeight)
-          .attr('stroke', 'black')
-          .attr('stroke-width', 2)
+          .attr('stroke', d => {
+            if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              return d.isGood ? 'green' : 'black'
+            } else {
+              return 'black'
+            }
+          })
+          .attr('stroke-dasharray', d => {
+            if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && d.isGood) {
+              return '20,10'
+            } else {
+              return ''
+            }
+          })
+          .attr('stroke-width', d => {
+            if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              return d.isBad || d.isGood ? 5 : 2
+            } else {
+              return 2
+            }
+          })
           .attr('fill', data => {
             if (data.type === 'ENVPLACE') {
               return 'white'
@@ -466,9 +500,7 @@
             } else if (data.type === 'TRANSITION') {
               return 'white'
             } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
-              return data.isExpanded ? 'white' : 'lightgrey' // TODO Find out from Manuel how he thinks this should be depicted
-              // TODO Consider adding some visual indicator of whether a node has a Postset that includes other nodes
-              // TODO Consider showing a preview of a node's postset upon mouseover
+              return data.isMcut ? 'white' : 'lightgrey'
             } else {
               return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
             }
