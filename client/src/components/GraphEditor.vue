@@ -165,6 +165,7 @@
         nodeGroup: undefined,
         labelGroup: undefined,
         contentGroup: undefined,
+        isSpecialElements: undefined,
         nodeElements: undefined,
         linkElements: undefined,
         labelElements: undefined,
@@ -333,6 +334,7 @@
 
         this.linkGroup = this.svg.append('g').attr('class', 'links')
         this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
+        this.isSpecialGroup = this.svg.append('g').attr('class', 'isSpecialHighlights')
         this.labelGroup = this.svg.append('g').attr('class', 'texts')
         this.contentGroup = this.svg.append('g').attr('class', 'node-content')
 
@@ -421,6 +423,21 @@
             }
           })
 
+        const isSpecialElements = this.isSpecialGroup
+          .selectAll('.isSpecialHighlight')
+          .data(this.nodes.filter(node => node.isSpecial === true), this.keyFunction)
+        const newIsSpecialElements = isSpecialElements.enter().append('circle')
+        newIsSpecialElements.call(this.dragDrop)
+          .on('click', this.onNodeClick)
+          .on('contextmenu', this.onNodeRightClick)
+        isSpecialElements.exit().remove()
+        this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
+        this.isSpecialElements
+          .attr('r', this.nodeSize / 2.1)
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('fill-opacity', 0)
+
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')
           .data(this.nodes, this.keyFunction)
@@ -478,6 +495,8 @@
               ${node.x - this.calculateNodeWidth(node) / 2},
               ${node.y - this.calculateNodeHeight(node) / 2})`)
           this.nodeElements.filter('circle')
+            .attr('transform', node => `translate(${node.x},${node.y})`)
+          this.isSpecialElements
             .attr('transform', node => `translate(${node.x},${node.y})`)
           this.labelElements
             .attr('x', node => node.x)
