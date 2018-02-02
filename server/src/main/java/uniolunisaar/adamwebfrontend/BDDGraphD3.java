@@ -2,6 +2,7 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import uniol.apt.adt.pn.Transition;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
 
@@ -44,11 +45,17 @@ public class BDDGraphD3 {
 
 
     private static class Flow extends GraphLink {
+        private final String transitionId; // Nullable
+
         public static Flow of(uniolunisaar.adam.ds.graph.Flow flow) {
-            return new Flow(Integer.toString(flow.getSourceid()), Integer.toString(flow.getTargetid()));
+            Transition transition = flow.getTransition();
+            String transitionId = transition == null ? null : transition.getId();
+            return new Flow(Integer.toString(flow.getSourceid()), Integer.toString(flow.getTargetid()), transitionId);
         }
-        private Flow(String source, String target) {
+
+        private Flow(String source, String target, String transitionId) {
             super(source, target);
+            this.transitionId = transitionId;
         }
     }
 

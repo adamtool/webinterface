@@ -34,7 +34,7 @@
       <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
     </div>
     <div style="height:50px; display:none">
-      <pre>{{ saveGraphAPTRequestPreview }}</pre>
+      <pre>{{ this.links }}</pre>
     </div>
 
     <svg class='graph' :id='this.graphSvgId'>
@@ -87,6 +87,7 @@
     name: 'graph-editor',
     components: {},
     mounted: function () {
+      this.importGraph(this.petriNet)
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
@@ -162,12 +163,14 @@
         links: this.deepCopy(this.petriNet.links),
         svg: undefined,
         linkGroup: undefined,
+        linkTextGroup: undefined,
         nodeGroup: undefined,
         labelGroup: undefined,
         contentGroup: undefined,
         isSpecialElements: undefined,
         nodeElements: undefined,
         linkElements: undefined,
+        linkTextElements: undefined,
         labelElements: undefined,
         contentElements: undefined,
         nodeSpawnPoint: {x: 0, y: 0},
@@ -333,6 +336,7 @@
           .attr('d', 'M0,-5L10,0L0,5')
 
         this.linkGroup = this.svg.append('g').attr('class', 'links')
+        this.linkTextGroup = this.svg.append('g').attr('class', 'linkTexts')
         this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
         this.isSpecialGroup = this.svg.append('g').attr('class', 'isSpecialHighlights')
         this.labelGroup = this.svg.append('g').attr('class', 'texts')
@@ -516,6 +520,21 @@
           .attr('stroke-width', 3)
           .attr('stroke', '#E5E5E5')
           .attr('marker-end', 'url(#' + this.arrowheadId + ')')
+          .attr('id', this.generateLinkId)
+
+        const newLinkTextElements = this.linkTextGroup
+          .selectAll('text')
+          .data(this.links.filter(link => link.transitionId !== undefined))
+        const linkTextEnter = newLinkTextElements
+          .enter().append('text')
+          .attr('font-size', 25)
+        linkTextEnter.append('textPath')
+        newLinkTextElements.exit().remove()
+        this.linkTextElements = linkTextEnter.merge(newLinkTextElements)
+        this.linkTextElements
+          .select('textPath')
+          .attr('xlink:href', link => '#' + this.generateLinkId(link))
+          .text(link => link.transitionId)
 
         this.updateSimulation()
       },
@@ -554,8 +573,13 @@
               const sourceY = d.source.y + sourcePadding * normY
               const targetX = d.target.x - targetPadding * normX
               const targetY = d.target.y - targetPadding * normY
+              // Save the length of the link in order to place a label at its midpoint (see below)
+              d.pathLength = distance
               return `M${sourceX},${sourceY} L${targetX},${targetY}`
             })
+          // Position link labels at the center of the links based on the distance calculated above
+          this.linkTextElements
+            .attr('dx', d => d.pathLength / 2)
 
           // Let the simulation know what links it is working with
           this.simulation.force('link').links(this.links)
@@ -641,16 +665,19 @@
             // of a second and then reappear.  It's an unsettling visual effect.
             // To prevent this from happening, we manually replace the IDs with references ourselves,
             // saving D3 the effort of doing it for us.
-            const newLinkWithReferences = {
+            const newLinkWithReferences = Object.assign(newLink, {
               source: this.nodes.find(node => node.id === newLink.source),
               target: this.nodes.find(node => node.id === newLink.target)
-            }
+            })
             this.links.push(newLinkWithReferences)
           }
         })
       },
       keyFunction: function (data) {
         return `${data.id}::${data.type}`
+      },
+      generateLinkId: function (link) {
+        return `${link.source.id}::${link.target.id}`
       },
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
