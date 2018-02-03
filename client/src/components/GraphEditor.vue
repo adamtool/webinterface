@@ -525,7 +525,7 @@
 
         const newLinkTextElements = this.linkTextGroup
           .selectAll('text')
-          .data(this.links.filter(link => link.transitionId !== undefined))
+          .data(this.links.filter(link => link.transitionId !== undefined || link.tokenFlow !== undefined))
         const linkTextEnter = newLinkTextElements
           .enter().append('text')
           .attr('font-size', 25)
@@ -535,7 +535,15 @@
         this.linkTextElements
           .select('textPath')
           .attr('xlink:href', link => '#' + this.generateLinkId(link))
-          .text(link => link.transitionId)
+          .text(link => {
+            if (link.transitionId !== undefined) {
+              return link.transitionId
+            } else if (link.tokenFlow !== undefined) {
+              return link.tokenFlow
+            } else {
+              throw new Error('Both transitionId and tokenFlow are both undefined.')
+            }
+          })
 
         this.updateSimulation()
       },
