@@ -3,6 +3,7 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.Node;
+import uniol.apt.adt.pn.Flow;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
@@ -32,7 +33,7 @@ public class PetriNetD3 {
      * Extract all the information needed to display a PetriNet in our graph editor.
      *
      * @param net - A PetriNet
-     * @return A serializable object containing the relevant information from the PetriNet
+     * @return A JSON object containing the relevant information from the PetriNet
      * <p>
      * See https://github.com/d3/d3-force
      */
@@ -41,26 +42,18 @@ public class PetriNetD3 {
         List<PetriNetNode> nodes = new ArrayList<>();
 
         for (Place place : net.getPlaces()) {
-            boolean isEnvironment = AdamExtensions.isEnvironment(place);
-            boolean isBad = AdamExtensions.isBad(place);
-            long initialToken = place.getInitialToken().getValue();
-            boolean isSpecial = AdamExtensions.isSpecial(place);
-            nodes.add(PetriNetNode.place(place.getId(), place.getId(), isEnvironment, isBad, initialToken, isSpecial));
-
-            // TODO: Can this be done neater using a loop like "for (Flow edge : net.getEdges()) {...}"?
-            for (Transition preTransition : place.getPreset()) {
-                PetriNetLink link = PetriNetLink.of(preTransition, place);
-                links.add(link);
-            }
-            for (Transition postTransition : place.getPostset()) {
-                PetriNetLink link = PetriNetLink.of(place, postTransition);
-                links.add(link);
-            }
+            PetriNetNode placeNode = PetriNetNode.of(place);
+            nodes.add(placeNode);
         }
 
         for (Transition transition : net.getTransitions()) {
-            PetriNetNode transitionNode = PetriNetNode.transition(transition.getId(), transition.getLabel());
+            PetriNetNode transitionNode = PetriNetNode.of(transition);
             nodes.add(transitionNode);
+        }
+
+        for (Flow flow : net.getEdges()) {
+            PetriNetLink petriNetLink = PetriNetLink.of(flow);
+            links.add(petriNetLink);
         }
 
         // Add X/Y coordinates for nodes that have them
@@ -80,16 +73,20 @@ public class PetriNetD3 {
     }
 
     static class PetriNetLink extends GraphLink {
-        private PetriNetLink(String source, String target) {
-            super(source, target);
+        private final String tokenFlow; // Nullable
+
+        private PetriNetLink(String sourceId, String targetId, String tokenFlow) {
+            super(sourceId, targetId);
+            this.tokenFlow = tokenFlow;
         }
 
-        static PetriNetLink of(Place place, Transition transition) {
-            return new PetriNetLink(place.getId(), transition.getId());
-        }
-
-        static PetriNetLink of(Transition transition, Place place) {
-            return new PetriNetLink(transition.getId(), place.getId());
+        public static PetriNetLink of(Flow flow) {
+            String sourceId = flow.getSource().getId();
+            String targetId = flow.getTarget().getId();
+            String tokenFlow = AdamExtensions.hasTokenFlow(flow) ?
+                    AdamExtensions.getTokenFlow(flow) :
+                    null;
+            return new PetriNetLink(sourceId, targetId, tokenFlow);
         }
     }
 
@@ -106,12 +103,20 @@ public class PetriNetD3 {
             this.isSpecial = isSpecial;
         }
 
-        static PetriNetNode transition(String id, String label) {
+        static PetriNetNode of(Transition t) {
+            String id = t.getId();
+            String label = t.getLabel();
             // Transitions are never bad or special and have no tokens
             return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false);
         }
 
-        static PetriNetNode place(String id, String label, boolean isEnvironment, boolean isBad, long initialToken, boolean isSpecial) {
+        static PetriNetNode of(Place place) {
+            String id = place.getId();
+            String label = id;
+            boolean isEnvironment = AdamExtensions.isEnvironment(place);
+            boolean isBad = AdamExtensions.isBad(place);
+            long initialToken = place.getInitialToken().getValue();
+            boolean isSpecial = AdamExtensions.isSpecial(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
             return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial);
         }
