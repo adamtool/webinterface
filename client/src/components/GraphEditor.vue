@@ -30,6 +30,7 @@
       <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
         Move all nodes into the visible area
       </button>
+      <button style="display: none;" v-on:click="updateD3">Update D3</button>
       <button v-on:click="freezeAllNodes">Freeze all nodes</button>
       <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
     </div>
@@ -443,7 +444,7 @@
 
         // Draw circles around Places in Petri Nets with isSpecial = true
         const isSpecialElements = this.isSpecialGroup
-          .selectAll('.isSpecialHighlight')
+          .selectAll('circle')
           .data(this.nodes.filter(node => node.isSpecial === true), this.keyFunction)
         const newIsSpecialElements = isSpecialElements.enter().append('circle')
         newIsSpecialElements.call(this.dragDrop)
