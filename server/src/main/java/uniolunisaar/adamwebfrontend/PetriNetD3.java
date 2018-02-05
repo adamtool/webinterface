@@ -8,6 +8,7 @@ import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
 import uniolunisaar.adam.ds.util.AdamExtensions;
+import uniolunisaar.adam.tools.Tools;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,20 +74,32 @@ public class PetriNetD3 {
     }
 
     static class PetriNetLink extends GraphLink {
-        private final String tokenFlow; // Nullable
+        private final String tokenFlow; // Null if there is no token flow given
+        private final Float tokenFlowHue; // In the interval (0, 1].  Null if no color should be used.
 
-        private PetriNetLink(String sourceId, String targetId, String tokenFlow) {
+        private PetriNetLink(String sourceId, String targetId, String tokenFlow, Float tokenFlowHue) {
             super(sourceId, targetId);
             this.tokenFlow = tokenFlow;
+            this.tokenFlowHue = tokenFlowHue;
         }
 
-        public static PetriNetLink of(Flow flow) {
+        static PetriNetLink of(Flow flow) {
             String sourceId = flow.getSource().getId();
             String targetId = flow.getTarget().getId();
-            String tokenFlow = AdamExtensions.hasTokenFlow(flow) ?
-                    AdamExtensions.getTokenFlow(flow) :
-                    null;
-            return new PetriNetLink(sourceId, targetId, tokenFlow);
+            String tokenFlow = null;
+            Float tokenFlowHue = null;
+
+            if (AdamExtensions.hasTokenFlow(flow)) {
+                tokenFlow = AdamExtensions.getTokenFlow(flow);
+                // Give a unique color to each of the token flows associated with a transition.
+                if (!tokenFlow.contains(",")) { // Flows with multiple tokens are black.
+                    int max = AdamExtensions.getTokenFlow(flow.getTransition()).size();
+                    int id = Tools.calcStringIDSmallPrecedenceReverse(tokenFlow);
+                    tokenFlowHue = ((id + 1) * 1.f) / (max * 1.f);
+                }
+            }
+
+            return new PetriNetLink(sourceId, targetId, tokenFlow, tokenFlowHue);
         }
     }
 

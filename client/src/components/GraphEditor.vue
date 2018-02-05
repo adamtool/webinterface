@@ -511,6 +511,14 @@
             }
           })
 
+        const getTokenFlowColor = link => {
+          if (link.tokenFlowHue !== undefined) {
+            const hueInDegrees = link.tokenFlowHue * 360
+            return `HSL(${hueInDegrees}, 100%, 50%)`
+          } else {
+            throw new Error(`The property tokenFlowHue is undefined for the link: ${link}`)
+          }
+        }
         const newLinkElements = this.linkGroup
           .selectAll('path')
           .data(this.links)
@@ -519,7 +527,13 @@
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
           .attr('stroke-width', 3)
-          .attr('stroke', '#E5E5E5')
+          .attr('stroke', link => {
+            if (link.tokenFlowHue !== undefined) {
+              return getTokenFlowColor(link)
+            } else {
+              return '#E5E5E5'
+            }
+          })
           .attr('marker-end', 'url(#' + this.arrowheadId + ')')
           .attr('id', this.generateLinkId)
 
@@ -533,6 +547,13 @@
         newLinkTextElements.exit().remove()
         this.linkTextElements = linkTextEnter.merge(newLinkTextElements)
         this.linkTextElements
+          .attr('fill', link => {
+            if (link.tokenFlowHue !== undefined) {
+              return getTokenFlowColor(link)
+            } else {
+              return 'black'
+            }
+          })
           .select('textPath')
           .attr('xlink:href', link => '#' + this.generateLinkId(link))
           .text(link => {
