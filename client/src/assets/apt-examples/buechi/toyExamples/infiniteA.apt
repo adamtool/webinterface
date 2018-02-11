@@ -1,0 +1,24 @@
+// buchi in env part should also lead in this case to a winning strategy
+.name "infiniteA"
+.type LPN
+.description "Is there a problem for infinite env runs?"
+.options
+winningCondition="BUCHI"
+
+.places
+env1[env="true"]
+env2[env="true", buchi="true"]
+sys1[token=1]
+sys3[token=1]
+
+.transitions
+t1
+t2
+t3
+
+.flows
+t1: {env1} -> {env2}
+t2: {sys1} -> {sys3}
+t3: {env2} -> {env1}
+
+.initial_marking {env1,sys1}

@@ -1,0 +1,51 @@
+// Adapted tafel 2 example: the enviroment first decides on their own
+// Cannot be won by the system anymore, since the system cannot prevent the env
+// to enter the right arm anymore and so if the env take t4, in this case t5 could 
+// not be used and thus the system blocks if it don't uses t3. 
+// Deleting t4 or the env2 in the preset of t5 would fix the problem.
+.name "exampleTafel"
+.type LPN
+.description "Example tafel 28.09.2014"
+.options
+winningCondition="SAFETY"
+
+.places
+Env[env="true"]
+Env1[env="tr"]
+Env2[env="tr"]
+Env3[env="tr"]
+Env4[env="tr"]
+Env5[env="tr"]
+s1
+s2
+s3
+s4
+s5
+s6
+s7[bad="asdf"]
+s8
+
+.transitions
+t1
+t2
+t2n
+t3
+t4
+t5
+t6
+t7
+t8
+
+.flows
+// left arm
+t1: {Env} -> {Env1}
+t2n: {Env} -> {Env5}
+t2: {Env5,s1} -> {Env2,s4}
+t3: {s3} -> {s7}
+t4: {Env2} -> {Env3}
+t5: {Env2,s5} -> {Env4,s8}
+t6: {s2,s4} -> {s5,s6}
+t7: {s8} -> {s8}
+t8: {Env1} -> {Env1}
+
+.initial_marking {Env,s1,s2,s3}

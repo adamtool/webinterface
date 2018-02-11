@@ -1,0 +1,93 @@
+.name "The Watchdog (without partial observation) - 5"
+.type LPN
+.options
+winningCondition="SAFETY",
+partialObservation="true"
+
+.places
+M0[token=2]
+M1[token=2]
+M2[token=2]
+M3[token=2]
+M4[token=2]
+bad[bad="true", token=3]
+checked[token=3]
+dog[token=3]
+env[env="true"]
+env1[env="true"]
+m0[token=3]
+m1[token=3]
+m2[token=3]
+m3[token=3]
+m4[token=3]
+test[token=1]
+
+.transitions
+b0[label="b"]
+b1[label="b"]
+b2[label="b"]
+b3[label="b"]
+b4[label="b"]
+t0[label="t0"]
+t1[label="t1"]
+t10[label="t10"]
+t11[label="t11"]
+t12[label="t12"]
+t13[label="t13"]
+t14[label="t14"]
+t15[label="t15"]
+t16[label="t16"]
+t17[label="t17"]
+t18[label="t18"]
+t19[label="t19"]
+t2[label="t2"]
+t20[label="t20"]
+t21[label="t21"]
+t22[label="t22"]
+t23[label="t23"]
+t24[label="t24"]
+t25[label="t25"]
+t3[label="t3"]
+t4[label="t4"]
+t5[label="t5"]
+t6[label="t6"]
+t7[label="t7"]
+t8[label="t8"]
+t9[label="t9"]
+ttest[label="ttest"]
+
+.flows
+b0: {1*env} -> {1*test, 1*M0, env1}
+b1: {1*env} -> {1*M1, 1*test, env1}
+b2: {1*env} -> {1*M2, 1*test, env1}
+b3: {1*env} -> {1*test, 1*M3, env1}
+b4: {1*env} -> {1*test, 1*M4, env1}
+t0: {1*dog} -> {1*checked}
+t1: {1*checked} -> {1*m0}
+t10: {1*m1, 1*M4} -> {1*bad}
+t11: {1*checked} -> {1*m2}
+t12: {1*M0, 1*m2} -> {1*bad}
+t13: {1*M1, 1*m2} -> {1*bad}
+t14: {1*M3, 1*m2} -> {1*bad}
+t15: {1*M4, 1*m2} -> {1*bad}
+t16: {1*checked} -> {1*m3}
+t17: {1*m3, 1*M0} -> {1*bad}
+t18: {1*m3, 1*M1} -> {1*bad}
+t19: {1*M2, 1*m3} -> {1*bad}
+t2: {1*M1, 1*m0} -> {1*bad}
+t20: {1*m3, 1*M4} -> {1*bad}
+t21: {1*checked} -> {1*m4}
+t22: {1*M0, 1*m4} -> {1*bad}
+t23: {1*m4, 1*M1} -> {1*bad}
+t24: {1*m4, 1*M2} -> {1*bad}
+t25: {1*m4, 1*M3} -> {1*bad}
+t3: {1*M2, 1*m0} -> {1*bad}
+t4: {1*M3, 1*m0} -> {1*bad}
+t5: {1*M4, 1*m0} -> {1*bad}
+t6: {1*checked} -> {1*m1}
+t7: {1*m1, 1*M0} -> {1*bad}
+t8: {1*M2, 1*m1} -> {1*bad}
+t9: {1*m1, 1*M3} -> {1*bad}
+ttest: {1*test, 1*dog} -> {1*test, 1*checked}
+
+.initial_marking {1*dog, 1*env}

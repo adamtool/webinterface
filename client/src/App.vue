@@ -1,5 +1,10 @@
 <template>
   <div id='app' class="container-fluid">
+    <div class='row' style="margin-bottom: 10px">
+      <div class='col-12'>
+        <AptExamplePicker v-on:filePicked='onAptExampleSelected'/>
+      </div>
+    </div>
     <div class='row'>
       <div class='col-md-12'>
         <div class="row action-buttons">
@@ -52,6 +57,7 @@
 </template>
 
 <script>
+  import AptExamplePicker from '@/components/AptExamplePicker'
   import AptEditor from '@/components/AptEditor'
   import GraphEditor from '@/components/GraphEditor'
   import Vue from 'vue'
@@ -74,7 +80,8 @@
     name: 'app',
     components: {
       'AptEditor': AptEditor,
-      'GraphEditor': GraphEditor
+      'GraphEditor': GraphEditor,
+      'AptExamplePicker': AptExamplePicker
     },
     mounted: function () {
       this.switchToAPTEditorTab()
@@ -227,6 +234,10 @@
         console.log(petriGame)
         this.petriGame = petriGame
         this.switchToPetriGameTab()
+      },
+      onAptExampleSelected: function (apt) {
+        this.apt = apt
+        this.switchToAPTEditorTab()
       },
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {

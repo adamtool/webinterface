@@ -1,0 +1,63 @@
+// Adaption auf the traffic scenario of the gandalf paper
+.name "mutex"
+.type LPN
+.description "mutex"
+.options
+winningCondition="BUCHI"
+
+.places
+Env[env="true"]
+mx[env="tr"]
+sf[env="tr"]
+ec[env="tr"]
+qbad[env="tr"]
+S1
+S2
+w1
+w2
+cs1[buchi="true"]
+cs2[buchi="true"]
+f1
+f2
+r1[buchi="true"]
+r2[buchi="true"]
+s1
+s2
+
+.transitions
+tc
+ts
+ic
+is
+p1
+p2
+b1
+b2
+v1
+t1
+v2
+t2
+e1
+e2
+f
+tb
+
+.flows
+tc: {Env} -> {mx}
+ts: {Env} -> {sf}
+ic: {S1,S2,mx} -> {w1,w2,ec}
+is: {S1,S2,sf} -> {Env,r1,r2}
+p1: {w1} -> {cs1}
+p2: {w2} -> {cs2}
+b1: {r1} -> {s1}
+b2: {r2} -> {s2}
+v1: {cs1,w2} -> {w2,f1}
+t1: {cs1,f2} -> {f1,f2}
+v2: {cs2,w1} -> {w1,f2}
+t2: {cs2,f1} -> {f1,f2}
+e1: {s1} -> {r1}
+e2: {s2} -> {r2}
+f: {ec,f1,f2} -> {S1,S2,Env}
+tb: {ec,cs1,cs2} -> {qbad,cs1,cs2}
+
+.initial_marking {Env,S1,S2}

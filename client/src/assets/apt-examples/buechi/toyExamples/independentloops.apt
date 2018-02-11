@@ -1,0 +1,28 @@
+// There are two loops, one by the environment which cannot be blocked and one by the system to reach the Büchi place
+// Bounded synthesis should not be able to find the winning strategy.
+.name "decInLoop"
+.type LPN
+.description "A test requiring unfolding."
+.options
+winningCondition="BUCHI"
+
+.places
+env1[env="true"]
+env2[env="true"]
+
+sys1[token=1]
+sys2[token=1,buchi="true"]
+
+.transitions
+e1
+e2
+s1
+s2
+
+.flows
+e1: {env1} -> {env2}
+e2: {env2} -> {env1}
+s1: {sys1} -> {sys2}
+s2: {sys2} -> {sys1}
+
+.initial_marking {env1,sys1}

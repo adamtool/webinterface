@@ -1,0 +1,40 @@
+// Net burglar example
+.name "exampleTafel"
+.type LPN
+.description "Example tafel 28.09.2014. Should not have a strategy"
+.options
+winningCondition="SAFETY"
+
+.places
+Env[env="true"]
+Env1[env="tr"]
+Env2[env="tr"]
+Env3[env="tr"]
+Env4[env="tr"]
+s1
+s2
+s3
+s4
+s5
+s6
+s7[bad="asdf"]
+s8
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+t6
+
+.flows
+// left arm
+t1: {Env} -> {Env1}
+t2: {Env,s1} -> {Env2,s4}
+t3: {s3} -> {s7}
+t4: {Env2} -> {Env3}
+t5: {Env2,s5} -> {Env4,s8}
+t6: {s2,s4} -> {s5,s6}
+
+.initial_marking {Env,s1,s2,s3}

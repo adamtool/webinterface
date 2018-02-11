@@ -1,0 +1,37 @@
+// there should be no strategy since the only possibly strategy should invoke 
+// nodetermism.
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+E0[env="true"]
+E1[env="true"]
+EA[token=1]
+EB[token=1]
+S[token=2]
+A[token=2]
+B[token=2]
+badA[token=2,bad="true"]
+badB[token=2,bad="true"]
+
+.transitions
+a
+b
+ta
+tb
+e
+f
+
+
+.flows
+a: {E0} -> {E1,EA}
+b: {E0} -> {E1,EB}
+ta: {S,E1} -> {A}
+tb: {S,E1} -> {B}
+e: {EA,A} -> {badA}
+f: {EB,B} -> {badB}
+
+.initial_marking {E0, S}

@@ -1,0 +1,35 @@
+.name "vsp_1"
+.type LPN
+.description "like first example + reversible"
+.options
+winningCondition="SAFETY"
+
+.places
+env[env="true"]
+env1[env="true"]
+env2[env="true"]
+sys
+sys1
+sys2
+
+.transitions
+te1
+te2
+tr1
+tr2
+test1
+test2
+ts1
+ts2
+
+.flows
+te1: {env} -> {env1}
+te2: {env} -> {env2}
+tr1: {env1, sys1} -> {env, sys}
+tr2: {env2, sys2} -> {env, sys}
+test1: {env1, sys} -> {env1, sys}
+test2: {env2, sys} -> {env2, sys}
+ts1: {sys} -> {sys1}
+ts2: {sys} -> {sys2}
+
+.initial_marking {env, sys}

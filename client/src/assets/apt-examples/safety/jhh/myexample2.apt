@@ -1,0 +1,24 @@
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="SAFETY"
+
+.places
+E1[env="true"]
+E2[env="true"]
+E3[env="true"]
+EL
+ER
+
+.transitions
+l
+r
+s
+
+.flows
+l: {E1} -> {E2,EL}
+r: {E1} -> {E2,ER}
+s: {E2} -> {E3}
+
+.initial_marking {E1}

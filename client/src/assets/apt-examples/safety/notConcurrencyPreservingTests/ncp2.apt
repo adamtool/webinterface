@@ -1,0 +1,35 @@
+// Net consuming
+.name "ncp2"
+.type LPN
+.description "Testing not concurrency preserving net 2"
+.options
+winningCondition="SAFETY"
+
+.places
+env1[env] 
+env2[env]
+env3[env]
+sys1[token=1]
+sys2[token=2]
+sys3[token=1]
+sys4[token=1]
+sys5[bad, token=2]
+sys6[token=1]
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+
+.flows
+// env separated
+t1: {env1, sys1} -> {env2,sys3}
+// system
+t2: {sys1,sys2} -> {sys3}
+t3: {sys3} -> {sys4}
+t4: {sys2,sys3} -> {sys5}
+t5: {env2,sys4} -> {env3,sys6}
+
+.initial_marking {env1, sys1, sys2}

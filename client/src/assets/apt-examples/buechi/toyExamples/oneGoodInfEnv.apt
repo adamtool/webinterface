@@ -1,0 +1,30 @@
+// There is one infinite path for the enviroment to miss the buchi state
+// should have no strategy
+.name "oneGoodInvEnv"
+.type LPN
+.description "One inifinite env path missing the buchi state. (Should have no strategy)"
+.options
+winningCondition="BUCHI"
+
+.places
+env1[env="true"]
+env2[env="true",buchi="true"]
+env3[env="true"]
+sys1[token=1]
+sys2[token=1]
+
+.transitions
+el
+ell
+er
+err
+s
+
+.flows
+el: {env1} -> {env2}
+ell:{env2} -> {env1}
+er: {env1} -> {env3}
+err:{env3} -> {env1}
+s: {sys1} -> {sys2}
+
+.initial_marking {env1,sys1}

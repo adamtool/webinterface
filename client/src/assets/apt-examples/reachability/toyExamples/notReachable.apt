@@ -1,0 +1,34 @@
+// there should not be a strategy
+.name "notReachable"
+.type LPN
+.description "For one env choice there is no reachable place"
+.options
+winningCondition="REACHABILITY"
+
+.places
+env1[env="true"]
+env2[env="true"]
+sys1[token=1]
+sys2[token=1]
+sys3[token=1]
+sys4[token=1]
+sys5[token=1]
+sys6[token=1,reach="true"]
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+t6
+
+.flows
+t1: {env1} -> {sys1,env2}
+t2: {env1} -> {sys2,env2}
+t3: {sys1} -> {sys3}
+t4: {sys1} -> {sys4}
+t5: {sys2} -> {sys5}
+t6: {sys2} -> {sys6}
+
+.initial_marking {env1}

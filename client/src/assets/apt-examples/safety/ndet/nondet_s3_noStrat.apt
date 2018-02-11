@@ -1,0 +1,33 @@
+// Problem with S3. Here there should be no deterministic strategy.
+// (S3 - problem see mail ERO 2017/03/07 here adapted (would be the same problem
+// if the places p and q would be enviroment places.)
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+ENV[env="true"]
+p[token=1]
+r[token=2]
+q[token=3]
+s1[token=1]
+s2[token=2]
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+
+
+.flows
+t1: {ENV} -> {p}
+t2: {ENV} -> {q}
+t3: {ENV} -> {p,q}
+t4: {p,r} -> {s1,r}
+t5: {r,q} -> {s2,r}
+
+.initial_marking {ENV, r}

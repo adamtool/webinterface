@@ -1,0 +1,28 @@
+// There is one infinite path for the system to miss the buchi state but also one to hit
+// should have strategy
+.name "goodBadLoop1"
+.type LPN
+.description "One inifinite sys path missing the buchi state. (but also one hitting)"
+.options
+winningCondition="BUCHI"
+
+.places
+env1[env="true"]
+env2[env="true"]
+s1[token=1]
+s2[token=1,buchi="true"]
+s3[token=1]
+
+.transitions
+e
+slb
+sr
+srb
+
+.flows
+e: {env1,s1} -> {env2,s2}
+slb: {env2,s2} -> {env1,s1}
+sr:{s1} -> {s3}
+srb: {s3} -> {s1}
+
+.initial_marking {env1,s1}

@@ -1,0 +1,29 @@
+// system could only win, when it's allowed to use a transition before the enviroment does
+// there should be no strategy
+.name "skipSystem.net"
+.type LPN
+.description "env skips the systems"
+.options
+winningCondition="SAFETY"
+
+.places
+env1[env="true"]
+env2[env="true"]
+env3[env="true"]
+s1
+s2
+s3[bad="true"]
+
+.transitions
+t1
+t2
+t3
+t4
+
+.flows
+t1: {env1} -> {env2}
+t2: {env2} -> {env3}
+t3: {s1,env2} -> {s2,env2}
+t4: {s1} -> {s3}
+
+.initial_marking {env1, s1}

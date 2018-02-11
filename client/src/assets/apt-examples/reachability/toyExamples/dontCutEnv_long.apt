@@ -1,0 +1,30 @@
+// An example to test if the behavior of the environment is not unallowed cutted
+// should have a strategy (with also the beginning env part)
+.name "dontCutMe"
+.type LPN
+.description "Don't cut illicitly the environment!"
+.options
+winningCondition="REACHABILITY"
+
+.places
+env1[env="true"]
+env2[env="true"]
+env3[env="true"]
+sys1[token=1]
+sys2[token=1]
+sys3[token=1,reach="true"]
+sys4[token=1]
+
+.transitions
+t1
+t2
+t3
+t4
+
+.flows
+t1: {env1} -> {env2}
+t2: {env2,sys1} -> {env3,sys2}
+t3: {sys1} -> {sys3}
+t4: {sys3} -> {sys4}
+
+.initial_marking {env1,sys1}

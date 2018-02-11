@@ -1,0 +1,38 @@
+// is the firstExamplePaper version adapted to a buchi condition, such that
+// everytime a good decision has to be dropped. Only the good path is infinite.
+.name "first Example Paper buchi version"
+.type LPN
+.description "the easy buchi version."
+.options
+winningCondition="BUCHI"
+
+.places
+env1[env="true", buchi="true"]
+envL[env="true"]
+envR[env="true"]
+
+sys1[token=1]
+sysL[token=1]
+sysR[token=1]
+
+.transitions
+el
+er
+testl
+testr
+sl
+sr
+rl
+rr
+
+.flows
+el: {env1} -> {envL}
+er: {env1} -> {envR}
+sl: {sys1} -> {sysL}
+sr: {sys1} -> {sysR}
+testl: {envL,sys1} -> {envL, sys1}
+testr: {envR,sys1} -> {envR, sys1}
+rl: {envL,sysL} -> {env1, sys1}
+rr: {envR,sysR} -> {env1, sys1}
+
+.initial_marking {env1,sys1}

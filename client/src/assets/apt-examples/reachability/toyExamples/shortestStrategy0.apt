@@ -1,0 +1,26 @@
+// test to check to see if it finds the shortest strategy
+.name "shortestStrat"
+.type LPN
+.description "testing the building strategy algorithm"
+.options
+winningCondition="REACHABILITY"
+
+.places
+E1[env="true"]
+E2[env="true"]
+s1[token=1]
+s2[token=1]
+s3[token=1, reach="true"]
+s4[token=1, reach="true"]
+
+.transitions
+t1
+t2
+t3
+
+.flows
+t1: {s1} -> {s2}
+t2: {s2} -> {s3}
+t3: {s1,E1} -> {s4,E2}
+
+.initial_marking {E1,s1}

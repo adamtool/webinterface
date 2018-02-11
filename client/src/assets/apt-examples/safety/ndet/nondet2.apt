@@ -1,0 +1,39 @@
+// there should be no strategy since the only possibly strategy should invoke 
+// nodetermism (adapted version of idea of Paul Goelz)
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+A
+B[env="true"]
+C
+D[env="true"]
+E[env="true"]
+F
+G[env="true"]
+H
+K[env="true"]
+
+.transitions
+a
+b
+c
+d
+e
+f
+i
+
+
+.flows
+a: {A,K} -> {C,D}
+b: {B} -> {E}
+c: {D} -> {G}
+d: {D} -> {E}
+e: {C,F} -> {C,H}
+f: {E,F} -> {E,H}
+i: {B} -> {K}
+
+.initial_marking {A,B,F}

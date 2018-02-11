@@ -1,0 +1,24 @@
+// infinite runs of env should lead to no strategy
+.name "infiniteD"
+.type LPN
+.description "Is there a problem for infinite env runs?"
+.options
+winningCondition="REACHABILITY"
+
+.places
+env1[env="true"]
+sys1[token=1]
+sys2[token=1]
+sys3[token=1,reach="true"]
+
+.transitions
+t1
+t2
+t3
+
+.flows
+t1: {env1} -> {env1}
+t2: {sys1} -> {sys2}
+t3: {sys2} -> {sys3}
+
+.initial_marking {env1,sys1}

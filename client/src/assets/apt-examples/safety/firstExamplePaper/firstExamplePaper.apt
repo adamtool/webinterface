@@ -1,0 +1,45 @@
+// Net burglar example
+.name "firstExamplePaper"
+.type LPN
+.description "The testing example of the paper"
+.options
+winningCondition="SAFETY"
+
+.places
+Env[env="true"]
+A[env="true"]
+B[env="true"]
+Sys[token=1]
+A_[token=1]
+B_[token=1]
+EA[env="true"]
+EB[env="true"]
+qbad[token=1,bad="true"]
+
+.transitions
+t1
+t2
+test1
+test2
+t1_
+t2_
+tbad1
+tbad2
+tbad3
+tbad4
+
+.flows
+// left arm
+t1: {Env} -> {A}
+t2: {Env} -> {B}
+test1: {A,Sys} -> {Sys,EA}
+test2: {B,Sys} -> {Sys,EB}
+t1_: {Sys} -> {A_}
+t2_: {Sys} -> {B_}
+// bad states
+tbad1: {A_,EB} -> {EB,qbad}
+tbad2: {B_,EA} -> {EA,qbad}
+tbad3: {A_,B} -> {B,qbad}
+tbad4: {B_,A} -> {A,qbad}
+
+.initial_marking {Env,Sys}

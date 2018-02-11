@@ -1,0 +1,45 @@
+// there should be no strategy since the only possibly strategy should invoke 
+// nodetermism (adapted version of idea of Paul Goelz), here in addition with sys 
+// transition (not only env pre/post-set for mcut)
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+A[token=1]
+B[env="true"]
+C[token=1]
+D[env="true"]
+E[env="true"]
+E0[env="true"]
+F[token=2]
+G[env="true"] // is for blocking, so that the system is not allowed to disable e
+H[token=2]
+K[env="true"]
+buf1[token=3]
+buf2[token=3]
+
+.transitions
+a
+b
+c
+d
+d0
+e
+f
+i
+
+
+.flows
+a: {A,K} -> {C,D}
+b: {B} -> {E}
+c: {D} -> {G}
+d: {D} -> {E0}
+d0: {E0,buf1} -> {E,buf2}
+e: {C,F} -> {C,H}
+f: {E,F} -> {E,H}
+i: {B} -> {K}
+
+.initial_marking {A,B,F, buf1}

@@ -1,0 +1,37 @@
+// Net consuming
+// problem with splitting in invariants since sys2 isn't really used
+.name "ncp1"
+.type LPN
+.description "Testing not concurrency preserving net 1"
+.options
+winningCondition="SAFETY"
+
+.places
+env1[env="true"] 
+env2[env="true"]
+sys1[token=1]
+sys2[token=2]
+sys3[token=1]
+sys4[token=2]
+sys5[bad,token=2]
+sys6[token=1]
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+t6
+
+.flows
+// env separated
+t1: {env1, sys1} -> {env2,sys3}
+// system
+t2: {sys1,sys2} -> {sys3}
+t3: {sys2} -> {sys4}
+t4: {sys4} -> {sys5}
+t5: {sys5} -> {sys4}
+t6: {env1,sys3} -> {env2,sys6}
+
+.initial_marking {env1, sys1, sys2}

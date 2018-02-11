@@ -1,0 +1,23 @@
+// has a type2 area but should not produce any problem
+.name "type2-A"
+.type LPN
+.description "A testing example for checking a type2 area."
+.options
+winningCondition="REACHABILITY"
+
+.places
+env1[env="true"]
+env2[env="true"]
+sys1[token=1]
+sys2[token=2]
+sys3[reach="true", token=1]
+
+.transitions
+t1
+t2
+
+.flows
+t1: {env1,sys1} -> {env2,sys3}
+t2: {sys2} -> {sys2}
+
+.initial_marking {env1,sys1,sys2}

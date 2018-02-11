@@ -1,0 +1,24 @@
+// the system looses because it cannot reach the nonexistent place to reach
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="REACHABILITY"
+
+.places
+E1[env="true"]
+E2[env="true"]
+S1
+S2
+
+.transitions
+e1
+e2
+s1
+
+.flows
+e1: {E1} -> {E2}
+e2: {E2} -> {E1}
+s1: {S1} -> {S2}
+
+.initial_marking {E1,S1}
