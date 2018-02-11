@@ -2,7 +2,7 @@
   <div id='app' class="container-fluid">
     <div class='row' style="margin-bottom: 10px">
       <div class='col-12'>
-        <AptExamplePicker v-on:filePicked='onAptExampleSelected'/>
+        <AptExamplePicker v-on:fileSelected='onAptExampleSelected'/>
       </div>
     </div>
     <div class='row'>
