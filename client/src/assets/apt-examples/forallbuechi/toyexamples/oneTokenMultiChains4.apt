@@ -1,0 +1,22 @@
+// should have no strategy, the token dies.
+.name "oneTokenMultiChains2.net"
+.type LPN
+.options
+winningCondition="A_BUCHI"
+
+.places
+env[env="true"]
+env1[env="true",buchi="true"]
+sa1
+sa2[buchi="true"]
+
+.transitions
+t1[tfl="{}->{sa2},{env}->{env1}"]
+t2
+t3
+
+.flows
+t1: {sa1,env} -> {sa2,env1}
+t2: {sa2} -> {sa1}
+t3: {env1} -> {env}
+.initial_marking {sa1,env}

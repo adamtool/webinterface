@@ -1,0 +1,36 @@
+// system should win, this tests my unfolder
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="SAFETY"
+
+.places
+E1[env="true"]
+E2[env="true"]
+E3[env="true"]
+S1[token=1]
+S2[token=1]
+S3[token=1]
+S4[token=1]
+bad[token=1,bad="true"]
+
+.transitions
+l
+r
+s
+ll
+rr
+b1
+b2
+
+.flows
+l: {E1} -> {E2,S1}
+r: {E1} -> {E3,S1}
+s: {S1} -> {S2}
+ll:{S2} -> {S3}
+rr:{S2} -> {S4}
+b1:{E2,S3} -> {bad}
+b2:{E3,S4} -> {bad}
+
+.initial_marking {E1}

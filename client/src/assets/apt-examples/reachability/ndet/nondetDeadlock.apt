@@ -1,0 +1,32 @@
+// OK has a strategy, because deadlock is OK, idea was:
+// there should be no strategy since the only possibly strategy should invoke 
+// nodetermism. It should detect it, but not because of the nondeterminsm
+// but because of the scheduling that r2 can never be reached.
+.name "nondet no strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="REACHABILITY"
+
+.places
+E[env="true"]
+r1[env="true", reach="true"]
+EL[env="true"]
+r2[env="true", reach="true"]
+s1
+s2
+
+.transitions
+t1
+t2
+t3
+t4
+
+
+.flows
+t1: {E} -> {r1}
+t2: {E} -> {EL}
+t3: {EL,s1} -> {r2,s2}
+t4: {s1} -> {s2}
+
+.initial_marking {E,s1}

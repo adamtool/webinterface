@@ -1,5 +1,5 @@
-// there should be no strategy since the only possibly strategy should invoke 
-// nodetermism (adapted version of idea of Paul Goelz)
+// there should be no strategy, since every strategy should encounter
+// ndet (between f2 and e)
 .name "nondet strategy"
 .type LPN
 .description "Alarm system."
@@ -7,14 +7,14 @@
 winningCondition="SAFETY"
 
 .places
-A
+A[token=1]
 B[env="true"]
-C
+C[token=1]
 D[env="true"]
 E[env="true"]
-F
+F[token=2]
 G[env="true"]
-H
+H[token=2]
 K[env="true"]
 
 .transitions
@@ -24,6 +24,7 @@ c
 d
 e
 f
+f2
 i
 
 
@@ -33,7 +34,8 @@ b: {B} -> {E}
 c: {D} -> {G}
 d: {D} -> {E}
 e: {C,F} -> {C,H}
-f: {E,F} -> {E,H}
+f: {C,E,F} -> {A,B,F}
+f2: {E,F} -> {E,H}
 i: {B} -> {K}
 
 .initial_marking {A,B,F}

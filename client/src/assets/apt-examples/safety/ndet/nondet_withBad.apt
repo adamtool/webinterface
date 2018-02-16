@@ -1,0 +1,41 @@
+// there should be no strategy since only exhausting nondeterminism should
+// help to avoid the bad place (or deadlock?) (Adaption of Paul Goelz example)
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+A[token=1]
+B[env="true"]
+C[token=1]
+D[env="true"]
+E[env="true"]
+F[token=2]
+G[env="true"]
+H[token=2]
+K[env="true"]
+
+.transitions
+a
+b
+c
+d
+e
+f
+//g
+i
+
+
+.flows
+a: {A,K} -> {C,D}
+b: {B} -> {E}
+c: {D} -> {G}
+d: {D} -> {E}
+e: {C,F} -> {C,H}
+f: {E,F} -> {E,H}
+//g: {H} -> {H}
+i: {B} -> {K}
+
+.initial_marking {A,B,F}

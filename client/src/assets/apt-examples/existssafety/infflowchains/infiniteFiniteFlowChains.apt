@@ -1,0 +1,22 @@
+// env should win as every chain turns unsafe in one step
+.name "infflowchains"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+S1
+S2
+bad1[bad="true"]
+bad2[bad="true"]
+
+.transitions
+t1[tfl="{S1}->{bad2},{bad1}->{},{}->{S2}"]
+t2[tfl="{S2}->{bad1},{bad2}->{},{}->{S1}"]
+
+.flows
+t1 : {S1,bad1} -> {S2,bad2}
+t2 : {S2,bad2} -> {S1,bad1}
+
+.initial_marking {S1,bad1}

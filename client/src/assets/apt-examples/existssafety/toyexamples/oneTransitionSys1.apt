@@ -1,0 +1,19 @@
+// should automatically add fl(t) = {(S1,S2)} -> ENV wins because only token has to reach bad place
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+S1[token=1]
+S2[token=1,bad="true"]
+
+
+.transitions
+t
+
+.flows
+t: {S1} -> {S2}
+
+.initial_marking {S1}

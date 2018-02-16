@@ -1,0 +1,18 @@
+// forced empty fl(t) -> ENV wins because BOTH flow chains reach bad place
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+E1[token=1,bad="true",env="true"]
+E2[token=1,bad="true",env="true"]
+
+.transitions
+t[tfl=""]
+
+.flows
+t: {E1} -> {E2}
+
+.initial_marking {E1}

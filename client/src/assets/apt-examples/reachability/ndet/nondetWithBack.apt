@@ -1,0 +1,39 @@
+// there should be a strategy since deadlocks are OK by reachability.
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="REACHABILITY"
+
+.places
+A[reach="true"]
+B[env="true"]
+C				// despite reach correct
+D[env="true"]			// despite reach correct
+E[env="true"]			// despite reach correct
+F
+G[env="true"]			// despite reach correct
+H1
+H2
+K[env="true"]			// despite reach correct
+
+.transitions
+a
+b
+c
+d
+e
+f
+i
+
+
+.flows
+a: {A,K} -> {C,D}
+b: {B} -> {E}
+c: {D} -> {G}
+d: {D} -> {E}
+e: {C,F} -> {H1,C}
+f: {E,F} -> {H2,E}
+i: {B} -> {K}
+
+.initial_marking {A,B,F}

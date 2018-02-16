@@ -1,0 +1,21 @@
+// env wins because the infinitely many spawned flow chains all eventually reach a bad place
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+s1
+s2[bad="true"]
+s3
+
+.transitions
+t3[tfl="{s1}->{s2},{}->{s3}"]
+t4[tfl="{s2,s3}->{s1}"]
+
+.flows
+t3: {s1} -> {s2,s3}
+t4: {s2,s3} -> {s1}
+
+.initial_marking {s1}

@@ -1,0 +1,34 @@
+// env should win as the system cannot gather any information and every flow chain ends in a bad place
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+E1[env="true"]
+E2[env="true"]
+E3[env="true"]
+S1[token=1]
+S2[token=1]
+S3[token=1]
+bad1[bad="true",env="true"]
+bad2[token=1,bad="true"]
+
+.transitions
+t1
+t2
+t3
+t4
+b1
+b2
+
+.flows
+t1: {E1} -> {E2}
+t2: {E1} -> {E3}
+t3: {S1} -> {S2}
+t4: {S1} -> {S3}
+b1: {E3,S2} -> {bad1,bad2}
+b2: {E2,S3} -> {bad1,bad2}
+
+.initial_marking {E1,S1}

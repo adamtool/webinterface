@@ -1,0 +1,20 @@
+// there are 3 flow chains, one of which avoids the bad place -> SYS wins
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+E1[token=1]
+S1[token=2,bad="true"]
+E2[token=1]
+S2[token=2]
+
+.transitions
+t[tfl="{S1}->{S2,E2},{E1}->{}"]
+
+.flows
+t: {E1,S1} -> {E2,S2}
+
+.initial_marking {E1,S1}

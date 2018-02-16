@@ -1,0 +1,21 @@
+// SYS wins because flow chain of only E5 remains safe
+.name "multipleFlowChains"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+E1[bad="true"]
+E2[bad="true"]
+E3
+E4
+E5
+
+.transitions
+t1[tfl="{E1}->{E3,E4},{E2}->{E3,E4},{}->{E5}"]
+
+.flows
+t1 : {E1,E2} -> {E3,E4,E5}
+
+.initial_marking {E1,E2}

@@ -1,0 +1,32 @@
+// sys wins because the new chain has also the winning run
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+sa1
+sa2
+sa3
+sa4
+sa5
+sb1
+sb2[bad="true"]
+sb3
+
+.transitions
+t1
+t2[tfl="{sa2}->{sa3,sb2},{sb1}->{sb2}"]
+t3
+t4
+t5[tfl="{sb3,sa4}->{sa5}"]
+
+.flows
+t1: {sa1} -> {sa2}
+t2: {sa2,sb1} -> {sb2,sa3}
+t3: {sb2} -> {sb3}
+t4: {sa3} -> {sa4}
+t5: {sb3,sa4} -> {sa5}
+
+.initial_marking {sa1,sb1}

@@ -1,0 +1,28 @@
+// env wins because infinitely many flow chains never reach a good place
+.name "infiniteFlowChains.net"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+env[env="true"]
+env1[env="true",reach="true"]
+sa1
+sa2
+sb1
+sb2
+
+.transitions
+t1
+t2
+t3[tfl="{sa1,sb1}->{sa2},{}->{sb2}"]
+t4
+t5
+
+.flows
+t1: {env} -> {env1}
+t2: {env1} -> {env}
+t3: {sa1,sb1} -> {sa2,sb2}
+t4: {sa2} -> {sa1}
+t5: {sb2} -> {sb1}
+.initial_marking {sa1,sb1,env}

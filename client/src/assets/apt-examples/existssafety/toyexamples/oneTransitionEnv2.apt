@@ -1,0 +1,19 @@
+// add fl(t) = {} -> SYS wins because initial place is consumed without visiting bad place
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+E1[token=1,env="true"]
+E2[token=1,bad="true",env="true"]
+
+
+.transitions
+t[tfl=""]
+
+.flows
+t: {E1} -> {E2}
+
+.initial_marking {E1}

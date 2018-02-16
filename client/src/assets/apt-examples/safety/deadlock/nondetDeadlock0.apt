@@ -1,0 +1,32 @@
+// should have strategy
+.name "nondet no strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+E[env="true"]
+r1[env="true"]
+EL[env="true"]
+r2[env="true"]
+s1[token=1]
+s2[token=1]
+//s3[token=2]
+
+.transitions
+t1
+t2
+t3
+t4
+
+
+.flows
+t1: {E} -> {r1}
+t2: {E} -> {EL}
+t3: {EL,s1} -> {r2}
+//t4: {s1,s3} -> {s2}
+t4: {s1} -> {s2}
+
+.initial_marking {E,s1}
+//.initial_marking {E,s1,s3}

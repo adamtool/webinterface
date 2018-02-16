@@ -1,0 +1,25 @@
+// should have strategy
+.name "type2.net"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+env[env="true"]
+env1[env="true",reach="true"]
+s1
+s2[reach="true"]
+
+.transitions
+t1
+t2
+t3
+t4
+
+.flows
+t1: {env} -> {env1}
+t2: {s1} -> {s2}
+t3: {s2} -> {s2}
+t4: {env1} -> {env1}
+
+.initial_marking {s1,env}

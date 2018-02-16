@@ -1,0 +1,31 @@
+// TWO ENVIRONMENT TOKENS
+// ALL flow chains are unsafe -> ENV wins
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+E1[env="true"]
+E2[env="true",bad="true"]
+S1[env="true"]
+S2[env="true",bad="true"]
+S3[token=1,bad="true"]
+S4[token=1]
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+
+.flows
+t1: {E1} -> {E2}
+t2: {E2} -> {E1}
+t3: {S1} -> {S2}
+t4: {S2} -> {S1}
+t5: {S3} -> {S4}
+
+.initial_marking {E1,S1,S3}

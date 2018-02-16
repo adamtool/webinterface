@@ -27,20 +27,20 @@ s2
 .transitions
 tc
 ts
-ic
-is
+ic[tfl="{S1}->{w1},{S2}->{w2}"]
+is[tfl="{S1}->{r1},{S2}->{r2}"]
 p1
 p2
 b1
 b2
-v1
-t1
-v2
-t2
+v1[tfl="{cs1}->{f1},{w2}->{w2}"]
+t1[tfl="{cs1}->{f1},{f2}->{f2}"]
+v2[tfl="{cs2}->{f2},{w1}->{w1}"]
+t2[tfl="{cs2}->{f2},{f1}->{f1}"]
 e1
 e2
-f
-tb
+f[tfl="{f1}->{S1},{f2}->{S2}"]
+tb[tfl="{cs1}->{cs1},{cs2}->{cs2}"]
 
 .flows
 tc: {Env} -> {mx}

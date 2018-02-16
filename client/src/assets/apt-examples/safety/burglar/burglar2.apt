@@ -1,0 +1,178 @@
+.name "burglar2"
+.type LPN
+.options
+winningCondition="A_SAFETY"
+
+.places
+A
+AA
+AB
+AC
+B
+BA
+BB
+BC
+C
+CA
+CB
+CC
+env[env="true"]
+env0[env="true"]
+env1[env="true"]
+env2[env="true"]
+envA[env="true"]
+envB[env="true"]
+envC[env="true"]
+errorA[bad="true"]
+errorB[bad="true"]
+errorC[bad="true"]
+inA
+inB
+inC
+initA
+initB
+initC
+
+.transitions
+alarm0_0_1[label="alarm0_0_1"]
+alarm0_0_2[label="alarm0_0_2"]
+alarm0_1_1[label="alarm0_1_1"]
+alarm0_1_2[label="alarm0_1_2"]
+alarm0_2_1[label="alarm0_2_1"]
+alarm0_2_2[label="alarm0_2_2"]
+alarm1_0_0[label="alarm1_0_0"]
+alarm1_0_2[label="alarm1_0_2"]
+alarm1_1_0[label="alarm1_1_0"]
+alarm1_1_2[label="alarm1_1_2"]
+alarm1_2_0[label="alarm1_2_0"]
+alarm1_2_2[label="alarm1_2_2"]
+alarm2_0_0[label="alarm2_0_0"]
+alarm2_0_1[label="alarm2_0_1"]
+alarm2_1_0[label="alarm2_1_0"]
+alarm2_1_1[label="alarm2_1_1"]
+alarm2_2_0[label="alarm2_2_0"]
+alarm2_2_1[label="alarm2_2_1"]
+alarma0_0_0[label="alarma0_0_0"]
+alarma0_0_1[label="alarma0_0_1"]
+alarma0_0_2[label="alarma0_0_2"]
+alarma0_1_0[label="alarma0_1_0"]
+alarma0_1_1[label="alarma0_1_1"]
+alarma0_1_2[label="alarma0_1_2"]
+alarma0_2_0[label="alarma0_2_0"]
+alarma0_2_1[label="alarma0_2_1"]
+alarma0_2_2[label="alarma0_2_2"]
+alarma1_0_0[label="alarma1_0_0"]
+alarma1_0_1[label="alarma1_0_1"]
+alarma1_0_2[label="alarma1_0_2"]
+alarma1_1_0[label="alarma1_1_0"]
+alarma1_1_1[label="alarma1_1_1"]
+alarma1_1_2[label="alarma1_1_2"]
+alarma1_2_0[label="alarma1_2_0"]
+alarma1_2_1[label="alarma1_2_1"]
+alarma1_2_2[label="alarma1_2_2"]
+alarma2_0_0[label="alarma2_0_0"]
+alarma2_0_1[label="alarma2_0_1"]
+alarma2_0_2[label="alarma2_0_2"]
+alarma2_1_0[label="alarma2_1_0"]
+alarma2_1_1[label="alarma2_1_1"]
+alarma2_1_2[label="alarma2_1_2"]
+alarma2_2_0[label="alarma2_2_0"]
+alarma2_2_1[label="alarma2_2_1"]
+alarma2_2_2[label="alarma2_2_2"]
+falseA[label="falseA"]
+falseB[label="falseB"]
+falseC[label="falseC"]
+infA[label="infA"]
+infB[label="infB"]
+infC[label="infC"]
+solA[label="solA"]
+solB[label="solB"]
+solC[label="solC"]
+t0[label="t0"]
+t1[label="t1"]
+t10[label="t10"]
+t11[label="t11"]
+t2[label="t2"]
+t3[label="t3"]
+t4[label="t4"]
+t5[label="t5"]
+t6[label="t6"]
+t7[label="t7"]
+t8[label="t8"]
+t9[label="t9"]
+tA[label="tA"]
+tB[label="tB"]
+tC[label="tC"]
+
+.flows
+alarm0_0_1: {1*envA, 1*AB} -> {1*envA, 1*errorA}
+alarm0_0_2: {1*AC, 1*envA} -> {1*errorA, 1*envA}
+alarm0_1_1: {1*envA, 1*BB} -> {1*errorB, 1*envA}
+alarm0_1_2: {1*envA, 1*BC} -> {1*envA, 1*errorB}
+alarm0_2_1: {1*CB, 1*envA} -> {1*envA, 1*errorC}
+alarm0_2_2: {1*envA, 1*CC} -> {1*envA, 1*errorC}
+alarm1_0_0: {1*envB, 1*AA} -> {1*envB, 1*errorA}
+alarm1_0_2: {1*envB, 1*AC} -> {1*envB, 1*errorA}
+alarm1_1_0: {1*BA, 1*envB} -> {1*envB, 1*errorB}
+alarm1_1_2: {1*BC, 1*envB} -> {1*errorB, 1*envB}
+alarm1_2_0: {1*CA, 1*envB} -> {1*envB, 1*errorC}
+alarm1_2_2: {1*CC, 1*envB} -> {1*envB, 1*errorC}
+alarm2_0_0: {1*AA, 1*envC} -> {1*envC, 1*errorA}
+alarm2_0_1: {1*AB, 1*envC} -> {1*errorA, 1*envC}
+alarm2_1_0: {1*envC, 1*BA} -> {1*envC, 1*errorB}
+alarm2_1_1: {1*envC, 1*BB} -> {1*envC, 1*errorB}
+alarm2_2_0: {1*CA, 1*envC} -> {1*errorC, 1*envC}
+alarm2_2_1: {1*CB, 1*envC} -> {1*errorC, 1*envC}
+alarma0_0_0: {1*AA, 1*env0} -> {1*env0, 1*errorA}
+alarma0_0_1: {1*env0, 1*AB} -> {1*env0, 1*errorA}
+alarma0_0_2: {1*env0, 1*AC} -> {1*env0, 1*errorA}
+alarma0_1_0: {1*BA, 1*env0} -> {1*errorB, 1*env0}
+alarma0_1_1: {1*BB, 1*env0} -> {1*env0, 1*errorB}
+alarma0_1_2: {1*env0, 1*BC} -> {1*env0, 1*errorB}
+alarma0_2_0: {1*CA, 1*env0} -> {1*env0, 1*errorC}
+alarma0_2_1: {1*env0, 1*CB} -> {1*errorC, 1*env0}
+alarma0_2_2: {1*env0, 1*CC} -> {1*errorC, 1*env0}
+alarma1_0_0: {1*env1, 1*AA} -> {1*errorA, 1*env1}
+alarma1_0_1: {1*AB, 1*env1} -> {1*env1, 1*errorA}
+alarma1_0_2: {1*env1, 1*AC} -> {1*env1, 1*errorA}
+alarma1_1_0: {1*env1, 1*BA} -> {1*errorB, 1*env1}
+alarma1_1_1: {1*BB, 1*env1} -> {1*errorB, 1*env1}
+alarma1_1_2: {1*env1, 1*BC} -> {1*env1, 1*errorB}
+alarma1_2_0: {1*CA, 1*env1} -> {1*env1, 1*errorC}
+alarma1_2_1: {1*env1, 1*CB} -> {1*errorC, 1*env1}
+alarma1_2_2: {1*env1, 1*CC} -> {1*env1, 1*errorC}
+alarma2_0_0: {1*env2, 1*AA} -> {1*env2, 1*errorA}
+alarma2_0_1: {1*AB, 1*env2} -> {1*env2, 1*errorA}
+alarma2_0_2: {1*AC, 1*env2} -> {1*errorA, 1*env2}
+alarma2_1_0: {1*env2, 1*BA} -> {1*errorB, 1*env2}
+alarma2_1_1: {1*BB, 1*env2} -> {1*env2, 1*errorB}
+alarma2_1_2: {1*env2, 1*BC} -> {1*errorB, 1*env2}
+alarma2_2_0: {1*env2, 1*CA} -> {1*env2, 1*errorC}
+alarma2_2_1: {1*env2, 1*CB} -> {1*errorC, 1*env2}
+alarma2_2_2: {1*CC, 1*env2} -> {1*errorC, 1*env2}
+falseA: {1*A} -> {1*initA}
+falseB: {1*B} -> {1*initB}
+falseC: {1*C} -> {1*initC}
+infA: {1*B, 1*C, 1*inA} -> {1*initB, 1*initC, 1*initA}
+infB: {1*A, 1*inB, 1*C} -> {1*initC, 1*initB, 1*initA}
+infC: {1*inC, 1*A, 1*B} -> {1*initA, 1*initC, 1*initB}
+solA: {1*inA} -> {1*initA}
+solB: {1*inB} -> {1*initB}
+solC: {1*inC} -> {1*initC}
+t0: {1*env} -> {1*env0}
+t1: {1*initA} -> {1*AA}
+t10: {1*initC} -> {1*CB}
+t11: {1*initC} -> {1*CC}
+t2: {1*initA} -> {1*AB}
+t3: {1*initA} -> {1*AC}
+t4: {1*env} -> {1*env1}
+t5: {1*initB} -> {1*BA}
+t6: {1*initB} -> {1*BB}
+t7: {1*initB} -> {1*BC}
+t8: {1*env} -> {1*env2}
+t9: {1*initC} -> {1*CA}
+tA: {1*env0, 1*A} -> {1*inA, 1*envA}
+tB: {1*env1, 1*B} -> {1*envB, 1*inB}
+tC: {1*C, 1*env2} -> {1*inC, 1*envC}
+
+.initial_marking {1*A, 1*B, 1*C, 1*env}

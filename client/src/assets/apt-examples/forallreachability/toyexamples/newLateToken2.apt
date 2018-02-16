@@ -1,0 +1,24 @@
+// should have strategy (since t2 creates a new token with a the same dependence flow)
+.name "newLateToken1.net"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+env[env="true"]
+env1[env="true",reach="true"]
+sa1[token=1]
+sa2[token=1,reach="true"]
+sa3[token=1]
+sa4[token=2]
+
+.transitions
+t1
+t2[tfl="{sa2}->{sa3,sa4}"]
+tenv
+
+.flows
+tenv: {env} -> {env1}
+t1: {sa1} -> {sa2}
+t2: {sa2} -> {sa3,sa4}
+.initial_marking {sa1,env}

@@ -1,0 +1,87 @@
+.name "Container"
+.type LPN
+.options
+winningCondition="SAFETY"
+
+.places
+env0[env="true"]
+env1[env="true"]
+env2[env="true"]
+out//[token=1]
+cont//[token=1]
+testCP1//[token=2]
+testCP2//[token=2]
+//r1[token=3]
+//r2[token=4]
+on1//[token=5]
+on2//[token=6]
+off1//[token=5]
+off2//[token=6]
+CP1//[token=1]
+CP2//[token=1]
+G//[token=1]
+next//[token=1]
+r1cp1//[token=3]
+r1cp2//[token=3]
+r2cp1//[token=4]
+r2cp2//[token=4]
+B1[bad="true"]//[token=1, bad="true"]
+B2[bad="true"]//[token=1, bad="true"]
+
+.transitions
+cp1b
+cp2b
+cp1g
+cp2g
+r1tocp1
+r1tocp2
+r1usecp1
+r1usecp2
+r2tocp1
+r2tocp2
+r2usecp1
+r2usecp2
+envcp1
+envcp2
+sol
+r1on
+r2on
+r1off
+r2off
+good
+reset
+tcp1
+tcp2
+contb
+
+.flows
+cp1b: {1*CP1} -> {1*B1}
+cp2b: {1*CP2} -> {1*B2}
+cp1g: {1*CP1,1*testCP1} -> {1*G}
+cp2g: {1*CP2,1*testCP2} -> {1*G}
+//r1tocp1: {1*r1,1*on1,r1cp1,cont} -> {1*r1,1*on1,r1cp1,CP1}
+//r1tocp2: {1*r1,1*on1,r1cp2,cont} -> {1*r1,1*on1,r1cp2,CP2}
+r1tocp1: {1*on1,r1cp1,cont} -> {1*on1,r1cp1,CP1}
+r1tocp2: {1*on1,r1cp2,cont} -> {1*on1,r1cp2,CP2}
+r1usecp1: {1*r1cp2,cont} -> {cont,r1cp1}
+r1usecp2: {1*r1cp1,G} -> {r1cp2,G}
+r2tocp1: {1*on2,r2cp1,cont} -> {1*on2,r2cp1,CP1}
+r2tocp2: {1*on2,r2cp2,cont} -> {1*on2,r2cp2,CP2}
+//r2tocp1: {1*r2,1*on2,r2cp1,cont} -> {1*r2,1*on2,r2cp1,CP1}
+//r2tocp2: {1*r2,1*on2,r2cp2,cont} -> {1*r2,1*on2,r2cp2,CP2}
+r2usecp1: {1*r2cp2,cont} -> {cont,r2cp1}
+r2usecp2: {1*r2cp1,G} -> {r2cp2,G}
+tcp1: {env0} -> {env1,testCP1}
+tcp2: {env0} -> {env1,testCP2}
+envcp1: {1*out,testCP1} -> {testCP1,cont}
+envcp2: {1*out,testCP2} -> {testCP2,cont}
+sol: {1*out} -> {cont}
+r1on: {G,off1} -> {on1,next}
+r2on: {G,off2} -> {on2,next}
+r1off: {env2,on1} -> {env0,out,off1}
+r2off: {env2,on2} -> {env0,out,off2}
+good: {G} -> {next}
+reset: {next,env1} -> {env2}
+contb: {cont} -> {B1}
+
+.initial_marking {env0, out,on1,on2,r1cp1,r2cp2}
