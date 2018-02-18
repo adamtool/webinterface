@@ -215,8 +215,8 @@
             // at the location of the second parent.
             const mouseCoordinates = d3.mouse(this.svg.node())
             this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
-            // Toggle the state of the node (hiding/showing its postset) (assuming the event is appropriately bound in our parent)
-            this.$emit('expandOrCollapseState', d.id)
+            // Toggle whether the postset of this State is visible
+            this.$emit('toggleStatePostset', d.id)
           }
         },
         onNodeRightClick: (d) => {
@@ -227,8 +227,8 @@
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
             const mouseCoordinates = d3.mouse(this.svg.node())
             this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
-            // Toggle the state of the node (hiding/showing its postset) (assuming the event is appropriately bound in our parent)
-            this.$emit('expandOrCollapseState', d.id)
+            // Toggle whether the preset of this State is visible
+            this.$emit('toggleStatePreset', d.id)
           }
         }
       }
@@ -404,8 +404,8 @@
         this.labelElements
           .attr('font-size', 15)
           .attr('font-weight', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && !d.isExpanded) {
-              // isExpanded refers to whether a node's children are being shown in our Graph Game BDD viewer.
+            if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && !d.isPostsetExpanded) {
+              // isPostsetExpanded refers to whether a node's children are being shown in our Graph Game BDD viewer.
               // For very large BDDs, all nodes start off collapsed and are expanded by clicking on them.
               // To show if a node has already been clicked on or not, we need some kind of visual
               // indicator.  I've decided to try making the label of the node bold.
@@ -415,7 +415,7 @@
               return 'normal'
             }
           })
-          .text(node => node.label)
+          .text(node => node.isPresetExpanded ? node.label + '***' : node.label)
 
         // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup
@@ -647,7 +647,7 @@
         newNodes.forEach(newNode => {
           const nodeIsAlreadyPresent = this.nodes.some(oldNode => oldNode.id === newNode.id)
           if (!nodeIsAlreadyPresent) {
-            // TODO Consider fixing nodes for which "isExpanded" is true.  Right now, nodes tend to
+            // TODO Consider fixing nodes for which "isPostsetExpanded" is true.  Right now, nodes tend to
             // get pushed around in a disorienting way when their children are added to the graph.
             // Randomize the position slightly to stop the nodes from flying away from each other
             newNode.x = this.nodeSpawnPoint.x + (Math.random() - 0.5) * 40

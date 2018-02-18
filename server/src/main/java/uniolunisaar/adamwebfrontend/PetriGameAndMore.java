@@ -103,10 +103,21 @@ public class PetriGameAndMore {
         return PetriNetD3.of(this.petriGame.getNet());
     }
 
-    public JsonElement toggleGraphGameBDDNode(int nodeId) throws GraphGameBDDNotYetCalculated {
+    public JsonElement toggleGraphGameBDDNodePostset(int nodeId) throws GraphGameBDDNotYetCalculated {
         if (this.graphGameBDDExplorer.isPresent()) {
             BDDGraphExplorer bddGraphExplorer = this.graphGameBDDExplorer.get();
-            bddGraphExplorer.toggleState(nodeId);
+            bddGraphExplorer.toggleStatePostset(nodeId);
+            return bddGraphExplorer.getVisibleGraph();
+        } else {
+            throw new GraphGameBDDNotYetCalculated("The graph game BDD for this Petri Game has not " +
+                    "yet been calculated.");
+        }
+    }
+
+    public JsonElement toggleGraphGameBDDNodePreset(int nodeId) throws GraphGameBDDNotYetCalculated {
+        if (this.graphGameBDDExplorer.isPresent()) {
+            BDDGraphExplorer bddGraphExplorer = this.graphGameBDDExplorer.get();
+            bddGraphExplorer.toggleStatePreset(nodeId);
             return bddGraphExplorer.getVisibleGraph();
         } else {
             throw new GraphGameBDDNotYetCalculated("The graph game BDD for this Petri Game has not " +

@@ -46,7 +46,8 @@
           </tab>
           <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
             <GraphEditor :petriNet='graphGameBDD'
-                         v-on:expandOrCollapseState='expandOrCollapseGraphGameState'
+                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
                          :shouldShowPhysicsControls="true"
                          :repulsionStrengthDefault="415"
                          :linkStrengthDefault="0.04"
@@ -149,7 +150,8 @@
           getStrategyBDD: this.baseUrl + '/getStrategyBDD',
           getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
           getGraphGameBDD: this.baseUrl + '/getGraphGameBDD',
-          expandGraphGameBDDNode: this.baseUrl + '/expandGraphGameBDDNode',
+          toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
+          toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
           convertAptToGraph: this.baseUrl + '/convertAptToGraph'
         }
@@ -222,8 +224,18 @@
           })
         })
       },
-      expandOrCollapseGraphGameState: function (stateId) {
-        axios.post(this.restEndpoints.expandGraphGameBDDNode, {
+      toggleGraphGameStatePostset: function (stateId) {
+        axios.post(this.restEndpoints.toggleGraphGameBDDNodePostset, {
+          petriGameId: this.petriGame.uuid,
+          stateId: stateId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.graphGameBDD = response.data.graphGameBDD
+          })
+        })
+      },
+      toggleGraphGameStatePreset: function (stateId) {
+        axios.post(this.restEndpoints.toggleGraphGameBDDNodePreset, {
           petriGameId: this.petriGame.uuid,
           stateId: stateId
         }).then(response => {

@@ -7,6 +7,7 @@ import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Wraps a BDDGraph and keeps track of the states that are meant to be visible in our client.
@@ -14,15 +15,23 @@ import java.util.stream.Collectors;
  */
 public class BDDGraphExplorer {
     private final BDDGraph bddGraph;
-    private Set<BDDState> expandedStates;
+    // States whose postset (children) should be visible
+    private final Set<BDDState> postsetExpandedStates;
+    // States whose preset (parents) should be visible
+    private final Set<BDDState> presetExpandedStates;
 
     private BDDGraphExplorer(BDDGraph bddGraph) {
         this.bddGraph = bddGraph;
-        this.expandedStates = new HashSet<>();
+        this.postsetExpandedStates = new HashSet<>();
+        this.presetExpandedStates = new HashSet<>();
     }
 
     public JsonElement getVisibleGraph() {
-        return BDDGraphD3.of(this.visibleStates(), this.visibleFlows(), this.expandedStates);
+        return BDDGraphD3.of(
+                this.visibleStates(),
+                this.visibleFlows(),
+                this.postsetExpandedStates,
+                this.presetExpandedStates);
     }
 
     private Set<BDDState> visibleStates() {
@@ -31,16 +40,31 @@ public class BDDGraphExplorer {
         Stack<BDDState> statesToExplore = new Stack<>();
         statesToExplore.add(initial);
 
-        // Partially traverse the graph, expanding only the nodes that are in expandedStates.
-        // All the nodes that we reach are visible.
+        // Partially traverse the graph, expanding nodes (States) in two directions:
+        // For nodes that are "postset expanded", we expand all of their descendants.
+        // For nodes that are "preset expanded", we expand all of the nodes from which they descend.
+        // All the nodes that we visit during this traversal will be visible in the UI.
         while (!statesToExplore.isEmpty()) {
             BDDState state = statesToExplore.pop();
             visibleStates.add(state);
-            if (expandedStates.contains(state)) {
+            if (postsetExpandedStates.contains(state)) {
                 Set<BDDState> postset = bddGraph.getPostset(state.getId());
                 Set<BDDState> newUnexploredStates = postset.stream()
-                        .filter(s -> !visibleStates.contains(s))
+                        .filter(s -> !visibleStates.contains(s)) // Don't expand the same state twice
                         .collect(Collectors.toSet());
+                statesToExplore.addAll(newUnexploredStates);
+            }
+            if (presetExpandedStates.contains(state)) {
+                // There's no nice method "bddGraph.getPreset()", so we have to construct the preset ourselves.
+                // This is O(n^2).
+                Stream<BDDState> presetStream = bddGraph.getStates().stream()
+                        .filter(s -> bddGraph.getPostset(s.getId()).contains(state));
+                Set<BDDState> newUnexploredStates = presetStream
+                        .filter(s -> !visibleStates.contains(s)) // Don't expand the same state twice
+                        .collect(Collectors.toSet());
+                // TODO Prevent visiting the same node twice?
+                // (If we expand node A, and node B is in preset(A) as well as postset(A), then
+                // B will get added twice to the stack of statesToExplore.)
                 statesToExplore.addAll(newUnexploredStates);
             }
         }
@@ -63,20 +87,32 @@ public class BDDGraphExplorer {
         return new BDDGraphExplorer(graphGameBDD);
     }
 
-    // TODO There is weird behavior when collapsing a node whose children have been expanded.
-    // TODO Figure out a reasonable way to handle this situation.
-    // TODO (The fix can probably be implemented in visibleStates()/visibleFlows())
-    public void toggleState(int stateId) {
+    public void toggleStatePostset(int stateId) {
         BDDState state = this.bddGraph.getState(stateId);
         if (state == null) {
             throw new NoSuchElementException("No state was found with the given ID (" + stateId
                     + ") in this BDDGraph.");
         } else {
-            boolean isStateExpanded = expandedStates.contains(state);
+            boolean isStateExpanded = postsetExpandedStates.contains(state);
             if (isStateExpanded) {
-                expandedStates.remove(state);
+                postsetExpandedStates.remove(state);
             } else {
-                expandedStates.add(state);
+                postsetExpandedStates.add(state);
+            }
+        }
+    }
+
+    public void toggleStatePreset(int stateId) {
+        BDDState state = this.bddGraph.getState(stateId);
+        if (state == null) {
+            throw new NoSuchElementException("No state was found with the given ID (" + stateId
+                    + ") in this BDDGraph.");
+        } else {
+            boolean isStatePreSetVisible = presetExpandedStates.contains(state);
+            if (isStatePreSetVisible) {
+                presetExpandedStates.remove(state);
+            } else {
+                presetExpandedStates.add(state);
             }
         }
     }
