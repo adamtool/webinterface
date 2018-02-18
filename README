@@ -13,3 +13,26 @@ Misc. notes
 In server/pom.xml, we pull adam_core.jar as a dependency into our Maven project via a "file repository" that was created using the following Maven command:
 mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file -Dfile=adam_core.jar -DgroupId=uniolunisaar.adam -DartifactId=adam-core -Dversion=<Version> -Dpackaging=jar -DlocalRepositoryPath=server/adam-core
 This is the best practice, according to Pascal Thivent in his answer on StackOverflow: https://stackoverflow.com/questions/2229757/maven-add-a-dependency-to-a-jar-by-relative-path
+
+Build configuration; relative vs. absolute URLs
+For HTTP requests to our server, we use relative URLs in production
+and hard-coded URLs in development mode ('npm run dev').
+
+How?
+There are two entry points to our app.
+One is in src/main.js, and the other is src/main-dev.js.
+In main.js, we pass an empty base URL into the App component,
+so that relative URLs will be used.
+In main-dev.js, we pass the base URL "http://localhost:4567" into the
+App component, so that hard-coded URLs will be used.
+
+The entry point is specified in client/build/webpack.dev.conf.js
+and in client/build/webpack.base.conf.js.  webpack.dev.conf.js is
+referred to by 'npm run dev'.
+
+Why?
+'npm run dev' serves the client at localhost:8080, while a developer
+is likely to have our java web server running at localhost:4567.
+In this case, a relative URL would be wrong; the HTTP requests would go
+to e.g. localhost:8080/existsWinningStrategy and return a 404
+instead of localhost:4567/existsWinningStrategy.

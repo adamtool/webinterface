@@ -8,11 +8,12 @@ Vue.config.productionTip = false
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
-  // Use relative URLs for server requests
+  // Use a hard-coded URL (http://localhost:4567) for all server requests when developing.
+  // Otherwise, the requests would go to 'npm run dev's http server instead of our server.
   template: '<App v-bind:baseUrl=this.baseUrl />',
   data: function () {
     return {
-      baseUrl: ''
+      baseUrl: 'http://localhost:4567'
     }
   },
   components: { App }

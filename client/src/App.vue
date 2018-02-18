@@ -28,7 +28,9 @@
         </div>
         <tabs>
           <tab name="APT Editor">
-            <AptEditor :apt='apt' v-on:graphSaved='onAptSaved'></AptEditor>
+            <AptEditor :apt='apt'
+                       :convertAptToGraphUrl='restEndpoints.convertAptToGraph'
+                       v-on:graphSaved='onAptSaved'></AptEditor>
           </tab>
           <tab name="Petri Game" v-if="petriGameExists">
             <GraphEditor :petriNet='petriGame.net'
@@ -78,6 +80,12 @@
 
   export default {
     name: 'app',
+    props: {
+      baseUrl: {
+        type: String,
+        default: ''
+      }
+    },
     components: {
       'AptEditor': AptEditor,
       'GraphEditor': GraphEditor,
@@ -131,6 +139,20 @@
       },
       petriGameHasGraphGameBDD: function () {
         return this.graphGameBDD !== null
+      },
+      // Depending on whether we are in development mode or in production, the URLs used for server
+      // requests are different.  Production uses relative urls, while dev mode uses hard-coded
+      // "localhost:4567/..."
+      restEndpoints: function () {
+        return {
+          existsWinningStrategy: this.baseUrl + '/existsWinningStrategy',
+          getStrategyBDD: this.baseUrl + '/getStrategyBDD',
+          getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
+          getGraphGameBDD: this.baseUrl + '/getGraphGameBDD',
+          expandGraphGameBDDNode: this.baseUrl + '/expandGraphGameBDDNode',
+          savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
+          convertAptToGraph: this.baseUrl + '/convertAptToGraph'
+        }
       }
     },
     methods: {
@@ -150,7 +172,7 @@
         window.location.href = '#graph-game-bdd'
       },
       existsWinningStrategy: function () {
-        axios.post('http://localhost:4567/existsWinningStrategy', {
+        axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -165,7 +187,7 @@
         })
       },
       getStrategyBDD: function () {
-        axios.post('http://localhost:4567/getStrategyBDD', {
+        axios.post(this.restEndpoints.getStrategyBDD, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -179,7 +201,7 @@
         })
       },
       getGraphStrategyBDD: function () {
-        axios.post('http://localhost:4567/getGraphStrategyBDD', {
+        axios.post(this.restEndpoints.getGraphStrategyBDD, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -190,7 +212,7 @@
         })
       },
       getGraphGameBDD: function () {
-        axios.post('http://localhost:4567/getGraphGameBDD', {
+        axios.post(this.restEndpoints.getGraphGameBDD, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -201,7 +223,7 @@
         })
       },
       expandOrCollapseGraphGameState: function (stateId) {
-        axios.post('http://localhost:4567/expandGraphGameBDDNode', {
+        axios.post(this.restEndpoints.expandGraphGameBDDNode, {
           petriGameId: this.petriGame.uuid,
           stateId: stateId
         }).then(response => {
@@ -214,7 +236,7 @@
       // We send those x,y coordinates to the server and get back an APT with those coordinates in it.
       // We put that APT into the APT editor .
       savePetriGameAsAPT: function (mapNodeIDXY) {
-        axios.post('http://localhost:4567/savePetriGameAsAPT', {
+        axios.post(this.restEndpoints.savePetriGameAsAPT, {
           petriGameId: this.petriGame.uuid,
           nodeXYCoordinateAnnotations: mapNodeIDXY
         }).then(response => {

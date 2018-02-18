@@ -91,7 +91,9 @@
   export default {
     name: 'apt-editor',
     components: {},
-    props: ['apt'],
+    // Passing in the URL as a property is kludgy.
+    // TODO Refactor so that HTTP requests take place in App.vue rather than here
+    props: ['apt', 'convertAptToGraphUrl'],
     data () {
       return {
         petriGameFromServer: {
@@ -119,7 +121,7 @@
     methods: {
       renderGraph: function () {
         console.log('Sending APT source code to backend.')
-        axios.post('http://localhost:4567/convertAptToGraph', {
+        axios.post(this.convertAptToGraphUrl, {
           params: {
             apt: this.textEditorContents
           }
