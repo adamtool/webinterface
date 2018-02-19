@@ -1,5 +1,6 @@
 // there should be no strategy since the only possibly strategy should invoke 
-// nodetermism (adapted version of idea of Paul Goelz)
+// nodetermism, this end up in the problem that S3 is violated without
+// realizing  (adapted version of idea of Paul Goelz)
 .name "nondet strategy"
 .type LPN
 .description "Alarm system."

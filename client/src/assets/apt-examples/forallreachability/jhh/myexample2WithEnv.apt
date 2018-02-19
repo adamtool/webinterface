@@ -1,0 +1,24 @@
+// with fl(t1) = {} = fl(t2) -> ENV wins
+// with fl(t1) = {} and fl(t2) = {(E1,E3)} -> SYS wins
+// this adapted to second case
+.name "unfoldingAdditionalSystemWithEnv"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+ENV[env="true", reach="true"] // sry, I currently still need an environment place :$
+E1[token=1]
+E2[token=1,reach="true"]
+E3[token=1,reach="true"]
+
+.transitions
+t1[tfl="{E1}->{}"]
+t2[tfl="{E1}->{E3}"]
+
+.flows
+t1: {E1} -> {E2}
+t2: {E1} -> {E3}
+
+.initial_marking {E1,ENV}

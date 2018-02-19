@@ -1,0 +1,62 @@
+// Counter example to recycle tokens when making net concurrency-preserving
+.name "ncp2"
+.type LPN
+.description "Testing not concurrency preserving net 2"
+.options
+winningCondition="SAFETY"
+
+.places
+S1
+S2
+S3
+
+E1
+E2
+E3[env="true"]
+E4[env="true"]
+
+E5[env="true"]
+E6[env="true"]
+E7[env="true"]
+
+E2L
+E2R
+E3L
+E3R
+bad[bad="true"]
+
+.transitions
+t1
+t2
+t3
+
+l1
+r1
+l2
+r2
+l3
+r3
+l4
+r4
+
+b1
+b2
+
+.flows
+t1 : {S1,E7} -> {S2,E5}
+t2 : {S3} -> {S1}
+t3 : {E6} -> {E7}
+
+l1 : {E1,S2} -> {E2,S3}
+r1 : {E1,S2} -> {E2,S3}
+l2 : {E2,S2} -> {S3,E2L}
+r2 : {E2,S2} -> {S3,E2R}
+l3 : {E3,E5} -> {E6,E3L,E4}
+r3 : {E3,E5} -> {E6,E3R,E4}
+l4 : {E4,E5} -> {E6}
+r4 : {E4,E5} -> {E6}
+
+b1 : {E2L,E3L} -> {bad}
+b2 : {E2R,E3R} -> {bad}
+
+.initial_marking {S1,E1,E3,E7}

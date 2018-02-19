@@ -1,0 +1,26 @@
+// sys wins since the env chain is safe
+.name "safeEnvChain"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+e1[env="true"]
+e2[env="true"]
+s1
+s2[bad="true"]
+
+.transitions
+t1
+t2
+t3
+t4
+
+.flows
+t1: {e1} -> {e2}
+t2: {e2} -> {e1}
+t3: {s1} -> {s2}
+t4: {s2} -> {s1}
+
+.initial_marking {s1,e1}

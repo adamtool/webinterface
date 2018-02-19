@@ -1,0 +1,29 @@
+// sys should win since infinite good chains
+.name "infflowchains5"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+sa1
+sa2
+sb1
+sb2
+sc1[bad="true"]
+sc2
+
+.transitions
+t3[tfl="{sa1,sb1}->{sa2},{}->{sb2},{}->{sc2}"]
+t4
+t5
+t6
+
+.flows
+
+t3: {sa1,sb1,sc1} -> {sa2,sb2,sc2}
+t4: {sa2} -> {sa1}
+t5: {sb2} -> {sb1}
+t6: {sc2} -> {sc1}
+
+.initial_marking {sa1,sb1,sc1}

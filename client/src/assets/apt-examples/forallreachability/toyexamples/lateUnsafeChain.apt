@@ -1,0 +1,24 @@
+// winner depends on whether the system can stop after reaching the good place and thereby prevents an unsafe new flow chain
+.name "lateUnsafe"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+p1
+p2
+p3[reach="true"]
+p4
+p5
+
+.transitions
+l
+r
+s[tfl="{p3}->{p4},{}->{p5}"]
+
+.flows
+l : {p1} -> {p2}
+r : {p1} -> {p3}
+s : {p3} -> {p4,p5}
+
+.initial_marking {p1}

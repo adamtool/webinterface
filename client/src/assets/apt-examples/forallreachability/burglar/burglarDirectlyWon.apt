@@ -1,0 +1,66 @@
+// Net burglar example
+// should have strategy (initial marking is marked as to reach)
+.name "burglarDirectlyWOn.net"
+.type LPN
+.description "security system"
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+env[env="true",reach="true"]
+s1[env="true"]
+s2[env="true"]
+s3
+s4
+ea[env="true"]
+a[reach="true"]
+b[reach="true"]
+eb[env="true"]
+pa
+pb
+ab
+aa
+bb
+ba
+alarm
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9[tfl="{bb}->{alarm},{ab}->{},{eb}->{eb}"]
+t10[tfl="{aa}->{},{ba}->{alarm},{ea}->{ea}"]
+tx
+ta
+ty
+tb
+tbb[tfl="{a}->{pa},{s4}->{pb}"]
+taa[tfl="{s3}->{pa},{b}->{pb}"]
+
+.flows
+// left arm
+tx: {env} -> {s1}
+ta: {s1,a} -> {ea,s3}
+t1: {s3} -> {pa}
+t2: {a} -> {pa}
+taa: {s3,b} -> {pa,pb}
+t5: {pa} -> {ab}
+t6: {pa} -> {aa}
+// right arm
+ty: {env} -> {s2}
+tb: {s2,b} -> {s4,eb}
+tbb: {a,s4} -> {pa,pb}
+t3: {b} -> {pb}
+t4: {s4} -> {pb}
+t7: {pb} -> {bb}
+t8: {pb} -> {ba}
+// bad states
+t9: {eb,ab,bb} -> {eb,alarm}
+t10: {ea,aa,ba} -> {ea,alarm}
+
+.initial_marking {a,b,env}

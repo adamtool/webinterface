@@ -1,0 +1,28 @@
+// env should win as it can catch every system player
+.name "infflowchains6"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+sa1
+sa2
+sa3[bad="true"]
+sb1
+sb2
+
+.transitions
+t3[tfl="{sa1,sb1}->{sa2},{}->{sb2}"]
+t4
+t5
+t6
+
+.flows
+
+t3: {sa1,sb1} -> {sa2,sb2}
+t4: {sa3} -> {sa1}
+t5: {sb2} -> {sb1}
+t6: {sa2} -> {sa3}
+
+.initial_marking {sa1,sb1}

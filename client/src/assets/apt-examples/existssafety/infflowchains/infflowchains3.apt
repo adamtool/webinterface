@@ -1,0 +1,21 @@
+// sys should win, as the flow chain starting from the initial place remains safe forever
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+s1
+s2
+s3[bad="true"]
+
+.transitions
+t3[tfl="{s1}->{s2},{}->{s3}"]
+t4[tfl="{s2,s3}->{s1}"]
+
+.flows
+t3: {s1} -> {s2,s3}
+t4: {s2,s3} -> {s1}
+
+.initial_marking {s1}

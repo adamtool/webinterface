@@ -1,0 +1,25 @@
+// ENV wins because on both choices either the first or the second transition goes wrong
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="A_BUCHI"
+
+.places
+E1
+E2[buchi="true"]
+E3[buchi="true"]
+
+.transitions
+t1[tfl=""]
+t2
+t3
+t4[tfl=""]
+
+.flows
+t1: {E1} -> {E2}
+t2: {E1} -> {E3}
+t3: {E2} -> {E2}
+t4: {E3} -> {E3}
+
+.initial_marking {E1}

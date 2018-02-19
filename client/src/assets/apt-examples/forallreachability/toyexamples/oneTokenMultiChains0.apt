@@ -1,0 +1,23 @@
+// should have NO strategy (sb chain overwritting sa chain)
+.name "oneTokenMultiChains0.net"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+env[env="true"]
+env1[env="true",reach="true"]
+sa1[reach="true"]
+sa2
+sb1
+sb2
+
+.transitions
+t1[tfl="{sa1}->{sa2,sb2},{sb1}->{sb2}"]
+tenv
+
+.flows
+tenv: {env} -> {env1}
+t1: {sa1,sb1} -> {sa2,sb2}
+
+.initial_marking {sa1,sb1,env}

@@ -1,0 +1,51 @@
+// Adaption of nondet2
+// there should be a strategy because the problem which the ndet2 example
+// has can be avoided by the system choosing a good strategy inbetween the
+// game. This strategy would be overseen, when we only consider the reachability
+// graph for the intermediate game.
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+A
+B[env="true"]
+C
+D[env="true"]
+E[env="true"]
+E1[env="true"]
+E2[env="true"]
+F
+G[env="true"]
+H
+K[env="true"]
+s1
+s2
+
+.transitions
+a
+b
+c
+d
+e
+f
+i
+t1
+t2
+loop
+
+.flows
+a: {A,K} -> {C,D}
+b: {B} -> {E}
+c: {D} -> {G}
+d: {D} -> {E1}
+e: {C,F} -> {C,H}
+f: {E,F} -> {E,H}
+i: {B} -> {K}
+t1: {E1,s1} -> {E2,s2}
+t2: {E2,s2} -> {E,s2}
+loop: {s2} -> {s2}
+
+.initial_marking {A,B,F,s1}

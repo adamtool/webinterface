@@ -1,0 +1,32 @@
+// should have NO strategy (the a chain only visits a buchi place once)
+.name "type2_0.net"
+.type LPN
+.options
+winningCondition="A_BUCHI"
+
+.places
+env[env="true"]
+env1[env="true",buchi="true"]
+sa1[buchi="true"]
+sb1
+sa2
+sb2[buchi="true"]
+
+.transitions
+//t1[tfl="{sa1}->{sa2},{}->{sb2}"]
+//t2[tfl="{sa2,sb2}->{sa1}"]
+t1
+t2
+t3
+t4
+tenv
+tenv1
+
+.flows
+tenv: {env} -> {env1}
+tenv1: {env1} -> {env}
+t1: {sa1} -> {sa2}
+t2: {sb1} -> {sb2}
+t3: {sb2} -> {sb2}
+t4: {sa2} -> {sa2}
+.initial_marking {sa1,sb1,env}

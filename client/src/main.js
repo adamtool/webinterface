@@ -8,6 +8,12 @@ Vue.config.productionTip = false
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
-  template: '<App/>',
+  // Use relative URLs for server requests
+  template: '<App v-bind:baseUrl=this.baseUrl />',
+  data: function () {
+    return {
+      baseUrl: ''
+    }
+  },
   components: { App }
 })

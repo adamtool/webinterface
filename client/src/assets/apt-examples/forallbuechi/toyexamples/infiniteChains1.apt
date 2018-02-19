@@ -1,0 +1,25 @@
+// should have NO strategy (all are just doing it once)
+.name "infiniteChains1.net"
+.type LPN
+.options
+winningCondition="A_BUCHI"
+
+.places
+env[env="true"]
+env1[env="true",buchi="true"]
+sa1
+sa2[buchi="true"]
+sb2
+
+.transitions
+t1[tfl="{sa1}->{sb2},{}->{sa2}"]
+t2[tfl="{sa2,sb2}->{sa1}"]
+tenv
+tenv1
+
+.flows
+tenv: {env} -> {env1}
+tenv1: {env1} -> {env}
+t1: {sa1} -> {sa2,sb2}
+t2: {sa2,sb2} -> {sa1}
+.initial_marking {sa1,env}

@@ -1,5 +1,4 @@
-// there should be no strategy since the only possibly strategy should invoke 
-// nodetermism. Adapted safety example of Paul Goelz
+// there should be a strategy since deadlocks are OK by reachability.
 .name "nondet strategy"
 .type LPN
 .description "Alarm system."

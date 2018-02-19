@@ -1,0 +1,29 @@
+// system wins because every flow chain reaches a good place at the same time a new one is spawned
+// should have no strategy, the token dies. ???
+.name "infiniteFlowChains.net"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+env[env="true"]
+env1[env="true",reach="true"]
+sa1
+sa2[reach="true"]
+sb1
+sb2
+
+.transitions
+t1
+t2
+t3[tfl="{sa1,sb1}->{sa2},{}->{sb2}"]
+t4
+t5
+
+.flows
+t1: {env} -> {env1}
+t2: {env1} -> {env}
+t3: {sa1,sb1} -> {sa2,sb2}
+t4: {sa2} -> {sa1}
+t5: {sb2} -> {sb1}
+.initial_marking {sa1,sb1,env}

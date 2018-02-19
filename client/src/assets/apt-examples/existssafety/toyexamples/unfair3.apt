@@ -1,0 +1,27 @@
+// eventually safe flow chain is reached -> SYS wins
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+E1[env="true"]
+E2[env="true",bad="true"]
+S1[token=1,bad="true"]
+S2[token=1]
+
+.transitions
+t1
+t2
+t3[tfl="{S1}->{},{}->{S2}"]
+t4[tfl="{S2}->{},{}->{S1}"]
+
+
+.flows
+t1: {E1} -> {E2}
+t2: {E2} -> {E1}
+t3: {S1} -> {S2}
+t4: {S2} -> {S1}
+
+.initial_marking {E1,S1}

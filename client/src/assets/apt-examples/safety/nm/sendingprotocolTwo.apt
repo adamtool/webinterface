@@ -1,0 +1,124 @@
+// 
+.name "sendingProtocol2"
+.type LPN
+.options
+winningCondition="SAFETY"
+
+.places
+Env[env="true"]
+LA[env="true"]
+EA[env="true"]
+SA
+SAA
+LB[env="true"]
+EB[env="true"]
+SB
+SBB
+Env1[env="true"]
+LA1[env="true"]
+EA1[env="true"]
+SA1
+SAA1
+LB1[env="true"]
+EB1[env="true"]
+SB1
+SBB1
+bad[bad="true"]
+GOAGAIN
+decision1
+decision
+finished
+l1
+l2
+r1
+r2
+sync
+//sync1
+//sync2
+//sync3
+//sync4
+
+
+
+.transitions
+iA
+tA
+iB
+tB
+infoB
+infoA
+iA1
+tA1
+tGO_11
+tGO_12
+tGO_13
+iB1
+tB1
+infoB1
+infoA1
+tbad1
+tbad2
+tbad11
+tbad21
+t1dec1
+t2dec1
+t1dec2
+t2dec2
+
+tl1
+tl2
+tr1
+tr2
+tend1
+tend2
+//tend3
+//tend4
+//tend5
+//tend6
+//tend7
+//tend8
+
+
+.flows
+iA: {Env} -> {LA}
+iB: {Env} -> {LB}
+tA: {LA,SA} -> {EA, SAA}
+tB: {SB, LB} -> {EB,SBB}
+infoA: {SA,SBB} -> {decision}
+infoB: {SB,SAA} -> {decision}
+tbad1: {EB,GOAGAIN} -> {bad}
+tbad2: {EA, finished} -> {bad}
+iA1: {Env1} -> {LA1}
+iB1: {Env1} -> {LB1}
+tA1: {LA1,SA1} -> {EA1, SAA1}
+tB1: {SB1, LB1} -> {EB1,SBB1}
+tGO_11: {GOAGAIN,EA1,EA} -> {SA1,Env1,SB1,SB,Env,SA}
+tGO_12: {GOAGAIN,EB1,EA} -> {SA1,Env1,SB1,SB,Env,SA}
+tGO_13: {GOAGAIN,EA1,EB} -> {SA1,Env1,SB1,SB,Env,SA}
+infoA1: {SA1,SBB1} -> {decision1}
+infoB1: {SB1,SAA1} -> {decision1}
+tbad11: {EB1,GOAGAIN} -> {bad}
+tbad21: {EA1, finished} -> {bad}
+
+ 
+t1dec1:{decision} -> {l1}
+t2dec1: {decision} -> {l2}
+t1dec2:{decision1} -> {r1}
+t2dec2: {decision1} -> {r2}
+
+tl1: {l1,r1} -> {sync}
+tl2: {l1,r2} -> {sync}
+tr1: {l2,r1} -> {sync}
+tr2: {l2,r2} -> {sync}
+
+tend1: {sync} -> {GOAGAIN}
+tend2: {sync} -> {finished}
+//tend3: {sync2} -> {GOAGAIN}
+//tend4: {sync2} -> {finished}
+//tend5: {sync3} -> {GOAGAIN}
+//tend6: {sync3} -> {finished}
+//tend7: {sync4} -> {GOAGAIN}
+//tend8: {sync4} -> {finished}
+
+
+.initial_marking {Env, SA, SB, Env1,SA1, SB1}

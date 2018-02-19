@@ -1,0 +1,23 @@
+// should have strategy
+.name "oneTokenMultiChains7.net"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+env[env="true"]
+env1[env="true",reach="true"]
+sa1[reach="true"]
+sa2
+sb1[reach="true"]
+sb2[reach="true"]
+
+.transitions
+t1[tfl="{sa1,sb1}->{sa2}"]
+tenv
+
+.flows
+tenv: {env} -> {env1}
+t1: {sa1,sb1} -> {sa2,sb2}
+
+.initial_marking {sa1,sb1,env}

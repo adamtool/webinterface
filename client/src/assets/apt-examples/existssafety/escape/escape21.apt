@@ -1,0 +1,45 @@
+// sys should win as env cannot catch second sys player
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+E1[env="true",bad="true"]
+E2[env="true"]
+E3[env="true"]
+E4[env="true"]
+S1[token=1]
+S2[token=1]
+S3[token=1]
+S4[token=2]
+S5[token=2]
+S6[token=2]
+bad1[token=1,bad="true"]
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+t6
+b1[tfl="{S2}->{bad1},{E3}->{E4}"]
+b2[tfl="{S3}->{bad1},{E2}->{E4}"]
+g1
+g2
+
+.flows
+t1: {E1} -> {E2}
+t2: {E1} -> {E3}
+t3: {S1} -> {S2}
+t4: {S1} -> {S3}
+t5: {S4} -> {S5}
+t6: {S4} -> {S6}
+b1: {E3,S2} -> {E4,bad1}
+b2: {E2,S3} -> {E4,bad1}
+g1: {E2,S2} -> {E4}
+g2: {E3,S3} -> {E4}
+
+.initial_marking {E1,S1,S4}

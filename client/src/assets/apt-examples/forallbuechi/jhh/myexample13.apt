@@ -1,0 +1,20 @@
+// SYS wins because only one flow chain exists which infinitely often reaches the buchi place
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="A_BUCHI"
+
+.places
+E1[env="true"]
+E2[buchi="true",env="true"]
+
+.transitions
+t1
+t2
+
+.flows
+t1: {E1} -> {E2}
+t2: {E2} -> {E2}
+
+.initial_marking {E1}

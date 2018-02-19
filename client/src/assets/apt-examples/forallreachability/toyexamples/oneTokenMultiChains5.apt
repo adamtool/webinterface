@@ -1,0 +1,37 @@
+// should have NO strategy (since t4 maps to both successors and overrides good way of b)
+.name "oneTokenMultiChains5.net"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+env[env="true"]
+env1[env="true",reach="true"]
+sa1[token=1]
+sa2[token=1]
+saa2[token=1]
+sa3[token=1,reach="true"]
+sa4[token=3]
+sb1[token=2]
+sb2[token=2]
+sb3[token=2,reach="true"]
+sb4[token=2]
+
+.transitions
+t1
+t2
+t3
+tb3
+t4[tfl="{sa2}->{sa3,sa4}"]
+tenv
+tmerge[tfl="{sb4, saa2}->{sa2}"]
+
+.flows
+tenv: {env} -> {env1}
+t1: {sa1} -> {saa2}
+t2: {sb1} -> {sb2}
+t3: {sb1} -> {sb3}
+tb3:{sb3} -> {sb4}
+t4: {sa2} -> {sa3,sa4}
+tmerge: {sb4,saa2} -> {sa2}
+.initial_marking {sa1,sb1,env}

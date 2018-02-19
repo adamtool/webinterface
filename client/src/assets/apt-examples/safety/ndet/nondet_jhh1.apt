@@ -1,0 +1,55 @@
+// env wins, since system has to decide for S4 or S3 before all other action
+// and env can choose accordingly
+// (it has the pattern "potential nondet")
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+A[token=1]
+B[env="true"]
+C[token=1]
+D[env="true"]
+E[env="true"]
+F[token=2]
+G[env="true"]
+H[token=2]
+K[env="true"]
+S1[token=3]
+S2[token=3]
+S3[token=3]
+S4[token=3]
+bad[token=3,bad="true"]
+
+.transitions
+a
+b
+c
+d
+e
+f
+i
+s
+l
+r
+b1
+b2
+
+
+.flows
+a: {A,K} -> {C,D}
+b: {B} -> {E}
+c: {D} -> {G}
+d: {D} -> {E}
+e: {C,F} -> {C,H}
+f: {E,F} -> {E,H}
+i: {B} -> {K}
+s: {S1} -> {S2}
+l: {S2} -> {S3}
+r: {S2} -> {S4}
+b1:{S3,G} -> {bad}
+b2:{S4,E} -> {bad}
+
+.initial_marking {A,B,F,S1}

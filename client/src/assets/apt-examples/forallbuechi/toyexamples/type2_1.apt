@@ -1,0 +1,24 @@
+// should have strategy
+.name "oneTokenMultiChains1.net"
+.type LPN
+.options
+winningCondition="A_BUCHI"
+
+.places
+env[env="true"]
+env1[env="true",buchi="true"]
+sa2[buchi="true"]
+sb2[buchi="true"]
+
+.transitions
+t2
+t3
+tenv
+tenv1
+
+.flows
+tenv: {env} -> {env1}
+tenv1: {env1} -> {env}
+t2: {sa2} -> {sa2}
+t3: {sb2} -> {sb2}
+.initial_marking {sa2,sb2,env}

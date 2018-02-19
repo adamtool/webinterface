@@ -1,0 +1,27 @@
+// sys wins as it can stop immediately and only the environment moves
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+e1[env="true",bad="true"]
+e2[env="true"]
+s1
+s2[bad="true"]
+s3
+
+.transitions
+t1
+t2
+t3[tfl="{s1}->{s2},{}->{s3}"]
+t4[tfl="{s2,s3}->{s1}"]
+
+.flows
+t1: {e1} -> {e2}
+t2: {e2} -> {e1}
+t3: {s1} -> {s2,s3}
+t4: {s2,s3} -> {s1}
+
+.initial_marking {s1,e1}

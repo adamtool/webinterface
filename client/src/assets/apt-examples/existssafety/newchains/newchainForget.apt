@@ -1,0 +1,27 @@
+// sys wins because the second new chain dies good (ok the sb1 chain dies directly good, damn...)
+.name "newChainForget"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+sa1[bad="true"]
+sa2
+sb1
+sb2[bad="true"]
+sb3
+
+.transitions
+t1[tfl="{}->{sa2}"]
+t2[tfl="{sa2}->{sb2}"]
+t3[tfl="{}->{sb3}"]
+t4[tfl="{sb3}->{sa1,sb1}"]
+
+.flows
+t1: {sa1} -> {sa2}
+t2: {sa2,sb1} -> {sb2}
+t3: {sb2} -> {sb3}
+t4: {sb3} -> {sa1,sb1}
+
+.initial_marking {sa1,sb1}

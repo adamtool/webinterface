@@ -1,0 +1,24 @@
+// sys should win because one infinite safe flow chain is added to the previous example
+.name "infflowchains"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+S1
+S2
+S3
+S4
+bad1[bad="true"]
+bad2[bad="true"]
+
+.transitions
+t1[tfl="{S1}->{bad2},{bad1}->{},{}->{S2},{S3}->{S4}"]
+t2[tfl="{S2}->{bad1},{bad2}->{},{}->{S1},{S4}->{S3}"]
+
+.flows
+t1 : {S1,bad1,S3} -> {S2,bad2,S4}
+t2 : {S2,bad2,S4} -> {S1,bad1,S3}
+
+.initial_marking {S1,bad1,S3}

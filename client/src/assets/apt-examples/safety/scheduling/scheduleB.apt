@@ -1,0 +1,42 @@
+.name "Scheduling"
+.type LPN
+.description "the graph game is of interest"
+.options
+winningCondition="SAFETY"
+
+.places
+S11[token=1]
+S11A[token=3]
+S12[token=1]
+S13[token=1]
+S21[token=2]
+S21B[token=4]
+S22[token=2]
+S23[token=2]
+E1[env="true"]
+B1[bad="true",env="true",tokens=3]
+B11[token=1]
+B2[bad="true",env="true",tokens=3]
+B22[token=2]
+
+.transitions
+b2
+b1
+t4
+t3
+t2
+t1
+
+.flows
+t1 : {S11, S11A} -> {S12}
+t2 : {S12} -> {S13}
+
+t3 : {S21, S21B} -> {S22}
+t4 : {S22} -> {S23}
+
+b1 : {S11,S23,E1} -> {B1,B11,B22}
+b2 : {S13,S21,E1} -> {B2,B11,B22}
+
+
+
+.initial_marking {S11,S21,S11A, S21B, E1}

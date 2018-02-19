@@ -1,0 +1,55 @@
+// should have strategy
+.name "sendingProtocol"
+.type LPN
+.options
+winningCondition="SAFETY"
+
+.places
+Env[env="true"]
+LA[env="true"]
+EA[env="true"]
+SA[token=1]
+SAA[token=1]
+LB[env="true"]
+EB[env="true"]
+SB[token=2]
+SBB[token=2]
+GO[token=1]
+TRAP[token=1]
+decision[token=1]
+bad[token=1,bad="true"]
+
+
+
+.transitions
+iA
+tA
+//faA
+tGO
+tGO1
+tTRAP
+iB
+tB
+//faB
+infoB
+infoA
+tbad1
+tbad2
+
+.flows
+iA: {Env} -> {LA}
+iB: {Env} -> {LB}
+tA: {LA,SA} -> {EA, SAA}
+tB: {SB, LB} -> {EB,SBB}
+//faA: {SA} -> {pA}
+tGO: {decision} -> {GO}
+tTRAP: {decision} -> {TRAP}
+tGO1: {GO,EA} -> {SA,Env,SB}
+tbad1: {EB,GO} -> {bad}
+tbad2: {EA, TRAP} -> {bad}
+infoA: {SA,SBB} -> {decision}
+infoB: {SB,SAA} -> {decision}
+
+
+
+.initial_marking {Env, SA, SB}

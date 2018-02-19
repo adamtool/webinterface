@@ -1,0 +1,30 @@
+// sys should win since it can escape from the bad loop with a new chain
+.name "infitelyBad"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="E_SAFETY"
+
+.places
+S1[token=1]
+S2[token=2]
+S3[token=1]
+S4[token=1]
+bad1[token=1,bad="true"]
+bad2[token=2, bad="true"]
+
+.transitions
+t1[tfl="{S1}->{bad1},{S2}->{bad2}"]
+t2
+t3
+t4
+t5[tfl="{}->{S4}"]
+
+.flows
+t1: {S1,S2} -> {bad1,bad2}
+t2: {bad1} -> {S3}
+t3: {bad2} -> {S2}
+t4: {S3} -> {S1}
+t5: {S3} -> {S4}
+
+.initial_marking {S1,S2}
