@@ -423,7 +423,7 @@
               return 'normal'
             }
           })
-          .text(node => node.hasInvisibleParents ? node.label + '*' : node.label)
+          .text(node => node.hasInvisibleParents ? '*' + node.label : node.label)
 
         // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup
