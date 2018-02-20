@@ -203,9 +203,13 @@
           }),
         onNodeClick: (d) => {
           d3.event.stopPropagation() // Prevent the click event from reaching all the other elements that overlap the node.
-          d.fx = null
-          d.fy = null
           this.onGraphModified()
+          // I like to be able to unfreeze nodes by clicking on them, but it doesn't feel good
+          // when you are actually trying to expand/collapse a state.
+          if (d.type !== 'GRAPH_STRATEGY_BDD_STATE') {
+            d.fx = null
+            d.fy = null
+          }
           // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
             // Save the mouse coordinates so that the new nodes will appear where the user clicked.
