@@ -2,10 +2,11 @@
   <div class="graph-editor">
     <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
       Repulsion Strength
-      <input type="range" min="30" max="500" step="1"
+      <input type="range" min="30" max="1000" step="1"
+
              class="forceStrengthSlider"
              v-model="repulsionStrength">
-      <input type="number" min="30" max="500" step="1"
+      <input type="number" min="30" max="1000" step="1"
              class="forceStrengthNumber"
              v-model="repulsionStrength">
       Link strength
