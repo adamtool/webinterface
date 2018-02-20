@@ -31,7 +31,7 @@ public class BDDGraphD3 {
      * @return JSON representing all of the contents of bddGraph, with no states being hidden
      */
     public static JsonElement of(BDDGraph bddGraph) {
-        return of(bddGraph.getStates(), bddGraph.getFlows(), bddGraph.getStates(), Collections.emptySet());
+        return of(bddGraph.getStates(), bddGraph.getFlows(), bddGraph.getStates(), Collections.emptySet(), Collections.emptySet());
     }
 
     /**
@@ -39,16 +39,23 @@ public class BDDGraphD3 {
      * @param flows a set of flows in a BDDGraph
      * @param postSetExpandedStates Set of states whose postsets have been expanded in the UI
      * @param presetExpandedStates Set of states whose presets have been expanded in the UI
+     * @param statesWithInvisibleParents Set of states that have one or more parents not shown
      * @return JSON representing a subset of a BDDGraph.
      * States that have been clicked on by the user to display their preset/postset are annotated
      * so that the user knows if they clicked on them yet or not.
+     * States that have "invisible parents", i.e. parents that are not shown, are also annotated.
      */
     public static JsonElement of(Set<BDDState> states,
                                  Set<uniolunisaar.adam.ds.graph.Flow> flows,
                                  Set<BDDState> postSetExpandedStates,
-                                 Set<BDDState> presetExpandedStates) {
+                                 Set<BDDState> presetExpandedStates,
+                                 Set<BDDState> statesWithInvisibleParents) {
         Set<State> nodes = states.stream()
-                .map((BDDState state) -> State.of(state, postSetExpandedStates.contains(state), presetExpandedStates.contains(state)))
+                .map((BDDState state) -> State.of(
+                        state,
+                        postSetExpandedStates.contains(state),
+                        presetExpandedStates.contains(state),
+                        statesWithInvisibleParents.contains(state)))
                 .collect(Collectors.toSet());
         Set<Flow> links = flows.stream()
                 .map((uniolunisaar.adam.ds.graph.Flow flow) -> Flow.of(flow))
@@ -83,8 +90,10 @@ public class BDDGraphD3 {
         private final boolean isPostsetExpanded;
         // Has the State been clicked on to show its parents?
         private final boolean isPresetExpanded;
+        // Does this state have predecessors that are not visible?
+        private final boolean hasInvisibleParents;
 
-        public static State of(BDDState bddState, boolean isPostsetExpanded, boolean isPresetExpanded) {
+        public static State of(BDDState bddState, boolean isPostsetExpanded, boolean isPresetExpanded, boolean hasInvisibleParents) {
             return new State(
                     bddState.getId(),
                     bddState.isMcut(),
@@ -92,13 +101,15 @@ public class BDDGraphD3 {
                     bddState.isBad(),
                     bddState.getContent(),
                     isPostsetExpanded,
-                    isPresetExpanded);
+                    isPresetExpanded,
+                    hasInvisibleParents);
             // TODO Isbad dicke schwarze Rahmen
             // TODO isGood doppelter Rahmen (nicht so dick)
             // TODO See Graphenspiele Beispiele in den Besipielen
         }
 
-        private State(int id, boolean isMcut, boolean isGood, boolean isBad, String content, boolean isPostsetExpanded, boolean isPresetExpanded) {
+        private State(int id, boolean isMcut, boolean isGood, boolean isBad, String content,
+                      boolean isPostsetExpanded, boolean isPresetExpanded, boolean hasInvisibleParents) {
             super(Integer.toString(id), Integer.toString(id), GraphNodeType.GRAPH_STRATEGY_BDD_STATE);
             this.isMcut = isMcut;
             this.isGood = isGood;
@@ -106,6 +117,7 @@ public class BDDGraphD3 {
             this.content = content;
             this.isPostsetExpanded = isPostsetExpanded;
             this.isPresetExpanded = isPresetExpanded;
+            this.hasInvisibleParents = hasInvisibleParents;
         }
     }
 }

@@ -27,11 +27,23 @@ public class BDDGraphExplorer {
     }
 
     public JsonElement getVisibleGraph() {
+        Set<BDDState> visibleStates = this.visibleStates();
+        Set<BDDState> invisibleStates = bddGraph.getStates().stream()
+                .filter(s -> !visibleStates.contains(s))
+                .collect(Collectors.toSet());
+        Set<BDDState> statesWithInvisibleParents = visibleStates.stream()
+                .filter(s -> invisibleStates.stream().anyMatch(invisibleState -> {
+                    Set<BDDState> postset = bddGraph.getPostset(invisibleState.getId());
+                    boolean isInvisibleStateAParent = postset.contains(s);
+                    return isInvisibleStateAParent;
+                }))
+                .collect(Collectors.toSet());
         return BDDGraphD3.of(
-                this.visibleStates(),
+                visibleStates,
                 this.visibleFlows(),
                 this.postsetExpandedStates,
-                this.presetExpandedStates);
+                this.presetExpandedStates,
+                statesWithInvisibleParents);
     }
 
     private Set<BDDState> visibleStates() {
