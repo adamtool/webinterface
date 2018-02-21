@@ -126,6 +126,48 @@
       },
       arrowheadId: function () {
         return 'arrowhead-' + this._uid
+      },
+      dragDrop: function () {
+        // We save the start position of every dragdrop to tell if it is actually a mouse click.
+        // This is necessary because otherwise, dragdrops and mouse clicks interfere with each other.
+        // Either the dragdrop overrides the mouse click, forcing you to click perfectly,
+        // or the dragdrop and mouse click fire the same event twice in a row.
+        // So we won't bother listening for mouse clicks separately.  We just process mouse clicks
+        // as a special case of dragdrop.  A dragdrop over a short distance counts as a mouse click.
+        let xStart
+        let yStart
+        const deadzone = 20
+        let deadzoneExceeded
+        return d3.drag()
+          .on('start', node => {
+            node.fx = node.x
+            node.fy = node.y
+            xStart = d3.event.x
+            yStart = d3.event.y
+            deadzoneExceeded = false
+          })
+          .on('drag', node => {
+            if (!deadzoneExceeded) {
+              const distanceDragged = Math.sqrt(Math.pow(d3.event.x - xStart, 2) + Math.pow(d3.event.y - yStart, 2))
+              if (distanceDragged > deadzone) {
+                deadzoneExceeded = true
+              }
+            }
+            if (deadzoneExceeded) {
+              this.simulation.alphaTarget(0.7).restart()
+              node.fx = d3.event.x
+              node.fy = d3.event.y
+            }
+          })
+          .on('end', node => {
+            if (!d3.event.active) {
+              this.simulation.alphaTarget(0)
+            }
+            this.onGraphModified()
+            if (!deadzoneExceeded) {
+              this.onNodeClick(node)
+            }
+          })
       }
     },
     watch: {
@@ -185,25 +227,7 @@
         repulsionStrength: this.repulsionStrengthDefault,
         linkStrength: this.linkStrengthDefault,
         gravityStrength: this.gravityStrengthDefault,
-        dragDrop: d3.drag()
-          .on('start', node => {
-            node.fx = node.x
-            node.fy = node.y
-          })
-          .on('drag', node => {
-            this.simulation.alphaTarget(0.7).restart()
-            node.fx = d3.event.x
-            node.fy = d3.event.y
-          })
-          .on('end', node => {
-            if (!d3.event.active) {
-              this.simulation.alphaTarget(0)
-            }
-            this.onGraphModified()
-          }),
         onNodeClick: (d) => {
-          d3.event.stopPropagation() // Prevent the click event from reaching all the other elements that overlap the node.
-          this.onGraphModified()
           // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
             // Expand or collapse the postset of the State that has been clicked.
@@ -403,7 +427,6 @@
         const labelEnter = newLabelElements
           .enter().append('text')
           .call(this.dragDrop)
-          .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
           .attr('text-anchor', 'middle')
         newLabelElements.exit().remove()
@@ -428,7 +451,6 @@
         const contentEnter = newContentElements
           .enter().append('text')
           .call(this.dragDrop)
-          .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
           .attr('text-anchor', 'middle')
           // TODO Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
@@ -452,7 +474,6 @@
           .data(this.nodes.filter(node => node.isSpecial === true), this.keyFunction)
         const newIsSpecialElements = isSpecialElements.enter().append('circle')
         newIsSpecialElements.call(this.dragDrop)
-          .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
         isSpecialElements.exit().remove()
         this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
@@ -471,7 +492,6 @@
         })
         newNodeElements
           .call(this.dragDrop)
-          .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
         nodeElements.exit().remove()
         this.nodeElements = nodeElements.merge(newNodeElements)
