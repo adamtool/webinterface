@@ -19,6 +19,9 @@
             <resource>
                 <directory>../client/dist</directory>
             </resource>
+            <resource>
+		<directory>src/main/resources</directory>
+            </resource>
         </resources>
 
         <plugins>
