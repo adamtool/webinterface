@@ -3,7 +3,6 @@
     <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
       Repulsion Strength
       <input type="range" min="30" max="1000" step="1"
-
              class="forceStrengthSlider"
              v-model="repulsionStrength">
       <input type="number" min="30" max="1000" step="1"
@@ -412,18 +411,15 @@
         this.labelElements
           .attr('font-size', 15)
           .attr('font-weight', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && !d.isPostsetExpanded) {
-              // isPostsetExpanded refers to whether a node's children are being shown in our Graph Game BDD viewer.
-              // For very large BDDs, all nodes start off collapsed and are expanded by clicking on them.
-              // To show if a node has already been clicked on or not, we need some kind of visual
-              // indicator.  I've decided to try making the label of the node bold.
-              // TODO Consider showing a preview of a node's postset upon mouseover
-              return 'bold'
-            } else {
-              return 'normal'
-            }
+            return 'normal'
           })
-          .text(node => node.hasInvisibleParents ? '*' + node.label : node.label)
+          .text(node => {
+            // This code is specifically for Graph Strategy BDDs where the whole BDD is too big to
+            // show at once, so we hide part of the graph at first and explore it by clicking on it
+            const invisibleChildrenMarker = node.hasInvisibleChildren ? '*' : ''
+            const invisibleParentsMarker = node.hasInvisibleParents ? '*' : ''
+            return `${invisibleParentsMarker}${node.label}${invisibleChildrenMarker}`
+          })
 
         // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup

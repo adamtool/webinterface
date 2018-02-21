@@ -36,14 +36,19 @@ public class BDDGraphExplorer {
                     Set<BDDState> postset = bddGraph.getPostset(invisibleState.getId());
                     boolean isInvisibleStateAParent = postset.contains(s);
                     return isInvisibleStateAParent;
-                }))
-                .collect(Collectors.toSet());
+                })).collect(Collectors.toSet());
+        Set<BDDState> statesWithInvisibleChildren = visibleStates.stream()
+                .filter(s -> bddGraph.getPostset(s.getId()).stream().anyMatch(child -> {
+                    boolean isChildInvisible = !visibleStates.contains(child);
+                    return isChildInvisible;
+                })).collect(Collectors.toSet());
         return BDDGraphD3.of(
                 visibleStates,
                 this.visibleFlows(),
                 this.postsetExpandedStates,
                 this.presetExpandedStates,
-                statesWithInvisibleParents);
+                statesWithInvisibleParents,
+                statesWithInvisibleChildren);
     }
 
     private Set<BDDState> visibleStates() {
