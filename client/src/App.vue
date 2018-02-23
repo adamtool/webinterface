@@ -7,6 +7,7 @@
     </div>
     <div class='row'>
       <div class='col-md-12'>
+        <!--Toolbar row-->
         <div class="row action-buttons">
           <div class="col-12">
             <!--TODO Grey out these buttons or something if these things have already been calculated.-->
@@ -26,34 +27,65 @@
             </button>
           </div>
         </div>
-        <tabs>
-          <tab name="APT Editor">
+        <!--End toolbar row-->
+
+        <!--Main flexbox container-->
+        <div style="display: flex; flex-direction: row;">
+          <div :style="aptEditorStyle">
+            <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
+              APT Editor
+            </div>
             <AptEditor :apt='apt'
-                       :convertAptToGraphUrl='restEndpoints.convertAptToGraph'
-                       v-on:graphSaved='onAptSaved'></AptEditor>
-          </tab>
-          <tab name="Petri Game" v-if="petriGameExists">
-            <GraphEditor :petriNet='petriGame.net'
-                         v-on:graphModified='onGraphModified'
-                         v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                         :shouldShowSaveAPTButton="true"></GraphEditor>
-          </tab>
-          <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
-            <GraphEditor :petriNet='strategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
-            <GraphEditor :petriNet='graphStrategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
-            <GraphEditor :petriNet='graphGameBDD'
-                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                         :shouldShowPhysicsControls="true"
-                         :repulsionStrengthDefault="415"
-                         :linkStrengthDefault="0.04"
-                         :gravityStrengthDefault="300"></GraphEditor>
-          </tab>
-        </tabs>
+                       v-on:textEdited='parseAPTToPetriGame'></AptEditor>
+          </div>
+          <div class="flex-column-divider" style="flex: 0 0 2px"></div>
+          <div class="tab-container" style="flex: auto">
+            <tabs>
+              <tab name="Petri Game">
+                <div class="debug-output">
+                  <div id="server-response">
+                    <template v-if="!serverResponse">
+                      The Petri Game will appear here after you type in some APT.
+                    </template>
+                    <template v-else-if="serverResponse.status === 'success'">
+                      <!--Here is the result of parsing the APT:-->
+                      <!--<pre>{{ serverResponsePrettyPrinted }}</pre>-->
+                      <GraphEditor :petriNet='petriGame.net'
+                                   v-on:graphModified='onGraphModified'
+                                   v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                                   :shouldShowSaveAPTButton="true"></GraphEditor>
+                    </template>
+                    <template v-else-if="serverResponse.status === 'error'">
+                      There was an error when we tried to parse the APT:
+                      <pre>{{ serverResponse.message }}</pre>
+                    </template>
+                    <template v-else>
+                      We got an unexpected response from the server when trying to parse the APT:
+                      <pre>{{ serverResponse }}</pre>
+                    </template>
+                  </div>
+                </div>
+              </tab>
+              <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
+                <GraphEditor :petriNet='strategyBDD'></GraphEditor>
+              </tab>
+              <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
+                <GraphEditor :petriNet='graphStrategyBDD'></GraphEditor>
+              </tab>
+              <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
+                <GraphEditor :petriNet='graphGameBDD'
+                             v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                             v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                             :shouldShowPhysicsControls="true"
+                             :repulsionStrengthDefault="415"
+                             :linkStrengthDefault="0.04"
+                             :gravityStrengthDefault="300"></GraphEditor>
+              </tab>
+            </tabs>
+          </div>
+        </div>
+        <!--End main flexbox container-->
+
       </div>
     </div>
   </div>
@@ -94,6 +126,7 @@
     },
     mounted: function () {
       this.switchToAPTEditorTab()
+      this.parseAPTToPetriGame(this.apt)
     },
     data: function () {
       return {
@@ -107,6 +140,7 @@
           uuid: 'abcfakeuuid123'
         },
         apt: aptExample,
+        serverResponse: null,
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null
@@ -129,6 +163,10 @@
       }
     },
     computed: {
+      aptEditorStyle: function () {
+        // TODO Figure out why the APT editor is coming out so skinny.  How can I make more space for it?
+        return 'flex: 0.75;'
+      },
       petriGameExists: function () {
         return this.petriGame.uuid !== 'abcfakeuuid123'
       },
@@ -172,6 +210,29 @@
       },
       switchToGraphGameBDDTab: function () {
         window.location.href = '#graph-game-bdd'
+      },
+      parseAPTToPetriGame: function (apt) {
+        this.switchToPetriGameTab()
+        console.log('Sending APT source code to backend.')
+        axios.post(this.restEndpoints.convertAptToGraph, {
+          params: {
+            apt: apt
+          }
+        }).then(response => {
+          switch (response.data.status) {
+            case 'success':
+              console.log('Received graph from backend:')
+              console.log(response.data)
+              this.serverResponse = response.data
+              this.petriGame = response.data.graph
+              break
+            default:
+              console.log('response.data.status was not success :(')
+              this.serverResponse = response.data
+              break
+          }
+          // TODO handle broken connection to server
+        })
       },
       existsWinningStrategy: function () {
         axios.post(this.restEndpoints.existsWinningStrategy, {
@@ -262,12 +323,6 @@
         console.log('App: Received graphModified event from graph editor:')
         console.log(graph)
         // TODO: Implement undo/redo.
-      },
-      onAptSaved: function (petriGame) {
-        console.log('App: Got Petri Game from APT editor:')
-        console.log(petriGame)
-        this.petriGame = petriGame
-        this.switchToPetriGameTab()
       },
       onAptExampleSelected: function (apt) {
         this.apt = apt

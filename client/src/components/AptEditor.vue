@@ -7,39 +7,18 @@
           <input type="file" class="file-input" :id="filePickerUID" v-on:change="onFileSelected">
           <label class="btn btn-primary file-input-label" :for="filePickerUID">Load APT from file</label>
         </div>
-        <button type="button" class="btn btn-primary" v-on:click="saveGraph">
-          Send Graph to Editor
-        </button>
         <button type="button" class="btn btn-primary" v-on:click="saveAptToFile">
           Save APT to file
         </button>
       </div>
     </div>
-    <div class="debug-output">
-      <h2>Debug output</h2>
-      <div id="server-response">
-        <template v-if="serverResponse.status === 'success'">
-          Here is the result of parsing the APT:
-          <pre>{{ serverResponsePrettyPrinted }}</pre>
-        </template>
-        <template v-else-if="serverResponse.status === 'error'">
-          There was an error when we tried to parse the APT:
-          <pre>{{ serverResponse.message }}</pre>
-        </template>
-        <template v-else>
-          We got a totally malformed response from the server:
-          <pre>{{ serverResponse }}</pre>
-        </template>
-      </div>
-    </div>
+
   </div>
 </template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   .apt-editor {
-    display: flex;
-    flex-direction: row;
   }
 
   .buttons {
@@ -86,8 +65,6 @@
 <script>
   //  import * as Vue from 'vue'
 
-  import * as axios from 'axios'
-
   export default {
     name: 'apt-editor',
     components: {},
@@ -116,33 +93,8 @@
       }
     },
     mounted: function () {
-      this.renderGraph()
     },
     methods: {
-      renderGraph: function () {
-        console.log('Sending APT source code to backend.')
-        axios.post(this.convertAptToGraphUrl, {
-          params: {
-            apt: this.textEditorContents
-          }
-        }).then(response => {
-          switch (response.data.status) {
-            case 'success':
-              console.log('Received graph from backend:')
-              console.log(response.data)
-              this.serverResponse = response.data
-              this.petriGameFromServer = response.data.graph
-              break
-            default:
-              this.serverResponse = response.data
-              break
-          }
-          // TODO handle broken connection to server
-        })
-      },
-      saveGraph: function () {
-        this.$emit('graphSaved', this.petriGameFromServer)
-      },
       // Load APT from a text file stored on the user's local filesystem
       // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
       onFileSelected: function (changeEvent) {
@@ -180,8 +132,8 @@
         console.log('Updating text editor contents')
         this.textEditorContents = newApt
       },
-      textEditorContents: function () {
-        this.renderGraph()
+      textEditorContents: function (apt) {
+        this.$emit('textEdited', apt)
       }
     }
   }
