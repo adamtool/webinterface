@@ -1,33 +1,28 @@
 <template>
   <div class="apt-editor">
-    <div class="text-editor">
-      <textarea class="form-control" v-model="textEditorContents"></textarea>
-      <div class="buttons">
-        <div>
-          <input type="file" class="file-input" :id="filePickerUID" v-on:change="onFileSelected">
-          <label class="btn btn-primary file-input-label" :for="filePickerUID">Load APT from file</label>
-        </div>
-        <button type="button" class="btn btn-primary" v-on:click="saveAptToFile">
-          Save APT to file
-        </button>
+    <textarea class="form-control" v-model="textEditorContents"></textarea>
+    <div class="buttons">
+      <div>
+        <input type="file" class="file-input" :id="filePickerUID" v-on:change="onFileSelected">
+        <label class="btn btn-primary file-input-label" :for="filePickerUID">Load APT from
+          file</label>
       </div>
+      <button type="button" class="btn btn-primary" v-on:click="saveAptToFile">
+        Save APT to file
+      </button>
     </div>
-
   </div>
 </template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  .apt-editor {
-  }
-
   .buttons {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
   }
 
-  .text-editor {
+  .apt-editor {
     height: 85vh;
     text-align: center;
     display: flex;
@@ -35,7 +30,7 @@
     flex: 0.55;
   }
 
-  .text-editor textarea {
+  .apt-editor textarea {
     box-sizing: border-box;
     flex: 1;
     height: 100%;
