@@ -37,11 +37,6 @@
     width: 100%;
   }
 
-  .debug-output {
-    margin: 10px;
-    flex: 0.45;
-  }
-
   /*Hide the ugly file input element*/
   .file-input {
     width: 0.1px;
