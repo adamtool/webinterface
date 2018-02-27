@@ -88,14 +88,14 @@
     name: 'graph-editor',
     components: {},
     mounted: function () {
-      this.importGraph(this.petriNet)
+      this.importGraph(this.graph)
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
     },
     props: {
-      petriNet: {
+      graph: {
         type: Object,
         required: true
       },
@@ -180,14 +180,14 @@
       gravityStrength: function (strength) {
         this.updateGravityStrength(strength)
       },
-      petriNet: function (graph) {
-        console.log('GraphEditor: petriNet changed:')
+      graph: function (graph) {
+        console.log('GraphEditor: graph changed:')
         console.log(graph)
-        /* When petriNet changes, this most likely means that the user changed something in the
+        /* When graph changes, this most likely means that the user changed something in the
          APT editor, causing the APT to be parsed on the server, yielding a new graph.
          And then they hit the button "Send Graph to Editor".
 
-         This would also be fired if the 'petriNet' prop changed in response to any other
+         This would also be fired if the 'graph' prop changed in response to any other
          events, such as after "Load"ing a saved graph in the main App's UI.
 
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
@@ -202,8 +202,8 @@
         saveGraphAPTRequestPreview: {},
         nodeSize: 50,
         exportedGraphJson: {},
-        nodes: this.deepCopy(this.petriNet.nodes),
-        links: this.deepCopy(this.petriNet.links),
+        nodes: this.deepCopy(this.graph.nodes),
+        links: this.deepCopy(this.graph.links),
         svg: undefined,
         linkGroup: undefined,
         linkTextGroup: undefined,

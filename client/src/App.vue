@@ -45,7 +45,7 @@
               <!--The Petri Game will appear here after you type in some APT.-->
             </template>
             <template v-else-if="aptParsingResult.status === 'success'">
-              <GraphEditor :petriNet='petriGame.net'
+              <GraphEditor :graph='petriGame.net'
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            :shouldShowSaveAPTButton="true"/>
@@ -60,13 +60,13 @@
             </template>
           </tab>
           <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
-            <GraphEditor :petriNet='strategyBDD'></GraphEditor>
+            <GraphEditor :graph='strategyBDD'></GraphEditor>
           </tab>
           <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
-            <GraphEditor :petriNet='graphStrategyBDD'></GraphEditor>
+            <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
           </tab>
           <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
-            <GraphEditor :petriNet='graphGameBDD'
+            <GraphEditor :graph='graphGameBDD'
                          v-on:toggleStatePostset='toggleGraphGameStatePostset'
                          v-on:toggleStatePreset='toggleGraphGameStatePreset'
                          :shouldShowPhysicsControls="true"
@@ -122,7 +122,7 @@
     data: function () {
       return {
         apt: aptExample,
-        aptParsingResult: null,
+        aptParsingResult: {},
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
