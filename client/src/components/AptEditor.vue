@@ -58,31 +58,16 @@
   export default {
     name: 'apt-editor',
     components: {},
-    // Passing in the URL as a property is kludgy.
-    // TODO Refactor so that HTTP requests take place in App.vue rather than here
-    props: ['apt', 'convertAptToGraphUrl'],
+    props: ['apt'],
     data () {
       return {
-        petriGameFromServer: {
-          net: {
-            nodes: [],
-            links: []
-          },
-          uuid: '123fakeuuid'
-        },
-        textEditorContents: this.apt,
-        serverResponse: {}
+        textEditorContents: this.apt
       }
     },
     computed: {
-      serverResponsePrettyPrinted: function () {
-        return JSON.stringify(this.serverResponse, null, 2)
-      },
       filePickerUID: function () {
         return 'file-picker-' + this._uid
       }
-    },
-    mounted: function () {
     },
     methods: {
       // Load APT from a text file stored on the user's local filesystem
