@@ -41,24 +41,22 @@
       <div class="tab-container" style="flex: 1 1 100%">
         <tabs>
           <tab name="Petri Game">
-            <template v-if="!serverResponse">
+            <template v-if="!aptParsingResult">
               <!--The Petri Game will appear here after you type in some APT.-->
             </template>
-            <template v-else-if="serverResponse.status === 'success'">
-              <!--Here is the result of parsing the APT:-->
-              <!--<pre>{{ serverResponsePrettyPrinted }}</pre>-->
+            <template v-else-if="aptParsingResult.status === 'success'">
               <GraphEditor :petriNet='petriGame.net'
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            :shouldShowSaveAPTButton="true"/>
             </template>
-            <template v-else-if="serverResponse.status === 'error'">
+            <template v-else-if="aptParsingResult.status === 'error'">
               There was an error when we tried to parse the APT:
-              <pre>{{ serverResponse.message }}</pre>
+              <pre>{{ aptParsingResult.message }}</pre>
             </template>
             <template v-else>
               We got an unexpected response from the server when trying to parse the APT:
-              <pre>{{ serverResponse }}</pre>
+              <pre>{{ aptParsingResult }}</pre>
             </template>
           </tab>
           <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
@@ -119,22 +117,12 @@
       'AptExamplePicker': AptExamplePicker
     },
     mounted: function () {
-      this.switchToAPTEditorTab()
       this.parseAPTToPetriGame(this.apt)
     },
     data: function () {
       return {
-        numberOfNodes: 50,
-        numberOfEdges: 50,
-        petriGame: {
-          net: {
-            links: [],
-            nodes: []
-          },
-          uuid: 'abcfakeuuid123'
-        },
         apt: aptExample,
-        serverResponse: null,
+        aptParsingResult: null,
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
@@ -158,6 +146,19 @@
       }
     },
     computed: {
+      petriGame: function () {
+        if (this.aptParsingResult.graph) {
+          return this.aptParsingResult.graph
+        } else {
+          return ({
+            net: {
+              links: [],
+              nodes: []
+            },
+            uuid: 'abcfakeuuid123'
+          })
+        }
+      },
       aptEditorStyle: function () {
         if (this.isAptEditorVisible) {
           return 'flex: 1 1 1000px; margin-left: 15px;'
@@ -194,9 +195,6 @@
       }
     },
     methods: {
-      switchToAPTEditorTab: function () {
-        window.location.href = '#apt-editor'
-      },
       switchToPetriGameTab: function () {
         window.location.href = '#petri-game'
       },
@@ -223,17 +221,16 @@
             case 'success':
               console.log('Received graph from backend:')
               console.log(response.data)
-              this.serverResponse = response.data
-              this.petriGame = response.data.graph
+              this.aptParsingResult = response.data
               break
             default:
               console.log('response.data.status was not success :(')
-              this.serverResponse = response.data
+              this.aptParsingResult = response.data
               break
           }
           // TODO handle broken connection to server
         })
-      }, 100),
+      }, 200),
       existsWinningStrategy: function () {
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
@@ -315,7 +312,7 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
-            this.switchToAPTEditorTab()
+            this.isAptEditorVisible = true
           })
         })
       },
@@ -326,7 +323,7 @@
       },
       onAptExampleSelected: function (apt) {
         this.apt = apt
-        this.switchToAPTEditorTab()
+        this.isAptEditorVisible = true
       },
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
