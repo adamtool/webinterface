@@ -320,12 +320,12 @@
         })
       },
       saveGraphAsAPT: function () {
+        this.freezeAllNodes()
         // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as value.
         const mapNodeIDXY = this.nodes.reduce(function (map, node) {
           map[node.id] = {
             x: node.x.toFixed(2),
-            y: node.y.toFixed(2),
-            isFixed: node.fx === node.x // TODO Ask Manuel if this should be saved in the APT
+            y: node.y.toFixed(2)
           }
           return map
         }, {})
