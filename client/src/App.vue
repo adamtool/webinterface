@@ -20,71 +20,67 @@
       </button>
       <!--End toolbar row-->
     </div>
-    <div>
-      <div>
 
-        <!--Main flexbox container-->
-        <div style="display: flex; flex-direction: row; margin-top: 5px;">
-          <div :style="aptEditorStyle">
-            <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
-              APT Editor
-            </div>
-            <AptEditor :apt='apt'
-                       v-on:textEdited='parseAPTToPetriGame'></AptEditor>
-          </div>
-          <div class="flex-column-divider"
-               v-on:click="isAptEditorVisible = !isAptEditorVisible">
-            <div class="text">
-              <template v-if="isAptEditorVisible">Collapse APT editor</template>
-              <template v-else>Show APT editor</template>
-            </div>
-            <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
-          </div>
-          <div class="tab-container" style="flex: 1 1 100%">
-            <tabs>
-              <tab name="Petri Game">
-                <template v-if="!serverResponse">
-                  <!--The Petri Game will appear here after you type in some APT.-->
-                </template>
-                <template v-else-if="serverResponse.status === 'success'">
-                  <!--Here is the result of parsing the APT:-->
-                  <!--<pre>{{ serverResponsePrettyPrinted }}</pre>-->
-                  <GraphEditor :petriNet='petriGame.net'
-                               v-on:graphModified='onGraphModified'
-                               v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                               :shouldShowSaveAPTButton="true"/>
-                </template>
-                <template v-else-if="serverResponse.status === 'error'">
-                  There was an error when we tried to parse the APT:
-                  <pre>{{ serverResponse.message }}</pre>
-                </template>
-                <template v-else>
-                  We got an unexpected response from the server when trying to parse the APT:
-                  <pre>{{ serverResponse }}</pre>
-                </template>
-              </tab>
-              <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
-                <GraphEditor :petriNet='strategyBDD'></GraphEditor>
-              </tab>
-              <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
-                <GraphEditor :petriNet='graphStrategyBDD'></GraphEditor>
-              </tab>
-              <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
-                <GraphEditor :petriNet='graphGameBDD'
-                             v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                             v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                             :shouldShowPhysicsControls="true"
-                             :repulsionStrengthDefault="415"
-                             :linkStrengthDefault="0.04"
-                             :gravityStrengthDefault="300"></GraphEditor>
-              </tab>
-            </tabs>
-          </div>
+    <!--Main flexbox container-->
+    <div style="display: flex; flex-direction: row; margin-top: 5px;">
+      <div :style="aptEditorStyle">
+        <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
+          APT Editor
         </div>
-        <!--End main flexbox container-->
-
+        <AptEditor :apt='apt'
+                   v-on:textEdited='parseAPTToPetriGame'></AptEditor>
+      </div>
+      <div class="flex-column-divider"
+           v-on:click="isAptEditorVisible = !isAptEditorVisible">
+        <div class="text">
+          <template v-if="isAptEditorVisible">Collapse APT editor</template>
+          <template v-else>Show APT editor</template>
+        </div>
+        <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
+      </div>
+      <div class="tab-container" style="flex: 1 1 100%">
+        <tabs>
+          <tab name="Petri Game">
+            <template v-if="!serverResponse">
+              <!--The Petri Game will appear here after you type in some APT.-->
+            </template>
+            <template v-else-if="serverResponse.status === 'success'">
+              <!--Here is the result of parsing the APT:-->
+              <!--<pre>{{ serverResponsePrettyPrinted }}</pre>-->
+              <GraphEditor :petriNet='petriGame.net'
+                           v-on:graphModified='onGraphModified'
+                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                           :shouldShowSaveAPTButton="true"/>
+            </template>
+            <template v-else-if="serverResponse.status === 'error'">
+              There was an error when we tried to parse the APT:
+              <pre>{{ serverResponse.message }}</pre>
+            </template>
+            <template v-else>
+              We got an unexpected response from the server when trying to parse the APT:
+              <pre>{{ serverResponse }}</pre>
+            </template>
+          </tab>
+          <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
+            <GraphEditor :petriNet='strategyBDD'></GraphEditor>
+          </tab>
+          <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
+            <GraphEditor :petriNet='graphStrategyBDD'></GraphEditor>
+          </tab>
+          <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
+            <GraphEditor :petriNet='graphGameBDD'
+                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                         :shouldShowPhysicsControls="true"
+                         :repulsionStrengthDefault="415"
+                         :linkStrengthDefault="0.04"
+                         :gravityStrengthDefault="300"></GraphEditor>
+          </tab>
+        </tabs>
       </div>
     </div>
+    <!--End main flexbox container-->
+
   </div>
 </template>
 
@@ -99,6 +95,7 @@
   import 'izitoast/dist/css/iziToast.min.css'
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
+  import {debounce} from 'underscore'
 
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
@@ -212,7 +209,9 @@
       switchToGraphGameBDDTab: function () {
         window.location.href = '#graph-game-bdd'
       },
-      parseAPTToPetriGame: function (apt) {
+      // Send APT to backend and parse it, then display the resulting Petri Game.
+      // This is debounced using Underscore: http://underscorejs.org/#debounce
+      parseAPTToPetriGame: debounce(function (apt) {
         this.switchToPetriGameTab()
         console.log('Sending APT source code to backend.')
         axios.post(this.restEndpoints.convertAptToGraph, {
@@ -234,7 +233,7 @@
           }
           // TODO handle broken connection to server
         })
-      },
+      }, 100),
       existsWinningStrategy: function () {
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
@@ -409,12 +408,14 @@
     transition: .2s;
     flex: 0 0 100px;
   }
+
   .flex-column-divider .text {
     margin: 0;
     white-space: pre;
     font-size: 0;
     transition: .2s;
   }
+
   .flex-column-divider:hover .text {
     margin: 5px;
     font-size: inherit;
