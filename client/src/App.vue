@@ -160,7 +160,7 @@
     computed: {
       aptEditorStyle: function () {
         if (this.isAptEditorVisible) {
-          return 'flex: 0.75 0 600px; margin-left: 15px;'
+          return 'flex: 1 1 1000px; margin-left: 15px;'
         } else {
           return 'display: none;'
         }
