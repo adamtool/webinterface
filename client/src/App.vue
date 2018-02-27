@@ -1,36 +1,30 @@
 <template>
-  <div id='app' class="container-fluid">
-    <div class='row' style="margin-bottom: 10px">
-      <div class='col-12'>
-        <AptExamplePicker v-on:fileSelected='onAptExampleSelected'/>
-      </div>
+  <div id='app'>
+    <div style="margin-bottom: 10px; margin-left: 10px;">
+      <AptExamplePicker v-on:fileSelected='onAptExampleSelected'/>
+      <!--Toolbar row-->
+      <!--TODO Grey out these buttons or something if these things have already been calculated.-->
+      <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
+      <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
+      <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
+        Exists winning strategy?
+      </button>
+      <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">
+        Get Strategy BDD
+      </button>
+      <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">
+        Get Graph Strategy BDD
+      </button>
+      <button type="button" class="btn btn-primary" v-on:click="getGraphGameBDD">
+        Get Graph Game BDD
+      </button>
+      <!--End toolbar row-->
     </div>
-    <div class='row'>
-      <div class='col-md-12'>
-        <!--Toolbar row-->
-        <div class="row action-buttons">
-          <div class="col-12">
-            <!--TODO Grey out these buttons or something if these things have already been calculated.-->
-            <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-            <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
-            <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
-              Exists winning strategy?
-            </button>
-            <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">
-              Get Strategy BDD
-            </button>
-            <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">
-              Get Graph Strategy BDD
-            </button>
-            <button type="button" class="btn btn-primary" v-on:click="getGraphGameBDD">
-              Get Graph Game BDD
-            </button>
-          </div>
-        </div>
-        <!--End toolbar row-->
+    <div>
+      <div>
 
         <!--Main flexbox container-->
-        <div style="display: flex; flex-direction: row;">
+        <div style="display: flex; flex-direction: row; margin-top: 5px;">
           <div :style="aptEditorStyle">
             <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
               APT Editor
@@ -38,33 +32,36 @@
             <AptEditor :apt='apt'
                        v-on:textEdited='parseAPTToPetriGame'></AptEditor>
           </div>
-          <div class="flex-column-divider" style="flex: 0 0 2px"></div>
-          <div class="tab-container" style="flex: auto">
+          <div class="flex-column-divider"
+               v-on:click="isAptEditorVisible = !isAptEditorVisible">
+            <div class="text">
+              <template v-if="isAptEditorVisible">Collapse APT editor</template>
+              <template v-else>Show APT editor</template>
+            </div>
+            <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
+          </div>
+          <div class="tab-container" style="flex: 1 1 100%">
             <tabs>
               <tab name="Petri Game">
-                <div class="debug-output">
-                  <div id="server-response">
-                    <template v-if="!serverResponse">
-                      The Petri Game will appear here after you type in some APT.
-                    </template>
-                    <template v-else-if="serverResponse.status === 'success'">
-                      <!--Here is the result of parsing the APT:-->
-                      <!--<pre>{{ serverResponsePrettyPrinted }}</pre>-->
-                      <GraphEditor :petriNet='petriGame.net'
-                                   v-on:graphModified='onGraphModified'
-                                   v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                                   :shouldShowSaveAPTButton="true"></GraphEditor>
-                    </template>
-                    <template v-else-if="serverResponse.status === 'error'">
-                      There was an error when we tried to parse the APT:
-                      <pre>{{ serverResponse.message }}</pre>
-                    </template>
-                    <template v-else>
-                      We got an unexpected response from the server when trying to parse the APT:
-                      <pre>{{ serverResponse }}</pre>
-                    </template>
-                  </div>
-                </div>
+                <template v-if="!serverResponse">
+                  <!--The Petri Game will appear here after you type in some APT.-->
+                </template>
+                <template v-else-if="serverResponse.status === 'success'">
+                  <!--Here is the result of parsing the APT:-->
+                  <!--<pre>{{ serverResponsePrettyPrinted }}</pre>-->
+                  <GraphEditor :petriNet='petriGame.net'
+                               v-on:graphModified='onGraphModified'
+                               v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                               :shouldShowSaveAPTButton="true"/>
+                </template>
+                <template v-else-if="serverResponse.status === 'error'">
+                  There was an error when we tried to parse the APT:
+                  <pre>{{ serverResponse.message }}</pre>
+                </template>
+                <template v-else>
+                  We got an unexpected response from the server when trying to parse the APT:
+                  <pre>{{ serverResponse }}</pre>
+                </template>
               </tab>
               <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
                 <GraphEditor :petriNet='strategyBDD'></GraphEditor>
@@ -143,7 +140,8 @@
         serverResponse: null,
         strategyBDD: null,
         graphStrategyBDD: null,
-        graphGameBDD: null
+        graphGameBDD: null,
+        isAptEditorVisible: true
       }
     },
     watch: {
@@ -164,8 +162,11 @@
     },
     computed: {
       aptEditorStyle: function () {
-        // TODO Figure out why the APT editor is coming out so skinny.  How can I make more space for it?
-        return 'flex: 0.75;'
+        if (this.isAptEditorVisible) {
+          return 'flex: 0.75 0 600px; margin-left: 15px;'
+        } else {
+          return 'display: none;'
+        }
       },
       petriGameExists: function () {
         return this.petriGame.uuid !== 'abcfakeuuid123'
@@ -375,5 +376,48 @@
 
   .iziToast > .iziToast-body {
     white-space: pre-wrap;
+  }
+
+  /*https://css-tricks.com/snippets/css/css-triangle/*/
+  .arrow-left {
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid blue;
+  }
+
+  .arrow-right {
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid blue;
+  }
+
+  .flex-column-divider {
+    flex: 0 0 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid lightgray;
+    transition: .2s;
+    margin-top: 59px;
+  }
+
+  .flex-column-divider:hover {
+    transition: .2s;
+    flex: 0 0 100px;
+  }
+  .flex-column-divider .text {
+    margin: 0;
+    white-space: pre;
+    font-size: 0;
+    transition: .2s;
+  }
+  .flex-column-divider:hover .text {
+    margin: 5px;
+    font-size: inherit;
+    transition: .2s;
   }
 </style>

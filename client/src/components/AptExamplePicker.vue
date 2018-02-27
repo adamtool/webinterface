@@ -1,17 +1,15 @@
 Present a dropdown menu with a list of APT examples.
 When an example is selected by the user, emit the event 'fileSelected' with the APT text as its payload.
 <template>
-   <div class="apt-example-picker">
-     <select v-model="selected">
-       <option disabled value="">Select an APT example to load</option>
-       <option v-for="(apt, filename) in aptFiles" v-bind:value="apt">
-         {{ filename }}
-       </option>
-     </select>
-     <!--<div>-->
-       <!--Selected: <pre>{{ selected }}</pre>-->
-     <!--</div>-->
-   </div>
+  <select v-model="selected">
+    <option disabled value="">Select an APT example to load</option>
+    <option v-for="(apt, filename) in aptFiles" v-bind:value="apt">
+      {{ filename }}
+    </option>
+  </select>
+  <!--<div>-->
+    <!--Selected: <pre>{{ selected }}</pre>-->
+  <!--</div>-->
 </template>
 
 <script>
