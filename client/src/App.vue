@@ -59,13 +59,16 @@
               <pre>{{ aptParsingResult }}</pre>
             </template>
           </tab>
-          <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
+          <tab name="Strategy BDD" v-if="strategyBDD"
+               :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
             <GraphEditor :graph='strategyBDD'></GraphEditor>
           </tab>
-          <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
+          <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
+               :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
             <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
           </tab>
-          <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
+          <tab name="Graph Game BDD" v-if="graphGameBDD"
+               :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
             <GraphEditor :graph='graphGameBDD'
                          v-on:toggleStatePostset='toggleGraphGameStatePostset'
                          v-on:toggleStatePreset='toggleGraphGameStatePreset'
@@ -131,17 +134,6 @@
     },
     watch: {
       petriGame: function () {
-        // The strategy BDD we have may no longer be valid after the Petri Game has changed, so we throw it out.
-        // TODO Consider refactoring to use a more appropriate data structure.  "petriGame", "strategyBDD", "graphStrategyBDD"
-        // and "graphGameBDD"
-        // should maybe be contained in one object that is stored on the server.  This would prevent us from e.g.
-        // accidentally having at the same time a strategy BDD and a Petri Game that do not match up.
-        // (This can happen due to a race condition right now.  Try clicking "get strategy BDD" and then immediately
-        // click "send graph to editor" before "getStrategyBDD" is finished running. You end up with a mismatched
-        // combination of Petri Game and strategy BDD.
-        this.strategyBDD = null
-        this.graphStrategyBDD = null
-        this.graphGameBDD = null
         this.switchToPetriGameTab()
       }
     },
@@ -165,18 +157,6 @@
         } else {
           return 'display: none;'
         }
-      },
-      petriGameExists: function () {
-        return this.petriGame.uuid !== 'abcfakeuuid123'
-      },
-      petriGameHasStrategyBDD: function () {
-        return this.strategyBDD !== null
-      },
-      petriGameHasGraphStrategyBDD: function () {
-        return this.graphStrategyBDD !== null
-      },
-      petriGameHasGraphGameBDD: function () {
-        return this.graphGameBDD !== null
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -247,37 +227,37 @@
         })
       },
       getStrategyBDD: function () {
+        const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getStrategyBDD, {
-          petriGameId: this.petriGame.uuid
+          petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO Fix race condition here.  See above.
-            // A quick fix would be to double-check the UUID of the petri game we have and reject the BDD
-            // if the petri game's UUID has changed since the request was sent to the server, but I prefer the solution
-            // described above.
             this.strategyBDD = response.data.strategyBDD
+            this.strategyBDD.uuid = uuid
             this.switchToStrategyBDDTab()
           })
         })
       },
       getGraphStrategyBDD: function () {
+        const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphStrategyBDD, {
-          petriGameId: this.petriGame.uuid
+          petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO Fix race condition here.  See above.
             this.graphStrategyBDD = response.data.graphStrategyBDD
+            this.graphStrategyBDD.uuid = uuid
             this.switchToGraphStrategyBDDTab()
           })
         })
       },
       getGraphGameBDD: function () {
+        const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphGameBDD, {
-          petriGameId: this.petriGame.uuid
+          petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO Fix race condition here.  See above.
             this.graphGameBDD = response.data.graphGameBDD
+            this.graphGameBDD.uuid = uuid
             this.switchToGraphGameBDDTab()
           })
         })
