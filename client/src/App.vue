@@ -1,52 +1,77 @@
 <template>
-  <div id='app' class="container-fluid">
-    <div class='row' style="margin-bottom: 10px">
-      <div class='col-12'>
-        <AptExamplePicker v-on:fileSelected='onAptExampleSelected'/>
-      </div>
+  <div id='app'>
+    <div style="margin-bottom: 10px; margin-left: 10px;">
+      <AptExamplePicker v-on:fileSelected='onAptExampleSelected'/>
+      <!--Toolbar row-->
+      <!--TODO Grey out these buttons or something if these things have already been calculated.-->
+      <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
+      <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
+      <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
+        Exists winning strategy?
+      </button>
+      <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">
+        Get Strategy BDD
+      </button>
+      <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">
+        Get Graph Strategy BDD
+      </button>
+      <button type="button" class="btn btn-primary" v-on:click="getGraphGameBDD">
+        Get Graph Game BDD
+      </button>
+      <!--End toolbar row-->
     </div>
-    <div class='row'>
-      <div class='col-md-12'>
-        <div class="row action-buttons">
-          <div class="col-12">
-            <!--TODO Grey out these buttons or something if these things have already been calculated.-->
-            <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-            <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
-            <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
-              Exists winning strategy?
-            </button>
-            <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">
-              Get Strategy BDD
-            </button>
-            <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">
-              Get Graph Strategy BDD
-            </button>
-            <button type="button" class="btn btn-primary" v-on:click="getGraphGameBDD">
-              Get Graph Game BDD
-            </button>
-          </div>
+
+    <!--Main flexbox container-->
+    <div style="display: flex; flex-direction: row; margin-top: 5px;">
+      <div :style="aptEditorStyle">
+        <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
+          APT Editor
         </div>
+        <AptEditor :apt='apt'
+                   v-on:textEdited='parseAPTToPetriGame'></AptEditor>
+      </div>
+      <div class="flex-column-divider"
+           v-on:click="isAptEditorVisible = !isAptEditorVisible">
+        <div class="text">
+          <template v-if="isAptEditorVisible">Collapse APT editor</template>
+          <template v-else>Show APT editor</template>
+        </div>
+        <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
+      </div>
+      <div class="tab-container" style="flex: 1 1 100%">
         <tabs>
-          <tab name="APT Editor">
-            <AptEditor :apt='apt'
-                       :convertAptToGraphUrl='restEndpoints.convertAptToGraph'
-                       v-on:graphSaved='onAptSaved'></AptEditor>
+          <tab name="Petri Game">
+            <template v-if="!aptParsingResult">
+              <!--The Petri Game will appear here after you type in some APT.-->
+            </template>
+            <template v-else-if="aptParsingResult.status === 'success'">
+              <GraphEditor :graph='petriGame.net'
+                           v-on:graphModified='onGraphModified'
+                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                           :shouldShowSaveAPTButton="true"/>
+            </template>
+            <template v-else-if="aptParsingResult.status === 'error'">
+              There was an error when we tried to parse the APT:
+              <pre>{{ aptParsingResult.message }}</pre>
+            </template>
+            <template v-else>
+              We got an unexpected response from the server when trying to parse the APT:
+              <pre>{{ aptParsingResult }}</pre>
+            </template>
           </tab>
-          <tab name="Petri Game" v-if="petriGameExists">
-            <GraphEditor :petriNet='petriGame.net'
-                         v-on:graphModified='onGraphModified'
-                         v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                         :shouldShowSaveAPTButton="true"></GraphEditor>
+          <tab name="Strategy BDD" v-if="strategyBDD"
+               :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
+            <GraphEditor :graph='strategyBDD'></GraphEditor>
           </tab>
-          <tab name="Strategy BDD" v-if="petriGameHasStrategyBDD">
-            <GraphEditor :petriNet='strategyBDD'></GraphEditor>
+          <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
+               :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
+            <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
           </tab>
-          <tab name="Graph Strategy BDD" v-if="petriGameHasGraphStrategyBDD">
-            <GraphEditor :petriNet='graphStrategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Game BDD" v-if="petriGameHasGraphGameBDD">
-            <GraphEditor :petriNet='graphGameBDD'
-                         v-on:expandOrCollapseState='expandOrCollapseGraphGameState'
+          <tab name="Graph Game BDD" v-if="graphGameBDD"
+               :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
+            <GraphEditor :graph='graphGameBDD'
+                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
                          :shouldShowPhysicsControls="true"
                          :repulsionStrengthDefault="415"
                          :linkStrengthDefault="0.04"
@@ -55,6 +80,8 @@
         </tabs>
       </div>
     </div>
+    <!--End main flexbox container-->
+
   </div>
 </template>
 
@@ -69,6 +96,7 @@
   import 'izitoast/dist/css/iziToast.min.css'
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
+  import {debounce} from 'underscore'
 
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
@@ -92,53 +120,43 @@
       'AptExamplePicker': AptExamplePicker
     },
     mounted: function () {
-      this.switchToAPTEditorTab()
+      this.parseAPTToPetriGame(this.apt)
     },
     data: function () {
       return {
-        numberOfNodes: 50,
-        numberOfEdges: 50,
-        petriGame: {
-          net: {
-            links: [],
-            nodes: []
-          },
-          uuid: 'abcfakeuuid123'
-        },
         apt: aptExample,
+        aptParsingResult: {},
         strategyBDD: null,
         graphStrategyBDD: null,
-        graphGameBDD: null
+        graphGameBDD: null,
+        isAptEditorVisible: true
       }
     },
     watch: {
       petriGame: function () {
-        // The strategy BDD we have may no longer be valid after the Petri Game has changed, so we throw it out.
-        // TODO Consider refactoring to use a more appropriate data structure.  "petriGame", "strategyBDD", "graphStrategyBDD"
-        // and "graphGameBDD"
-        // should maybe be contained in one object that is stored on the server.  This would prevent us from e.g.
-        // accidentally having at the same time a strategy BDD and a Petri Game that do not match up.
-        // (This can happen due to a race condition right now.  Try clicking "get strategy BDD" and then immediately
-        // click "send graph to editor" before "getStrategyBDD" is finished running. You end up with a mismatched
-        // combination of Petri Game and strategy BDD.
-        this.strategyBDD = null
-        this.graphStrategyBDD = null
-        this.graphGameBDD = null
         this.switchToPetriGameTab()
       }
     },
     computed: {
-      petriGameExists: function () {
-        return this.petriGame.uuid !== 'abcfakeuuid123'
+      petriGame: function () {
+        if (this.aptParsingResult.graph) {
+          return this.aptParsingResult.graph
+        } else {
+          return ({
+            net: {
+              links: [],
+              nodes: []
+            },
+            uuid: 'abcfakeuuid123'
+          })
+        }
       },
-      petriGameHasStrategyBDD: function () {
-        return this.strategyBDD !== null
-      },
-      petriGameHasGraphStrategyBDD: function () {
-        return this.graphStrategyBDD !== null
-      },
-      petriGameHasGraphGameBDD: function () {
-        return this.graphGameBDD !== null
+      aptEditorStyle: function () {
+        if (this.isAptEditorVisible) {
+          return 'flex: 1 1 1000px; margin-left: 15px;'
+        } else {
+          return 'display: none;'
+        }
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -149,16 +167,14 @@
           getStrategyBDD: this.baseUrl + '/getStrategyBDD',
           getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
           getGraphGameBDD: this.baseUrl + '/getGraphGameBDD',
-          expandGraphGameBDDNode: this.baseUrl + '/expandGraphGameBDDNode',
+          toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
+          toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
           convertAptToGraph: this.baseUrl + '/convertAptToGraph'
         }
       }
     },
     methods: {
-      switchToAPTEditorTab: function () {
-        window.location.href = '#apt-editor'
-      },
       switchToPetriGameTab: function () {
         window.location.href = '#petri-game'
       },
@@ -171,6 +187,30 @@
       switchToGraphGameBDDTab: function () {
         window.location.href = '#graph-game-bdd'
       },
+      // Send APT to backend and parse it, then display the resulting Petri Game.
+      // This is debounced using Underscore: http://underscorejs.org/#debounce
+      parseAPTToPetriGame: debounce(function (apt) {
+        this.switchToPetriGameTab()
+        console.log('Sending APT source code to backend.')
+        axios.post(this.restEndpoints.convertAptToGraph, {
+          params: {
+            apt: apt
+          }
+        }).then(response => {
+          switch (response.data.status) {
+            case 'success':
+              console.log('Received graph from backend:')
+              console.log(response.data)
+              this.aptParsingResult = response.data
+              break
+            default:
+              console.log('response.data.status was not success :(')
+              this.aptParsingResult = response.data
+              break
+          }
+          // TODO handle broken connection to server
+        })
+      }, 200),
       existsWinningStrategy: function () {
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
@@ -187,43 +227,53 @@
         })
       },
       getStrategyBDD: function () {
+        const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getStrategyBDD, {
-          petriGameId: this.petriGame.uuid
+          petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO Fix race condition here.  See above.
-            // A quick fix would be to double-check the UUID of the petri game we have and reject the BDD
-            // if the petri game's UUID has changed since the request was sent to the server, but I prefer the solution
-            // described above.
             this.strategyBDD = response.data.strategyBDD
+            this.strategyBDD.uuid = uuid
             this.switchToStrategyBDDTab()
           })
         })
       },
       getGraphStrategyBDD: function () {
+        const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphStrategyBDD, {
-          petriGameId: this.petriGame.uuid
+          petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO Fix race condition here.  See above.
             this.graphStrategyBDD = response.data.graphStrategyBDD
+            this.graphStrategyBDD.uuid = uuid
             this.switchToGraphStrategyBDDTab()
           })
         })
       },
       getGraphGameBDD: function () {
+        const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphGameBDD, {
-          petriGameId: this.petriGame.uuid
+          petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO Fix race condition here.  See above.
             this.graphGameBDD = response.data.graphGameBDD
+            this.graphGameBDD.uuid = uuid
             this.switchToGraphGameBDDTab()
           })
         })
       },
-      expandOrCollapseGraphGameState: function (stateId) {
-        axios.post(this.restEndpoints.expandGraphGameBDDNode, {
+      toggleGraphGameStatePostset: function (stateId) {
+        axios.post(this.restEndpoints.toggleGraphGameBDDNodePostset, {
+          petriGameId: this.petriGame.uuid,
+          stateId: stateId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.graphGameBDD = response.data.graphGameBDD
+          })
+        })
+      },
+      toggleGraphGameStatePreset: function (stateId) {
+        axios.post(this.restEndpoints.toggleGraphGameBDDNodePreset, {
           petriGameId: this.petriGame.uuid,
           stateId: stateId
         }).then(response => {
@@ -242,7 +292,7 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
-            this.switchToAPTEditorTab()
+            this.isAptEditorVisible = true
           })
         })
       },
@@ -251,15 +301,9 @@
         console.log(graph)
         // TODO: Implement undo/redo.
       },
-      onAptSaved: function (petriGame) {
-        console.log('App: Got Petri Game from APT editor:')
-        console.log(petriGame)
-        this.petriGame = petriGame
-        this.switchToPetriGameTab()
-      },
       onAptExampleSelected: function (apt) {
         this.apt = apt
-        this.switchToAPTEditorTab()
+        this.isAptEditorVisible = true
       },
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
@@ -308,5 +352,50 @@
 
   .iziToast > .iziToast-body {
     white-space: pre-wrap;
+  }
+
+  /*https://css-tricks.com/snippets/css/css-triangle/*/
+  .arrow-left {
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid blue;
+  }
+
+  .arrow-right {
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid blue;
+  }
+
+  .flex-column-divider {
+    flex: 0 0 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid lightgray;
+    transition: .2s;
+    margin-top: 59px;
+  }
+
+  .flex-column-divider:hover {
+    transition: .2s;
+    flex: 0 0 100px;
+  }
+
+  .flex-column-divider .text {
+    margin: 0;
+    white-space: pre;
+    font-size: 0;
+    transition: .2s;
+  }
+
+  .flex-column-divider:hover .text {
+    margin: 5px;
+    font-size: inherit;
+    transition: .2s;
   }
 </style>

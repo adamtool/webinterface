@@ -2,10 +2,10 @@
   <div class="graph-editor">
     <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
       Repulsion Strength
-      <input type="range" min="30" max="500" step="1"
+      <input type="range" min="30" max="1000" step="1"
              class="forceStrengthSlider"
              v-model="repulsionStrength">
-      <input type="number" min="30" max="500" step="1"
+      <input type="number" min="30" max="1000" step="1"
              class="forceStrengthNumber"
              v-model="repulsionStrength">
       Link strength
@@ -88,14 +88,14 @@
     name: 'graph-editor',
     components: {},
     mounted: function () {
-      this.importGraph(this.petriNet)
+      this.importGraph(this.graph)
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
     },
     props: {
-      petriNet: {
+      graph: {
         type: Object,
         required: true
       },
@@ -126,6 +126,48 @@
       },
       arrowheadId: function () {
         return 'arrowhead-' + this._uid
+      },
+      dragDrop: function () {
+        // We save the start position of every dragdrop to tell if it is actually a mouse click.
+        // This is necessary because otherwise, dragdrops and mouse clicks interfere with each other.
+        // Either the dragdrop overrides the mouse click, forcing you to click perfectly,
+        // or the dragdrop and mouse click fire the same event twice in a row.
+        // So we won't bother listening for mouse clicks separately.  We just process mouse clicks
+        // as a special case of dragdrop.  A dragdrop over a short distance counts as a mouse click.
+        let xStart
+        let yStart
+        const deadzone = 20
+        let deadzoneExceeded
+        return d3.drag()
+          .on('start', node => {
+            node.fx = node.x
+            node.fy = node.y
+            xStart = d3.event.x
+            yStart = d3.event.y
+            deadzoneExceeded = false
+          })
+          .on('drag', node => {
+            if (!deadzoneExceeded) {
+              const distanceDragged = Math.sqrt(Math.pow(d3.event.x - xStart, 2) + Math.pow(d3.event.y - yStart, 2))
+              if (distanceDragged > deadzone) {
+                deadzoneExceeded = true
+              }
+            }
+            if (deadzoneExceeded) {
+              this.simulation.alphaTarget(0.7).restart()
+              node.fx = d3.event.x
+              node.fy = d3.event.y
+            }
+          })
+          .on('end', node => {
+            if (!d3.event.active) {
+              this.simulation.alphaTarget(0)
+            }
+            this.onGraphModified()
+            if (!deadzoneExceeded) {
+              this.onNodeClick(node)
+            }
+          })
       }
     },
     watch: {
@@ -138,14 +180,14 @@
       gravityStrength: function (strength) {
         this.updateGravityStrength(strength)
       },
-      petriNet: function (graph) {
-        console.log('GraphEditor: petriNet changed:')
+      graph: function (graph) {
+        console.log('GraphEditor: graph changed:')
         console.log(graph)
-        /* When petriNet changes, this most likely means that the user changed something in the
+        /* When graph changes, this most likely means that the user changed something in the
          APT editor, causing the APT to be parsed on the server, yielding a new graph.
          And then they hit the button "Send Graph to Editor".
 
-         This would also be fired if the 'petriNet' prop changed in response to any other
+         This would also be fired if the 'graph' prop changed in response to any other
          events, such as after "Load"ing a saved graph in the main App's UI.
 
          In response, we will update the graph that is being edited in the drag-and-drop GUI of
@@ -160,8 +202,8 @@
         saveGraphAPTRequestPreview: {},
         nodeSize: 50,
         exportedGraphJson: {},
-        nodes: this.deepCopy(this.petriNet.nodes),
-        links: this.deepCopy(this.petriNet.links),
+        nodes: this.deepCopy(this.graph.nodes),
+        links: this.deepCopy(this.graph.links),
         svg: undefined,
         linkGroup: undefined,
         linkTextGroup: undefined,
@@ -185,38 +227,24 @@
         repulsionStrength: this.repulsionStrengthDefault,
         linkStrength: this.linkStrengthDefault,
         gravityStrength: this.gravityStrengthDefault,
-        dragDrop: d3.drag()
-          .on('start', node => {
-            node.fx = node.x
-            node.fy = node.y
-          })
-          .on('drag', node => {
-            this.simulation.alphaTarget(0.7).restart()
-            node.fx = d3.event.x
-            node.fy = d3.event.y
-          })
-          .on('end', node => {
-            if (!d3.event.active) {
-              this.simulation.alphaTarget(0)
-            }
-            this.onGraphModified()
-          }),
         onNodeClick: (d) => {
-          d3.event.stopPropagation() // Prevent the click event from reaching all the other elements that overlap the node.
-          d.fx = null
-          d.fy = null
-          this.onGraphModified()
           // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            // Expand or collapse the postset of the State that has been clicked.
+            // Freeze the State's position
+            d.fx = d.x
+            d.fy = d.y
+
             // Save the mouse coordinates so that the new nodes will appear where the user clicked.
-            // In practice, this will be inside of the parent node that is being expanded, which is
-            // what we want, but there may be edge cases where e.g. the user clicks on two nodes
-            // very quickly to expand them both, and the children of both parent nodes may appear
-            // at the location of the second parent.
+            // I.e. at the location of the parent node that is being expanded.
             const mouseCoordinates = d3.mouse(this.svg.node())
             this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
-            // Toggle the state of the node (hiding/showing its postset) (assuming the event is appropriately bound in our parent)
-            this.$emit('expandOrCollapseState', d.id)
+            // Toggle whether the postset of this State is visible
+            this.$emit('toggleStatePostset', d.id)
+          } else {
+            // I like to be able to unfreeze nodes by clicking on them.
+            d.fx = null
+            d.fy = null
           }
         },
         onNodeRightClick: (d) => {
@@ -225,10 +253,13 @@
           console.log(d)
           // TODO refactor duplicate code?
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            // Freeze the State's position
+            d.fx = d.x
+            d.fy = d.y
             const mouseCoordinates = d3.mouse(this.svg.node())
             this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
-            // Toggle the state of the node (hiding/showing its postset) (assuming the event is appropriately bound in our parent)
-            this.$emit('expandOrCollapseState', d.id)
+            // Toggle whether the preset of this State is visible
+            this.$emit('toggleStatePreset', d.id)
           }
         }
       }
@@ -289,12 +320,12 @@
         })
       },
       saveGraphAsAPT: function () {
+        this.freezeAllNodes()
         // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as value.
         const mapNodeIDXY = this.nodes.reduce(function (map, node) {
           map[node.id] = {
             x: node.x.toFixed(2),
-            y: node.y.toFixed(2),
-            isFixed: node.fx === node.x // TODO Ask Manuel if this should be saved in the APT
+            y: node.y.toFixed(2)
           }
           return map
         }, {})
@@ -396,7 +427,6 @@
         const labelEnter = newLabelElements
           .enter().append('text')
           .call(this.dragDrop)
-          .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
           .attr('text-anchor', 'middle')
         newLabelElements.exit().remove()
@@ -404,18 +434,15 @@
         this.labelElements
           .attr('font-size', 15)
           .attr('font-weight', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && !d.isExpanded) {
-              // isExpanded refers to whether a node's children are being shown in our Graph Game BDD viewer.
-              // For very large BDDs, all nodes start off collapsed and are expanded by clicking on them.
-              // To show if a node has already been clicked on or not, we need some kind of visual
-              // indicator.  I've decided to try making the label of the node bold.
-              // TODO Consider showing a preview of a node's postset upon mouseover
-              return 'bold'
-            } else {
-              return 'normal'
-            }
+            return 'normal'
           })
-          .text(node => node.label)
+          .text(node => {
+            // This code is specifically for Graph Strategy BDDs where the whole BDD is too big to
+            // show at once, so we hide part of the graph at first and explore it by clicking on it
+            const invisibleChildrenMarker = node.hasInvisibleChildren ? '*' : ''
+            const invisibleParentsMarker = node.hasInvisibleParents ? '*' : ''
+            return `${invisibleParentsMarker}${node.label}${invisibleChildrenMarker}`
+          })
 
         // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup
@@ -424,7 +451,6 @@
         const contentEnter = newContentElements
           .enter().append('text')
           .call(this.dragDrop)
-          .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
           .attr('text-anchor', 'middle')
           // TODO Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
@@ -448,7 +474,6 @@
           .data(this.nodes.filter(node => node.isSpecial === true), this.keyFunction)
         const newIsSpecialElements = isSpecialElements.enter().append('circle')
         newIsSpecialElements.call(this.dragDrop)
-          .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
         isSpecialElements.exit().remove()
         this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
@@ -467,7 +492,6 @@
         })
         newNodeElements
           .call(this.dragDrop)
-          .on('click', this.onNodeClick)
           .on('contextmenu', this.onNodeRightClick)
         nodeElements.exit().remove()
         this.nodeElements = nodeElements.merge(newNodeElements)
@@ -647,7 +671,7 @@
         newNodes.forEach(newNode => {
           const nodeIsAlreadyPresent = this.nodes.some(oldNode => oldNode.id === newNode.id)
           if (!nodeIsAlreadyPresent) {
-            // TODO Consider fixing nodes for which "isExpanded" is true.  Right now, nodes tend to
+            // TODO Consider fixing nodes for which "isPostsetExpanded" is true.  Right now, nodes tend to
             // get pushed around in a disorienting way when their children are added to the graph.
             // Randomize the position slightly to stop the nodes from flying away from each other
             newNode.x = this.nodeSpawnPoint.x + (Math.random() - 0.5) * 40

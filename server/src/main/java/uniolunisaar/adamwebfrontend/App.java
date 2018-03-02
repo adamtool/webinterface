@@ -122,7 +122,7 @@ public class App {
             return responseJson.toString();
         });
 
-        post("/expandGraphGameBDDNode", (req, res) -> {
+        post("/toggleGraphGameBDDNodePostset", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -132,7 +132,22 @@ public class App {
             // TODO an informative exception in case the petri game ID is not found in the map.
             // TODO e.g. PetriGameNotFound
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
-            JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNode(stateId);
+            JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNodePostset(stateId);
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("graphGameBDD", graphGameBdd);
+            return responseJson.toString();
+        });
+
+        post("/toggleGraphGameBDDNodePreset", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            int stateId = body.getAsJsonObject().get("stateId").getAsInt();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
+            JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNodePreset(stateId);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
