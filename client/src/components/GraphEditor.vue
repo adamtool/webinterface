@@ -24,6 +24,7 @@
              v-model="gravityStrength">
     </div>
     <div class="graph-editor-toolbar">
+      <button v-on:click="saveGraph">Save SVG</button>
       <button style="margin-right: auto" v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
         Save graph as APT with X/Y coordinates
       </button>
@@ -81,6 +82,7 @@
 
 <script>
   import * as d3 from 'd3'
+  import { saveFileAs } from '@/fileutilities'
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -265,6 +267,11 @@
       }
     },
     methods: {
+      saveGraph: function () {
+        const html = this.svg.node().outerHTML
+        saveFileAs(html, 'graph.svg')
+        console.log(html)
+      },
       // Stop all the nodes from moving.
       freezeAllNodes: function () {
         this.nodes.forEach(node => {
@@ -347,10 +354,9 @@
           .attr('width', '100%')
           .attr('height', '100%')
 
-        // Prevent the right click menu from showing up.
-        this.svg.on('contextmenu', () => {
-          d3.event.preventDefault()
-        })
+        // Add SVG namespace so that SVG can be exported
+        this.svg.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+        this.svg.attr('xmlns', 'http://www.w3.org/2000/svg')
 
         // Define arrows
         this.svg.append('svg:defs').selectAll('marker')
