@@ -24,6 +24,7 @@
              v-model="gravityStrength">
     </div>
     <div class="graph-editor-toolbar">
+      <button v-on:click="autoLayout">Auto-Layout</button>
       <button v-on:click="saveGraph">Save SVG</button>
       <button style="margin-right: auto" v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
         Save graph as APT with X/Y coordinates
@@ -83,6 +84,7 @@
 <script>
   import * as d3 from 'd3'
   import { saveFileAs } from '@/fileutilities'
+  import { layoutNodes } from '@/autoLayout'
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -95,6 +97,7 @@
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
+      this.autoLayout()
     },
     props: {
       graph: {
@@ -267,6 +270,16 @@
       }
     },
     methods: {
+      autoLayout: function () {
+        const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(), this.svgHeight())
+        positionsPromise.then(positions => {
+          this.nodes.forEach(node => {
+            const position = positions[node.id]
+            node.x = position.x
+            node.y = position.y
+          })
+        })
+      },
       saveGraph: function () {
         const html = this.svg.node().outerHTML
         saveFileAs(html, 'graph.svg')

@@ -48,6 +48,9 @@
               <GraphEditor :graph='petriGame.net'
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                           :shouldShowPhysicsControls="true"
+                           :repulsionStrengthDefault="360"
+                           :linkStrengthDefault="0.086"
                            :shouldShowSaveAPTButton="true"/>
             </template>
             <template v-else-if="aptParsingResult.status === 'error'">
