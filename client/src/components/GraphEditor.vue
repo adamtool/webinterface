@@ -24,6 +24,7 @@
              v-model="gravityStrength">
     </div>
     <div class="graph-editor-toolbar">
+      <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout and freeze</button>
       <button v-on:click="autoLayout">Auto-Layout</button>
       <button v-on:click="saveGraph">Save SVG</button>
       <button style="margin-right: auto" v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
@@ -275,8 +276,13 @@
         positionsPromise.then(positions => {
           this.nodes.forEach(node => {
             const position = positions[node.id]
-            node.x = position.x
-            node.y = position.y
+            if (node.fx === node.x) {
+              node.fx = position.x
+              node.fy = position.y
+            } else {
+              node.x = position.x
+              node.y = position.y
+            }
           })
         })
       },
