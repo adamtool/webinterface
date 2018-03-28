@@ -272,6 +272,7 @@
       }
     },
     methods: {
+      // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
         const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(), this.svgHeight())
         positionsPromise.then(positions => {
