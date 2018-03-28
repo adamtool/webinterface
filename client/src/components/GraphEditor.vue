@@ -674,7 +674,7 @@
                     d.target.y - this.calculateNodeHeight(d.target) / 2,
                     d.target.x + this.calculateNodeWidth(d.target) / 2,
                     d.target.y + this.calculateNodeHeight(d.target) / 2,
-                    true
+                    false
                   )
                   return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
                 }
