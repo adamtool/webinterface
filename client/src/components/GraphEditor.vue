@@ -99,7 +99,6 @@
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
-      this.autoLayout()
     },
     props: {
       graph: {
