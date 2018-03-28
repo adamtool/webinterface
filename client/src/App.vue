@@ -266,22 +266,26 @@
         })
       },
       toggleGraphGameStatePostset: function (stateId) {
+        const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.toggleGraphGameBDDNodePostset, {
-          petriGameId: this.petriGame.uuid,
+          petriGameId: uuid,
           stateId: stateId
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.graphGameBDD = response.data.graphGameBDD
+            this.graphGameBDD.uuid = uuid
           })
         })
       },
       toggleGraphGameStatePreset: function (stateId) {
+        const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.toggleGraphGameBDDNodePreset, {
-          petriGameId: this.petriGame.uuid,
+          petriGameId: uuid,
           stateId: stateId
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.graphGameBDD = response.data.graphGameBDD
+            this.graphGameBDD.uuid = uuid
           })
         })
       },
