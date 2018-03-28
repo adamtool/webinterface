@@ -1,6 +1,9 @@
 export {
-  pointOnRect
+  pointOnRect,
+  pointOnCircle
 }
+
+// TODO Find out what the license is for this piece of code.  (I've emailed Rob.)
 /**
  * Finds the intersection point between
  *     * the rectangle
@@ -36,7 +39,7 @@ function pointOnRect (x, y, minX, minY, maxX, maxY, validate) {
   // assert minY <= maxY;
   if (validate && (minX < x && x < maxX) && (minY < y && y < maxY)) {
     throw new Error('Point ' + [x, y] + 'cannot be inside ' +
-    'the rectangle: ' + [minX, minY] + ' - ' + [maxX, maxY] + '.')
+      'the rectangle: ' + [minX, minY] + ' - ' + [maxX, maxY] + '.')
   }
   var midX = (minX + maxX) / 2
   var midY = (minY + maxY) / 2
@@ -68,5 +71,43 @@ function pointOnRect (x, y, minX, minY, maxX, maxY, validate) {
 
   // Should never happen :) If it does, please tell me!
   throw new Error('Cannot find intersection for ' + [x, y] +
-  ' inside rectangle ' + [minX, minY] + ' - ' + [maxX, maxY] + '.')
+    ' inside rectangle ' + [minX, minY] + ' - ' + [maxX, maxY] + '.')
+}
+
+/**
+ * Finds the intersection point between:
+ *     * The circle of radius at (circleCenterX, circleCenterY)
+ *     and
+ *     * The half line going from (x, y) to the center of the circle
+ *
+ * This is only guaranteed to work if (x, y) lies outside of the circle.
+ * If (x, y) is in the circle, it might give some kind of nonsense result, but that's probably OK
+ * as long as we're just using this to draw links between nodes -- if a node is overlapping another
+ * node like that, the link will probably not be visible.
+ *
+ * @param x:Number x coordinate of point to build the half-line from
+ * @param y:Number y coordinate of point to build the half-line from
+ * @param radius:Number the radius of the circle
+ * @param circleCenterX:Number The X coordinate of the center of the circle
+ * @param circleCenterY:Number The Y coordinate of the center of the circle
+ * @param validate:boolean (optional) whether to treat point inside the circle as error
+ * @return an object with x and y members for the intersection
+ * @throws if validate == true and (x,y) is inside the circle
+ */
+function pointOnCircle (x, y, radius, circleCenterX, circleCenterY, validate) {
+  const dx = circleCenterX - x
+  const dy = circleCenterY - y
+  const distance = Math.sqrt(dx * dx + dy * dy)
+  if (validate && distance < radius) {
+    throw new Error('Point ' + [x, y] + 'cannot be inside the circle centered at ' +
+      [circleCenterX, circleCenterY] + ' with radius' + radius + '.')
+  }
+  const normX = dx / distance
+  const normY = dy / distance
+  const targetX = circleCenterX - radius * normX
+  const targetY = circleCenterY - radius * normY
+  return {
+    x: targetX,
+    y: targetY
+  }
 }

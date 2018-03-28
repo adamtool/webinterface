@@ -86,7 +86,7 @@
   import * as d3 from 'd3'
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
-  import { pointOnRect } from '@/shapeIntersections'
+  import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -641,33 +641,26 @@
           // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
           this.linkElements
             .attr('d', d => {
-              const dx = d.target.x - d.source.x
-              const dy = d.target.y - d.source.y
-              const distance = Math.sqrt(dx * dx + dy * dy)
-              // Save the length of the link in order to place a label at its midpoint (see below)
-              d.pathLength = distance
-
               // Straight line for a single edge between two distinct nodes
               // (TODO: Draw arcs for multiple edges and loops (self-edges)
+              let targetPoint
               switch (d.target.type) {
-                // Circles
                 case 'ENVPLACE':
                 case 'SYSPLACE': {
-                  const normX = dx / distance
-                  const normY = dy / distance
-                  const sourcePadding = 0
-                  // TODO refactor to make more explicit: "nodeRadius" is the radius of circular nodes
-                  const targetPadding = this.nodeRadius
-                  const sourceX = d.source.x + sourcePadding * normX
-                  const sourceY = d.source.y + sourcePadding * normY
-                  const targetX = d.target.x - targetPadding * normX
-                  const targetY = d.target.y - targetPadding * normY
-                  return `M${sourceX},${sourceY} L${targetX},${targetY}`
+                  // The target node is a circle.
+                  targetPoint = pointOnCircle(
+                    d.source.x,
+                    d.source.y,
+                    this.nodeRadius,
+                    d.target.x,
+                    d.target.y,
+                    false)
+                  break
                 }
-                // Rectangles
                 case 'TRANSITION':
                 case 'GRAPH_STRATEGY_BDD_STATE': {
-                  const {x: targetX, y: targetY} = pointOnRect(
+                  // The target node is a rectangle.
+                  targetPoint = pointOnRect(
                     d.source.x,
                     d.source.y,
                     d.target.x - this.calculateNodeWidth(d.target) / 2,
@@ -676,9 +669,16 @@
                     d.target.y + this.calculateNodeHeight(d.target) / 2,
                     false
                   )
-                  return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
                 }
               }
+              const targetX = targetPoint['x']
+              const targetY = targetPoint['y']
+              // Save the length of the link in order to place a label at its midpoint (see below)
+              const dx = targetX - d.source.x
+              const dy = targetY - d.source.y
+              d.pathLength = Math.sqrt(dx * dx + dy * dy)
+
+              return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
             })
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
