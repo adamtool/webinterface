@@ -86,6 +86,7 @@
   import * as d3 from 'd3'
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
+  import { pointOnRect } from '@/shapeIntersections'
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -206,7 +207,7 @@
     data () {
       return {
         saveGraphAPTRequestPreview: {},
-        nodeSize: 50,
+        nodeRadius: 27,
         exportedGraphJson: {},
         nodes: this.deepCopy(this.graph.nodes),
         links: this.deepCopy(this.graph.links),
@@ -383,8 +384,7 @@
           .enter().append('svg:marker')    // This section adds in the arrows
           .attr('id', this.arrowheadId)
           .attr('viewBox', '0 -5 10 10')
-          // TODO Make arrowheads work also for nodes of variable sizes
-          .attr('refX', 0)
+          .attr('refX', 10) // This is 10 because the arrow is 10 units long
           .attr('refY', 0)
           .attr('markerWidth', 6)
           .attr('markerHeight', 6)
@@ -503,7 +503,7 @@
         isSpecialElements.exit().remove()
         this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
         this.isSpecialElements
-          .attr('r', this.nodeSize / 2.1)
+          .attr('r', this.nodeRadius * 0.89)
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
@@ -522,7 +522,7 @@
         this.nodeElements = nodeElements.merge(newNodeElements)
         this.nodeElements
           .attr('class', d => `graph-node ${d.type}`)
-          .attr('r', this.nodeSize / 1.85)
+          .attr('r', this.nodeRadius)
           .attr('width', this.calculateNodeWidth)
           .attr('height', this.calculateNodeHeight)
           .attr('stroke', d => {
@@ -644,17 +644,41 @@
               const dx = d.target.x - d.source.x
               const dy = d.target.y - d.source.y
               const distance = Math.sqrt(dx * dx + dy * dy)
-              const normX = dx / distance
-              const normY = dy / distance
-              const sourcePadding = 0
-              const targetPadding = this.calculateNodeOffset(d.target) * 0.9
-              const sourceX = d.source.x + sourcePadding * normX
-              const sourceY = d.source.y + sourcePadding * normY
-              const targetX = d.target.x - targetPadding * normX
-              const targetY = d.target.y - targetPadding * normY
               // Save the length of the link in order to place a label at its midpoint (see below)
               d.pathLength = distance
-              return `M${sourceX},${sourceY} L${targetX},${targetY}`
+
+              // Straight line for a single edge between two distinct nodes
+              // (TODO: Draw arcs for multiple edges and loops (self-edges)
+              switch (d.target.type) {
+                // Circles
+                case 'ENVPLACE':
+                case 'SYSPLACE': {
+                  const normX = dx / distance
+                  const normY = dy / distance
+                  const sourcePadding = 0
+                  // TODO refactor to make more explicit: "nodeRadius" is the radius of circular nodes
+                  const targetPadding = this.nodeRadius
+                  const sourceX = d.source.x + sourcePadding * normX
+                  const sourceY = d.source.y + sourcePadding * normY
+                  const targetX = d.target.x - targetPadding * normX
+                  const targetY = d.target.y - targetPadding * normY
+                  return `M${sourceX},${sourceY} L${targetX},${targetY}`
+                }
+                // Rectangles
+                case 'TRANSITION':
+                case 'GRAPH_STRATEGY_BDD_STATE': {
+                  const {x: targetX, y: targetY} = pointOnRect(
+                    d.source.x,
+                    d.source.y,
+                    d.target.x - this.calculateNodeWidth(d.target) / 2,
+                    d.target.y - this.calculateNodeHeight(d.target) / 2,
+                    d.target.x + this.calculateNodeWidth(d.target) / 2,
+                    d.target.y + this.calculateNodeHeight(d.target) / 2,
+                    true
+                  )
+                  return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
+                }
+              }
             })
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
@@ -760,16 +784,16 @@
       },
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
-          return 125
+          return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
         } else {
-          return this.nodeSize
+          return this.nodeRadius * 2
         }
       },
       calculateNodeHeight: function (d) {
         if (d.content !== undefined) {
-          return 90
+          return 90 // TODO Make height expand to fit text
         } else {
-          return this.nodeSize
+          return this.nodeRadius * 2
         }
       },
       svgWidth: function () {
@@ -798,12 +822,13 @@
       deepCopy: function (object) {
         return JSON.parse(JSON.stringify(object))
       },
+      // TODO Explain what this function is for
       calculateNodeOffset: function (data) {
         if (data.type === 'ENVPLACE') {
           // Node is a circle
-          return this.nodeSize
+          return this.nodeRadius
         } else if (data.type === 'SYSPLACE') {
-          return this.nodeSize
+          return this.nodeRadius
         } else if (data.type === 'TRANSITION') {
           // Node is a rectangle
           return this.calculateNodeHeight(data)
