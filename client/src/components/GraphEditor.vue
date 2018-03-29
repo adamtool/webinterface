@@ -573,6 +573,7 @@
           .data(this.links)
         const linkEnter = newLinkElements
           .enter().append('path')
+          .attr('fill', 'none')
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
           .attr('stroke-width', 3)
@@ -641,8 +642,6 @@
           // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
           this.linkElements
             .attr('d', d => {
-              // Straight line for a single edge between two distinct nodes
-              // (TODO: Draw arcs for multiple edges and loops (self-edges)
               let targetPoint
               switch (d.target.type) {
                 case 'ENVPLACE':
@@ -678,7 +677,51 @@
               const dy = targetY - d.source.y
               d.pathLength = Math.sqrt(dx * dx + dy * dy)
 
-              return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
+              const multipleLinksBetweenNodes = this.links.find(link => link.source === d.target && link.target === d.source)
+              const linkIsLoop = d.target === d.source
+              const isStraightLink = !multipleLinksBetweenNodes && !linkIsLoop
+              if (isStraightLink) {
+                // Straight line for a single edge between two distinct nodes
+                return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
+              } else {
+                // Do a bunch more fun math to make an arc
+                let x1 = d.source.x
+                let y1 = d.source.y
+                let x2 = targetX
+                let y2 = targetY
+                const dx = x2 - x1
+                const dy = y2 - y1
+                const dr = Math.sqrt(dx * dx + dy * dy)
+                // Defaults for normal edge.
+                let drx = dr
+                let dry = dr
+                let xRotation = 0 // degrees
+                let largeArc = 0 // 1 or 0
+                let sweep = 1 // 1 or 0
+
+                // Self edge.
+                if (x1 === x2 && y1 === y2) {
+                  // Fiddle with this angle to get loop oriented.
+                  xRotation = -45
+
+                  // Needs to be 1.
+                  largeArc = 1
+                  // Change sweep to change orientation of loop.
+                  // sweep = 0
+
+                  // Make drx and dry different to get an ellipse
+                  // instead of a circle.
+                  drx = 80
+                  dry = 80
+
+                  // For whatever reason the arc collapses to a point if the beginning
+                  // and ending points of the arc are the same, so kludge it.
+                  // TODO Place the endpoint on the perimeter so the arrowhead shows up
+                  x2 = x2 + 1
+                  y2 = y2 + 1
+                }
+                return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+              }
             })
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
