@@ -14,6 +14,7 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
   },
   "dependencies": {
+    "@hscmap/vue-menu": "^1.5.0",
     "arbor": "^0.7.3",
     "axios": "^0.16.2",
     "bootstrap-vue": "^0.18.0",

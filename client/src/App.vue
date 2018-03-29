@@ -1,25 +1,26 @@
 <template>
   <div id='app'>
-    <div style="margin-bottom: 10px; margin-left: 10px;">
-      <AptExamplePicker v-on:fileSelected='onAptExampleSelected'/>
-      <!--Toolbar row-->
-      <!--TODO Grey out these buttons or something if these things have already been calculated.-->
-      <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-      <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
-      <button type="button" class="btn btn-primary" v-on:click="existsWinningStrategy">
-        Exists winning strategy?
-      </button>
-      <button type="button" class="btn btn-primary" v-on:click="getStrategyBDD">
-        Get Strategy BDD
-      </button>
-      <button type="button" class="btn btn-primary" v-on:click="getGraphStrategyBDD">
-        Get Graph Strategy BDD
-      </button>
-      <button type="button" class="btn btn-primary" v-on:click="getGraphGameBDD">
-        Get Graph Game BDD
-      </button>
-      <!--End toolbar row-->
-    </div>
+    <my-theme>
+      <hsc-menu-bar style="border-radius: 0 0 4pt 0" ref="menubar">
+        <hsc-menu-bar-item label="File">
+          <hsc-menu-item label="New"/>
+        </hsc-menu-bar-item>
+        <hsc-menu-bar-item label="Load example">
+          <hsc-menu-item v-for="(apt, filename) in aptFiles"
+                         :key="filename"
+                         :label="filename"
+                         @click="onAptExampleSelected(apt)">
+          </hsc-menu-item>
+        </hsc-menu-bar-item>
+        <!--TODO Grey out these buttons or something if these things have already been calculated.-->
+        <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
+        <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
+        <hsc-menu-bar-item @click.native="existsWinningStrategy" label="Exists Winning Strategy?"/>
+        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
+        <hsc-menu-bar-item @click.native="getGraphStrategyBDD" label="Get Graph Strategy BDD"/>
+        <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
+      </hsc-menu-bar>
+    </my-theme>
 
     <!--Main flexbox container-->
     <div style="display: flex; flex-direction: row; margin-top: 5px;">
@@ -88,8 +89,9 @@
   </div>
 </template>
 
+
 <script>
-  import AptExamplePicker from '@/components/AptExamplePicker'
+  import aptFiles from '@/aptExamples'
   import AptEditor from '@/components/AptEditor'
   import GraphEditor from '@/components/GraphEditor'
   import Vue from 'vue'
@@ -99,7 +101,11 @@
   import 'izitoast/dist/css/iziToast.min.css'
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
-  import {debounce} from 'underscore'
+  import { debounce } from 'underscore'
+  import * as VueMenu from '@hscmap/vue-menu'
+  import MyVueMenuTheme from '@/menuStyle'
+
+  Vue.use(VueMenu)
 
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
@@ -120,7 +126,7 @@
     components: {
       'AptEditor': AptEditor,
       'GraphEditor': GraphEditor,
-      'AptExamplePicker': AptExamplePicker
+      'my-theme': MyVueMenuTheme
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
@@ -141,6 +147,9 @@
       }
     },
     computed: {
+      aptFiles: function () {
+        return aptFiles
+      },
       petriGame: function () {
         if (this.aptParsingResult.graph) {
           return this.aptParsingResult.graph
@@ -215,6 +224,7 @@
         })
       }, 200),
       existsWinningStrategy: function () {
+        this.$refs.menubar.deactivate()
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
@@ -230,6 +240,7 @@
         })
       },
       getStrategyBDD: function () {
+        this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getStrategyBDD, {
           petriGameId: uuid
@@ -242,6 +253,7 @@
         })
       },
       getGraphStrategyBDD: function () {
+        this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphStrategyBDD, {
           petriGameId: uuid
@@ -254,6 +266,7 @@
         })
       },
       getGraphGameBDD: function () {
+        this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphGameBDD, {
           petriGameId: uuid
@@ -350,11 +363,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
-    margin-top: 20px;
-  }
-
-  .action-buttons {
-    /*text-align: center;*/
   }
 
   .iziToast > .iziToast-body {
