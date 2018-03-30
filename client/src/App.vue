@@ -5,12 +5,9 @@
         <hsc-menu-bar-item label="File">
           <hsc-menu-item label="New"/>
         </hsc-menu-bar-item>
-        <hsc-menu-bar-item label="Load example">
-          <hsc-menu-item v-for="(apt, filename) in aptFiles"
-                         :key="filename"
-                         :label="filename"
-                         @click="onAptExampleSelected(apt)">
-          </hsc-menu-item>
+        <hsc-menu-bar-item label="Examples">
+          <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
+                                  :onAptFileSelected="onAptExampleSelected"/>
         </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
@@ -91,7 +88,7 @@
 
 
 <script>
-  import aptFiles from '@/aptExamples'
+  import aptFileTree from '@/aptExamples'
   import AptEditor from '@/components/AptEditor'
   import GraphEditor from '@/components/GraphEditor'
   import Vue from 'vue'
@@ -103,9 +100,9 @@
   import './tabs-component.css'
   import { debounce } from 'underscore'
   import * as VueMenu from '@hscmap/vue-menu'
-  import MyVueMenuTheme from '@/menuStyle'
 
   Vue.use(VueMenu)
+  import MyVueMenuTheme from '@/menuStyle'
 
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
@@ -114,6 +111,7 @@
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
   import aptExample from './mutex.apt'
+  import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   export default {
     name: 'app',
@@ -124,6 +122,7 @@
       }
     },
     components: {
+      HscMenuBarDirectory, // TODO decide on import style
       'AptEditor': AptEditor,
       'GraphEditor': GraphEditor,
       'my-theme': MyVueMenuTheme
@@ -147,8 +146,9 @@
       }
     },
     computed: {
-      aptFiles: function () {
-        return aptFiles
+      aptFileTree: function () {
+        console.log(aptFileTree)
+        return aptFileTree
       },
       petriGame: function () {
         if (this.aptParsingResult.graph) {
