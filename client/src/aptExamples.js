@@ -21,7 +21,7 @@ function importPath (path, fileContents, tree) {
   const positionSlash = path.indexOf('/')
   if (positionSlash === -1) {
     tree.children.push({
-      type: 'aptFile',
+      type: 'file',
       name: path,
       body: fileContents
     })

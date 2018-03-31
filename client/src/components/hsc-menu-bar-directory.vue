@@ -5,24 +5,24 @@
     <hsc-menu-bar-directory v-for="child in fileTreeNode.children"
                             :key="child.name"
                             :fileTreeNode="child"
-                            :onAptFileSelected="onAptFileSelected"
+                            :callback="callback"
                             :isRoot="false"/>
   </div>
-  <hsc-menu-item v-else-if="fileTreeNode.type === 'aptFile'"
+  <hsc-menu-item v-else-if="fileTreeNode.type === 'file'"
                  :key="fileTreeNode.name"
                  :label="fileTreeNode.name"
-                 @click="onAptFileSelected(fileTreeNode.body)"/>
+                 @click="callback(fileTreeNode.body)"/>
   <hsc-menu-item v-else-if="fileTreeNode.type === 'directory'"
                  :label="fileTreeNode.name">
     <hsc-menu-bar-directory v-for="child in fileTreeNode.children"
                             :key="child.name"
                             :fileTreeNode="child"
-                            :onAptFileSelected="onAptFileSelected"
+                            :callback="callback"
                             :isRoot="false"/>
   </hsc-menu-item>
   <div v-else>
     <hsc-menu-item label="Something went wrong"
-                   @click="onAptFileSelected('APT did not load')">
+                   @click="callback('File did not load')">
       {{ fileTreeNode }}
     </hsc-menu-item>
   </div>
@@ -45,7 +45,7 @@
         type: Object,
         required: true
       },
-      onAptFileSelected: {
+      callback: {
         type: Function,
         required: true
       },

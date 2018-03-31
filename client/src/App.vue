@@ -7,7 +7,7 @@
         </hsc-menu-bar-item>
         <hsc-menu-bar-item label="Examples">
           <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
-                                  :onAptFileSelected="onAptExampleSelected"/>
+                                  :callback="onAptExampleSelected"/>
         </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
