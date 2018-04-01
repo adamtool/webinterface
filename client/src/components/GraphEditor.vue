@@ -446,6 +446,8 @@
        */
       updateD3: function () {
         // Write the IDs/labels of nodes underneath them.
+        // TODO Prevent these from getting covered up by arrowheads.  Maybe add a background.
+        // See https://stackoverflow.com/questions/15500894/background-color-of-text-in-svg
         const newLabelElements = this.labelGroup
           .selectAll('text')
           .data(this.nodes, this.keyFunction)
