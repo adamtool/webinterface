@@ -50,7 +50,9 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   .graph-editor {
-    height: 95vh;
+    /*TODO Make the graph editor use up exactly as much space as is given to it.*/
+    /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/
+    height: 80vh;
     display: flex;
     flex-direction: column;
   }
