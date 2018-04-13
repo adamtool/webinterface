@@ -1,95 +1,138 @@
 <template>
   <div id='app'>
-    <my-theme>
-      <hsc-menu-bar style="border-radius: 0 0 4pt 0" ref="menubar">
-        <hsc-menu-bar-item label="File">
-          <hsc-menu-item label="New"/>
-        </hsc-menu-bar-item>
-        <hsc-menu-bar-item label="Examples">
-          <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
-                                  :callback="onAptExampleSelected"/>
-        </hsc-menu-bar-item>
-        <!--TODO Grey out these buttons or something if these things have already been calculated.-->
-        <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-        <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
-        <hsc-menu-bar-item @click.native="existsWinningStrategy" label="Exists Winning Strategy?"/>
-        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
-        <hsc-menu-bar-item @click.native="getGraphStrategyBDD" label="Get Graph Strategy BDD"/>
-        <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
-      </hsc-menu-bar>
-    </my-theme>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
+          rel="stylesheet">
+    <v-app absolute>
+      <!--<v-toolbar app>-->
+      <!--<v-toolbar-items>-->
 
-    <!--Main flexbox container-->
-    <!--log viewer-->
-    <!--TODO Make it hide-able and look good-->
-    <div id="footer">
-
-      <pre>{{ this.adamMessageLog }}</pre>
-    </div>
-    <!--This is a flexbox row with, from left to right: APT editor, divider, Graph editor-->
-    <div style="display: flex; flex-direction: row; margin-top: 5px;">
-      <div :style="aptEditorStyle">
+      <!--</v-toolbar-items>-->
+      <!--</v-toolbar>-->
+      <v-toolbar app>
+        <v-toolbar-items>
+          <v-btn @click.stop="isAptEditorVisible = !isAptEditorVisible">Toggle APT Editor</v-btn>
+          <v-menu :nudge-width="100">
+            <v-toolbar-title slot="activator">
+              <span>All</span>
+              <v-icon dark>arrow_drop_down</v-icon>
+            </v-toolbar-title>
+            <v-list>
+              <v-list-tile>
+                <v-list-tile-title>
+                  Apples
+                </v-list-tile-title>
+              </v-list-tile>
+              <v-list-tile>
+                <v-list-tile-title>
+                  Bananas
+                </v-list-tile-title>
+              </v-list-tile>
+            </v-list>
+          </v-menu>
+          <!--<v-menu>-->
+          <!--<v-toolbar-title slot="activator">-->
+          <!--<span>File</span>-->
+          <!--<v-icon>arrow_drop_down</v-icon>-->
+          <!--</v-toolbar-title>-->
+          <!--<v-list>-->
+          <!--<v-list-tile>-->
+          <!--<v-list-tile-title v-text="Apples"></v-list-tile-title>-->
+          <!--</v-list-tile>-->
+          <!--<v-list-tile>-->
+          <!--<v-list-tile-title v-text="Bananas"></v-list-tile-title>-->
+          <!--</v-list-tile>-->
+          <!--</v-list>-->
+          <!--</v-menu>-->
+          <my-theme>
+            <hsc-menu-bar style="border-radius: 0 0 4pt 0" ref="menubar">
+              <hsc-menu-bar-item label="File">
+                <hsc-menu-item label="New"/>
+              </hsc-menu-bar-item>
+              <hsc-menu-bar-item label="Examples">
+                <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
+                                        :callback="onAptExampleSelected"/>
+              </hsc-menu-bar-item>
+              <!--TODO Grey out these buttons or something if these things have already been calculated.-->
+              <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
+              <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
+              <hsc-menu-bar-item @click.native="existsWinningStrategy"
+                                 label="Exists Winning Strategy?"/>
+              <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
+              <hsc-menu-bar-item @click.native="getGraphStrategyBDD"
+                                 label="Get Graph Strategy BDD"/>
+              <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
+            </hsc-menu-bar>
+          </my-theme>
+        </v-toolbar-items>
+        <v-spacer/>
+        <v-toolbar-title>Adam Frontend</v-toolbar-title>
+      </v-toolbar>
+      <v-navigation-drawer v-model="isAptEditorVisible" absolute app clipped>
         <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
           APT Editor
         </div>
         <AptEditor :apt='apt'
                    v-on:textEdited='parseAPTToPetriGame'></AptEditor>
-      </div>
-      <div class="flex-column-divider"
-           v-on:click="isAptEditorVisible = !isAptEditorVisible">
-        <div class="text">
-          <template v-if="isAptEditorVisible">Collapse APT editor</template>
-          <template v-else>Show APT editor</template>
-        </div>
-        <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
-      </div>
-      <div class="tab-container" style="flex: 1 1 100%">
-        <tabs>
-          <tab name="Petri Game">
-            <template v-if="!aptParsingResult">
-              <!--The Petri Game will appear here after you type in some APT.-->
-            </template>
-            <template v-else-if="aptParsingResult.status === 'success'">
-              <GraphEditor :graph='petriGame.net'
-                           v-on:graphModified='onGraphModified'
-                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                           :shouldShowPhysicsControls="true"
-                           :repulsionStrengthDefault="360"
-                           :linkStrengthDefault="0.086"
-                           :shouldShowSaveAPTButton="true"/>
-            </template>
-            <template v-else-if="aptParsingResult.status === 'error'">
-              There was an error when we tried to parse the APT:
-              <pre>{{ aptParsingResult.message }}</pre>
-            </template>
-            <template v-else>
-              We got an unexpected response from the server when trying to parse the APT:
-              <pre>{{ aptParsingResult }}</pre>
-            </template>
-          </tab>
-          <tab name="Strategy BDD" v-if="strategyBDD"
-               :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='strategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
-               :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Game BDD" v-if="graphGameBDD"
-               :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='graphGameBDD'
-                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                         :shouldShowPhysicsControls="true"
-                         :repulsionStrengthDefault="415"
-                         :linkStrengthDefault="0.04"
-                         :gravityStrengthDefault="300"></GraphEditor>
-          </tab>
-        </tabs>
-      </div>
-    </div>
-    <!--End main flexbox container-->
+      </v-navigation-drawer>
 
+      <v-content>
+        <v-expansion-panel expand>
+          <v-expansion-panel-content>
+            <div slot="header">Graph viewer</div>
+            <v-card>
+              <tabs>
+                <tab name="Petri Game">
+                  <template v-if="!aptParsingResult">
+                    <!--The Petri Game will appear here after you type in some APT.-->
+                  </template>
+                  <template v-else-if="aptParsingResult.status === 'success'">
+                    <GraphEditor :graph='petriGame.net'
+                                 v-on:graphModified='onGraphModified'
+                                 v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                                 :shouldShowPhysicsControls="true"
+                                 :repulsionStrengthDefault="360"
+                                 :linkStrengthDefault="0.086"
+                                 :shouldShowSaveAPTButton="true"/>
+                  </template>
+                  <template v-else-if="aptParsingResult.status === 'error'">
+                    There was an error when we tried to parse the APT:
+                    <pre>{{ aptParsingResult.message }}</pre>
+                  </template>
+                  <template v-else>
+                    We got an unexpected response from the server when trying to parse the APT:
+                    <pre>{{ aptParsingResult }}</pre>
+                  </template>
+                </tab>
+                <tab name="Strategy BDD" v-if="strategyBDD"
+                     :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
+                  <GraphEditor :graph='strategyBDD'></GraphEditor>
+                </tab>
+                <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
+                     :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
+                  <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
+                </tab>
+                <tab name="Graph Game BDD" v-if="graphGameBDD"
+                     :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
+                  <GraphEditor :graph='graphGameBDD'
+                               v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                               v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                               :shouldShowPhysicsControls="true"
+                               :repulsionStrengthDefault="415"
+                               :linkStrengthDefault="0.04"
+                               :gravityStrengthDefault="300"></GraphEditor>
+                </tab>
+              </tabs>
+            </v-card>
+          </v-expansion-panel-content>
+          <v-expansion-panel-content>
+            <div slot="header">Log</div>
+            <!--log viewer-->
+            <!--TODO Make it hide-able and look good-->
+            <pre>{{ this.adamMessageLog }}</pre>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-content>
+    </v-app>
   </div>
 </template>
 
@@ -107,6 +150,10 @@
   import './tabs-component.css'
   import { debounce } from 'underscore'
   import * as VueMenu from '@hscmap/vue-menu'
+  import Vuetify from 'vuetify'
+
+  Vue.use(Vuetify)
+  import 'vuetify/dist/vuetify.min.css'
 
   Vue.use(VueMenu)
   import MyVueMenuTheme from '@/menuStyle'
@@ -437,6 +484,8 @@
   #footer {
     position: absolute;
     bottom: 30px;
+    height: 300px;
+    overflow: hidden;
     width: 100%;
   }
 </style>
