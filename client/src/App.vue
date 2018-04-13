@@ -12,15 +12,15 @@
         <v-toolbar-items>
           <v-btn @click.stop="isAptEditorVisible = !isAptEditorVisible">Toggle APT Editor</v-btn>
           <v-menu :nudge-width="100">
-            <v-toolbar-title slot="activator">
-              <span>All</span>
+            <v-btn slot="activator">
+              All
               <v-icon dark>arrow_drop_down</v-icon>
-            </v-toolbar-title>
+            </v-btn>
             <v-list>
               <v-list-tile>
-                <v-list-tile-title>
+                <v-list-tile-content>
                   Apples
-                </v-list-tile-title>
+                </v-list-tile-content>
               </v-list-tile>
               <v-list-tile>
                 <v-list-tile-title>
@@ -77,8 +77,7 @@
 
       <v-content>
         <v-expansion-panel expand>
-          <v-expansion-panel-content>
-            <div slot="header">Graph viewer</div>
+          <v-expansion-panel-content value="true">
             <v-card>
               <tabs>
                 <tab name="Petri Game">
