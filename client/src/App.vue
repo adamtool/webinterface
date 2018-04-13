@@ -20,6 +20,13 @@
     </my-theme>
 
     <!--Main flexbox container-->
+    <!--log viewer-->
+    <!--TODO Make it hide-able and look good-->
+    <div id="footer">
+
+      <pre>{{ this.adamMessageLog }}</pre>
+    </div>
+    <!--This is a flexbox row with, from left to right: APT editor, divider, Graph editor-->
     <div style="display: flex; flex-direction: row; margin-top: 5px;">
       <div :style="aptEditorStyle">
         <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
@@ -133,7 +140,7 @@
       // Connect to the server and subscribe to ADAM's log output
       // TODO!!! Stop hard-coding this URL
       const socket = makeWebSocket('ws://localhost:4567/log')
-      socket.$on('message', console.log)
+      socket.$on('message', message => (this.adamMessageLog = this.adamMessageLog + message))
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
@@ -145,7 +152,8 @@
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
-        isAptEditorVisible: true
+        isAptEditorVisible: true,
+        adamMessageLog: ''
       }
     },
     watch: {
@@ -394,6 +402,10 @@
     border-left: 10px solid blue;
   }
 
+  /*TODO Make a version of this that works for vertical layout as well*/
+  /*TODO Refactor so that this can be used as a component w/o making a giant single template*/
+  /*i.e. <vsplit :proportion="0.4"> <vsplitchild></vsplitchild> <vsplitchild></vsplitchild></vsplit>*/
+  /* Instead of having to manually create the flexbox and apply flex attributes to children */
   .flex-column-divider {
     flex: 0 0 45px;
     display: flex;
@@ -420,5 +432,11 @@
     margin: 5px;
     font-size: inherit;
     transition: .2s;
+  }
+
+  #footer {
+    position: absolute;
+    bottom: 30px;
+    width: 100%;
   }
 </style>
