@@ -9,7 +9,12 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.tools.Logger;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.UUID;
@@ -21,6 +26,33 @@ public class App {
         final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
         final Gson gson = new Gson();
         final JsonParser parser = new JsonParser();
+
+        OutputStream outputStream = new OutputStream() {
+            StringBuffer sb = new StringBuffer();
+            boolean shouldPrint = true;
+            @Override
+            public void write(int b) throws IOException {
+                byte bb = (byte)b;
+                String s = new String(new byte[] {bb}, "UTF-8");
+                sb.append(s);
+                shouldPrint = !shouldPrint;
+                if (shouldPrint) {
+                    System.out.print(s);
+                }
+            }
+        };
+        try {
+            PrintStream printStream = new PrintStream(outputStream, true, "UTF-8");
+            Logger.getInstance().setErrorStream(printStream);
+            Logger.getInstance().setShortMessageStream(printStream);
+            Logger.getInstance().setVerboseMessageStream(printStream);
+            Logger.getInstance().setWarningStream(printStream);
+//            Logger.OUTPUT output = Logger.OUTPUT.STREAMS;
+//            Logger.getInstance().setOutput(output);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
 
         staticFiles.location("/static");
         enableCORS();
