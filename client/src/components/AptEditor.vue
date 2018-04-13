@@ -54,6 +54,7 @@
 
 <script>
   //  import * as Vue from 'vue'
+  import {saveFileAs} from '../fileutilities.js'
 
   export default {
     name: 'apt-editor',
@@ -85,21 +86,7 @@
         reader.readAsText(file)
       },
       saveAptToFile: function () {
-        // This function is adapted from https://stackoverflow.com/a/21016088
-        const data = new Blob([this.textEditorContents], {type: 'text/plain'})
-        const textFileUrl = window.URL.createObjectURL(data)
-        const link = document.createElement('a')
-        link.setAttribute('download', 'apt.txt')
-        link.href = textFileUrl
-        document.body.appendChild(link)
-        // wait for the link to be added to the document
-        window.requestAnimationFrame(function () {
-          const event = new MouseEvent('click')
-          link.dispatchEvent(event)
-          document.body.removeChild(link)
-          // Prevent memory leak by revoking the URL after it has been downloaded
-          window.URL.revokeObjectURL(textFileUrl)
-        })
+        saveFileAs(this.textEditorContents, 'apt.txt')
       }
     },
     watch: {

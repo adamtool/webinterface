@@ -14,16 +14,20 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
   },
   "dependencies": {
+    "@hscmap/vue-menu": "^1.5.0",
     "arbor": "^0.7.3",
     "axios": "^0.16.2",
     "bootstrap-vue": "^0.18.0",
+    "cytoscape": "^3.2.9",
+    "cytoscape-cose-bilkent": "^4.0.0",
     "d3": "^4.10.0",
+    "directory-tree-webpack-plugin": "^0.2.0",
     "intersection-observer": "^0.4.2",
     "izitoast": "^1.1.5",
+    "underscore": "^1.8.3",
     "vue": "^2.3.3",
     "vue-router": "^2.6.0",
-    "vue-tabs-component": "^1.3.0",
-    "underscore": "^1.8.3"
+    "vue-tabs-component": "^1.3.0"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.2",

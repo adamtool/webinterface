@@ -24,6 +24,9 @@
              v-model="gravityStrength">
     </div>
     <div class="graph-editor-toolbar">
+      <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout and freeze</button>
+      <button v-on:click="autoLayout">Auto-Layout</button>
+      <button v-on:click="saveGraph">Save SVG</button>
       <button style="margin-right: auto" v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
         Save graph as APT with X/Y coordinates
       </button>
@@ -81,6 +84,9 @@
 
 <script>
   import * as d3 from 'd3'
+  import { saveFileAs } from '@/fileutilities'
+  import { layoutNodes } from '@/autoLayout'
+  import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -200,7 +206,7 @@
     data () {
       return {
         saveGraphAPTRequestPreview: {},
-        nodeSize: 50,
+        nodeRadius: 27,
         exportedGraphJson: {},
         nodes: this.deepCopy(this.graph.nodes),
         links: this.deepCopy(this.graph.links),
@@ -265,6 +271,27 @@
       }
     },
     methods: {
+      // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
+      autoLayout: function () {
+        const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(), this.svgHeight())
+        positionsPromise.then(positions => {
+          this.nodes.forEach(node => {
+            const position = positions[node.id]
+            if (node.fx === node.x) {
+              node.fx = position.x
+              node.fy = position.y
+            } else {
+              node.x = position.x
+              node.y = position.y
+            }
+          })
+        })
+      },
+      saveGraph: function () {
+        const html = this.svg.node().outerHTML
+        saveFileAs(html, 'graph.svg')
+        console.log(html)
+      },
       // Stop all the nodes from moving.
       freezeAllNodes: function () {
         this.nodes.forEach(node => {
@@ -347,10 +374,9 @@
           .attr('width', '100%')
           .attr('height', '100%')
 
-        // Prevent the right click menu from showing up.
-        this.svg.on('contextmenu', () => {
-          d3.event.preventDefault()
-        })
+        // Add SVG namespace so that SVG can be exported
+        this.svg.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+        this.svg.attr('xmlns', 'http://www.w3.org/2000/svg')
 
         // Define arrows
         this.svg.append('svg:defs').selectAll('marker')
@@ -358,8 +384,7 @@
           .enter().append('svg:marker')    // This section adds in the arrows
           .attr('id', this.arrowheadId)
           .attr('viewBox', '0 -5 10 10')
-          // TODO Make arrowheads work also for nodes of variable sizes
-          .attr('refX', 0)
+          .attr('refX', 10) // This is 10 because the arrow is 10 units long
           .attr('refY', 0)
           .attr('markerWidth', 6)
           .attr('markerHeight', 6)
@@ -421,6 +446,8 @@
        */
       updateD3: function () {
         // Write the IDs/labels of nodes underneath them.
+        // TODO Prevent these from getting covered up by arrowheads.  Maybe add a background.
+        // See https://stackoverflow.com/questions/15500894/background-color-of-text-in-svg
         const newLabelElements = this.labelGroup
           .selectAll('text')
           .data(this.nodes, this.keyFunction)
@@ -478,7 +505,7 @@
         isSpecialElements.exit().remove()
         this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
         this.isSpecialElements
-          .attr('r', this.nodeSize / 2.1)
+          .attr('r', this.nodeRadius * 0.89)
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
@@ -497,7 +524,7 @@
         this.nodeElements = nodeElements.merge(newNodeElements)
         this.nodeElements
           .attr('class', d => `graph-node ${d.type}`)
-          .attr('r', this.nodeSize / 1.85)
+          .attr('r', this.nodeRadius)
           .attr('width', this.calculateNodeWidth)
           .attr('height', this.calculateNodeHeight)
           .attr('stroke', d => {
@@ -548,6 +575,7 @@
           .data(this.links)
         const linkEnter = newLinkElements
           .enter().append('path')
+          .attr('fill', 'none')
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
           .attr('stroke-width', 3)
@@ -616,20 +644,86 @@
           // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
           this.linkElements
             .attr('d', d => {
-              const dx = d.target.x - d.source.x
-              const dy = d.target.y - d.source.y
-              const distance = Math.sqrt(dx * dx + dy * dy)
-              const normX = dx / distance
-              const normY = dy / distance
-              const sourcePadding = 0
-              const targetPadding = this.calculateNodeOffset(d.target) * 0.9
-              const sourceX = d.source.x + sourcePadding * normX
-              const sourceY = d.source.y + sourcePadding * normY
-              const targetX = d.target.x - targetPadding * normX
-              const targetY = d.target.y - targetPadding * normY
+              let targetPoint
+              switch (d.target.type) {
+                case 'ENVPLACE':
+                case 'SYSPLACE': {
+                  // The target node is a circle.
+                  targetPoint = pointOnCircle(
+                    d.source.x,
+                    d.source.y,
+                    this.nodeRadius,
+                    d.target.x,
+                    d.target.y,
+                    false)
+                  break
+                }
+                case 'TRANSITION':
+                case 'GRAPH_STRATEGY_BDD_STATE': {
+                  // The target node is a rectangle.
+                  targetPoint = pointOnRect(
+                    d.source.x,
+                    d.source.y,
+                    d.target.x - this.calculateNodeWidth(d.target) / 2,
+                    d.target.y - this.calculateNodeHeight(d.target) / 2,
+                    d.target.x + this.calculateNodeWidth(d.target) / 2,
+                    d.target.y + this.calculateNodeHeight(d.target) / 2,
+                    false
+                  )
+                }
+              }
+              const targetX = targetPoint['x']
+              const targetY = targetPoint['y']
               // Save the length of the link in order to place a label at its midpoint (see below)
-              d.pathLength = distance
-              return `M${sourceX},${sourceY} L${targetX},${targetY}`
+              const dx = targetX - d.source.x
+              const dy = targetY - d.source.y
+              d.pathLength = Math.sqrt(dx * dx + dy * dy)
+
+              const multipleLinksBetweenNodes = this.links.find(link => link.source === d.target && link.target === d.source)
+              const linkIsLoop = d.target === d.source
+              const isStraightLink = !multipleLinksBetweenNodes && !linkIsLoop
+              if (isStraightLink) {
+                // Straight line for a single edge between two distinct nodes
+                return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
+              } else {
+                // Do a bunch more fun math to make an arc
+                let x1 = d.source.x
+                let y1 = d.source.y
+                let x2 = targetX
+                let y2 = targetY
+                const dx = x2 - x1
+                const dy = y2 - y1
+                const dr = Math.sqrt(dx * dx + dy * dy)
+                // Defaults for normal edge.
+                let drx = dr
+                let dry = dr
+                let xRotation = 0 // degrees
+                let largeArc = 0 // 1 or 0
+                let sweep = 1 // 1 or 0
+
+                // Self edge.
+                if (x1 === x2 && y1 === y2) {
+                  // Fiddle with this angle to get loop oriented.
+                  xRotation = -45
+
+                  // Needs to be 1.
+                  largeArc = 1
+                  // Change sweep to change orientation of loop.
+                  // sweep = 0
+
+                  // Make drx and dry different to get an ellipse
+                  // instead of a circle.
+                  drx = 80
+                  dry = 80
+
+                  // For whatever reason the arc collapses to a point if the beginning
+                  // and ending points of the arc are the same, so kludge it.
+                  // TODO Place the endpoint on the perimeter so the arrowhead shows up
+                  x2 = x2 + 1
+                  y2 = y2 + 1
+                }
+                return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+              }
             })
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
@@ -735,16 +829,16 @@
       },
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
-          return 125
+          return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
         } else {
-          return this.nodeSize
+          return this.nodeRadius * 2
         }
       },
       calculateNodeHeight: function (d) {
         if (d.content !== undefined) {
-          return 90
+          return 90 // TODO Make height expand to fit text
         } else {
-          return this.nodeSize
+          return this.nodeRadius * 2
         }
       },
       svgWidth: function () {
@@ -773,12 +867,13 @@
       deepCopy: function (object) {
         return JSON.parse(JSON.stringify(object))
       },
+      // TODO Explain what this function is for
       calculateNodeOffset: function (data) {
         if (data.type === 'ENVPLACE') {
           // Node is a circle
-          return this.nodeSize
+          return this.nodeRadius
         } else if (data.type === 'SYSPLACE') {
-          return this.nodeSize
+          return this.nodeRadius
         } else if (data.type === 'TRANSITION') {
           // Node is a rectangle
           return this.calculateNodeHeight(data)

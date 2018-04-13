@@ -2,6 +2,7 @@ var path = require('path')
 var utils = require('./utils')
 var config = require('../config')
 var vueLoaderConfig = require('./vue-loader.conf')
+var DirectoryTreePlugin = require('directory-tree-webpack-plugin')
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -25,6 +26,13 @@ module.exports = {
       '@': resolve('src')
     }
   },
+  plugins: [
+    new DirectoryTreePlugin({
+      dir: './src/assets/apt-examples',
+      path: './src/assets/apt-examples.json',
+      extensions: /\.apt/
+    })
+  ],
   module: {
     rules: [
       {
