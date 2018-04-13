@@ -27,35 +27,20 @@ public class App {
         final Gson gson = new Gson();
         final JsonParser parser = new JsonParser();
 
-        OutputStream outputStream = new OutputStream() {
-            StringBuffer sb = new StringBuffer();
-            boolean shouldPrint = true;
-            @Override
-            public void write(int b) throws IOException {
-                byte bb = (byte)b;
-                String s = new String(new byte[] {bb}, "UTF-8");
-                sb.append(s);
-                shouldPrint = !shouldPrint;
-                if (shouldPrint) {
-                    System.out.print(s);
-                }
-            }
-        };
-        try {
-            PrintStream printStream = new PrintStream(outputStream, true, "UTF-8");
-            Logger.getInstance().setErrorStream(printStream);
-            Logger.getInstance().setShortMessageStream(printStream);
-            Logger.getInstance().setVerboseMessageStream(printStream);
-            Logger.getInstance().setWarningStream(printStream);
+        // Tell ADAM to send all of its messages to our websocket clients instead of stdout
+        PrintStream printStream = LogWebSocket.getPrintStream();
+        Logger.getInstance().setErrorStream(printStream);
+        Logger.getInstance().setShortMessageStream(printStream);
+        Logger.getInstance().setVerboseMessageStream(printStream);
+        Logger.getInstance().setWarningStream(printStream);
 //            Logger.OUTPUT output = Logger.OUTPUT.STREAMS;
 //            Logger.getInstance().setOutput(output);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+
+        webSocket("/log", LogWebSocket.class);
 
         staticFiles.location("/static");
         enableCORS();
+
 
         get("/hello", (req, res) -> "Hello World");
 
@@ -192,7 +177,8 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
             JsonObject nodesXYCoordinatesJson = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
-            Type type = new TypeToken<Map<String, NodePosition>>() {}.getType();
+            Type type = new TypeToken<Map<String, NodePosition>>() {
+            }.getType();
             Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
 
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
