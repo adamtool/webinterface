@@ -113,6 +113,8 @@
   import aptExample from './mutex.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
+  import makeWebSocket from '@/logWebSocket'
+
   export default {
     name: 'app',
     props: {
@@ -126,6 +128,12 @@
       'AptEditor': AptEditor,
       'GraphEditor': GraphEditor,
       'my-theme': MyVueMenuTheme
+    },
+    created: function () {
+      // Connect to the server and subscribe to ADAM's log output
+      // TODO!!! Stop hard-coding this URL
+      const socket = makeWebSocket('ws://localhost:4567/log')
+      socket.$on('message', console.log)
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
@@ -216,7 +224,7 @@
               this.aptParsingResult = response.data
               break
             default:
-              console.log('response.data.status was not success :(')
+              console.log('response.data.status indicates APT parsing failure.')
               this.aptParsingResult = response.data
               break
           }
