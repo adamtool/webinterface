@@ -1,11 +1,30 @@
 <template>
   <div class="logViewer">
-    <div>Current logging level: {{ logLevel }}</div>
-    <div class="log" ref="logElement">
-      <template v-for="message in messages.filter(m => m.level >= logLevel)">
-        <pre :style="styleOfMessage(message)">{{ formatMessageDate(message.time) }} {{ message.text }}</pre>
-      </template>
-    </div>
+    <v-container fluid>
+      <v-layout row>
+        <v-radio-group v-model="logLevel" row hide-details style="padding-top: 0">
+          <v-flex xs6 md2>
+            <v-radio label="Normal" :value="2"/>
+          </v-flex>
+          <v-flex xs6 md2>
+            <v-radio label="Verbose" :value="1"/>
+          </v-flex>
+          <v-flex xs6 md2>
+            <v-checkbox label="Show client log" v-model="showClientMessages"/>
+          </v-flex>
+          <v-flex xs6 md2>
+            <v-checkbox label="Show server log" v-model="showServerMessages"/>
+          </v-flex>
+        </v-radio-group>
+      </v-layout>
+      <v-layout row>
+        <div class="log" ref="logElement">
+          <template v-for="message in visibleMessages">
+            <pre :style="styleOfMessage(message)">{{ formatMessageDate(message.time) }} {{ message.text }}</pre>
+          </template>
+        </div>
+      </v-layout>
+    </v-container>
   </div>
 
 </template>
@@ -32,8 +51,21 @@
     },
     data () {
       return {
-        logLevel: 2
+        logLevel: 2,
+        showClientMessages: true,
+        showServerMessages: true
       }
+    },
+    computed: {
+      visibleMessages: function () {
+        return this.messages.filter(m => {
+          const isSourceVisible = (m.source === 'client' && this.showClientMessages) ||
+            (m.source === 'server' && this.showServerMessages)
+          const isLogLevelVisible = m.level >= this.logLevel
+          return isLogLevelVisible && isSourceVisible
+        })
+      }
+
     },
     mounted: function () {
       this.scrollToBottom()
@@ -67,7 +99,7 @@
 
 <style scoped>
   .logViewer {
-    display: block;
+    /*display: block;*/
     height: 350px;
   }
 
