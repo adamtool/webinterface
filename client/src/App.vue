@@ -128,8 +128,8 @@
     },
     created: function () {
       // Connect to the server and subscribe to ADAM's log output
-      // TODO!!! Stop hard-coding this URL
-      const socket = makeWebSocket('ws://localhost:4567/log')
+      // TODO Capture the error and display it in the log on screen if the websocket fails to open
+      const socket = makeWebSocket(this.webSocketUrl)
       socket.$on('message', message => this.messageLog.push({
         source: 'server',
         level: '2', // TODO Handle levels (Warning, Error, Verbose, ...)
@@ -190,6 +190,23 @@
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
           convertAptToGraph: this.baseUrl + '/convertAptToGraph'
+        }
+      },
+      webSocketUrl: function () {
+        if (this.baseUrl === '') { // This means that we are running in production, with relative URLs
+          const loc = window.location
+          let newUri
+          if (loc.protocol === 'https:') {
+            newUri = 'wss:'
+          } else if (loc.protocol === 'http:') {
+            newUri = 'ws:'
+          } else {
+            throw new Error('Error constructing the URL to use for our websocket connection.  ' +
+              'Couldn\'t recognize the protocol string in window.location: ' + window.location)
+          }
+          return `${newUri}//${loc.host}/log`
+        } else { // We are running in development mode with a hard-coded URL.  See main-dev.js
+          return this.baseUrl.replace('http:', 'ws:').replace('https:', 'ws:') + '/log'
         }
       }
     },
