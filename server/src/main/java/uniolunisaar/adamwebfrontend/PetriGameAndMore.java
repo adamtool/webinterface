@@ -13,6 +13,7 @@ import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Represents a Petri Game, plus all of the artifacts related to it that we might want to produce.
@@ -34,6 +35,33 @@ public class PetriGameAndMore {
 
     public static PetriGameAndMore of(PetriGame petriGame) {
         return new PetriGameAndMore(petriGame);
+    }
+
+    /**
+     * This is a workaround for a "feature" in ADAM.  Right now, the X/Y coordinates stored in a
+     * Petri Game can be accidentally copied over into its Strategy BDD.  This ends up with the
+     * undesirable result that multiple Strategy BDD places end up placed directly on top of each
+     * other.
+     *
+     * E.g. In the original Petri Game, you have a Place named "Env".
+     * In the Strategy BDD, you may have multiple Places named "Env_0", "Env_3", ...
+     * These would all be placed in the exact same place, perfectly overlapping.  You might not even
+     * know they were there.
+     *
+     * To stop that problem from happening, this method should be used to remove the
+     * X/Y coordinate annotations from a Strategy BDD before sending it to the client.
+     * @param strategyBDD
+     */
+    private static void removeXAndYCoordinates(PetriNet strategyBDD) {
+        Set<uniol.apt.adt.pn.Node> nodes = strategyBDD.getNodes();
+        for (uniol.apt.adt.pn.Node node : nodes) {
+            if (AdamExtensions.hasXCoord(node)) {
+                node.removeExtension(AdamExtensions.Extensions.xCoord.name());
+            }
+            if (AdamExtensions.hasYCoord(node)) {
+                node.removeExtension(AdamExtensions.Extensions.yCoord.name());
+            }
+        }
     }
 
     /**
@@ -73,6 +101,7 @@ public class PetriGameAndMore {
             strategyBDD = this.strategyBDD.get();
         } else {
             strategyBDD = Adam.getStrategyBDD(this.petriGame.getNet());
+            removeXAndYCoordinates(strategyBDD);
             this.strategyBDD = Optional.of(strategyBDD);
         }
         return PetriNetD3.of(strategyBDD);
