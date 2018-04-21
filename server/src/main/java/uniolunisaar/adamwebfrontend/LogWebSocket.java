@@ -29,8 +29,17 @@ public class LogWebSocket {
             String s = new String(new byte[]{bb}, "UTF-8");
             sb.append(s);
             System.out.print(s);
+            if (b == '\n') {
+                this.flush();
+            }
+        }
+
+        @Override
+        public void flush() throws IOException {
+            String message = sb.toString();
+            sb.setLength(0);
             for (Session session : sessions) {
-                session.getRemote().sendString(s);
+                session.getRemote().sendString(message);
             }
         }
     };
@@ -46,7 +55,7 @@ public class LogWebSocket {
     // TODO Figure out how to handle multiple users.  Not everyone should see everyone else's output.
     private static PrintStream initPrintStream() {
         try {
-            return new PrintStream(outputStream, true, "UTF-8");
+            return new PrintStream(outputStream, false, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             System.out.println("Had a problem initializing the print stream for ADAM's Logging " +
                     "functionality: This system doesn't support the encoding UTF-8.  " +

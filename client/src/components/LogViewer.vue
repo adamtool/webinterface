@@ -1,9 +1,9 @@
 <template>
   <div class="logViewer">
     <div>Current logging level: {{ logLevel }}</div>
-    <div class="log">
+    <div class="log" ref="logElement">
       <template v-for="message in messages.filter(m => m.level >= logLevel)">
-        <pre :style="styleOfMessage(message)">{{ message.text }}</pre>
+        <pre :style="styleOfMessage(message)">{{ formatMessageDate(message.time) }} {{ message.text }}</pre>
       </template>
     </div>
   </div>
@@ -11,6 +11,9 @@
 </template>
 
 <script>
+  import { format } from 'date-fns'
+  import Vue from 'vue'
+
   export default {
     name: 'log-viewer',
     props: {
@@ -32,6 +35,9 @@
         logLevel: 2
       }
     },
+    mounted: function () {
+      this.scrollToBottom()
+    },
     methods: {
       styleOfMessage: function (message) {
         const colorsOfSources = {
@@ -39,6 +45,21 @@
           client: '#003377'
         }
         return `color: ${colorsOfSources[message.source]}`
+      },
+      formatMessageDate: function (date) {
+        return format(date, 'YYYY-MM-DD HH:mm:ss')
+      },
+      scrollToBottom: function () {
+        // We must wait until Vue updates the DOM in order to scroll to the true bottom of the log.
+        Vue.nextTick(() => {
+          const div = this.$refs.logElement
+          div.scrollTop = div.scrollHeight
+        })
+      }
+    },
+    watch: {
+      messages: function () {
+        this.scrollToBottom()
       }
     }
   }
@@ -55,6 +76,10 @@
     height: 300px;
     width: 100%;
     overflow: scroll;
+  }
+
+  .log pre {
+    margin-bottom: 0;
   }
 
 </style>
