@@ -3,11 +3,6 @@
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
           rel="stylesheet">
     <v-app absolute>
-      <!--<v-toolbar app>-->
-      <!--<v-toolbar-items>-->
-
-      <!--</v-toolbar-items>-->
-      <!--</v-toolbar>-->
       <v-toolbar app>
         <v-toolbar-items style="margin-left: 0">
           <v-btn @click.stop="isAptEditorVisible = !isAptEditorVisible">Toggle APT Editor</v-btn>
@@ -67,7 +62,7 @@
         <v-spacer/>
         <v-toolbar-title>Adam Frontend</v-toolbar-title>
       </v-toolbar>
-      <v-navigation-drawer v-model="isAptEditorVisible" absolute app clipped>
+      <v-navigation-drawer v-model="isAptEditorVisible" absolute app >
         <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
           APT Editor
         </div>
