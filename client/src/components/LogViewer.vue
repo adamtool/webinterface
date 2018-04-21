@@ -1,10 +1,11 @@
 <template>
   <div class="logViewer">
     <div>Current logging level: {{ logLevel }}</div>
-    <template v-for="message in messages.filter(m => m.level >= logLevel)">
-      <pre :style="styleOfMessage(message)">{{ message.text }}</pre>
-    </template>
-
+    <div class="log">
+      <template v-for="message in messages.filter(m => m.level >= logLevel)">
+        <pre :style="styleOfMessage(message)">{{ message.text }}</pre>
+      </template>
+    </div>
   </div>
 
 </template>
@@ -45,6 +46,11 @@
 
 <style scoped>
   .logViewer {
+    display: block;
+    height: 350px;
+  }
+
+  .log {
     display: block;
     height: 300px;
     width: 100%;
