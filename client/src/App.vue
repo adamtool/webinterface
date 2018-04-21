@@ -9,7 +9,7 @@
       <!--</v-toolbar-items>-->
       <!--</v-toolbar>-->
       <v-toolbar app>
-        <v-toolbar-items>
+        <v-toolbar-items style="margin-left: 0">
           <v-btn @click.stop="isAptEditorVisible = !isAptEditorVisible">Toggle APT Editor</v-btn>
           <v-menu :nudge-width="100">
             <v-btn slot="activator">
@@ -76,50 +76,48 @@
       </v-navigation-drawer>
 
       <v-content>
-        <v-card>
-          <tabs>
-            <tab name="Petri Game">
-              <template v-if="!aptParsingResult">
-                <!--The Petri Game will appear here after you type in some APT.-->
-              </template>
-              <template v-else-if="aptParsingResult.status === 'success'">
-                <GraphEditor :graph='petriGame.net'
-                             v-on:graphModified='onGraphModified'
-                             v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                             :shouldShowPhysicsControls="true"
-                             :repulsionStrengthDefault="360"
-                             :linkStrengthDefault="0.086"
-                             :shouldShowSaveAPTButton="true"/>
-              </template>
-              <template v-else-if="aptParsingResult.status === 'error'">
-                There was an error when we tried to parse the APT:
-                <pre>{{ aptParsingResult.message }}</pre>
-              </template>
-              <template v-else>
-                We got an unexpected response from the server when trying to parse the APT:
-                <pre>{{ aptParsingResult }}</pre>
-              </template>
-            </tab>
-            <tab name="Strategy BDD" v-if="strategyBDD"
-                 :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='strategyBDD'></GraphEditor>
-            </tab>
-            <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
-                 :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
-            </tab>
-            <tab name="Graph Game BDD" v-if="graphGameBDD"
-                 :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='graphGameBDD'
-                           v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                           v-on:toggleStatePreset='toggleGraphGameStatePreset'
+        <tabs>
+          <tab name="Petri Game">
+            <template v-if="!aptParsingResult">
+              <!--The Petri Game will appear here after you type in some APT.-->
+            </template>
+            <template v-else-if="aptParsingResult.status === 'success'">
+              <GraphEditor :graph='petriGame.net'
+                           v-on:graphModified='onGraphModified'
+                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            :shouldShowPhysicsControls="true"
-                           :repulsionStrengthDefault="415"
-                           :linkStrengthDefault="0.04"
-                           :gravityStrengthDefault="300"></GraphEditor>
-            </tab>
-          </tabs>
-        </v-card>
+                           :repulsionStrengthDefault="360"
+                           :linkStrengthDefault="0.086"
+                           :shouldShowSaveAPTButton="true"/>
+            </template>
+            <template v-else-if="aptParsingResult.status === 'error'">
+              There was an error when we tried to parse the APT:
+              <pre>{{ aptParsingResult.message }}</pre>
+            </template>
+            <template v-else>
+              We got an unexpected response from the server when trying to parse the APT:
+              <pre>{{ aptParsingResult }}</pre>
+            </template>
+          </tab>
+          <tab name="Strategy BDD" v-if="strategyBDD"
+               :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
+            <GraphEditor :graph='strategyBDD'></GraphEditor>
+          </tab>
+          <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
+               :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
+            <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
+          </tab>
+          <tab name="Graph Game BDD" v-if="graphGameBDD"
+               :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
+            <GraphEditor :graph='graphGameBDD'
+                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                         :shouldShowPhysicsControls="true"
+                         :repulsionStrengthDefault="415"
+                         :linkStrengthDefault="0.04"
+                         :gravityStrengthDefault="300"></GraphEditor>
+          </tab>
+        </tabs>
         <LogViewer :messages="messageLog"/>
         <!--<v-expansion-panel-content>-->
         <!--<div slot="header">Log</div>-->
