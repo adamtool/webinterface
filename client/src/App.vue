@@ -3,42 +3,6 @@
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
           rel="stylesheet">
     <v-app absolute>
-      <v-toolbar app style="display: none">
-        <v-toolbar-items style="margin-left: 0">
-          <v-btn @click.stop="isAptEditorVisible = !isAptEditorVisible">Toggle APT Editor</v-btn>
-          <v-menu :nudge-width="100">
-            <v-btn slot="activator">
-              File
-              <v-icon dark>arrow_drop_down</v-icon>
-            </v-btn>
-            <v-list>
-              <v-list-tile @click="">
-                <v-list-tile-title>
-                  Load Example
-                </v-list-tile-title>
-              </v-list-tile>
-              <v-list-tile @click="">
-                <v-list-tile-title>
-                  Load APT from file
-                </v-list-tile-title>
-              </v-list-tile>
-              <v-list-tile @click="">
-                <v-list-tile-title>
-                  Save APT to file
-                </v-list-tile-title>
-              </v-list-tile>
-              <v-list-tile @click="">
-                <v-list-tile-title>
-                  Save SVG
-                </v-list-tile-title>
-              </v-list-tile>
-            </v-list>
-          </v-menu>
-          <!---->
-        </v-toolbar-items>
-        <v-spacer/>
-        <v-toolbar-title>Adam Frontend</v-toolbar-title>
-      </v-toolbar>
       <my-theme>
         <hsc-menu-bar :style="menuBarStyle" ref="menubar">
           <hsc-menu-bar-item label="File">
