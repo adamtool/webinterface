@@ -76,60 +76,57 @@
       </v-navigation-drawer>
 
       <v-content>
-        <v-expansion-panel expand>
-          <v-expansion-panel-content value="true">
-            <v-card>
-              <tabs>
-                <tab name="Petri Game">
-                  <template v-if="!aptParsingResult">
-                    <!--The Petri Game will appear here after you type in some APT.-->
-                  </template>
-                  <template v-else-if="aptParsingResult.status === 'success'">
-                    <GraphEditor :graph='petriGame.net'
-                                 v-on:graphModified='onGraphModified'
-                                 v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                                 :shouldShowPhysicsControls="true"
-                                 :repulsionStrengthDefault="360"
-                                 :linkStrengthDefault="0.086"
-                                 :shouldShowSaveAPTButton="true"/>
-                  </template>
-                  <template v-else-if="aptParsingResult.status === 'error'">
-                    There was an error when we tried to parse the APT:
-                    <pre>{{ aptParsingResult.message }}</pre>
-                  </template>
-                  <template v-else>
-                    We got an unexpected response from the server when trying to parse the APT:
-                    <pre>{{ aptParsingResult }}</pre>
-                  </template>
-                </tab>
-                <tab name="Strategy BDD" v-if="strategyBDD"
-                     :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
-                  <GraphEditor :graph='strategyBDD'></GraphEditor>
-                </tab>
-                <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
-                     :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
-                  <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
-                </tab>
-                <tab name="Graph Game BDD" v-if="graphGameBDD"
-                     :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
-                  <GraphEditor :graph='graphGameBDD'
-                               v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                               v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                               :shouldShowPhysicsControls="true"
-                               :repulsionStrengthDefault="415"
-                               :linkStrengthDefault="0.04"
-                               :gravityStrengthDefault="300"></GraphEditor>
-                </tab>
-              </tabs>
-            </v-card>
-          </v-expansion-panel-content>
-          <v-expansion-panel-content>
-            <div slot="header">Log</div>
-            <!--log viewer-->
-            <!--TODO Make it hide-able and look good-->
-            <pre>{{ this.adamMessageLog }}</pre>
-          </v-expansion-panel-content>
-        </v-expansion-panel>
+        <v-card>
+          <tabs>
+            <tab name="Petri Game">
+              <template v-if="!aptParsingResult">
+                <!--The Petri Game will appear here after you type in some APT.-->
+              </template>
+              <template v-else-if="aptParsingResult.status === 'success'">
+                <GraphEditor :graph='petriGame.net'
+                             v-on:graphModified='onGraphModified'
+                             v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                             :shouldShowPhysicsControls="true"
+                             :repulsionStrengthDefault="360"
+                             :linkStrengthDefault="0.086"
+                             :shouldShowSaveAPTButton="true"/>
+              </template>
+              <template v-else-if="aptParsingResult.status === 'error'">
+                There was an error when we tried to parse the APT:
+                <pre>{{ aptParsingResult.message }}</pre>
+              </template>
+              <template v-else>
+                We got an unexpected response from the server when trying to parse the APT:
+                <pre>{{ aptParsingResult }}</pre>
+              </template>
+            </tab>
+            <tab name="Strategy BDD" v-if="strategyBDD"
+                 :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='strategyBDD'></GraphEditor>
+            </tab>
+            <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
+                 :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
+            </tab>
+            <tab name="Graph Game BDD" v-if="graphGameBDD"
+                 :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='graphGameBDD'
+                           v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                           v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                           :shouldShowPhysicsControls="true"
+                           :repulsionStrengthDefault="415"
+                           :linkStrengthDefault="0.04"
+                           :gravityStrengthDefault="300"></GraphEditor>
+            </tab>
+          </tabs>
+        </v-card>
+        <LogViewer :messages="messageLog"/>
+        <!--<v-expansion-panel-content>-->
+        <!--<div slot="header">Log</div>-->
+        <!--log viewer-->
+        <!--TODO Make it hide-able and look good-->
+        <!--<pre>{{ this.messageLog }}</pre>-->
+        <!--</v-expansion-panel-content>-->
       </v-content>
     </v-app>
   </div>
@@ -140,6 +137,7 @@
   import aptFileTree from '@/aptExamples'
   import AptEditor from '@/components/AptEditor'
   import GraphEditor from '@/components/GraphEditor'
+  import LogViewer from '@/components/LogViewer'
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
@@ -163,7 +161,7 @@
   Vue.use(BootstrapVue)
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
-  import aptExample from './mutex.apt'
+  import aptExample from './verySmallExample.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
@@ -180,13 +178,19 @@
       HscMenuBarDirectory, // TODO decide on import style
       'AptEditor': AptEditor,
       'GraphEditor': GraphEditor,
-      'my-theme': MyVueMenuTheme
+      'my-theme': MyVueMenuTheme,
+      'LogViewer': LogViewer
     },
     created: function () {
       // Connect to the server and subscribe to ADAM's log output
       // TODO!!! Stop hard-coding this URL
       const socket = makeWebSocket('ws://localhost:4567/log')
-      socket.$on('message', message => (this.adamMessageLog = this.adamMessageLog + message))
+      socket.$on('message', message => this.messageLog.push({
+        source: 'server',
+        level: 'n/a', // TODO Handle levels (Warning, Error, Verbose, ...)
+        time: new Date(),
+        text: message
+      }))
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
@@ -199,7 +203,7 @@
         graphStrategyBDD: null,
         graphGameBDD: null,
         isAptEditorVisible: true,
-        adamMessageLog: ''
+        messageLog: []
       }
     },
     watch: {
