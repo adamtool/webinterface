@@ -3,66 +3,63 @@
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
           rel="stylesheet">
     <v-app absolute>
-      <v-toolbar app>
-        <v-toolbar-items style="margin-left: 0">
-          <v-btn @click.stop="isAptEditorVisible = !isAptEditorVisible">Toggle APT Editor</v-btn>
-          <v-menu :nudge-width="100">
-            <v-btn slot="activator">
-              All
-              <v-icon dark>arrow_drop_down</v-icon>
-            </v-btn>
-            <v-list>
-              <v-list-tile>
-                <v-list-tile-content>
-                  Apples
-                </v-list-tile-content>
-              </v-list-tile>
-              <v-list-tile>
-                <v-list-tile-title>
-                  Bananas
-                </v-list-tile-title>
-              </v-list-tile>
-            </v-list>
-          </v-menu>
-          <!--<v-menu>-->
-          <!--<v-toolbar-title slot="activator">-->
-          <!--<span>File</span>-->
-          <!--<v-icon>arrow_drop_down</v-icon>-->
-          <!--</v-toolbar-title>-->
-          <!--<v-list>-->
-          <!--<v-list-tile>-->
-          <!--<v-list-tile-title v-text="Apples"></v-list-tile-title>-->
-          <!--</v-list-tile>-->
-          <!--<v-list-tile>-->
-          <!--<v-list-tile-title v-text="Bananas"></v-list-tile-title>-->
-          <!--</v-list-tile>-->
-          <!--</v-list>-->
-          <!--</v-menu>-->
-          <my-theme>
-            <hsc-menu-bar style="border-radius: 0 0 4pt 0" ref="menubar">
-              <hsc-menu-bar-item label="File">
-                <hsc-menu-item label="New"/>
-              </hsc-menu-bar-item>
-              <hsc-menu-bar-item label="Examples">
-                <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
-                                        :callback="onAptExampleSelected"/>
-              </hsc-menu-bar-item>
-              <!--TODO Grey out these buttons or something if these things have already been calculated.-->
-              <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-              <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
-              <hsc-menu-bar-item @click.native="existsWinningStrategy"
-                                 label="Exists Winning Strategy?"/>
-              <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
-              <hsc-menu-bar-item @click.native="getGraphStrategyBDD"
-                                 label="Get Graph Strategy BDD"/>
-              <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
-            </hsc-menu-bar>
-          </my-theme>
-        </v-toolbar-items>
-        <v-spacer/>
-        <v-toolbar-title>Adam Frontend</v-toolbar-title>
+      <v-toolbar app style="display: none">
+      <v-toolbar-items style="margin-left: 0">
+      <v-btn @click.stop="isAptEditorVisible = !isAptEditorVisible">Toggle APT Editor</v-btn>
+      <v-menu :nudge-width="100">
+      <v-btn slot="activator">
+      File
+      <v-icon dark>arrow_drop_down</v-icon>
+      </v-btn>
+      <v-list>
+      <v-list-tile @click="">
+      <v-list-tile-title>
+      Load Example
+      </v-list-tile-title>
+      </v-list-tile>
+      <v-list-tile @click="">
+      <v-list-tile-title>
+      Load APT from file
+      </v-list-tile-title>
+      </v-list-tile>
+      <v-list-tile @click="">
+      <v-list-tile-title>
+      Save APT to file
+      </v-list-tile-title>
+      </v-list-tile>
+      <v-list-tile @click="">
+      <v-list-tile-title>
+      Save SVG
+      </v-list-tile-title>
+      </v-list-tile>
+      </v-list>
+      </v-menu>
+<!---->
+      </v-toolbar-items>
+      <v-spacer/>
+      <v-toolbar-title>Adam Frontend</v-toolbar-title>
       </v-toolbar>
-      <v-navigation-drawer v-model="isAptEditorVisible" absolute app >
+      <my-theme>
+        <!--<hsc-menu-bar :style="`border-radius: 0 0 4pt 0; paddingLeft: 300px;`" ref="menubar">-->
+          <hsc-menu-bar-item label="File">
+            <hsc-menu-item label="New"/>
+          </hsc-menu-bar-item>
+          <hsc-menu-bar-item label="Examples">
+            <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
+                                    :callback="onAptExampleSelected"/>
+          </hsc-menu-bar-item>
+          <!--TODO Grey out these buttons or something if these things have already been calculated.-->
+          <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
+          <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
+          <hsc-menu-bar-item @click.native="existsWinningStrategy"
+                             label="Exists Winning Strategy?"/>
+          <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
+          <hsc-menu-bar-item @click.native="getGraphStrategyBDD"
+                             label="Get Graph Strategy BDD"/>
+          <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
+        </hsc-menu-bar>
+      </my-theme>
+      <v-navigation-drawer v-model="isAptEditorVisible" absolute app>
         <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
           APT Editor
         </div>
