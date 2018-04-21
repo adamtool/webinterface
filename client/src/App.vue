@@ -3,6 +3,10 @@
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
           rel="stylesheet">
     <v-app absolute>
+      <!--<v-toolbar</v-toolbar-items>-->
+      <!--<v-spacer/>-->
+      <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
+      <!--</v-toolbar>-->
       <my-theme>
         <hsc-menu-bar :style="menuBarStyle" ref="menubar">
           <hsc-menu-bar-item label="File">
@@ -34,26 +38,13 @@
       <v-content>
         <tabs>
           <tab name="Petri Game">
-            <template v-if="!aptParsingResult">
-              <!--The Petri Game will appear here after you type in some APT.-->
-            </template>
-            <template v-else-if="aptParsingResult.status === 'success'">
-              <GraphEditor :graph='petriGame.net'
-                           v-on:graphModified='onGraphModified'
-                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                           :shouldShowPhysicsControls="true"
-                           :repulsionStrengthDefault="360"
-                           :linkStrengthDefault="0.086"
-                           :shouldShowSaveAPTButton="true"/>
-            </template>
-            <template v-else-if="aptParsingResult.status === 'error'">
-              There was an error when we tried to parse the APT:
-              <pre>{{ aptParsingResult.message }}</pre>
-            </template>
-            <template v-else>
-              We got an unexpected response from the server when trying to parse the APT:
-              <pre>{{ aptParsingResult }}</pre>
-            </template>
+            <GraphEditor :graph='petriGame.net'
+                         v-on:graphModified='onGraphModified'
+                         v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                         :shouldShowPhysicsControls="true"
+                         :repulsionStrengthDefault="360"
+                         :linkStrengthDefault="0.086"
+                         :shouldShowSaveAPTButton="true"/>
           </tab>
           <tab name="Strategy BDD" v-if="strategyBDD"
                :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
@@ -152,7 +143,13 @@
     data: function () {
       return {
         apt: aptExample,
-        aptParsingResult: {},
+        petriGame: {
+          net: {
+            links: [],
+            nodes: []
+          },
+          uuid: 'abcfakeuuid123'
+        },
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
@@ -172,19 +169,6 @@
       },
       aptFileTree: function () {
         return aptFileTree
-      },
-      petriGame: function () {
-        if (this.aptParsingResult.graph) {
-          return this.aptParsingResult.graph
-        } else {
-          return ({
-            net: {
-              links: [],
-              nodes: []
-            },
-            uuid: 'abcfakeuuid123'
-          })
-        }
       },
       aptEditorStyle: function () {
         if (this.isAptEditorVisible) {
@@ -234,13 +218,16 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              this.log('Received Petri Game from backend.')
-              this.logVerbose(response.data)
-              this.aptParsingResult = response.data
+              this.log('Successfully parsed APT. Received Petri Game from backend.')
+              this.logVerbose(response)
+              this.petriGame = response.data.graph
+              break
+            case 'error':
+              this.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
               break
             default:
-              this.log('Server response: Not successful. APT parsing failed.')
-              this.aptParsingResult = response.data
+              this.log('We got an unexpected response from the server when trying to parse the APT:')
+              this.log(response)
               break
           }
           // TODO handle broken connection to server
