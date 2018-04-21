@@ -681,49 +681,50 @@
               const dy = targetY - d.source.y
               d.pathLength = Math.sqrt(dx * dx + dy * dy)
 
-              const multipleLinksBetweenNodes = this.links.find(link => link.source === d.target && link.target === d.source)
+              // This means source -> target and target -> source are both links
+              const multipleLinksBetweenNodes = this.links.find(link => link !== d && link.source === d.target && link.target === d.source)
               const linkIsLoop = d.target === d.source
               const isStraightLink = !multipleLinksBetweenNodes && !linkIsLoop
               if (isStraightLink) {
                 // Straight line for a single edge between two distinct nodes
                 return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
-              } else {
+              } else if (multipleLinksBetweenNodes) {
                 // Do a bunch more fun math to make an arc
-                let x1 = d.source.x
-                let y1 = d.source.y
-                let x2 = targetX
-                let y2 = targetY
+                const x1 = d.source.x
+                const y1 = d.source.y
+                const x2 = targetX
+                const y2 = targetY
                 const dx = x2 - x1
                 const dy = y2 - y1
                 const dr = Math.sqrt(dx * dx + dy * dy)
                 // Defaults for normal edge.
-                let drx = dr
-                let dry = dr
-                let xRotation = 0 // degrees
-                let largeArc = 0 // 1 or 0
-                let sweep = 1 // 1 or 0
+                const drx = dr
+                const dry = dr
+                const xRotation = 0 // degrees
+                const largeArc = 0 // 1 or 0
+                const sweep = 1 // 1 or 0
 
+                return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+              } else if (linkIsLoop) {
                 // Self edge.
-                if (x1 === x2 && y1 === y2) {
-                  // Fiddle with this angle to get loop oriented.
-                  xRotation = -45
+                // Fiddle with this angle to get loop oriented.
+                const xRotation = 0
 
-                  // Needs to be 1.
-                  largeArc = 1
-                  // Change sweep to change orientation of loop.
-                  // sweep = 0
+                // Needs to be 1.
+                const largeArc = 1
+                // Change sweep to change orientation of loop.
+                const sweep = 0
 
-                  // Make drx and dry different to get an ellipse
-                  // instead of a circle.
-                  drx = 80
-                  dry = 80
+                // Make drx and dry different to get an ellipse
+                // instead of a circle.
+                const drx = 45
+                const dry = 45
 
-                  // For whatever reason the arc collapses to a point if the beginning
-                  // and ending points of the arc are the same, so kludge it.
-                  // TODO Place the endpoint on the perimeter so the arrowhead shows up
-                  x2 = x2 + 1
-                  y2 = y2 + 1
-                }
+                // Place the loop around the upper-right corner of the node.
+                const x1 = d.source.x + this.calculateNodeWidth(d.source) / 2
+                const y1 = d.source.y
+                const x2 = d.source.x
+                const y2 = d.source.y - this.calculateNodeHeight(d.source) / 2
                 return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
               }
             })
