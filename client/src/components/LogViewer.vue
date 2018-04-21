@@ -1,7 +1,8 @@
 <template>
   <div class="logViewer">
-    <template v-for="message in messages">
-      <pre :style="styleOfMessage(message)">{{ message }}</pre>
+    <div>Current logging level: {{ logLevel }}</div>
+    <template v-for="message in messages.filter(m => m.level >= logLevel)">
+      <pre :style="styleOfMessage(message)">{{ message.text }}</pre>
     </template>
 
   </div>
@@ -27,6 +28,7 @@
     },
     data () {
       return {
+        logLevel: 2
       }
     },
     methods: {

@@ -187,7 +187,7 @@
       const socket = makeWebSocket('ws://localhost:4567/log')
       socket.$on('message', message => this.messageLog.push({
         source: 'server',
-        level: 'n/a', // TODO Handle levels (Warning, Error, Verbose, ...)
+        level: '2', // TODO Handle levels (Warning, Error, Verbose, ...)
         time: new Date(),
         text: message
       }))
@@ -213,7 +213,6 @@
     },
     computed: {
       aptFileTree: function () {
-        console.log(aptFileTree)
         return aptFileTree
       },
       petriGame: function () {
@@ -269,7 +268,7 @@
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAPTToPetriGame: debounce(function (apt) {
         this.switchToPetriGameTab()
-        console.log('Sending APT source code to backend.')
+        this.log('Sending APT source code to backend.')
         axios.post(this.restEndpoints.convertAptToGraph, {
           params: {
             apt: apt
@@ -277,12 +276,12 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              console.log('Received graph from backend:')
-              console.log(response.data)
+              this.log('Received Petri Game from backend.')
+              this.logVerbose(response.data)
               this.aptParsingResult = response.data
               break
             default:
-              console.log('response.data.status indicates APT parsing failure.')
+              this.log('Server response: Not successful. APT parsing failed.')
               this.aptParsingResult = response.data
               break
           }
@@ -383,8 +382,8 @@
         })
       },
       onGraphModified: function (graph) {
-        console.log('App: Received graphModified event from graph editor:')
-        console.log(graph)
+        this.logVerbose('App: Received graphModified event from graph editor:')
+        this.logVerbose(graph)
         // TODO: Implement undo/redo.
       },
       onAptExampleSelected: function (apt) {
@@ -418,6 +417,17 @@
           overlayClose: true,
           closeOnEscape: true
         })
+      },
+      log: function (message, level) {
+        this.messageLog.push({
+          source: 'client',
+          level: level === undefined ? 2 : level, // TODO handle log levels
+          time: new Date(),
+          text: message
+        })
+      },
+      logVerbose: function (message) {
+        this.log(message, 1)
       }
     }
   }
