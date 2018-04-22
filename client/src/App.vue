@@ -41,7 +41,7 @@
             <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
           </div>
         </v-flex>
-        <v-flex xs6 md9>
+        <v-flex xs12>
           <tabs>
             <tab name="Petri Game">
               <GraphEditor :graph='petriGame.net'
