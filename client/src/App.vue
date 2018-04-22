@@ -27,7 +27,7 @@
       </hsc-menu-bar>
     </my-theme>
 
-    <div style="display: flex; flex-direction: column; width: 100%; height: 95vh">
+    <div style="display: flex; flex-direction: column; width: 100%; height: 100vh">
       <div style="display: flex; flex-direction: row; flex: 1 1 100%">
         <div class="flex-column-divider"
              v-on:click="isAptEditorVisible = !isAptEditorVisible">
@@ -79,7 +79,7 @@
         </v-flex>
       </div>
       <!--End first row-->
-      <div style="flex: 1 1 100%">
+      <div style="flex: 1 1 0%">
         <LogViewer :messages="messageLog"
                    v-if="isLogVisible"/>
       </div>
@@ -93,10 +93,6 @@
         <div :class="isLogVisible ? 'arrow-down' : 'arrow-up'"></div>
       </div>
     </div>
-    <v-layout>
-      <v-flex xs12>
-      </v-flex>
-    </v-layout>
   </v-app>
 </template>
 

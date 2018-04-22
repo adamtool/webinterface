@@ -107,6 +107,7 @@
 
   .log pre {
     margin-bottom: 0;
+    font-size: 18px;
   }
 
 </style>
