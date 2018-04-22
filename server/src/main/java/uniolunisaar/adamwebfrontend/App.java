@@ -28,11 +28,10 @@ public class App {
         final JsonParser parser = new JsonParser();
 
         // Tell ADAM to send all of its messages to our websocket clients instead of stdout
-        PrintStream printStream = LogWebSocket.getPrintStream();
-        Logger.getInstance().setErrorStream(printStream);
-        Logger.getInstance().setShortMessageStream(printStream);
-        Logger.getInstance().setVerboseMessageStream(printStream);
-        Logger.getInstance().setWarningStream(printStream);
+        Logger.getInstance().setVerboseMessageStream(LogWebSocket.getPrintStreamVerbose());
+        Logger.getInstance().setShortMessageStream(LogWebSocket.getPrintStreamNormal());
+        Logger.getInstance().setWarningStream(LogWebSocket.getPrintStreamWarning());
+        Logger.getInstance().setErrorStream(LogWebSocket.getPrintStreamError());
 //            Logger.OUTPUT output = Logger.OUTPUT.STREAMS;
 //            Logger.getInstance().setOutput(output);
 

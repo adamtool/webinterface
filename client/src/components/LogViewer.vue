@@ -3,10 +3,16 @@
     <div style="flex: 1 1 50px; display: flex; justify-content: center; align-items: center;">
       <v-radio-group v-model="logLevel" row hide-details style="padding-top: 0">
         <v-flex xs6 md2>
+          <v-radio label="Verbose" :value="1"/>
+        </v-flex>
+        <v-flex xs6 md2>
           <v-radio label="Normal" :value="2"/>
         </v-flex>
         <v-flex xs6 md2>
-          <v-radio label="Verbose" :value="1"/>
+          <v-radio label="Warning" :value="3"/>
+        </v-flex>
+        <v-flex xs6 md2>
+          <v-radio label="Error" :value="4"/>
         </v-flex>
         <v-flex xs6 md2>
           <v-checkbox label="Show client log" v-model="showClientMessages"/>

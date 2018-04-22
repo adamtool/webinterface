@@ -151,12 +151,19 @@
       // Connect to the server and subscribe to ADAM's log output
       // TODO Capture the error and display it in the log on screen if the websocket fails to open
       const socket = makeWebSocket(this.webSocketUrl)
-      socket.$on('message', message => this.messageLog.push({
-        source: 'server',
-        level: '2', // TODO Handle levels (Warning, Error, Verbose, ...)
-        time: new Date(),
-        text: message
-      }))
+      socket.$on('message', message => {
+        const messageParsed = JSON.parse(message)
+        const logEntry = {
+          source: 'server',
+          level: messageParsed.level,
+          time: new Date(),
+          text: messageParsed.message
+        }
+        this.messageLog.push(logEntry)
+      })
+      socket.$on('error', error => {
+        this.logError(`Error from websocket: ${error}`)
+      })
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
@@ -244,8 +251,10 @@
           } else if (loc.protocol === 'http:') {
             newUri = 'ws:'
           } else {
-            throw new Error('Error constructing the URL to use for our websocket connection.  ' +
-              'Couldn\'t recognize the protocol string in window.location: ' + window.location)
+            const errorMessage = 'Error constructing the URL to use for our websocket connection.  ' +
+              'Couldn\'t recognize the protocol string in window.location: ' + window.location
+            this.logError(errorMessage)
+            throw new Error(errorMessage)
           }
           return `${newUri}//${loc.host}/log`
         } else { // We are running in development mode with a hard-coded URL.  See main-dev.js
@@ -270,7 +279,7 @@
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAPTToPetriGame: debounce(function (apt) {
         this.switchToPetriGameTab()
-        this.log('Sending APT source code to backend.')
+        this.logVerbose('Sending APT source code to backend.')
         axios.post(this.restEndpoints.convertAptToGraph, {
           params: {
             apt: apt
@@ -278,15 +287,15 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              this.log('Successfully parsed APT. Received Petri Game from backend.')
+              this.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
               this.logVerbose(response)
               this.petriGame = response.data.graph
               break
             case 'error':
-              this.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
+              this.logError(`There was an error when we tried to parse the APT: ${response.data.message}`)
               break
             default:
-              this.log('We got an unexpected response from the server when trying to parse the APT:')
+              this.logError('We got an unexpected response from the server when trying to parse the APT:')
               this.log(response)
               break
           }
@@ -408,9 +417,11 @@
         }
       },
       showErrorNotification (message) {
+        this.logError(message)
         this.showNotification(message, 'red')
       },
       showSuccessNotification (message) {
+        this.log(message)
         this.showNotification(message, 'green')
       },
       showNotification: function (message, color) {
@@ -433,6 +444,9 @@
       },
       logVerbose: function (message) {
         this.log(message, 1)
+      },
+      logError: function (message) {
+        this.log(message, 4)
       }
     }
   }
