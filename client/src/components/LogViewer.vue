@@ -85,7 +85,7 @@
       }
     },
     watch: {
-      messages: function () {
+      visibleMessages: function () {
         this.scrollToBottom()
       }
     }
