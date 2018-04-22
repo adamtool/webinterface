@@ -1,80 +1,96 @@
 <template>
-  <div id='app'>
+  <v-app absolute id='app'>
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
           rel="stylesheet">
-    <v-app absolute>
-      <!--<v-toolbar</v-toolbar-items>-->
-      <!--<v-spacer/>-->
-      <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
-      <!--</v-toolbar>-->
-      <my-theme>
-        <hsc-menu-bar :style="menuBarStyle" ref="menubar">
-          <hsc-menu-bar-item label="File">
-            <hsc-menu-item label="New"/>
-          </hsc-menu-bar-item>
-          <hsc-menu-bar-item label="Examples">
-            <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
-                                    :callback="onAptExampleSelected"/>
-          </hsc-menu-bar-item>
-          <!--TODO Grey out these buttons or something if these things have already been calculated.-->
-          <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-          <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
-          <hsc-menu-bar-item @click.native="existsWinningStrategy"
-                             label="Exists Winning Strategy?"/>
-          <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
-          <hsc-menu-bar-item @click.native="getGraphStrategyBDD"
-                             label="Get Graph Strategy BDD"/>
-          <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
-        </hsc-menu-bar>
-      </my-theme>
-      <v-navigation-drawer v-model="isAptEditorVisible" absolute app>
-        <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
-          APT Editor
-        </div>
-        <AptEditor :apt='apt'
-                   v-on:textEdited='parseAPTToPetriGame'></AptEditor>
-      </v-navigation-drawer>
+    <!--<v-toolbar</v-toolbar-items>-->
+    <!--<v-spacer/>-->
+    <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
+    <!--</v-toolbar>-->
+    <my-theme>
+      <hsc-menu-bar :style="menuBarStyle" ref="menubar">
+        <hsc-menu-bar-item label="File">
+          <hsc-menu-item label="New"/>
+        </hsc-menu-bar-item>
+        <hsc-menu-bar-item label="Examples">
+          <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
+                                  :callback="onAptExampleSelected"/>
+        </hsc-menu-bar-item>
+        <!--TODO Grey out these buttons or something if these things have already been calculated.-->
+        <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
+        <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
+        <hsc-menu-bar-item @click.native="existsWinningStrategy"
+                           label="Exists Winning Strategy?"/>
+        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
+        <hsc-menu-bar-item @click.native="getGraphStrategyBDD"
+                           label="Get Graph Strategy BDD"/>
+        <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
+      </hsc-menu-bar>
+    </my-theme>
 
-      <v-content>
-        <tabs>
-          <tab name="Petri Game">
-            <GraphEditor :graph='petriGame.net'
-                         v-on:graphModified='onGraphModified'
-                         v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                         :shouldShowPhysicsControls="true"
-                         :repulsionStrengthDefault="360"
-                         :linkStrengthDefault="0.086"
-                         :shouldShowSaveAPTButton="true"/>
-          </tab>
-          <tab name="Strategy BDD" v-if="strategyBDD"
-               :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='strategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
-               :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Game BDD" v-if="graphGameBDD"
-               :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='graphGameBDD'
-                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                         :shouldShowPhysicsControls="true"
-                         :repulsionStrengthDefault="415"
-                         :linkStrengthDefault="0.04"
-                         :gravityStrengthDefault="300"></GraphEditor>
-          </tab>
-        </tabs>
-        <LogViewer :messages="messageLog"/>
-        <!--<v-expansion-panel-content>-->
-        <!--<div slot="header">Log</div>-->
-        <!--log viewer-->
-        <!--TODO Make it hide-able and look good-->
-        <!--<pre>{{ this.messageLog }}</pre>-->
-        <!--</v-expansion-panel-content>-->
-      </v-content>
-    </v-app>
-  </div>
+    <v-content>
+      <v-layout>
+        <div class="flex-column-divider"
+             v-on:click="isAptEditorVisible = !isAptEditorVisible">
+          <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
+        </div>
+        <v-flex xs6 md3 v-if="isAptEditorVisible">
+          <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
+            APT Editor
+          </div>
+          <AptEditor :apt='apt'
+                     v-on:textEdited='parseAPTToPetriGame'></AptEditor>
+        </v-flex>
+        <v-flex xs6 md9>
+          <tabs>
+            <tab name="Petri Game">
+              <GraphEditor :graph='petriGame.net'
+                           v-on:graphModified='onGraphModified'
+                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                           :shouldShowPhysicsControls="true"
+                           :repulsionStrengthDefault="360"
+                           :linkStrengthDefault="0.086"
+                           :shouldShowSaveAPTButton="true"/>
+            </tab>
+            <tab name="Strategy BDD" v-if="strategyBDD"
+                 :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='strategyBDD'></GraphEditor>
+            </tab>
+            <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
+                 :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
+            </tab>
+            <tab name="Graph Game BDD" v-if="graphGameBDD"
+                 :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='graphGameBDD'
+                           v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                           v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                           :shouldShowPhysicsControls="true"
+                           :repulsionStrengthDefault="415"
+                           :linkStrengthDefault="0.04"
+                           :gravityStrengthDefault="300"></GraphEditor>
+            </tab>
+          </tabs>
+        </v-flex>
+      </v-layout>
+      <v-layout>
+        <v-flex xs12>
+          <LogViewer :messages="messageLog"
+                     v-if="isLogVisible"/>
+        </v-flex>
+      </v-layout>
+      <v-layout>
+        <div class="row-divider"
+             v-on:click="isLogVisible = !isLogVisible">
+          <div class="text">
+            <template v-if="isLogVisible">Collapse Log</template>
+            <template v-else>Show Log</template>
+          </div>
+          <div :class="isLogVisible ? 'arrow-down' : 'arrow-up'"></div>
+        </div>
+      </v-layout>
+
+    </v-content>
+  </v-app>
 </template>
 
 
@@ -154,6 +170,7 @@
         graphStrategyBDD: null,
         graphGameBDD: null,
         isAptEditorVisible: true,
+        isLogVisible: false,
         messageLog: []
       }
     },
@@ -401,6 +418,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
+    height: 100vh;
   }
 
   .iziToast > .iziToast-body {
@@ -424,6 +442,22 @@
     border-left: 10px solid blue;
   }
 
+  .arrow-up {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid black;
+  }
+
+  .arrow-down {
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 20px solid black;
+  }
+
   /*TODO Make a version of this that works for vertical layout as well*/
   /*TODO Refactor so that this can be used as a component w/o making a giant single template*/
   /*i.e. <vsplit :proportion="0.4"> <vsplitchild></vsplitchild> <vsplitchild></vsplitchild></vsplit>*/
@@ -434,13 +468,25 @@
     justify-content: center;
     align-items: center;
     border: 1px solid lightgray;
-    transition: .2s;
     margin-top: 59px;
+  }
+
+  .row-divider {
+    display: flex;
+    height: 48px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid lightgray;
+  }
+
+  .row-divider:hover {
+    border: 1px solid black;
   }
 
   .flex-column-divider:hover {
     transition: .2s;
-    flex: 0 0 100px;
+    border: 1px solid black;
   }
 
   .flex-column-divider .text {
