@@ -1,47 +1,50 @@
 <template>
-  <div class="graph-editor">
-    <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
-      Repulsion Strength
-      <input type="range" min="30" max="1000" step="1"
-             class="forceStrengthSlider"
-             v-model="repulsionStrength">
-      <input type="number" min="30" max="1000" step="1"
-             class="forceStrengthNumber"
-             v-model="repulsionStrength">
-      Link strength
-      <input type="range" min="0" max="0.2" step="0.001"
-             class="forceStrengthSlider"
-             v-model="linkStrength">
-      <input type="number" min="0" max="0.2" step="0.001"
-             class="forceStrengthNumber"
-             v-model="linkStrength">
-      Gravity strength
-      <input type="range" min="0" max="800" step="1"
-             class="forceStrengthSlider"
-             v-model="gravityStrength">
-      <input type="number" min="0" max="800" step="1"
-             class="forceStrengthNumber"
-             v-model="gravityStrength">
-    </div>
-    <div class="graph-editor-toolbar">
-      <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout and freeze</button>
-      <button v-on:click="autoLayout">Auto-Layout</button>
-      <button v-on:click="saveGraph">Save SVG</button>
-      <button style="margin-right: auto" v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
-        Save graph as APT with X/Y coordinates
-      </button>
-      <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
-        Move all nodes into the visible area
-      </button>
-      <button style="display: none;" v-on:click="updateD3">Update D3</button>
-      <button v-on:click="freezeAllNodes">Freeze all nodes</button>
-      <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+  <div class="graph-editor" :id="rootElementId">
+    <div style="position: absolute;">
+      <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
+        Repulsion Strength
+        <input type="range" min="30" max="1000" step="1"
+               class="forceStrengthSlider"
+               v-model="repulsionStrength">
+        <input type="number" min="30" max="1000" step="1"
+               class="forceStrengthNumber"
+               v-model="repulsionStrength">
+        Link strength
+        <input type="range" min="0" max="0.2" step="0.001"
+               class="forceStrengthSlider"
+               v-model="linkStrength">
+        <input type="number" min="0" max="0.2" step="0.001"
+               class="forceStrengthNumber"
+               v-model="linkStrength">
+        Gravity strength
+        <input type="range" min="0" max="800" step="1"
+               class="forceStrengthSlider"
+               v-model="gravityStrength">
+        <input type="number" min="0" max="800" step="1"
+               class="forceStrengthNumber"
+               v-model="gravityStrength">
+      </div>
+      <div class="graph-editor-toolbar">
+        <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout and freeze</button>
+        <button v-on:click="autoLayout">Auto-Layout</button>
+        <button v-on:click="saveGraph">Save SVG</button>
+        <button style="margin-right: auto" v-if="shouldShowSaveAPTButton"
+                v-on:click="saveGraphAsAPT">
+          Save graph as APT with X/Y coordinates
+        </button>
+        <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
+          Move all nodes into the visible area
+        </button>
+        <button style="display: none;" v-on:click="updateD3">Update D3</button>
+        <button v-on:click="freezeAllNodes">Freeze all nodes</button>
+        <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+      </div>
     </div>
     <div style="height:50px; display:none">
       <pre>{{ this.links }}</pre>
     </div>
 
-    <svg class='graph' :id='this.graphSvgId'>
+    <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
 
     </svg>
   </div>
@@ -52,7 +55,9 @@
   .graph-editor {
     /*TODO Make the graph editor use up exactly as much space as is given to it.*/
     /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/
-    height: 80vh;
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
   }
@@ -89,6 +94,7 @@
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
   import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
+
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -104,6 +110,10 @@
     },
     props: {
       graph: {
+        type: Object,
+        required: true
+      },
+      dimensions: {
         type: Object,
         required: true
       },
@@ -129,6 +139,9 @@
       }
     },
     computed: {
+      rootElementId: function () {
+        return 'graph-editor-' + this._uid
+      },
       graphSvgId: function () {
         return 'graph-' + this._uid
       },
@@ -203,6 +216,10 @@
          */
         this.importGraph(graph)
         this.updateD3()
+      },
+      dimensions: function (dims) {
+        this.svg.attr('width', `${dims.width}px`)
+        // this.svg.attr('height', `${dims.height}px`)
       }
     },
     data () {

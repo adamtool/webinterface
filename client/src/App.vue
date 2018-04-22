@@ -41,10 +41,11 @@
             <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
           </div>
         </v-flex>
-        <v-flex xs12>
+        <v-flex xs12 id="graphEditorTabsFlex">
           <tabs>
             <tab name="Petri Game">
               <GraphEditor :graph='petriGame.net'
+                           :dimensions='graphEditorDimensions'
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            :shouldShowPhysicsControls="true"
@@ -128,6 +129,8 @@
 
   import makeWebSocket from '@/logWebSocket'
 
+  const ResizeSensor = require('css-element-queries/src/ResizeSensor')
+
   export default {
     name: 'app',
     props: {
@@ -156,6 +159,17 @@
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
+      const flexElem = document.getElementById('graphEditorTabsFlex')
+// eslint-disable-next-line no-new
+      new ResizeSensor(flexElem, () => {
+        const width = flexElem.clientWidth
+        const height = flexElem.clientHeight
+        console.log('flex element changed to ' + width + ' x ' + height)
+        this.graphEditorDimensions = {
+          width: width,
+          height: height
+        }
+      })
     },
     data: function () {
       return {
@@ -172,7 +186,11 @@
         graphGameBDD: null,
         isAptEditorVisible: true,
         isLogVisible: false,
-        messageLog: []
+        messageLog: [],
+        graphEditorDimensions: {
+          width: 0,
+          height: 0
+        }
       }
     },
     watch: {
