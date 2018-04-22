@@ -86,7 +86,7 @@
       <div class="row-divider"
            style="flex: 0 0 48px;"
            v-on:click="isLogVisible = !isLogVisible">
-        <div class="text">
+        <div style="padding-right: 5px;">
           <template v-if="isLogVisible">Collapse Log</template>
           <template v-else>Show Log</template>
         </div>
@@ -479,30 +479,25 @@
   .arrow-up {
     width: 0;
     height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-bottom: 5px solid black;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid black;
   }
 
   .arrow-down {
     width: 0;
     height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-top: 20px solid black;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid black;
   }
 
-  /*TODO Make a version of this that works for vertical layout as well*/
-  /*TODO Refactor so that this can be used as a component w/o making a giant single template*/
-  /*i.e. <vsplit :proportion="0.4"> <vsplitchild></vsplitchild> <vsplitchild></vsplitchild></vsplit>*/
-  /* Instead of having to manually create the flexbox and apply flex attributes to children */
   .flex-column-divider {
     flex: 0 0 45px;
     display: flex;
     justify-content: center;
     align-items: center;
     border: 1px solid lightgray;
-    margin-top: 59px;
   }
 
   .row-divider {
@@ -521,26 +516,5 @@
   .flex-column-divider:hover {
     transition: .2s;
     border: 1px solid black;
-  }
-
-  .flex-column-divider .text {
-    margin: 0;
-    white-space: pre;
-    font-size: 0;
-    transition: .2s;
-  }
-
-  .flex-column-divider:hover .text {
-    margin: 5px;
-    font-size: inherit;
-    transition: .2s;
-  }
-
-  #footer {
-    position: absolute;
-    bottom: 30px;
-    height: 300px;
-    overflow: hidden;
-    width: 100%;
   }
 </style>
