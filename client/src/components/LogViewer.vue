@@ -1,32 +1,27 @@
 <template>
-  <div class="logViewer">
-    <v-container fluid>
-      <v-layout row>
-        <v-radio-group v-model="logLevel" row hide-details style="padding-top: 0">
-          <v-flex xs6 md2>
-            <v-radio label="Normal" :value="2"/>
-          </v-flex>
-          <v-flex xs6 md2>
-            <v-radio label="Verbose" :value="1"/>
-          </v-flex>
-          <v-flex xs6 md2>
-            <v-checkbox label="Show client log" v-model="showClientMessages"/>
-          </v-flex>
-          <v-flex xs6 md2>
-            <v-checkbox label="Show server log" v-model="showServerMessages"/>
-          </v-flex>
-        </v-radio-group>
-      </v-layout>
-      <v-layout row>
-        <div class="log" ref="logElement">
-          <template v-for="message in visibleMessages">
-            <pre :style="styleOfMessage(message)">{{ formatMessageDate(message.time) }} {{ message.text }}</pre>
-          </template>
-        </div>
-      </v-layout>
-    </v-container>
+  <div class="logViewer" style="display: flex; flex-direction: column;">
+    <div style="flex: 1 1 50px; display: flex; justify-content: center; align-items: center;">
+      <v-radio-group v-model="logLevel" row hide-details style="padding-top: 0">
+        <v-flex xs6 md2>
+          <v-radio label="Normal" :value="2"/>
+        </v-flex>
+        <v-flex xs6 md2>
+          <v-radio label="Verbose" :value="1"/>
+        </v-flex>
+        <v-flex xs6 md2>
+          <v-checkbox label="Show client log" v-model="showClientMessages"/>
+        </v-flex>
+        <v-flex xs6 md2>
+          <v-checkbox label="Show server log" v-model="showServerMessages"/>
+        </v-flex>
+      </v-radio-group>
+    </div>
+    <div class="log" ref="logElement" style="flex: 1 1 300px;">
+      <template v-for="message in visibleMessages">
+        <pre :style="styleOfMessage(message)">{{ formatMessageDate(message.time) }} {{ message.text }}</pre>
+      </template>
+    </div>
   </div>
-
 </template>
 
 <script>
@@ -100,7 +95,7 @@
 <style scoped>
   .logViewer {
     /*display: block;*/
-    height: 350px;
+    height: 100%;
   }
 
   .log {
