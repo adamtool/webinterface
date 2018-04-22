@@ -218,8 +218,7 @@
         this.updateD3()
       },
       dimensions: function (dims) {
-        this.svg.attr('width', `${dims.width}px`)
-        // this.svg.attr('height', `${dims.height}px`)
+        this.updateSvgDimensions()
       }
     },
     data () {
@@ -290,6 +289,11 @@
       }
     },
     methods: {
+      updateSvgDimensions: function () {
+        this.svg.attr('width', `${this.dimensions.width}px`)
+        // TODO replace hack with proper solution (this is highly specific to my weird tabs component)
+        this.svg.attr('height', `${this.dimensions.height - 59 - 28 + 24}px`)
+      },
       // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
         const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(), this.svgHeight())
@@ -390,8 +394,7 @@
       },
       initializeD3: function () {
         this.svg = d3.select('#' + this.graphSvgId)
-          .attr('width', '100%')
-          .attr('height', '100%')
+        this.updateSvgDimensions()
 
         // Add SVG namespace so that SVG can be exported
         this.svg.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink')

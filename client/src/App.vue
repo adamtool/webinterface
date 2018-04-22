@@ -27,12 +27,13 @@
       </hsc-menu-bar>
     </my-theme>
 
-    <v-content>
-      <v-layout>
+    <div style="display: flex; flex-direction: column; width: 100%; height: 95vh">
+      <div style="display: flex; flex-direction: row; flex: 1 1 100%">
         <div class="flex-column-divider"
              v-on:click="isAptEditorVisible = !isAptEditorVisible">
           <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
+
         <v-flex xs6 md3 v-if="isAptEditorVisible">
           <div style="display: flex; flex-direction: column; height: 100%">
             <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
@@ -73,25 +74,26 @@
             </tab>
           </tabs>
         </v-flex>
-      </v-layout>
-      <v-layout>
-        <v-flex xs12>
-          <LogViewer :messages="messageLog"
-                     v-if="isLogVisible"/>
-        </v-flex>
-      </v-layout>
-      <v-layout>
-        <div class="row-divider"
-             v-on:click="isLogVisible = !isLogVisible">
-          <div class="text">
-            <template v-if="isLogVisible">Collapse Log</template>
-            <template v-else>Show Log</template>
-          </div>
-          <div :class="isLogVisible ? 'arrow-down' : 'arrow-up'"></div>
+      </div>
+      <!--End first row-->
+      <div style="flex: 1 1 100%">
+        <LogViewer :messages="messageLog"
+                   v-if="isLogVisible"/>
+      </div>
+      <div class="row-divider"
+           style="flex: 0 0 48px;"
+           v-on:click="isLogVisible = !isLogVisible">
+        <div class="text">
+          <template v-if="isLogVisible">Collapse Log</template>
+          <template v-else>Show Log</template>
         </div>
-      </v-layout>
-
-    </v-content>
+        <div :class="isLogVisible ? 'arrow-down' : 'arrow-up'"></div>
+      </div>
+    </div>
+    <v-layout>
+      <v-flex xs12>
+      </v-flex>
+    </v-layout>
   </v-app>
 </template>
 
