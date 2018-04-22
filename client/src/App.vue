@@ -162,8 +162,7 @@
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
       const flexElem = document.getElementById('graphEditorTabsFlex')
-// eslint-disable-next-line no-new
-      new ResizeSensor(flexElem, () => {
+      const updateGraphEditorDimensions = () => {
         const width = flexElem.clientWidth
         const height = flexElem.clientHeight
         console.log('flex element changed to ' + width + ' x ' + height)
@@ -171,7 +170,11 @@
           width: width,
           height: height
         }
-      })
+      }
+
+      // eslint-disable-next-line no-new
+      new ResizeSensor(flexElem, updateGraphEditorDimensions)
+      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
     },
     data: function () {
       return {
@@ -449,6 +452,7 @@
     background: white;
     box-sizing: border-box;
     width: 100%;
+    padding-left: 10px;
     resize: none;
   }
 

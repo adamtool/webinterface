@@ -108,6 +108,7 @@
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
+      this.updateSvgDimensions()
     },
     props: {
       graph: {
@@ -294,6 +295,20 @@
         this.svg.attr('width', `${this.dimensions.width}px`)
         // TODO replace hack with proper solution (this is highly specific to my weird tabs component)
         this.svg.attr('height', `${this.dimensions.height - 59 - 28 + 24}px`)
+        this.updateCenterForce()
+      },
+      /**
+       * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
+       */
+      updateCenterForce: function () {
+        const centerX = this.svgWidth() / 2
+        const centerY = this.svgHeight() / 2
+        console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
+        // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
+        // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
+        const centerStrength = 0.01
+        this.simulation.force('centerX', d3.forceX(centerX).strength(centerStrength))
+        this.simulation.force('centerY', d3.forceY(centerY).strength(centerStrength))
       },
       // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
@@ -395,7 +410,6 @@
       },
       initializeD3: function () {
         this.svg = d3.select('#' + this.graphSvgId)
-        this.updateSvgDimensions()
 
         // Add SVG namespace so that SVG can be exported
         this.svg.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink')
@@ -423,41 +437,6 @@
         this.contentGroup = this.svg.append('g').attr('class', 'node-content')
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
-
-        /**
-         * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
-         */
-        const updateCenterForce = () => {
-          console.log('Updating center force')
-          // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
-          // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
-          const centerStrength = 0.01
-          this.simulation.force('centerX', d3.forceX(this.svgWidth() / 2).strength(centerStrength))
-          this.simulation.force('centerY', d3.forceY(this.svgHeight() / 2).strength(centerStrength))
-        }
-        window.addEventListener('resize', updateCenterForce)
-
-        // HACK HACK HACK HACK HACK
-        // We update the center force when the viewing area becomes visible, because until that point, there is no way of telling
-        // where the center of the viewing area is from within this component.
-        // Our center force ends up putting the graph in the upper-left corner of the screen.
-        // TODO replace this workaround with a better solution.  E.g. Specify the center of the SVG as a property
-        // of this component.
-        // TODO note that this workaround/hack seems to hurt our performance.
-        const onGraphVisibilityChange = (entries, observer) => {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              console.log('Updating center force')
-              updateCenterForce()
-            }
-          })
-        }
-        // See https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API for info on how this works.
-        const observer = new IntersectionObserver(onGraphVisibilityChange, {
-          threshold: 0.01
-        })
-        observer.observe(this.svg.node())
-        updateCenterForce()
 
         this.updateD3()
 
