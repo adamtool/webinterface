@@ -1,6 +1,6 @@
 <template>
   <div class="graph-editor" :id="rootElementId">
-    <div style="position: absolute; width: 100%; padding-right: 20px;">
+    <div style="position: absolute; width: 100%; padding-right: 20px; z-index: 2;">
       <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
         Repulsion Strength
         <input type="range" min="30" max="1000" step="1"
@@ -141,6 +141,17 @@
       }
     },
     computed: {
+      // TODO Figure out why Strategy BDD/Graph Strat BDD / GGBDD nodes still spawn at 0,0 ???
+      nodeSpawnPoint: function () {
+        if (this.lastUserClick) {
+          return this.lastUserClick
+        } else {
+          return {
+            x: this.dimensions.width / 2,
+            y: this.dimensions.height / 2
+          }
+        }
+      },
       rootElementId: function () {
         return 'graph-editor-' + this._uid
       },
@@ -242,7 +253,7 @@
         linkTextElements: undefined,
         labelElements: undefined,
         contentElements: undefined,
-        nodeSpawnPoint: {x: 0, y: 0},
+        lastUserClick: undefined,
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
           .force('charge', d3.forceManyBody())
@@ -264,7 +275,7 @@
             // Save the mouse coordinates so that the new nodes will appear where the user clicked.
             // I.e. at the location of the parent node that is being expanded.
             const mouseCoordinates = d3.mouse(this.svg.node())
-            this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
+            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the postset of this State is visible
             this.$emit('toggleStatePostset', d.id)
           } else {
@@ -283,7 +294,7 @@
             d.fx = d.x
             d.fy = d.y
             const mouseCoordinates = d3.mouse(this.svg.node())
-            this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
+            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the preset of this State is visible
             this.$emit('toggleStatePreset', d.id)
           }
@@ -301,8 +312,8 @@
        * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
        */
       updateCenterForce: function () {
-        const centerX = this.svgWidth() / 2
-        const centerY = this.svgHeight() / 2
+        const centerX = this.dimensions.width / 2
+        const centerY = this.dimensions.height / 2
         console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
         // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
         // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
@@ -823,6 +834,14 @@
             this.links.push(newLinkWithReferences)
           }
         })
+        // TODO document how this works.  It's a fiddly bit of state management to ensure that
+        // nodes spawn under the mouse cursor if triggered by a user clicking, but otherwise, they
+        // should spawn at the center of the SVG (e.g. upon editing the APT).
+        // Maybe a better solution would be to send to the server the x/y coordinates of the click
+        // so that they can be automatically added to the new nodes that are created by the click.
+        // (At the time of writing (23.04.2018), the only nodes that are added by clicking are Graph
+        // Game BDD States when a State is clicked on to show its preset/postset.
+        this.lastUserClick = undefined
       },
       keyFunction: function (data) {
         return `${data.id}::${data.type}`

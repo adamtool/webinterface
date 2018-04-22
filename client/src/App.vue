@@ -56,21 +56,24 @@
             </tab>
             <tab name="Strategy BDD" v-if="strategyBDD"
                  :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='strategyBDD'></GraphEditor>
+              <GraphEditor :graph='strategyBDD'
+                           :dimensions='graphEditorDimensions'/>
             </tab>
             <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
                  :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
+              <GraphEditor :graph='graphStrategyBDD'
+                           :dimensions='graphEditorDimensions'/>
             </tab>
             <tab name="Graph Game BDD" v-if="graphGameBDD"
                  :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
               <GraphEditor :graph='graphGameBDD'
+                           :dimensions='graphEditorDimensions'
                            v-on:toggleStatePostset='toggleGraphGameStatePostset'
                            v-on:toggleStatePreset='toggleGraphGameStatePreset'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="415"
                            :linkStrengthDefault="0.04"
-                           :gravityStrengthDefault="300"></GraphEditor>
+                           :gravityStrengthDefault="300"/>
             </tab>
           </tabs>
         </v-flex>
