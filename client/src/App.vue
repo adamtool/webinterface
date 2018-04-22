@@ -34,11 +34,12 @@
           <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
         <v-flex xs6 md3 v-if="isAptEditorVisible">
-          <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
-            APT Editor
+          <div style="display: flex; flex-direction: column; height: 100%">
+            <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
+              APT Editor
+            </div>
+            <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
           </div>
-          <AptEditor :apt='apt'
-                     v-on:textEdited='parseAPTToPetriGame'></AptEditor>
         </v-flex>
         <v-flex xs6 md9>
           <tabs>
@@ -177,6 +178,9 @@
     watch: {
       petriGame: function () {
         this.switchToPetriGameTab()
+      },
+      apt: function (apt) {
+        this.parseAPTToPetriGame(this.apt)
       }
     },
     computed: {
@@ -419,6 +423,13 @@
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
     height: 100vh;
+  }
+
+  .apt-text-area {
+    background: white;
+    box-sizing: border-box;
+    width: 100%;
+    resize: none;
   }
 
   .iziToast > .iziToast-body {
