@@ -1,6 +1,6 @@
 <template>
   <div class="graph-editor" :id="rootElementId">
-    <div style="position: absolute;">
+    <div style="position: absolute; width: 100%; padding-right: 20px;">
       <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
         Repulsion Strength
         <input type="range" min="30" max="1000" step="1"
@@ -68,6 +68,7 @@
   }
 
   .graph-editor-toolbar {
+    width: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
