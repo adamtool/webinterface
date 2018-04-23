@@ -1,6 +1,6 @@
 <template>
   <div class="graph-editor" :id="rootElementId">
-    <div style="position: absolute; width: 100%; padding-right: 20px; z-index: 2;">
+    <div style="position: absolute; width: 100%; padding-right: 20px; z-index: 2;" ref="toolbarContainer">
       <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
         Repulsion Strength
         <input type="range" min="30" max="1000" step="1"
@@ -25,11 +25,10 @@
                v-model="gravityStrength">
       </div>
       <div class="graph-editor-toolbar">
-        <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout and freeze</button>
-        <button v-on:click="autoLayout">Auto-Layout</button>
+        <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
         <button style="margin-right: auto" v-if="shouldShowSaveAPTButton"
                 v-on:click="saveGraphAsAPT">
-          Save graph as APT with X/Y coordinates
+          Save graph as APT
         </button>
         <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
           Move all nodes into the visible area
@@ -322,16 +321,18 @@
       },
       // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
-        const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(), this.svgHeight())
+        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
+        const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(),
+          this.svgHeight() - toolbarHeight)
         positionsPromise.then(positions => {
           this.nodes.forEach(node => {
             const position = positions[node.id]
             if (node.fx === node.x) {
               node.fx = position.x
-              node.fy = position.y
+              node.fy = position.y + toolbarHeight
             } else {
               node.x = position.x
-              node.y = position.y
+              node.y = position.y + toolbarHeight
             }
           })
         })
@@ -350,7 +351,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-            'The fixed positions you have moved them to will be lost.')) {
+          'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
@@ -362,36 +363,30 @@
       moveNodesToVisibleArea: function () {
         const margin = 45
         const boundingRect = this.svg.node().getBoundingClientRect()
+        const toolbar = this.$refs.toolbarContainer
+        console.log(toolbar)
+        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
+        const minX = margin
         const maxX = boundingRect.width - margin
+        const minY = margin + toolbarHeight
         const maxY = boundingRect.height - margin
+        console.log(`toolbarHeight: ${toolbarHeight}, minY: ${minY}, maxY: ${maxY}`)
         this.nodes.forEach(node => {
-          const nodeIsFrozen = node.fx === node.x
-          if (nodeIsFrozen) {
-            if (node.x < margin) {
-              node.fx = margin
-            }
-            if (node.y < margin) {
-              node.fy = margin
-            }
-            if (node.x > maxX) {
-              node.fx = maxX
-            }
-            if (node.y > maxY) {
-              node.fy = maxY
-            }
-          } else {
-            if (node.x < margin) {
-              node.x = margin
-            }
-            if (node.y < margin) {
-              node.y = margin
-            }
-            if (node.x > maxX) {
-              node.x = maxX
-            }
-            if (node.y > maxY) {
-              node.y = maxY
-            }
+          if (node.x < minX) {
+            node.fx = minX
+            node.fy = node.y
+          }
+          if (node.y < minY) {
+            node.fy = minY
+            node.fx = node.x
+          }
+          if (node.x > maxX) {
+            node.fx = maxX
+            node.fy = node.y
+          }
+          if (node.y > maxY) {
+            node.fy = maxY
+            node.fx = node.x
           }
         })
       },
