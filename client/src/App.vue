@@ -1,5 +1,6 @@
 <template>
   <v-app absolute id='app'>
+    <input id="file-picker" type="file" style="display: none;" v-on:change="onFileSelected"/>
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
           rel="stylesheet">
     <!--<v-toolbar</v-toolbar-items>-->
@@ -9,7 +10,8 @@
     <my-theme style="z-index: 999">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
-          <hsc-menu-item label="Load APT from file" @click="loadAptFromFile"/>
+          <!--Have to use click.native so that the popup blocker isn't triggered-->
+          <hsc-menu-item label="Load APT from file" @click.native="loadAptFromFile"/>
           <hsc-menu-item label="Save APT to file" @click="saveAptToFile"/>
           <hsc-menu-item label="Save SVG to file" @click="saveSvgToFile"/>
           <hsc-menu-item label="Load example">
@@ -266,8 +268,22 @@
       }
     },
     methods: {
+      // Load APT from a text file stored on the user's local filesystem
+      // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
+      onFileSelected: function (changeEvent) {
+        console.log('The user selected a file in the file selector')
+        const file = changeEvent.target.files[0]
+        console.log(file)
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
+          console.log('The file selected by the user is finished loading.  Updating text editor contents')
+          this.apt = reader.result
+        }
+        reader.readAsText(file)
+      },
       loadAptFromFile: function () {
-
+        document.getElementById('file-picker').click()
       },
       saveAptToFile: function () {
         saveFileAs(this.apt, 'apt.txt')

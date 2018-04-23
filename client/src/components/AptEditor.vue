@@ -70,20 +70,6 @@
       }
     },
     methods: {
-      // Load APT from a text file stored on the user's local filesystem
-      // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
-      onFileSelected: function (changeEvent) {
-        console.log('The user selected a file in the file selector')
-        const file = changeEvent.target.files[0]
-        console.log(file)
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
-          console.log('The file selected by the user is finished loading.  Updating text editor contents')
-          this.textEditorContents = reader.result
-        }
-        reader.readAsText(file)
-      }
     },
     watch: {
       apt: function (newApt) {
