@@ -367,7 +367,6 @@
           // TODO maintain state, avoid unnecessarily calculating this multiple times
           // throw new Error('Winning strategy has already been calculated for this Petri Game')
         }
-        this.$refs.menubar.deactivate()
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
@@ -396,7 +395,6 @@
         })
       },
       getGraphStrategyBDD: function () {
-        this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphStrategyBDD, {
           petriGameId: uuid
@@ -409,7 +407,6 @@
         })
       },
       getGraphGameBDD: function () {
-        this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphGameBDD, {
           petriGameId: uuid
