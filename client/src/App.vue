@@ -48,9 +48,10 @@
         </v-flex>
         <v-flex xs12 id="graphEditorTabsFlex">
           <tabs>
-            <tab name="Petri Game">
+            <tab name="Petri Game" id="pgameelemtabtest" @click="alert('clicked tab')">
               <GraphEditor :graph='petriGame.net'
                            :dimensions='graphEditorDimensions'
+                           ref='graphEditorPetriGame'
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            :shouldShowPhysicsControls="true"
@@ -61,16 +62,20 @@
             <tab name="Strategy BDD" v-if="strategyBDD"
                  :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
               <GraphEditor :graph='strategyBDD'
+                           ref='graphEditorStrategyBDD'
                            :dimensions='graphEditorDimensions'/>
             </tab>
             <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
                  :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
               <GraphEditor :graph='graphStrategyBDD'
+                           ref='graphEditorGraphStrategyBDD'
                            :dimensions='graphEditorDimensions'/>
             </tab>
             <tab name="Graph Game BDD" v-if="graphGameBDD"
                  :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
               <GraphEditor :graph='graphGameBDD'
+                           ref='graphEditorGraphGameBDD'
+                           :dimensions='graphEditorDimensions'/>
                            :dimensions='graphEditorDimensions'
                            v-on:toggleStatePostset='toggleGraphGameStatePostset'
                            v-on:toggleStatePreset='toggleGraphGameStatePreset'
@@ -184,9 +189,13 @@
       // eslint-disable-next-line no-new
       new ResizeSensor(flexElem, updateGraphEditorDimensions)
       Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
+      Vue.nextTick(() => {
+        this.activeGraphEditor = this.$refs.graphEditorPetriGame
+      })
     },
     data: function () {
       return {
+        activeGraphEditor: undefined,
         apt: aptExample,
         petriGame: {
           net: {
@@ -287,7 +296,7 @@
         saveFileAs(this.apt, 'apt.txt')
       },
       saveSvgToFile: function () {
-
+        this.activeGraphEditor.saveGraph()
       },
       switchToPetriGameTab: function () {
         window.location.href = '#petri-game'
