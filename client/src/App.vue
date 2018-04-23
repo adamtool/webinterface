@@ -103,7 +103,6 @@
 
 <script>
   import aptFileTree from '@/aptExamples'
-  import AptEditor from '@/components/AptEditor'
   import GraphEditor from '@/components/GraphEditor'
   import LogViewer from '@/components/LogViewer'
   import Vue from 'vue'
@@ -147,7 +146,6 @@
     },
     components: {
       HscMenuBarDirectory, // TODO decide on import style
-      'AptEditor': AptEditor,
       'GraphEditor': GraphEditor,
       'my-theme': MyVueMenuTheme,
       'LogViewer': LogViewer
