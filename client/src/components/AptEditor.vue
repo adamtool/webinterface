@@ -54,7 +54,6 @@
 
 <script>
   //  import * as Vue from 'vue'
-  import {saveFileAs} from '../fileutilities.js'
 
   export default {
     name: 'apt-editor',
@@ -84,9 +83,6 @@
           this.textEditorContents = reader.result
         }
         reader.readAsText(file)
-      },
-      saveAptToFile: function () {
-        saveFileAs(this.textEditorContents, 'apt.txt')
       }
     },
     watch: {

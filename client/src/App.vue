@@ -9,11 +9,13 @@
     <my-theme style="z-index: 999">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
-          <hsc-menu-item label="New"/>
-        </hsc-menu-bar-item>
-        <hsc-menu-bar-item label="Examples">
-          <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
-                                  :callback="onAptExampleSelected"/>
+          <hsc-menu-item label="Load APT from file" @click="loadAptFromFile"/>
+          <hsc-menu-item label="Save APT to file" @click="saveAptToFile"/>
+          <hsc-menu-item label="Save SVG to file" @click="saveSvgToFile"/>
+          <hsc-menu-item label="Load example">
+            <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
+                                    :callback="onAptExampleSelected"/>
+          </hsc-menu-item>
         </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
@@ -129,6 +131,7 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
+  import {saveFileAs} from './fileutilities'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
 
@@ -263,6 +266,15 @@
       }
     },
     methods: {
+      loadAptFromFile: function () {
+
+      },
+      saveAptToFile: function () {
+        saveFileAs(this.apt, 'apt.txt')
+      },
+      saveSvgToFile: function () {
+
+      },
       switchToPetriGameTab: function () {
         window.location.href = '#petri-game'
       },
