@@ -25,15 +25,17 @@
                                     :callback="onAptExampleSelected"/>
           </hsc-menu-item>
         </hsc-menu-bar-item>
+        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
+        <hsc-menu-bar-item label="Analyze">
+          <hsc-menu-item @click.native="existsWinningStrategy"
+                             label="Exists Winning Strategy?"/>
+          <hsc-menu-item @click.native="getGraphStrategyBDD"
+                             label="Get Graph Strategy BDD"/>
+          <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
+        </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
-        <hsc-menu-bar-item @click.native="existsWinningStrategy"
-                           label="Exists Winning Strategy?"/>
-        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
-        <hsc-menu-bar-item @click.native="getGraphStrategyBDD"
-                           label="Get Graph Strategy BDD"/>
-        <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
       </hsc-menu-bar>
     </my-theme>
 
@@ -54,7 +56,7 @@
         </v-flex>
         <v-flex xs12 id="graphEditorTabsFlex">
           <tabs>
-            <tab name="Petri Game">
+            <tab name="Petri Game" :style="petriGameTabStyle">
               <GraphEditor :graph='petriGame.net'
                            :dimensions='graphEditorDimensions'
                            ref='graphEditorPetriGame'
@@ -226,6 +228,19 @@
       }
     },
     computed: {
+      // TODO figure out why this doesn't work
+      petriGameTabStyle: function () {
+        switch (this.petriGame.hasWinningStrategy) {
+          case undefined:
+            return ''
+          case true:
+            return 'background: lightgreen'
+          case false:
+            return 'background: lightred'
+          default:
+            return ''
+        }
+      },
       menuBarStyle: function () {
         const vuetifySidebarPadding = this.$vuetify.application.left
         return `border-radius: 0 0 4pt 0; padding-left: ${vuetifySidebarPadding + 10}px`
@@ -348,13 +363,17 @@
         })
       }, 200),
       existsWinningStrategy: function () {
+        if (this.petriGame.hasWinningStrategy !== undefined) {
+          // TODO maintain state, avoid unnecessarily calculating this multiple times
+          // throw new Error('Winning strategy has already been calculated for this Petri Game')
+        }
         this.$refs.menubar.deactivate()
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
+            this.petriGame.hasWinningStrategy = response.data.result
             // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
-            // This is another piece of state that maybe should be kept on the server.
             if (response.data.result) {
               this.showSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
             } else {
