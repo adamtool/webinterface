@@ -2,27 +2,21 @@
   <div class="graph-editor" :id="rootElementId">
     <div style="position: absolute; width: 100%; padding-right: 20px; z-index: 2;" ref="toolbarContainer">
       <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
-        Repulsion Strength
+        <div>Repulsion Strength</div>
         <input type="range" min="30" max="1000" step="1"
                class="forceStrengthSlider"
                v-model="repulsionStrength">
-        <input type="number" min="30" max="1000" step="1"
-               class="forceStrengthNumber"
-               v-model="repulsionStrength">
-        Link strength
+        <div class="forceStrengthNumber">{{repulsionStrength}}</div>
+        <div>Link strength</div>
         <input type="range" min="0" max="0.2" step="0.001"
                class="forceStrengthSlider"
                v-model="linkStrength">
-        <input type="number" min="0" max="0.2" step="0.001"
-               class="forceStrengthNumber"
-               v-model="linkStrength">
-        Gravity strength
+        <div class="forceStrengthNumber">{{linkStrength}}</div>
+        <div>Gravity strength</div>
         <input type="range" min="0" max="800" step="1"
                class="forceStrengthSlider"
                v-model="gravityStrength">
-        <input type="number" min="0" max="800" step="1"
-               class="forceStrengthNumber"
-               v-model="gravityStrength">
+        <div class="forceStrengthNumber">{{gravityStrength}}</div>
       </div>
       <div class="graph-editor-toolbar">
         <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
@@ -84,7 +78,8 @@
   }
 
   .forceStrengthNumber {
-    width: 100px;
+    width: 80px;
+    padding-left: 10px;
   }
 </style>
 
