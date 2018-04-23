@@ -13,7 +13,13 @@
           <!--Have to use click.native so that the popup blocker isn't triggered-->
           <hsc-menu-item label="Load APT from file" @click.native="loadAptFromFile"/>
           <hsc-menu-item label="Save APT to file" @click="saveAptToFile"/>
-          <hsc-menu-item label="Save SVG to file" @click="saveSvgToFile"/>
+          <hsc-menu-item label="Save Petri Game SVG to file" @click="saveSvgToFilePetriGame"/>
+          <hsc-menu-item label="Save Strategy BDD SVG to file" @click="saveSvgToFileStrategyBDD"
+                         v-if="strategyBDD"/>
+          <hsc-menu-item label="Save Graph Strategy BDD SVG to file"
+                         @click="saveSvgToFileGraphStrategyBDD" v-if="graphStrategyBDD"/>
+          <hsc-menu-item label="Save Graph Game BDD SVG to file" @click="saveSvgToFileGraphGameBDD"
+                         v-if="graphGameBDD"/>
           <hsc-menu-item label="Load example">
             <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
                                     :callback="onAptExampleSelected"/>
@@ -48,7 +54,7 @@
         </v-flex>
         <v-flex xs12 id="graphEditorTabsFlex">
           <tabs>
-            <tab name="Petri Game" id="pgameelemtabtest" @click="alert('clicked tab')">
+            <tab name="Petri Game">
               <GraphEditor :graph='petriGame.net'
                            :dimensions='graphEditorDimensions'
                            ref='graphEditorPetriGame'
@@ -75,7 +81,6 @@
                  :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
               <GraphEditor :graph='graphGameBDD'
                            ref='graphEditorGraphGameBDD'
-                           :dimensions='graphEditorDimensions'/>
                            :dimensions='graphEditorDimensions'
                            v-on:toggleStatePostset='toggleGraphGameStatePostset'
                            v-on:toggleStatePreset='toggleGraphGameStatePreset'
@@ -137,7 +142,7 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
-  import {saveFileAs} from './fileutilities'
+  import { saveFileAs } from './fileutilities'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
 
@@ -189,13 +194,9 @@
       // eslint-disable-next-line no-new
       new ResizeSensor(flexElem, updateGraphEditorDimensions)
       Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
-      Vue.nextTick(() => {
-        this.activeGraphEditor = this.$refs.graphEditorPetriGame
-      })
     },
     data: function () {
       return {
-        activeGraphEditor: undefined,
         apt: aptExample,
         petriGame: {
           net: {
@@ -295,8 +296,17 @@
       saveAptToFile: function () {
         saveFileAs(this.apt, 'apt.txt')
       },
-      saveSvgToFile: function () {
-        this.activeGraphEditor.saveGraph()
+      saveSvgToFilePetriGame: function () {
+        this.$refs.graphEditorPetriGame.saveGraph()
+      },
+      saveSvgToFileStrategyBDD: function () {
+        this.$refs.graphEditorStrategyBDD.saveGraph()
+      },
+      saveSvgToFileGraphStrategyBDD: function () {
+        this.$refs.graphEditorGraphStrategyBDD.saveGraph()
+      },
+      saveSvgToFileGraphGameBDD: function () {
+        this.$refs.graphEditorGraphGameBDD.saveGraph()
       },
       switchToPetriGameTab: function () {
         window.location.href = '#petri-game'

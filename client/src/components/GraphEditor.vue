@@ -27,7 +27,6 @@
       <div class="graph-editor-toolbar">
         <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout and freeze</button>
         <button v-on:click="autoLayout">Auto-Layout</button>
-        <button v-on:click="saveGraph">Save SVG</button>
         <button style="margin-right: auto" v-if="shouldShowSaveAPTButton"
                 v-on:click="saveGraphAsAPT">
           Save graph as APT with X/Y coordinates
