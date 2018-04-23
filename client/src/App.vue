@@ -44,7 +44,7 @@
           <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
 
-        <v-flex xs6 md3 v-if="isAptEditorVisible">
+        <v-flex xs6 md4 v-if="isAptEditorVisible">
           <div style="display: flex; flex-direction: column; height: 100%">
             <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
               APT Editor
