@@ -467,6 +467,7 @@
     width: 100%;
     padding-left: 10px;
     resize: none;
+    font-size: 18px;
   }
 
   .iziToast > .iziToast-body {
