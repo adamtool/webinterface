@@ -28,9 +28,9 @@
         <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
         <hsc-menu-bar-item label="Analyze">
           <hsc-menu-item @click.native="existsWinningStrategy"
-                             label="Exists Winning Strategy?"/>
+                         label="Exists Winning Strategy?"/>
           <hsc-menu-item @click.native="getGraphStrategyBDD"
-                             label="Get Graph Strategy BDD"/>
+                         label="Get Graph Strategy BDD"/>
           <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
         </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
@@ -165,7 +165,15 @@
     created: function () {
       // Connect to the server and subscribe to ADAM's log output
       // TODO Capture the error and display it in the log on screen if the websocket fails to open
-      const socket = makeWebSocket(this.webSocketUrl)
+      let socket
+      try {
+        socket = makeWebSocket(this.webSocketUrl)
+      } catch (exception) {
+        this.logError('An exception was thrown when opening the websocket connection to the server.  ' +
+          'Server log messages may not be displayed.  Exception:')
+        this.logError(exception.message)
+        return
+      }
       socket.$on('message', message => {
         const messageParsed = JSON.parse(message)
         const logEntry = {
@@ -176,8 +184,9 @@
         }
         this.messageLog.push(logEntry)
       })
-      socket.$on('error', error => {
-        this.logError(`Error from websocket: ${error}`)
+      socket.$on('error', () => {
+        this.logError('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
+          'be displayed.')
       })
     },
     mounted: function () {
@@ -196,6 +205,7 @@
       // eslint-disable-next-line no-new
       new ResizeSensor(flexElem, updateGraphEditorDimensions)
       Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
+      this.log('Hello!')
     },
     data: function () {
       return {
@@ -359,7 +369,8 @@
               this.log(response)
               break
           }
-          // TODO handle broken connection to server
+        }).catch(() => {
+          this.logError('Network error when trying to parse APT')
         })
       }, 200),
       existsWinningStrategy: function () {
@@ -379,6 +390,8 @@
               this.showErrorNotification('No, there is no winning strategy for this Petri Game.')
             }
           })
+        }).catch(() => {
+          this.logError('Network error in existsWinningStrategy')
         })
       },
       getStrategyBDD: function () {
@@ -392,6 +405,8 @@
             this.strategyBDD.uuid = uuid
             this.switchToStrategyBDDTab()
           })
+        }).catch(() => {
+          this.logError('Network error in getStrategyBDD')
         })
       },
       getGraphStrategyBDD: function () {
@@ -404,6 +419,8 @@
             this.graphStrategyBDD.uuid = uuid
             this.switchToGraphStrategyBDDTab()
           })
+        }).catch(() => {
+          this.logError('Network error in getGraphStrategyBDD')
         })
       },
       getGraphGameBDD: function () {
@@ -416,6 +433,8 @@
             this.graphGameBDD.uuid = uuid
             this.switchToGraphGameBDDTab()
           })
+        }).catch(() => {
+          this.logError('Network error in getGraphGameBDD')
         })
       },
       toggleGraphGameStatePostset: function (stateId) {
@@ -428,6 +447,8 @@
             this.graphGameBDD = response.data.graphGameBDD
             this.graphGameBDD.uuid = uuid
           })
+        }).catch(() => {
+          this.logError('Network error')
         })
       },
       toggleGraphGameStatePreset: function (stateId) {
@@ -440,6 +461,8 @@
             this.graphGameBDD = response.data.graphGameBDD
             this.graphGameBDD.uuid = uuid
           })
+        }).catch(() => {
+          this.logError('Network error')
         })
       },
       // Our graph editor may give us an object with Node IDs as keys and x,y coordinates as values.
@@ -454,6 +477,8 @@
             this.apt = response.data.apt
             this.isAptEditorVisible = true
           })
+        }).catch(() => {
+          this.logError('Network error')
         })
       },
       onGraphModified: function (graph) {
@@ -508,6 +533,7 @@
       },
       logError: function (message) {
         this.log(message, 4)
+        this.isLogVisible = true
       }
     }
   }
