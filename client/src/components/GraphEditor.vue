@@ -1,5 +1,6 @@
 <template>
   <div class="graph-editor" :id="rootElementId">
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <div style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa" ref="toolbarContainer">
       <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
         <div>Repulsion Strength</div>
@@ -483,7 +484,7 @@
           .on('contextmenu', this.onNodeRightClick)
           .attr('text-anchor', 'middle')
           .attr('dy', '-8')
-          .attr('font-family', 'monospace')
+          .attr('font-family', '\'Inconsolata\', monospace')
           // TODO Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
           // TODO This means that our text will end up all on one line.  In Firefox it's ok, though.
           .style('white-space', 'pre')
@@ -850,7 +851,7 @@
       },
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
-          return d.maxContentLineLength * 9 + 10
+          return d.maxContentLineLength * 8 + 10
           // return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
         } else {
           return this.nodeRadius * 2
