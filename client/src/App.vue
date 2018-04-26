@@ -82,12 +82,14 @@
                  :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
               <GraphEditor :graph='strategyBDD'
                            ref='graphEditorStrategyBDD'
+                           shouldShowPhysicsControls
                            :dimensions='graphEditorDimensions'/>
             </tab>
             <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
                  :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
               <GraphEditor :graph='graphStrategyBDD'
                            ref='graphEditorGraphStrategyBDD'
+                           shouldShowPhysicsControls
                            :dimensions='graphEditorDimensions'/>
             </tab>
             <tab name="Graph Game BDD" v-if="graphGameBDD"
