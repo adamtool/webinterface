@@ -482,6 +482,8 @@
           .call(this.dragDrop)
           .on('contextmenu', this.onNodeRightClick)
           .attr('text-anchor', 'middle')
+          .attr('dy', '-8')
+          .attr('font-family', 'monospace')
           // TODO Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
           // TODO This means that our text will end up all on one line.  In Firefox it's ok, though.
           .style('white-space', 'pre')
@@ -491,6 +493,14 @@
           .attr('font-size', 15)
           .text(node => {
             if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              // Figure out how long the widest line of the content is to determine node width later
+              const lines = node.content.split('\n')
+              const numberOfLines = lines.length
+              node.numberOfLines = numberOfLines
+              const lengthsOfLines = lines.map(str => str.length)
+              const maxLineLength = lengthsOfLines.reduce((max, val) => val > max ? val : max, 0)
+              node.maxContentLineLength = maxLineLength
+              console.log(`max content line length: ${maxLineLength}`)
               return node.content
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
               return node.initialToken === 0 ? '' : node.initialToken
@@ -840,14 +850,16 @@
       },
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
-          return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
+          return d.maxContentLineLength * 9 + 10
+          // return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
         } else {
           return this.nodeRadius * 2
         }
       },
       calculateNodeHeight: function (d) {
         if (d.content !== undefined) {
-          return 90 // TODO Make height expand to fit text
+          return d.numberOfLines * 20
+          // return 90 // TODO Make height expand to fit text
         } else {
           return this.nodeRadius * 2
         }
