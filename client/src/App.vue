@@ -1,5 +1,16 @@
 <template>
   <v-app absolute id='app'>
+    <v-snackbar
+      :timeout="6000"
+      top
+      multi-line
+      :color="snackbarMessage.color"
+      v-model="snackbarMessage.display">
+      <div style="white-space: pre-wrap; font-size: 18px">
+        {{ snackbarMessage.text }}
+      </div>
+      <v-btn flat @click.native="snackbarMessage.display = false">Close</v-btn>
+    </v-snackbar>
     <input id="file-picker" type="file" style="display: none;" v-on:change="onFileSelected"/>
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
           rel="stylesheet">
@@ -120,8 +131,6 @@
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
-  import * as iziToast from 'izitoast'
-  import 'izitoast/dist/css/iziToast.min.css'
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
   import { debounce } from 'underscore'
@@ -226,6 +235,11 @@
         graphEditorDimensions: {
           width: 0,
           height: 0
+        },
+        snackbarMessage: {
+          display: false,
+          text: '',
+          color: undefined
         }
       }
     },
@@ -358,7 +372,7 @@
           switch (response.data.status) {
             case 'success':
               this.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
-              this.logVerbose(response)
+              this.logObject(response)
               this.petriGame = response.data.graph
               break
             case 'error':
@@ -483,7 +497,7 @@
       },
       onGraphModified: function (graph) {
         this.logVerbose('App: Received graphModified event from graph editor:')
-        this.logVerbose(graph)
+        this.logObject(graph)
         // TODO: Implement undo/redo.
       },
       onAptExampleSelected: function (apt) {
@@ -504,21 +518,18 @@
       },
       showErrorNotification (message) {
         this.logError(message)
-        this.showNotification(message, 'red')
+        this.showNotification(message, 'pink')
       },
       showSuccessNotification (message) {
         this.log(message)
         this.showNotification(message, 'green')
       },
       showNotification: function (message, color) {
-        iziToast.show({
+        this.snackbarMessage = {
+          display: true,
           color: color,
-          timeout: 3000,
-          message: message,
-          position: 'bottomCenter',
-          overlayClose: true,
-          closeOnEscape: true
-        })
+          text: message
+        }
       },
       log: function (message, level) {
         this.messageLog.push({
@@ -527,6 +538,9 @@
           time: new Date(),
           text: message
         })
+      },
+      logObject: function (message) {
+        this.log(message, 0)
       },
       logVerbose: function (message) {
         this.log(message, 1)
@@ -555,10 +569,6 @@
     padding-left: 10px;
     resize: none;
     font-size: 18px;
-  }
-
-  .iziToast > .iziToast-body {
-    white-space: pre-wrap;
   }
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/
