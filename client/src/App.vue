@@ -1,105 +1,146 @@
 <template>
-  <div id='app'>
-    <my-theme>
-      <hsc-menu-bar style="border-radius: 0 0 4pt 0" ref="menubar">
+  <v-app absolute id='app'>
+    <v-snackbar
+      :timeout="6000"
+      top
+      multi-line
+      :color="snackbarMessage.color"
+      v-model="snackbarMessage.display">
+      <div style="white-space: pre-wrap; font-size: 18px">
+        {{ snackbarMessage.text }}
+      </div>
+      <v-btn flat @click.native="snackbarMessage.display = false">Close</v-btn>
+    </v-snackbar>
+    <input id="file-picker" type="file" style="display: none;" v-on:change="onFileSelected"/>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
+          rel="stylesheet">
+    <!--<v-toolbar</v-toolbar-items>-->
+    <!--<v-spacer/>-->
+    <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
+    <!--</v-toolbar>-->
+    <my-theme style="z-index: 999">
+      <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
-          <hsc-menu-item label="New"/>
+          <!--Have to use click.native so that the popup blocker isn't triggered-->
+          <hsc-menu-item label="Load APT from file" @click.native="loadAptFromFile"/>
+          <hsc-menu-item label="Save APT to file" @click="saveAptToFile"/>
+          <hsc-menu-item label="Save Petri Game SVG to file" @click="saveSvgToFilePetriGame"/>
+          <hsc-menu-item label="Save Strategy BDD SVG to file" @click="saveSvgToFileStrategyBDD"
+                         v-if="strategyBDD"/>
+          <hsc-menu-item label="Save Graph Strategy BDD SVG to file"
+                         @click="saveSvgToFileGraphStrategyBDD" v-if="graphStrategyBDD"/>
+          <hsc-menu-item label="Save Graph Game BDD SVG to file" @click="saveSvgToFileGraphGameBDD"
+                         v-if="graphGameBDD"/>
+          <hsc-menu-item label="Load example">
+            <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
+                                    :callback="onAptExampleSelected"/>
+          </hsc-menu-item>
         </hsc-menu-bar-item>
-        <hsc-menu-bar-item label="Examples">
-          <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
-                                  :callback="onAptExampleSelected"/>
+        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
+        <hsc-menu-bar-item label="Analyze">
+          <hsc-menu-item @click.native="existsWinningStrategy"
+                         label="Exists Winning Strategy?"/>
+          <hsc-menu-item @click.native="getGraphStrategyBDD"
+                         label="Get Graph Strategy BDD"/>
+          <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
         </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
-        <hsc-menu-bar-item @click.native="existsWinningStrategy" label="Exists Winning Strategy?"/>
-        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Get Strategy BDD"/>
-        <hsc-menu-bar-item @click.native="getGraphStrategyBDD" label="Get Graph Strategy BDD"/>
-        <hsc-menu-bar-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
       </hsc-menu-bar>
     </my-theme>
 
-    <!--Main flexbox container-->
-    <div style="display: flex; flex-direction: row; margin-top: 5px;">
-      <div :style="aptEditorStyle">
-        <div style="text-align: center; line-height: 58px; height: 58px; font-size: 18pt;">
-          APT Editor
+    <div style="display: flex; flex-direction: column; width: 100%; height: 100vh">
+      <div style="display: flex; flex-direction: row; flex: 1 1 100%">
+        <div class="flex-column-divider"
+             v-on:click="isAptEditorVisible = !isAptEditorVisible">
+          <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
-        <AptEditor :apt='apt'
-                   v-on:textEdited='parseAPTToPetriGame'></AptEditor>
-      </div>
-      <div class="flex-column-divider"
-           v-on:click="isAptEditorVisible = !isAptEditorVisible">
-        <div class="text">
-          <template v-if="isAptEditorVisible">Collapse APT editor</template>
-          <template v-else>Show APT editor</template>
-        </div>
-        <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
-      </div>
-      <div class="tab-container" style="flex: 1 1 100%">
-        <tabs>
-          <tab name="Petri Game">
-            <template v-if="!aptParsingResult">
-              <!--The Petri Game will appear here after you type in some APT.-->
-            </template>
-            <template v-else-if="aptParsingResult.status === 'success'">
+
+        <v-flex xs6 md4 v-if="isAptEditorVisible">
+          <div style="display: flex; flex-direction: column; height: 100%">
+            <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
+              APT Editor
+            </div>
+            <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
+          </div>
+        </v-flex>
+        <v-flex xs12 id="graphEditorTabsFlex">
+          <tabs>
+            <tab name="Petri Game" :style="petriGameTabStyle">
               <GraphEditor :graph='petriGame.net'
+                           :dimensions='graphEditorDimensions'
+                           ref='graphEditorPetriGame'
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
                            :shouldShowSaveAPTButton="true"/>
-            </template>
-            <template v-else-if="aptParsingResult.status === 'error'">
-              There was an error when we tried to parse the APT:
-              <pre>{{ aptParsingResult.message }}</pre>
-            </template>
-            <template v-else>
-              We got an unexpected response from the server when trying to parse the APT:
-              <pre>{{ aptParsingResult }}</pre>
-            </template>
-          </tab>
-          <tab name="Strategy BDD" v-if="strategyBDD"
-               :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='strategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
-               :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='graphStrategyBDD'></GraphEditor>
-          </tab>
-          <tab name="Graph Game BDD" v-if="graphGameBDD"
-               :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
-            <GraphEditor :graph='graphGameBDD'
-                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                         :shouldShowPhysicsControls="true"
-                         :repulsionStrengthDefault="415"
-                         :linkStrengthDefault="0.04"
-                         :gravityStrengthDefault="300"></GraphEditor>
-          </tab>
-        </tabs>
+            </tab>
+            <tab name="Strategy BDD" v-if="strategyBDD"
+                 :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='strategyBDD'
+                           ref='graphEditorStrategyBDD'
+                           shouldShowPhysicsControls
+                           :dimensions='graphEditorDimensions'/>
+            </tab>
+            <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
+                 :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='graphStrategyBDD'
+                           ref='graphEditorGraphStrategyBDD'
+                           shouldShowPhysicsControls
+                           :dimensions='graphEditorDimensions'/>
+            </tab>
+            <tab name="Graph Game BDD" v-if="graphGameBDD"
+                 :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
+              <GraphEditor :graph='graphGameBDD'
+                           ref='graphEditorGraphGameBDD'
+                           :dimensions='graphEditorDimensions'
+                           v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                           v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                           :shouldShowPhysicsControls="true"
+                           :repulsionStrengthDefault="415"
+                           :linkStrengthDefault="0.04"
+                           :gravityStrengthDefault="300"/>
+            </tab>
+          </tabs>
+        </v-flex>
+      </div>
+      <!--End first row-->
+      <div style="flex: 1 1 0%">
+        <LogViewer :messages="messageLog"
+                   v-if="isLogVisible"/>
+      </div>
+      <div class="row-divider"
+           style="flex: 0 0 48px;"
+           v-on:click="isLogVisible = !isLogVisible">
+        <div style="padding-right: 5px;">
+          <template v-if="isLogVisible">Collapse Log</template>
+          <template v-else>Show Log</template>
+        </div>
+        <div :class="isLogVisible ? 'arrow-down' : 'arrow-up'"></div>
       </div>
     </div>
-    <!--End main flexbox container-->
-
-  </div>
+  </v-app>
 </template>
 
 
 <script>
   import aptFileTree from '@/aptExamples'
-  import AptEditor from '@/components/AptEditor'
   import GraphEditor from '@/components/GraphEditor'
+  import LogViewer from '@/components/LogViewer'
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
-  import * as iziToast from 'izitoast'
-  import 'izitoast/dist/css/iziToast.min.css'
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
   import { debounce } from 'underscore'
   import * as VueMenu from '@hscmap/vue-menu'
+  import Vuetify from 'vuetify'
+
+  Vue.use(Vuetify)
+  import 'vuetify/dist/vuetify.min.css'
 
   Vue.use(VueMenu)
   import MyVueMenuTheme from '@/menuStyle'
@@ -110,8 +151,13 @@
   Vue.use(BootstrapVue)
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
-  import aptExample from './mutex.apt'
+  import aptExample from './verySmallExample.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
+
+  import makeWebSocket from '@/logWebSocket'
+  import { saveFileAs } from './fileutilities'
+
+  const ResizeSensor = require('css-element-queries/src/ResizeSensor')
 
   export default {
     name: 'app',
@@ -123,45 +169,110 @@
     },
     components: {
       HscMenuBarDirectory, // TODO decide on import style
-      'AptEditor': AptEditor,
       'GraphEditor': GraphEditor,
-      'my-theme': MyVueMenuTheme
+      'my-theme': MyVueMenuTheme,
+      'LogViewer': LogViewer
+    },
+    created: function () {
+      // Connect to the server and subscribe to ADAM's log output
+      // TODO Capture the error and display it in the log on screen if the websocket fails to open
+      let socket
+      try {
+        socket = makeWebSocket(this.webSocketUrl)
+      } catch (exception) {
+        this.logError('An exception was thrown when opening the websocket connection to the server.  ' +
+          'Server log messages may not be displayed.  Exception:')
+        this.logError(exception.message)
+        return
+      }
+      socket.$on('message', message => {
+        const messageParsed = JSON.parse(message)
+        const logEntry = {
+          source: 'server',
+          level: messageParsed.level,
+          time: new Date(),
+          text: messageParsed.message
+        }
+        this.messageLog.push(logEntry)
+      })
+      socket.$on('error', () => {
+        this.logError('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
+          'be displayed.')
+      })
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
+      const flexElem = document.getElementById('graphEditorTabsFlex')
+      const updateGraphEditorDimensions = () => {
+        const width = flexElem.clientWidth
+        const height = flexElem.clientHeight
+        console.log('flex element changed to ' + width + ' x ' + height)
+        this.graphEditorDimensions = {
+          width: width,
+          height: height
+        }
+      }
+
+      // eslint-disable-next-line no-new
+      new ResizeSensor(flexElem, updateGraphEditorDimensions)
+      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
+      this.log('Hello!')
     },
     data: function () {
       return {
         apt: aptExample,
-        aptParsingResult: {},
+        petriGame: {
+          net: {
+            links: [],
+            nodes: []
+          },
+          uuid: 'abcfakeuuid123'
+        },
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
-        isAptEditorVisible: true
+        isAptEditorVisible: true,
+        isLogVisible: false,
+        messageLog: [],
+        graphEditorDimensions: {
+          width: 0,
+          height: 0
+        },
+        snackbarMessage: {
+          display: false,
+          text: '',
+          color: undefined
+        }
       }
     },
     watch: {
       petriGame: function () {
         this.switchToPetriGameTab()
+      },
+      apt: function (apt) {
+        this.parseAPTToPetriGame(this.apt)
       }
     },
     computed: {
-      aptFileTree: function () {
-        console.log(aptFileTree)
-        return aptFileTree
-      },
-      petriGame: function () {
-        if (this.aptParsingResult.graph) {
-          return this.aptParsingResult.graph
-        } else {
-          return ({
-            net: {
-              links: [],
-              nodes: []
-            },
-            uuid: 'abcfakeuuid123'
-          })
+      // TODO figure out why this doesn't work
+      petriGameTabStyle: function () {
+        switch (this.petriGame.hasWinningStrategy) {
+          case undefined:
+            return ''
+          case true:
+            return 'background: lightgreen'
+          case false:
+            return 'background: lightred'
+          default:
+            return ''
         }
+      },
+      menuBarStyle: function () {
+        const vuetifySidebarPadding = this.$vuetify.application.left
+        return `border-radius: 0 0 4pt 0; padding-left: ${vuetifySidebarPadding + 10}px`
+      },
+      aptFileTree: function () {
+        return aptFileTree
       },
       aptEditorStyle: function () {
         if (this.isAptEditorVisible) {
@@ -184,9 +295,60 @@
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
           convertAptToGraph: this.baseUrl + '/convertAptToGraph'
         }
+      },
+      webSocketUrl: function () {
+        if (this.baseUrl === '') { // This means that we are running in production, with relative URLs
+          const loc = window.location
+          let newUri
+          if (loc.protocol === 'https:') {
+            newUri = 'wss:'
+          } else if (loc.protocol === 'http:') {
+            newUri = 'ws:'
+          } else {
+            const errorMessage = 'Error constructing the URL to use for our websocket connection.  ' +
+              'Couldn\'t recognize the protocol string in window.location: ' + window.location
+            this.logError(errorMessage)
+            throw new Error(errorMessage)
+          }
+          return `${newUri}//${loc.host}/log`
+        } else { // We are running in development mode with a hard-coded URL.  See main-dev.js
+          return this.baseUrl.replace('http:', 'ws:').replace('https:', 'ws:') + '/log'
+        }
       }
     },
     methods: {
+      // Load APT from a text file stored on the user's local filesystem
+      // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
+      onFileSelected: function (changeEvent) {
+        console.log('The user selected a file in the file selector')
+        const file = changeEvent.target.files[0]
+        console.log(file)
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
+          console.log('The file selected by the user is finished loading.  Updating text editor contents')
+          this.apt = reader.result
+        }
+        reader.readAsText(file)
+      },
+      loadAptFromFile: function () {
+        document.getElementById('file-picker').click()
+      },
+      saveAptToFile: function () {
+        saveFileAs(this.apt, 'apt.txt')
+      },
+      saveSvgToFilePetriGame: function () {
+        this.$refs.graphEditorPetriGame.saveGraph()
+      },
+      saveSvgToFileStrategyBDD: function () {
+        this.$refs.graphEditorStrategyBDD.saveGraph()
+      },
+      saveSvgToFileGraphStrategyBDD: function () {
+        this.$refs.graphEditorGraphStrategyBDD.saveGraph()
+      },
+      saveSvgToFileGraphGameBDD: function () {
+        this.$refs.graphEditorGraphGameBDD.saveGraph()
+      },
       switchToPetriGameTab: function () {
         window.location.href = '#petri-game'
       },
@@ -203,7 +365,7 @@
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAPTToPetriGame: debounce(function (apt) {
         this.switchToPetriGameTab()
-        console.log('Sending APT source code to backend.')
+        this.logVerbose('Sending APT source code to backend.')
         axios.post(this.restEndpoints.convertAptToGraph, {
           params: {
             apt: apt
@@ -211,32 +373,41 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              console.log('Received graph from backend:')
-              console.log(response.data)
-              this.aptParsingResult = response.data
+              this.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
+              this.logObject(response)
+              this.petriGame = response.data.graph
+              break
+            case 'error':
+              this.logError(`There was an error when we tried to parse the APT: ${response.data.message}`)
               break
             default:
-              console.log('response.data.status was not success :(')
-              this.aptParsingResult = response.data
+              this.logError('We got an unexpected response from the server when trying to parse the APT:')
+              this.log(response)
               break
           }
-          // TODO handle broken connection to server
+        }).catch(() => {
+          this.logError('Network error when trying to parse APT')
         })
       }, 200),
       existsWinningStrategy: function () {
-        this.$refs.menubar.deactivate()
+        if (this.petriGame.hasWinningStrategy !== undefined) {
+          // TODO maintain state, avoid unnecessarily calculating this multiple times
+          // throw new Error('Winning strategy has already been calculated for this Petri Game')
+        }
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
+            this.petriGame.hasWinningStrategy = response.data.result
             // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
-            // This is another piece of state that maybe should be kept on the server.
             if (response.data.result) {
               this.showSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
             } else {
               this.showErrorNotification('No, there is no winning strategy for this Petri Game.')
             }
           })
+        }).catch(() => {
+          this.logError('Network error in existsWinningStrategy')
         })
       },
       getStrategyBDD: function () {
@@ -250,10 +421,11 @@
             this.strategyBDD.uuid = uuid
             this.switchToStrategyBDDTab()
           })
+        }).catch(() => {
+          this.logError('Network error in getStrategyBDD')
         })
       },
       getGraphStrategyBDD: function () {
-        this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphStrategyBDD, {
           petriGameId: uuid
@@ -263,10 +435,11 @@
             this.graphStrategyBDD.uuid = uuid
             this.switchToGraphStrategyBDDTab()
           })
+        }).catch(() => {
+          this.logError('Network error in getGraphStrategyBDD')
         })
       },
       getGraphGameBDD: function () {
-        this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         axios.post(this.restEndpoints.getGraphGameBDD, {
           petriGameId: uuid
@@ -276,6 +449,8 @@
             this.graphGameBDD.uuid = uuid
             this.switchToGraphGameBDDTab()
           })
+        }).catch(() => {
+          this.logError('Network error in getGraphGameBDD')
         })
       },
       toggleGraphGameStatePostset: function (stateId) {
@@ -288,6 +463,8 @@
             this.graphGameBDD = response.data.graphGameBDD
             this.graphGameBDD.uuid = uuid
           })
+        }).catch(() => {
+          this.logError('Network error')
         })
       },
       toggleGraphGameStatePreset: function (stateId) {
@@ -300,6 +477,8 @@
             this.graphGameBDD = response.data.graphGameBDD
             this.graphGameBDD.uuid = uuid
           })
+        }).catch(() => {
+          this.logError('Network error')
         })
       },
       // Our graph editor may give us an object with Node IDs as keys and x,y coordinates as values.
@@ -314,11 +493,13 @@
             this.apt = response.data.apt
             this.isAptEditorVisible = true
           })
+        }).catch(() => {
+          this.logError('Network error')
         })
       },
       onGraphModified: function (graph) {
-        console.log('App: Received graphModified event from graph editor:')
-        console.log(graph)
+        this.logVerbose('App: Received graphModified event from graph editor:')
+        this.logObject(graph)
         // TODO: Implement undo/redo.
       },
       onAptExampleSelected: function (apt) {
@@ -338,20 +519,37 @@
         }
       },
       showErrorNotification (message) {
-        this.showNotification(message, 'red')
+        this.logError(message)
+        this.showNotification(message, 'pink')
       },
       showSuccessNotification (message) {
+        this.log(message)
         this.showNotification(message, 'green')
       },
       showNotification: function (message, color) {
-        iziToast.show({
+        this.snackbarMessage = {
+          display: true,
           color: color,
-          timeout: 3000,
-          message: message,
-          position: 'bottomCenter',
-          overlayClose: true,
-          closeOnEscape: true
+          text: message
+        }
+      },
+      log: function (message, level) {
+        this.messageLog.push({
+          source: 'client',
+          level: level === undefined ? 2 : level, // TODO handle log levels
+          time: new Date(),
+          text: message
         })
+      },
+      logObject: function (message) {
+        this.log(message, 0)
+      },
+      logVerbose: function (message) {
+        this.log(message, 1)
+      },
+      logError: function (message) {
+        this.log(message, 4)
+        this.isLogVisible = true
       }
     }
   }
@@ -363,10 +561,16 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
+    height: 100vh;
   }
 
-  .iziToast > .iziToast-body {
-    white-space: pre-wrap;
+  .apt-text-area {
+    background: white;
+    box-sizing: border-box;
+    width: 100%;
+    padding-left: 10px;
+    resize: none;
+    font-size: 18px;
   }
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/
@@ -386,31 +590,45 @@
     border-left: 10px solid blue;
   }
 
+  .arrow-up {
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid black;
+  }
+
+  .arrow-down {
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid black;
+  }
+
   .flex-column-divider {
     flex: 0 0 45px;
     display: flex;
     justify-content: center;
     align-items: center;
     border: 1px solid lightgray;
-    transition: .2s;
-    margin-top: 59px;
+  }
+
+  .row-divider {
+    display: flex;
+    height: 48px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid lightgray;
+  }
+
+  .row-divider:hover {
+    border: 1px solid black;
   }
 
   .flex-column-divider:hover {
     transition: .2s;
-    flex: 0 0 100px;
-  }
-
-  .flex-column-divider .text {
-    margin: 0;
-    white-space: pre;
-    font-size: 0;
-    transition: .2s;
-  }
-
-  .flex-column-divider:hover .text {
-    margin: 5px;
-    font-size: inherit;
-    transition: .2s;
+    border: 1px solid black;
   }
 </style>

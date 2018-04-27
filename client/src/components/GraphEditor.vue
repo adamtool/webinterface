@@ -1,47 +1,43 @@
 <template>
-  <div class="graph-editor">
-    <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
-      Repulsion Strength
-      <input type="range" min="30" max="1000" step="1"
-             class="forceStrengthSlider"
-             v-model="repulsionStrength">
-      <input type="number" min="30" max="1000" step="1"
-             class="forceStrengthNumber"
-             v-model="repulsionStrength">
-      Link strength
-      <input type="range" min="0" max="0.2" step="0.001"
-             class="forceStrengthSlider"
-             v-model="linkStrength">
-      <input type="number" min="0" max="0.2" step="0.001"
-             class="forceStrengthNumber"
-             v-model="linkStrength">
-      Gravity strength
-      <input type="range" min="0" max="800" step="1"
-             class="forceStrengthSlider"
-             v-model="gravityStrength">
-      <input type="number" min="0" max="800" step="1"
-             class="forceStrengthNumber"
-             v-model="gravityStrength">
-    </div>
-    <div class="graph-editor-toolbar">
-      <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout and freeze</button>
-      <button v-on:click="autoLayout">Auto-Layout</button>
-      <button v-on:click="saveGraph">Save SVG</button>
-      <button style="margin-right: auto" v-if="shouldShowSaveAPTButton" v-on:click="saveGraphAsAPT">
-        Save graph as APT with X/Y coordinates
-      </button>
-      <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
-        Move all nodes into the visible area
-      </button>
-      <button style="display: none;" v-on:click="updateD3">Update D3</button>
-      <button v-on:click="freezeAllNodes">Freeze all nodes</button>
-      <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+  <div class="graph-editor" :id="rootElementId">
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+    <div style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa" ref="toolbarContainer">
+      <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
+        <div>Repulsion Strength</div>
+        <input type="range" min="30" max="1000" step="1"
+               class="forceStrengthSlider"
+               v-model="repulsionStrength">
+        <div class="forceStrengthNumber">{{repulsionStrength}}</div>
+        <div>Link strength</div>
+        <input type="range" min="0" max="0.2" step="0.001"
+               class="forceStrengthSlider"
+               v-model="linkStrength">
+        <div class="forceStrengthNumber">{{linkStrength}}</div>
+        <div>Gravity strength</div>
+        <input type="range" min="0" max="800" step="1"
+               class="forceStrengthSlider"
+               v-model="gravityStrength">
+        <div class="forceStrengthNumber">{{gravityStrength}}</div>
+      </div>
+      <div class="graph-editor-toolbar">
+        <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
+        <button style="margin-right: auto" v-if="shouldShowSaveAPTButton"
+                v-on:click="saveGraphAsAPT">
+          Save graph as APT
+        </button>
+        <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
+          Move all nodes into the visible area
+        </button>
+        <button style="display: none;" v-on:click="updateD3">Update D3</button>
+        <button v-on:click="freezeAllNodes">Freeze all nodes</button>
+        <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+      </div>
     </div>
     <div style="height:50px; display:none">
       <pre>{{ this.links }}</pre>
     </div>
 
-    <svg class='graph' :id='this.graphSvgId'>
+    <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
 
     </svg>
   </div>
@@ -50,7 +46,11 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   .graph-editor {
-    height: 95vh;
+    /*TODO Make the graph editor use up exactly as much space as is given to it.*/
+    /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
   }
@@ -61,6 +61,7 @@
   }
 
   .graph-editor-toolbar {
+    width: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -78,7 +79,8 @@
   }
 
   .forceStrengthNumber {
-    width: 100px;
+    width: 80px;
+    padding-left: 10px;
   }
 </style>
 
@@ -87,6 +89,7 @@
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
   import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
+
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -99,9 +102,14 @@
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
+      this.updateSvgDimensions()
     },
     props: {
       graph: {
+        type: Object,
+        required: true
+      },
+      dimensions: {
         type: Object,
         required: true
       },
@@ -127,6 +135,20 @@
       }
     },
     computed: {
+      // TODO Figure out why Strategy BDD/Graph Strat BDD / GGBDD nodes still spawn at 0,0 ???
+      nodeSpawnPoint: function () {
+        if (this.lastUserClick) {
+          return this.lastUserClick
+        } else {
+          return {
+            x: this.dimensions.width / 2,
+            y: this.dimensions.height / 2
+          }
+        }
+      },
+      rootElementId: function () {
+        return 'graph-editor-' + this._uid
+      },
       graphSvgId: function () {
         return 'graph-' + this._uid
       },
@@ -201,6 +223,9 @@
          */
         this.importGraph(graph)
         this.updateD3()
+      },
+      dimensions: function (dims) {
+        this.updateSvgDimensions()
       }
     },
     data () {
@@ -222,7 +247,7 @@
         linkTextElements: undefined,
         labelElements: undefined,
         contentElements: undefined,
-        nodeSpawnPoint: {x: 0, y: 0},
+        lastUserClick: undefined,
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
           .force('charge', d3.forceManyBody())
@@ -244,7 +269,7 @@
             // Save the mouse coordinates so that the new nodes will appear where the user clicked.
             // I.e. at the location of the parent node that is being expanded.
             const mouseCoordinates = d3.mouse(this.svg.node())
-            this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
+            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the postset of this State is visible
             this.$emit('toggleStatePostset', d.id)
           } else {
@@ -263,7 +288,7 @@
             d.fx = d.x
             d.fy = d.y
             const mouseCoordinates = d3.mouse(this.svg.node())
-            this.nodeSpawnPoint = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
+            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the preset of this State is visible
             this.$emit('toggleStatePreset', d.id)
           }
@@ -271,18 +296,39 @@
       }
     },
     methods: {
+      updateSvgDimensions: function () {
+        this.svg.attr('width', `${this.dimensions.width}px`)
+        // TODO replace hack with proper solution (this is highly specific to my weird tabs component)
+        this.svg.attr('height', `${this.dimensions.height - 59 - 28 + 24}px`)
+        this.updateCenterForce()
+      },
+      /**
+       * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
+       */
+      updateCenterForce: function () {
+        const centerX = this.dimensions.width / 2
+        const centerY = this.dimensions.height / 2
+        console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
+        // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
+        // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
+        const centerStrength = 0.01
+        this.simulation.force('centerX', d3.forceX(centerX).strength(centerStrength))
+        this.simulation.force('centerY', d3.forceY(centerY).strength(centerStrength))
+      },
       // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
-        const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(), this.svgHeight())
+        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
+        const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(),
+          this.svgHeight() - toolbarHeight)
         positionsPromise.then(positions => {
           this.nodes.forEach(node => {
             const position = positions[node.id]
             if (node.fx === node.x) {
               node.fx = position.x
-              node.fy = position.y
+              node.fy = position.y + toolbarHeight
             } else {
               node.x = position.x
-              node.y = position.y
+              node.y = position.y + toolbarHeight
             }
           })
         })
@@ -301,7 +347,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-            'The fixed positions you have moved them to will be lost.')) {
+          'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
@@ -313,36 +359,30 @@
       moveNodesToVisibleArea: function () {
         const margin = 45
         const boundingRect = this.svg.node().getBoundingClientRect()
+        const toolbar = this.$refs.toolbarContainer
+        console.log(toolbar)
+        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
+        const minX = margin
         const maxX = boundingRect.width - margin
+        const minY = margin + toolbarHeight
         const maxY = boundingRect.height - margin
+        console.log(`toolbarHeight: ${toolbarHeight}, minY: ${minY}, maxY: ${maxY}`)
         this.nodes.forEach(node => {
-          const nodeIsFrozen = node.fx === node.x
-          if (nodeIsFrozen) {
-            if (node.x < margin) {
-              node.fx = margin
-            }
-            if (node.y < margin) {
-              node.fy = margin
-            }
-            if (node.x > maxX) {
-              node.fx = maxX
-            }
-            if (node.y > maxY) {
-              node.fy = maxY
-            }
-          } else {
-            if (node.x < margin) {
-              node.x = margin
-            }
-            if (node.y < margin) {
-              node.y = margin
-            }
-            if (node.x > maxX) {
-              node.x = maxX
-            }
-            if (node.y > maxY) {
-              node.y = maxY
-            }
+          if (node.x < minX) {
+            node.fx = minX
+            node.fy = node.y
+          }
+          if (node.y < minY) {
+            node.fy = minY
+            node.fx = node.x
+          }
+          if (node.x > maxX) {
+            node.fx = maxX
+            node.fy = node.y
+          }
+          if (node.y > maxY) {
+            node.fy = maxY
+            node.fx = node.x
           }
         })
       },
@@ -371,8 +411,6 @@
       },
       initializeD3: function () {
         this.svg = d3.select('#' + this.graphSvgId)
-          .attr('width', '100%')
-          .attr('height', '100%')
 
         // Add SVG namespace so that SVG can be exported
         this.svg.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink')
@@ -400,41 +438,6 @@
         this.contentGroup = this.svg.append('g').attr('class', 'node-content')
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
-
-        /**
-         * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
-         */
-        const updateCenterForce = () => {
-          console.log('Updating center force')
-          // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
-          // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
-          const centerStrength = 0.01
-          this.simulation.force('centerX', d3.forceX(this.svgWidth() / 2).strength(centerStrength))
-          this.simulation.force('centerY', d3.forceY(this.svgHeight() / 2).strength(centerStrength))
-        }
-        window.addEventListener('resize', updateCenterForce)
-
-        // HACK HACK HACK HACK HACK
-        // We update the center force when the viewing area becomes visible, because until that point, there is no way of telling
-        // where the center of the viewing area is from within this component.
-        // Our center force ends up putting the graph in the upper-left corner of the screen.
-        // TODO replace this workaround with a better solution.  E.g. Specify the center of the SVG as a property
-        // of this component.
-        // TODO note that this workaround/hack seems to hurt our performance.
-        const onGraphVisibilityChange = (entries, observer) => {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              console.log('Updating center force')
-              updateCenterForce()
-            }
-          })
-        }
-        // See https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API for info on how this works.
-        const observer = new IntersectionObserver(onGraphVisibilityChange, {
-          threshold: 0.01
-        })
-        observer.observe(this.svg.node())
-        updateCenterForce()
 
         this.updateD3()
 
@@ -480,6 +483,8 @@
           .call(this.dragDrop)
           .on('contextmenu', this.onNodeRightClick)
           .attr('text-anchor', 'middle')
+          .attr('dy', '-8')
+          .attr('font-family', '\'Inconsolata\', monospace')
           // TODO Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
           // TODO This means that our text will end up all on one line.  In Firefox it's ok, though.
           .style('white-space', 'pre')
@@ -489,6 +494,14 @@
           .attr('font-size', 15)
           .text(node => {
             if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              // Figure out how long the widest line of the content is to determine node width later
+              const lines = node.content.split('\n')
+              const numberOfLines = lines.length
+              node.numberOfLines = numberOfLines
+              const lengthsOfLines = lines.map(str => str.length)
+              const maxLineLength = lengthsOfLines.reduce((max, val) => val > max ? val : max, 0)
+              node.maxContentLineLength = maxLineLength
+              console.log(`max content line length: ${maxLineLength}`)
               return node.content
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
               return node.initialToken === 0 ? '' : node.initialToken
@@ -679,49 +692,50 @@
               const dy = targetY - d.source.y
               d.pathLength = Math.sqrt(dx * dx + dy * dy)
 
-              const multipleLinksBetweenNodes = this.links.find(link => link.source === d.target && link.target === d.source)
+              // This means source -> target and target -> source are both links
+              const multipleLinksBetweenNodes = this.links.find(link => link !== d && link.source === d.target && link.target === d.source)
               const linkIsLoop = d.target === d.source
               const isStraightLink = !multipleLinksBetweenNodes && !linkIsLoop
               if (isStraightLink) {
                 // Straight line for a single edge between two distinct nodes
                 return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
-              } else {
+              } else if (multipleLinksBetweenNodes) {
                 // Do a bunch more fun math to make an arc
-                let x1 = d.source.x
-                let y1 = d.source.y
-                let x2 = targetX
-                let y2 = targetY
+                const x1 = d.source.x
+                const y1 = d.source.y
+                const x2 = targetX
+                const y2 = targetY
                 const dx = x2 - x1
                 const dy = y2 - y1
                 const dr = Math.sqrt(dx * dx + dy * dy)
                 // Defaults for normal edge.
-                let drx = dr
-                let dry = dr
-                let xRotation = 0 // degrees
-                let largeArc = 0 // 1 or 0
-                let sweep = 1 // 1 or 0
+                const drx = dr
+                const dry = dr
+                const xRotation = 0 // degrees
+                const largeArc = 0 // 1 or 0
+                const sweep = 1 // 1 or 0
 
+                return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+              } else if (linkIsLoop) {
                 // Self edge.
-                if (x1 === x2 && y1 === y2) {
-                  // Fiddle with this angle to get loop oriented.
-                  xRotation = -45
+                // Fiddle with this angle to get loop oriented.
+                const xRotation = 0
 
-                  // Needs to be 1.
-                  largeArc = 1
-                  // Change sweep to change orientation of loop.
-                  // sweep = 0
+                // Needs to be 1.
+                const largeArc = 1
+                // Change sweep to change orientation of loop.
+                const sweep = 0
 
-                  // Make drx and dry different to get an ellipse
-                  // instead of a circle.
-                  drx = 80
-                  dry = 80
+                // Make drx and dry different to get an ellipse
+                // instead of a circle.
+                const drx = 45
+                const dry = 45
 
-                  // For whatever reason the arc collapses to a point if the beginning
-                  // and ending points of the arc are the same, so kludge it.
-                  // TODO Place the endpoint on the perimeter so the arrowhead shows up
-                  x2 = x2 + 1
-                  y2 = y2 + 1
-                }
+                // Place the loop around the upper-right corner of the node.
+                const x1 = d.source.x + this.calculateNodeWidth(d.source) / 2
+                const y1 = d.source.y
+                const x2 = d.source.x
+                const y2 = d.source.y - this.calculateNodeHeight(d.source) / 2
                 return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
               }
             })
@@ -820,6 +834,14 @@
             this.links.push(newLinkWithReferences)
           }
         })
+        // TODO document how this works.  It's a fiddly bit of state management to ensure that
+        // nodes spawn under the mouse cursor if triggered by a user clicking, but otherwise, they
+        // should spawn at the center of the SVG (e.g. upon editing the APT).
+        // Maybe a better solution would be to send to the server the x/y coordinates of the click
+        // so that they can be automatically added to the new nodes that are created by the click.
+        // (At the time of writing (23.04.2018), the only nodes that are added by clicking are Graph
+        // Game BDD States when a State is clicked on to show its preset/postset.
+        this.lastUserClick = undefined
       },
       keyFunction: function (data) {
         return `${data.id}::${data.type}`
@@ -829,14 +851,16 @@
       },
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
-          return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
+          return d.maxContentLineLength * 8 + 10
+          // return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
         } else {
           return this.nodeRadius * 2
         }
       },
       calculateNodeHeight: function (d) {
         if (d.content !== undefined) {
-          return 90 // TODO Make height expand to fit text
+          return d.numberOfLines * 20
+          // return 90 // TODO Make height expand to fit text
         } else {
           return this.nodeRadius * 2
         }

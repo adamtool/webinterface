@@ -9,7 +9,12 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.tools.Logger;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.UUID;
@@ -22,8 +27,19 @@ public class App {
         final Gson gson = new Gson();
         final JsonParser parser = new JsonParser();
 
+        // Tell ADAM to send all of its messages to our websocket clients instead of stdout
+        Logger.getInstance().setVerboseMessageStream(LogWebSocket.getPrintStreamVerbose());
+        Logger.getInstance().setShortMessageStream(LogWebSocket.getPrintStreamNormal());
+        Logger.getInstance().setWarningStream(LogWebSocket.getPrintStreamWarning());
+        Logger.getInstance().setErrorStream(LogWebSocket.getPrintStreamError());
+//            Logger.OUTPUT output = Logger.OUTPUT.STREAMS;
+//            Logger.getInstance().setOutput(output);
+
+        webSocket("/log", LogWebSocket.class);
+
         staticFiles.location("/static");
         enableCORS();
+
 
         get("/hello", (req, res) -> "Hello World");
 
@@ -160,7 +176,8 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
             JsonObject nodesXYCoordinatesJson = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
-            Type type = new TypeToken<Map<String, NodePosition>>() {}.getType();
+            Type type = new TypeToken<Map<String, NodePosition>>() {
+            }.getType();
             Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
 
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);

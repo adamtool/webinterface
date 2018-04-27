@@ -1,0 +1,17 @@
+.name "Very Simple Example"
+.type LPN
+.description "A very small APT example to reduce CPU load during development"
+.options
+winningCondition="E_SAFETY"
+
+.places
+E1[bad="true"]
+E2
+
+.transitions
+t1[tfl="{E1}->{E2}"]
+
+.flows
+t1 : {E1} -> {E2}
+
+.initial_marking {E1,E2}
