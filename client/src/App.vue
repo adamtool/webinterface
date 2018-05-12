@@ -49,8 +49,6 @@
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
     </my-theme>
-    {{ aptEditorMinimumSize }}
-    <v-slider v-model="aptEditorMinimumSize" step="0"/>
 
     <div style="display: flex; flex-direction: column; width: 100%; height: 100vh">
       <div style="display: flex; flex-direction: row; flex: 1 1 100%">
@@ -251,8 +249,8 @@
           color: undefined
         },
         aptEditorSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
-        aptEditorSplitSize: [25, 75],
-        aptEditorMinimumSize: 5
+        aptEditorSplitSizes: [25, 75],
+        aptEditorMinWidth: 7.65 // Percentage of flexbox container's width
       }
     },
     watch: {
@@ -325,7 +323,7 @@
     methods: {
       createAptEditorSplit: function () {
         const split = Split(['#aptEditorContainer', '#graphEditorContainer'], {
-          sizes: this.aptEditorSplitSize,
+          sizes: this.aptEditorSplitSizes,
           minSize: 0,
           gutterSize: 20,
           elementStyle: function (dimension, size, gutterSize) {
@@ -340,7 +338,7 @@
           },
           onDrag: () => {
             const aptEditorWidth = split.getSizes()[0]
-            const shouldAptEditorCollapse = aptEditorWidth <= this.aptEditorMinimumSize
+            const shouldAptEditorCollapse = aptEditorWidth <= this.aptEditorMinWidth
             if (shouldAptEditorCollapse && this.isAptEditorVisible) {
               this.logVerbose('collapsing apt editor')
               this.isAptEditorVisible = false
@@ -355,7 +353,8 @@
           },
           onDragEnd: () => {
             if (this.isAptEditorVisible) {
-              this.aptEditorSplitSize = split.getSizes()
+              // Save current sizes so that we can restore them in toggleAptEditor()
+              this.aptEditorSplitSizes = split.getSizes()
             }
           }
         })
@@ -366,7 +365,7 @@
         this.logVerbose('toggleAptEditor()')
         const restoring = !this.isAptEditorVisible
         if (restoring) {
-          this.aptEditorSplit.setSizes(this.aptEditorSplitSize)
+          this.aptEditorSplit.setSizes(this.aptEditorSplitSizes)
         }
         this.isAptEditorVisible = !this.isAptEditorVisible
       },
