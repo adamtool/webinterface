@@ -49,23 +49,25 @@
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
     </my-theme>
+    {{ aptEditorMinimumSize }}
+    <v-slider v-model="aptEditorMinimumSize" step="0"/>
 
     <div style="display: flex; flex-direction: column; width: 100%; height: 100vh">
       <div style="display: flex; flex-direction: row; flex: 1 1 100%">
         <div class="flex-column-divider"
-             v-on:click="isAptEditorVisible = !isAptEditorVisible">
+             v-on:click="toggleAptEditor">
           <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
 
-        <v-flex xs6 md4 v-if="isAptEditorVisible">
+        <div id="aptEditorContainer" :style="aptEditorStyle">
           <div style="display: flex; flex-direction: column; height: 100%">
             <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
               APT Editor
             </div>
             <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
           </div>
-        </v-flex>
-        <v-flex xs12 id="graphEditorTabsFlex">
+        </div>
+        <div id="graphEditorContainer">
           <tabs>
             <tab name="Petri Game" :style="petriGameTabStyle">
               <GraphEditor :graph='petriGame.net'
@@ -105,7 +107,7 @@
                            :gravityStrengthDefault="300"/>
             </tab>
           </tabs>
-        </v-flex>
+        </div>
       </div>
       <!--End first row-->
       <div style="flex: 1 1 0%">
@@ -159,6 +161,8 @@
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
 
+  import Split from 'split.js'
+
   export default {
     name: 'app',
     props: {
@@ -202,11 +206,11 @@
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
-      const flexElem = document.getElementById('graphEditorTabsFlex')
+      const flexElem = document.getElementById('graphEditorContainer')
       const updateGraphEditorDimensions = () => {
         const width = flexElem.clientWidth
         const height = flexElem.clientHeight
-        console.log('flex element changed to ' + width + ' x ' + height)
+        // this.logVerbose('flex element changed to ' + width + ' x ' + height)
         this.graphEditorDimensions = {
           width: width,
           height: height
@@ -217,6 +221,9 @@
       new ResizeSensor(flexElem, updateGraphEditorDimensions)
       Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
       this.log('Hello!')
+
+      // Initialize draggable, resizable panes for APT editor and log viewer
+      this.aptEditorSplit = this.createAptEditorSplit()
     },
     data: function () {
       return {
@@ -242,7 +249,10 @@
           display: false,
           text: '',
           color: undefined
-        }
+        },
+        aptEditorSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
+        aptEditorSplitSize: [25, 75],
+        aptEditorMinimumSize: 5
       }
     },
     watch: {
@@ -275,11 +285,7 @@
         return aptFileTree
       },
       aptEditorStyle: function () {
-        if (this.isAptEditorVisible) {
-          return 'flex: 1 1 1000px; margin-left: 15px;'
-        } else {
-          return 'display: none;'
-        }
+        return this.isAptEditorVisible ? '' : 'display: none;'
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -317,16 +323,63 @@
       }
     },
     methods: {
+      createAptEditorSplit: function () {
+        const split = Split(['#aptEditorContainer', '#graphEditorContainer'], {
+          sizes: this.aptEditorSplitSize,
+          minSize: 0,
+          gutterSize: 20,
+          elementStyle: function (dimension, size, gutterSize) {
+            return {
+              'flex-basis': `calc(${size}% - ${gutterSize}px)`
+            }
+          },
+          gutterStyle: function (dimension, gutterSize) {
+            return {
+              'flex-basis': gutterSize + 'px'
+            }
+          },
+          onDrag: () => {
+            const aptEditorWidth = split.getSizes()[0]
+            const shouldAptEditorCollapse = aptEditorWidth <= this.aptEditorMinimumSize
+            if (shouldAptEditorCollapse && this.isAptEditorVisible) {
+              this.logVerbose('collapsing apt editor')
+              this.isAptEditorVisible = false
+            }
+            if (shouldAptEditorCollapse) {
+              split.setSizes([0, 100])
+            }
+            if (!shouldAptEditorCollapse && !this.isAptEditorVisible) {
+              this.logVerbose('expanding apt editor')
+              this.isAptEditorVisible = true
+            }
+          },
+          onDragEnd: () => {
+            if (this.isAptEditorVisible) {
+              this.aptEditorSplitSize = split.getSizes()
+            }
+          }
+        })
+        return split
+      },
+      // Hide or show APT editor, restoring its size if appropriate
+      toggleAptEditor: function () {
+        this.logVerbose('toggleAptEditor()')
+        const restoring = !this.isAptEditorVisible
+        if (restoring) {
+          this.aptEditorSplit.setSizes(this.aptEditorSplitSize)
+        }
+        this.isAptEditorVisible = !this.isAptEditorVisible
+      },
       // Load APT from a text file stored on the user's local filesystem
       // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
       onFileSelected: function (changeEvent) {
-        console.log('The user selected a file in the file selector')
+        this.logVerbose('The user selected a file in the file selector')
         const file = changeEvent.target.files[0]
-        console.log(file)
+        this.logObject(file)
         const reader = new FileReader()
         reader.onloadend = () => {
           // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
-          console.log('The file selected by the user is finished loading.  Updating text editor contents')
+          this.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
           this.apt = reader.result
         }
         reader.readAsText(file)
@@ -630,5 +683,25 @@
   .flex-column-divider:hover {
     transition: .2s;
     border: 1px solid black;
+  }
+
+  .gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+  }
+
+  .gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: ew-resize;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  .gutter.gutter-vertical {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+    margin-top: 5px;
+    margin-bottom: 5px;
+    cursor: ns-resize;
   }
 </style>
