@@ -366,6 +366,8 @@
         const restoring = !this.isAptEditorVisible
         if (restoring) {
           this.aptEditorSplit.setSizes(this.aptEditorSplitSizes)
+        } else {
+          this.aptEditorSplit.setSizes([0, 100])
         }
         this.isAptEditorVisible = !this.isAptEditorVisible
       },
