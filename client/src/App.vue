@@ -226,6 +226,7 @@
     data: function () {
       return {
         apt: aptExample,
+        aptParseStatus: 'success',
         petriGame: {
           net: {
             links: [],
@@ -283,7 +284,23 @@
         return aptFileTree
       },
       aptEditorStyle: function () {
-        return this.isAptEditorVisible ? '' : 'display: none;'
+        const hideStyle = this.isAptEditorVisible ? '' : 'display: none;'
+        let color
+        switch (this.aptParseStatus) {
+          case 'success':
+            color = '#5959ed'
+            break
+          case 'error':
+            color = 'red'
+            break
+          case 'running':
+            color = 'lightgray'
+            break
+          default:
+            this.showErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
+        }
+        const borderStyle = `border: 3px solid ${color};`
+        return hideStyle + borderStyle
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -430,18 +447,22 @@
               this.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
               this.logObject(response)
               this.petriGame = response.data.graph
+              this.aptParseStatus = 'success'
               break
             case 'error':
-              this.logError(`There was an error when we tried to parse the APT: ${response.data.message}`)
+              this.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
+              this.aptParseStatus = 'error'
               break
             default:
-              this.logError('We got an unexpected response from the server when trying to parse the APT:')
+              this.log('We got an unexpected response from the server when trying to parse the APT:')
               this.log(response)
+              this.aptParseStatus = 'error'
               break
           }
         }).catch(() => {
           this.logError('Network error when trying to parse APT')
         })
+        this.aptParseStatus = 'running'
       }, 200),
       existsWinningStrategy: function () {
         if (this.petriGame.hasWinningStrategy !== undefined) {
