@@ -398,7 +398,7 @@
         reader.onloadend = () => {
           // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
           this.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
-          this.apt = reader.result
+          this.onAptExampleSelected(reader.result)
         }
         reader.readAsText(file)
       },
@@ -578,6 +578,11 @@
         // TODO: Implement undo/redo.
       },
       onAptExampleSelected: function (apt) {
+        // Let the Graph Editor know that a new petri game has been loaded.
+        // This needs to be handled differently than an incremental edit to an already loaded
+        // Petri Game, because when we load a new APT file, we want all of the nodes' positions
+        // to be reset.
+        this.$refs.graphEditorPetriGame.onLoadNewPetriGame()
         this.apt = apt
         this.isAptEditorVisible = true
       },
