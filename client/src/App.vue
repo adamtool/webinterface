@@ -50,8 +50,8 @@
       </hsc-menu-bar>
     </my-theme>
 
-    <div style="display: flex; flex-direction: column; width: 100%; height: 100vh">
-      <div style="display: flex; flex-direction: row; flex: 1 1 100%">
+    <div style="width: 100%; height: 100vh">
+      <div style="display: flex; flex-direction: row;" ref="horizontalSplitDiv">
         <div class="flex-column-divider"
              v-on:click="toggleAptEditor">
           <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
@@ -108,18 +108,8 @@
         </div>
       </div>
       <!--End first row-->
-      <div style="flex: 1 1 0%">
-        <LogViewer :messages="messageLog"
-                   v-if="isLogVisible"/>
-      </div>
-      <div class="row-divider"
-           style="flex: 0 0 48px;"
-           v-on:click="isLogVisible = !isLogVisible">
-        <div style="padding-right: 5px;">
-          <template v-if="isLogVisible">Collapse Log</template>
-          <template v-else>Show Log</template>
-        </div>
-        <div :class="isLogVisible ? 'arrow-down' : 'arrow-up'"></div>
+      <div ref="messageLogDiv">
+        <LogViewer :messages="messageLog"/>
       </div>
     </div>
   </v-app>
@@ -222,6 +212,7 @@
 
       // Initialize draggable, resizable panes for APT editor and log viewer
       this.aptEditorSplit = this.createAptEditorSplit()
+      this.createVerticalSplit()
     },
     data: function () {
       return {
@@ -238,7 +229,6 @@
         graphStrategyBDD: null,
         graphGameBDD: null,
         isAptEditorVisible: true,
-        isLogVisible: false,
         messageLog: [],
         graphEditorDimensions: {
           width: 0,
@@ -338,6 +328,16 @@
       }
     },
     methods: {
+      createVerticalSplit: function () {
+        const split = Split([this.$refs.horizontalSplitDiv, this.$refs.messageLogDiv], {
+          minSize: 0,
+          gutterSize: 20,
+          direction: 'vertical',
+          snapOffset: 50,
+          sizes: [80, 20]
+        })
+        return split
+      },
       createAptEditorSplit: function () {
         const split = Split(['#aptEditorContainer', '#graphEditorContainer'], {
           sizes: this.aptEditorSplitSizes,
@@ -629,7 +629,6 @@
       },
       logError: function (message) {
         this.log(message, 4)
-        this.isLogVisible = true
       }
     }
   }
