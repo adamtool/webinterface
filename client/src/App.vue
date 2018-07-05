@@ -50,8 +50,8 @@
       </hsc-menu-bar>
     </my-theme>
 
-    <div style="display: flex; flex-direction: column; width: 100%; height: 100vh">
-      <div style="display: flex; flex-direction: row; flex: 1 1 100%">
+    <div style="width: 100%; height: 100vh">
+      <div style="display: flex; flex-direction: row;" ref="horizontalSplitDiv">
         <div class="flex-column-divider"
              v-on:click="toggleAptEditor">
           <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
@@ -108,18 +108,8 @@
         </div>
       </div>
       <!--End first row-->
-      <div style="flex: 1 1 0%">
-        <LogViewer :messages="messageLog"
-                   v-if="isLogVisible"/>
-      </div>
-      <div class="row-divider"
-           style="flex: 0 0 48px;"
-           v-on:click="isLogVisible = !isLogVisible">
-        <div style="padding-right: 5px;">
-          <template v-if="isLogVisible">Collapse Log</template>
-          <template v-else>Show Log</template>
-        </div>
-        <div :class="isLogVisible ? 'arrow-down' : 'arrow-up'"></div>
+      <div ref="messageLogDiv">
+        <LogViewer :messages="messageLog"/>
       </div>
     </div>
   </v-app>
@@ -222,10 +212,12 @@
 
       // Initialize draggable, resizable panes for APT editor and log viewer
       this.aptEditorSplit = this.createAptEditorSplit()
+      this.createVerticalSplit()
     },
     data: function () {
       return {
         apt: aptExample,
+        aptParseStatus: 'success',
         petriGame: {
           net: {
             links: [],
@@ -237,7 +229,6 @@
         graphStrategyBDD: null,
         graphGameBDD: null,
         isAptEditorVisible: true,
-        isLogVisible: false,
         messageLog: [],
         graphEditorDimensions: {
           width: 0,
@@ -283,7 +274,23 @@
         return aptFileTree
       },
       aptEditorStyle: function () {
-        return this.isAptEditorVisible ? '' : 'display: none;'
+        const hideStyle = this.isAptEditorVisible ? '' : 'display: none;'
+        let color
+        switch (this.aptParseStatus) {
+          case 'success':
+            color = '#5959ed'
+            break
+          case 'error':
+            color = 'red'
+            break
+          case 'running':
+            color = 'lightgray'
+            break
+          default:
+            this.showErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
+        }
+        const borderStyle = `border: 3px solid ${color};`
+        return hideStyle + borderStyle
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -321,6 +328,16 @@
       }
     },
     methods: {
+      createVerticalSplit: function () {
+        const split = Split([this.$refs.horizontalSplitDiv, this.$refs.messageLogDiv], {
+          minSize: 0,
+          gutterSize: 20,
+          direction: 'vertical',
+          snapOffset: 50,
+          sizes: [80, 20]
+        })
+        return split
+      },
       createAptEditorSplit: function () {
         const split = Split(['#aptEditorContainer', '#graphEditorContainer'], {
           sizes: this.aptEditorSplitSizes,
@@ -381,7 +398,7 @@
         reader.onloadend = () => {
           // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
           this.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
-          this.apt = reader.result
+          this.onAptExampleSelected(reader.result)
         }
         reader.readAsText(file)
       },
@@ -430,18 +447,22 @@
               this.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
               this.logObject(response)
               this.petriGame = response.data.graph
+              this.aptParseStatus = 'success'
               break
             case 'error':
-              this.logError(`There was an error when we tried to parse the APT: ${response.data.message}`)
+              this.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
+              this.aptParseStatus = 'error'
               break
             default:
-              this.logError('We got an unexpected response from the server when trying to parse the APT:')
+              this.log('We got an unexpected response from the server when trying to parse the APT:')
               this.log(response)
+              this.aptParseStatus = 'error'
               break
           }
         }).catch(() => {
           this.logError('Network error when trying to parse APT')
         })
+        this.aptParseStatus = 'running'
       }, 200),
       existsWinningStrategy: function () {
         if (this.petriGame.hasWinningStrategy !== undefined) {
@@ -557,6 +578,11 @@
         // TODO: Implement undo/redo.
       },
       onAptExampleSelected: function (apt) {
+        // Let the Graph Editor know that a new petri game has been loaded.
+        // This needs to be handled differently than an incremental edit to an already loaded
+        // Petri Game, because when we load a new APT file, we want all of the nodes' positions
+        // to be reset.
+        this.$refs.graphEditorPetriGame.onLoadNewPetriGame()
         this.apt = apt
         this.isAptEditorVisible = true
       },
@@ -603,7 +629,6 @@
       },
       logError: function (message) {
         this.log(message, 4)
-        this.isLogVisible = true
       }
     }
   }

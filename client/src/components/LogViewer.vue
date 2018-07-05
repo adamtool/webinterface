@@ -22,7 +22,7 @@
         </v-flex>
       </v-radio-group>
     </div>
-    <div class="log" ref="logElement" style="flex: 1 1 300px;">
+    <div class="log" ref="logElement" style="flex: 1 1 100%">
       <template v-for="message in visibleMessages">
         <pre :style="styleOfMessage(message)">{{ formatMessageDate(message.time) }} {{ message.text }}</pre>
       </template>
@@ -100,13 +100,12 @@
 
 <style scoped>
   .logViewer {
-    /*display: block;*/
     height: 100%;
+    overflow: hidden;
   }
 
   .log {
     display: block;
-    height: 300px;
     width: 100%;
     overflow: scroll;
   }

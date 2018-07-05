@@ -296,6 +296,19 @@
       }
     },
     methods: {
+      onLoadNewPetriGame: function () {
+        // When we load a new petri game, the positions of nodes from the previously loaded Petri Game
+        // should not be carried over.
+        this.randomizeAllNodesPositions()
+      },
+      randomizeAllNodesPositions: function () {
+        this.nodes.forEach(node => {
+          node.fx = undefined
+          node.fy = undefined
+          node.x = this.dimensions.width / 2 + (Math.random() - 0.5) * 40
+          node.y = this.dimensions.height / 2 + (Math.random() - 0.5) * 40
+        })
+      },
       updateSvgDimensions: function () {
         this.svg.attr('width', `${this.dimensions.width}px`)
         // TODO replace hack with proper solution (this is highly specific to my weird tabs component)
@@ -347,7 +360,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-          'The fixed positions you have moved them to will be lost.')) {
+            'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
