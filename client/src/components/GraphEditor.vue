@@ -25,8 +25,11 @@
                 v-on:click="saveGraphAsAPT">
           Save graph as APT
         </button>
+        <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
+          Zoom to fit all nodes
+        </button>
         <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
-          Move all nodes into the visible area
+          Move all nodes to visible area
         </button>
         <button style="display: none;" v-on:click="updateD3">Update D3</button>
         <button v-on:click="freezeAllNodes">Freeze all nodes</button>
@@ -373,6 +376,22 @@
           })
         }
       },
+      // If you lost track of where the graph actually is, you can click this button and it will
+      // zoom out far enough that all the nodes can be seen.  :)
+      zoomToFitAllNodes: function () {
+        const bbox = this.container.node().getBBox()
+        const svgWidth = this.svg.node().clientWidth
+        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
+        const svgHeight = this.svg.node().clientHeight - toolbarHeight
+        const containerCenter = [
+          bbox.x + bbox.width / 2,
+          bbox.y + bbox.height / 2]
+        const scale = 0.9 / Math.max(bbox.width / svgWidth, bbox.height / svgHeight)
+        const translate = [
+          svgWidth / 2 - scale * containerCenter[0],
+          svgHeight / 2 - scale * containerCenter[1] + toolbarHeight]
+        this.svg.transition().duration(300).call(this.zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale))
+      },
       // Sometimes nodes might get lost outside the borders of the screen.
       // This procedure places them back within the visible area.
       moveNodesToVisibleArea: function () {
@@ -457,10 +476,11 @@
           .attr('orient', 'auto')
           .append('svg:path')
           .attr('d', 'M0,-5L10,0L0,5')
-        this.svg.call(d3.zoom().on('zoom', () => {
+        this.zoom = d3.zoom().on('zoom', () => {
           const transform = d3.zoomTransform(this.svg.node())
           this.container.attr('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.k})`)
-        }))
+        })
+        this.svg.call(this.zoom)
 
         this.container = this.svg.append('g')
         this.linkGroup = this.container.append('g').attr('class', 'links')
