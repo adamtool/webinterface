@@ -372,30 +372,41 @@
       moveNodesToVisibleArea: function () {
         const margin = 45
         const boundingRect = this.svg.node().getBoundingClientRect()
-        const toolbar = this.$refs.toolbarContainer
-        console.log(toolbar)
         const toolbarHeight = this.$refs.toolbarContainer.clientHeight
-        const minX = margin
-        const maxX = boundingRect.width - margin
-        const minY = margin + toolbarHeight
-        const maxY = boundingRect.height - margin
-        console.log(`toolbarHeight: ${toolbarHeight}, minY: ${minY}, maxY: ${maxY}`)
+        // There is a transformation applied to the SVG container using d3-zoom.
+        // Calculate the actual visible area's margins using the inverse of the transform.
+        const transform = d3.zoomTransform(this.svg.node())
+
+        const minX = transform.invertX(margin)
+        const maxX = transform.invertX(boundingRect.width - margin)
+        const minY = transform.invertY(margin + toolbarHeight)
+        const maxY = transform.invertY(boundingRect.height - margin)
         this.nodes.forEach(node => {
+          let nodeHasBeenMoved = false
           if (node.x < minX) {
+            nodeHasBeenMoved = true
             node.fx = minX
-            node.fy = node.y
           }
           if (node.y < minY) {
+            nodeHasBeenMoved = true
             node.fy = minY
-            node.fx = node.x
           }
           if (node.x > maxX) {
+            nodeHasBeenMoved = true
             node.fx = maxX
-            node.fy = node.y
           }
           if (node.y > maxY) {
+            nodeHasBeenMoved = true
             node.fy = maxY
-            node.fx = node.x
+          }
+          if (nodeHasBeenMoved) {
+            // Make sure the node is frozen on both the x and y axes.  Otherwise it feels weird
+            if (!node.fy) {
+              node.fy = node.y
+            }
+            if (!node.fx) {
+              node.fx = node.x
+            }
           }
         })
       },
@@ -418,8 +429,6 @@
           links: this.deepCopy(this.links),
           nodes: this.deepCopy(this.nodes)
         }
-        console.log('GraphEditor: Emitting graphModified event: ')
-        console.log(graph)
         this.$emit('graphModified', graph)
       },
       initializeD3: function () {
@@ -444,15 +453,16 @@
           .attr('d', 'M0,-5L10,0L0,5')
         this.svg.call(d3.zoom().on('zoom', () => {
           const transform = d3.zoomTransform(this.svg.node())
-          this.nodeGroup.attr('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.k})`)
+          this.container.attr('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.k})`)
         }))
 
-        this.linkGroup = this.svg.append('g').attr('class', 'links')
-        this.linkTextGroup = this.svg.append('g').attr('class', 'linkTexts')
-        this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
-        this.isSpecialGroup = this.svg.append('g').attr('class', 'isSpecialHighlights')
-        this.labelGroup = this.svg.append('g').attr('class', 'texts')
-        this.contentGroup = this.svg.append('g').attr('class', 'node-content')
+        this.container = this.svg.append('g')
+        this.linkGroup = this.container.append('g').attr('class', 'links')
+        this.linkTextGroup = this.container.append('g').attr('class', 'linkTexts')
+        this.nodeGroup = this.container.append('g').attr('class', 'nodes')
+        this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
+        this.labelGroup = this.container.append('g').attr('class', 'texts')
+        this.contentGroup = this.container.append('g').attr('class', 'node-content')
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
