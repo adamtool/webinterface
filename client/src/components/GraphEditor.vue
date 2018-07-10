@@ -330,18 +330,24 @@
       },
       // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
-        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
-        const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(),
-          this.svgHeight() - toolbarHeight)
+        const boundingRect = this.svg.node().getBoundingClientRect()
+        // There is a transformation applied to the SVG container using d3-zoom.
+        // Calculate the actual visible area's margins using the inverse of the transform.
+        const transform = d3.zoomTransform(this.svg.node())
+        const minX = transform.invertX(0)
+        const maxX = transform.invertX(boundingRect.width)
+        const minY = transform.invertY(boundingRect.top)
+        const maxY = transform.invertY(boundingRect.bottom)
+        const positionsPromise = layoutNodes(this.nodes, this.links, 0.15, minX, maxX, minY, maxY)
         positionsPromise.then(positions => {
           this.nodes.forEach(node => {
             const position = positions[node.id]
             if (node.fx === node.x) {
               node.fx = position.x
-              node.fy = position.y + toolbarHeight
+              node.fy = position.y
             } else {
               node.x = position.x
-              node.y = position.y + toolbarHeight
+              node.y = position.y
             }
           })
         })

@@ -9,8 +9,8 @@ export {
 }
 // Returns a promise that yields a map of node IDs to x/y coordinates
 // of the form { nodeId: {x: <xPosition> y: <yPostion>} }
-function layoutNodes (nodes, links, width, height) {
-  console.log(`Layout with width ${width}, height ${height}`)
+function layoutNodes (nodes, links, marginPercentage, xMin, xMax, yMin, yMax) {
+  console.log(`Laying out nodes with a ${marginPercentage * 100}% border, xMin ${xMin}, xMax ${xMax}, yMin ${yMin}, yMax ${yMax}`)
   // Convert D3's nodes/links into Cytoscape's elements
   const nodeElements = nodes.map(node => {
     return ({
@@ -32,12 +32,16 @@ function layoutNodes (nodes, links, width, height) {
   console.log(linkElements)
   const elements = nodeElements.concat(linkElements)
 
-  const padding = 100
+  const sizeX = xMax - xMin
+  const sizeY = yMax - yMin
+  const marginX = marginPercentage * sizeX
+  const marginY = marginPercentage * sizeY
+
   const boundingBox = {
-    x1: padding,
-    y1: padding,
-    x2: width - padding,
-    y2: height - padding
+    x1: xMin + marginX,
+    y1: yMin + marginY,
+    x2: xMax - marginX,
+    y2: yMax - marginY
   }
 
   const cy = cytoscape({
