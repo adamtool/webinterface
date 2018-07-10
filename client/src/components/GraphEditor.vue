@@ -442,6 +442,10 @@
           .attr('orient', 'auto')
           .append('svg:path')
           .attr('d', 'M0,-5L10,0L0,5')
+        this.svg.call(d3.zoom().on('zoom', () => {
+          const transform = d3.zoomTransform(this.svg.node())
+          this.nodeGroup.attr('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.k})`)
+        }))
 
         this.linkGroup = this.svg.append('g').attr('class', 'links')
         this.linkTextGroup = this.svg.append('g').attr('class', 'linkTexts')
