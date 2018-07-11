@@ -25,8 +25,11 @@
                 v-on:click="saveGraphAsAPT">
           Save graph as APT
         </button>
+        <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
+          Zoom to fit all nodes
+        </button>
         <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
-          Move all nodes into the visible area
+          Move all nodes to visible area
         </button>
         <button style="display: none;" v-on:click="updateD3">Update D3</button>
         <button v-on:click="freezeAllNodes">Freeze all nodes</button>
@@ -319,8 +322,9 @@
        * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
        */
       updateCenterForce: function () {
-        const centerX = this.dimensions.width / 2
-        const centerY = this.dimensions.height / 2
+        const transform = d3.zoomTransform(this.svg.node())
+        const centerX = transform.invertX(this.dimensions.width / 2)
+        const centerY = transform.invertY(this.dimensions.height / 2)
         console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
         // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
         // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
@@ -330,18 +334,24 @@
       },
       // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
-        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
-        const positionsPromise = layoutNodes(this.nodes, this.links, this.svgWidth(),
-          this.svgHeight() - toolbarHeight)
+        const boundingRect = this.svg.node().getBoundingClientRect()
+        // There is a transformation applied to the SVG container using d3-zoom.
+        // Calculate the actual visible area's margins using the inverse of the transform.
+        const transform = d3.zoomTransform(this.svg.node())
+        const minX = transform.invertX(0)
+        const maxX = transform.invertX(boundingRect.width)
+        const minY = transform.invertY(boundingRect.top)
+        const maxY = transform.invertY(boundingRect.bottom)
+        const positionsPromise = layoutNodes(this.nodes, this.links, 0.15, minX, maxX, minY, maxY)
         positionsPromise.then(positions => {
           this.nodes.forEach(node => {
             const position = positions[node.id]
             if (node.fx === node.x) {
               node.fx = position.x
-              node.fy = position.y + toolbarHeight
+              node.fy = position.y
             } else {
               node.x = position.x
-              node.y = position.y + toolbarHeight
+              node.y = position.y
             }
           })
         })
@@ -367,35 +377,62 @@
           })
         }
       },
+      // If you lost track of where the graph actually is, you can click this button and it will
+      // zoom out far enough that all the nodes can be seen.  :)
+      zoomToFitAllNodes: function () {
+        const bbox = this.container.node().getBBox()
+        const svgWidth = this.svgWidth()
+        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
+        const svgHeight = this.svgHeight() - toolbarHeight
+        const containerCenter = [
+          bbox.x + bbox.width / 2,
+          bbox.y + bbox.height / 2]
+        const scale = 0.9 / Math.max(bbox.width / svgWidth, bbox.height / svgHeight)
+        const translate = [
+          svgWidth / 2 - scale * containerCenter[0],
+          svgHeight / 2 - scale * containerCenter[1] + toolbarHeight]
+        this.svg.transition().duration(300).call(this.zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale))
+      },
       // Sometimes nodes might get lost outside the borders of the screen.
       // This procedure places them back within the visible area.
       moveNodesToVisibleArea: function () {
         const margin = 45
         const boundingRect = this.svg.node().getBoundingClientRect()
-        const toolbar = this.$refs.toolbarContainer
-        console.log(toolbar)
         const toolbarHeight = this.$refs.toolbarContainer.clientHeight
-        const minX = margin
-        const maxX = boundingRect.width - margin
-        const minY = margin + toolbarHeight
-        const maxY = boundingRect.height - margin
-        console.log(`toolbarHeight: ${toolbarHeight}, minY: ${minY}, maxY: ${maxY}`)
+        // There is a transformation applied to the SVG container using d3-zoom.
+        // Calculate the actual visible area's margins using the inverse of the transform.
+        const transform = d3.zoomTransform(this.svg.node())
+
+        const minX = transform.invertX(margin)
+        const maxX = transform.invertX(boundingRect.width - margin)
+        const minY = transform.invertY(margin + toolbarHeight)
+        const maxY = transform.invertY(boundingRect.height - margin)
         this.nodes.forEach(node => {
+          let nodeHasBeenMoved = false
           if (node.x < minX) {
+            nodeHasBeenMoved = true
             node.fx = minX
-            node.fy = node.y
           }
           if (node.y < minY) {
+            nodeHasBeenMoved = true
             node.fy = minY
-            node.fx = node.x
           }
           if (node.x > maxX) {
+            nodeHasBeenMoved = true
             node.fx = maxX
-            node.fy = node.y
           }
           if (node.y > maxY) {
+            nodeHasBeenMoved = true
             node.fy = maxY
-            node.fx = node.x
+          }
+          if (nodeHasBeenMoved) {
+            // Make sure the node is frozen on both the x and y axes.  Otherwise it feels weird
+            if (!node.fy) {
+              node.fy = node.y
+            }
+            if (!node.fx) {
+              node.fx = node.x
+            }
           }
         })
       },
@@ -418,8 +455,6 @@
           links: this.deepCopy(this.links),
           nodes: this.deepCopy(this.nodes)
         }
-        console.log('GraphEditor: Emitting graphModified event: ')
-        console.log(graph)
         this.$emit('graphModified', graph)
       },
       initializeD3: function () {
@@ -442,13 +477,21 @@
           .attr('orient', 'auto')
           .append('svg:path')
           .attr('d', 'M0,-5L10,0L0,5')
+        const onZoom = () => {
+          const transform = d3.zoomTransform(this.svg.node())
+          this.container.attr('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.k})`)
+          this.updateCenterForce()
+        }
+        this.zoom = d3.zoom().on('zoom', onZoom)
+        this.svg.call(this.zoom)
 
-        this.linkGroup = this.svg.append('g').attr('class', 'links')
-        this.linkTextGroup = this.svg.append('g').attr('class', 'linkTexts')
-        this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
-        this.isSpecialGroup = this.svg.append('g').attr('class', 'isSpecialHighlights')
-        this.labelGroup = this.svg.append('g').attr('class', 'texts')
-        this.contentGroup = this.svg.append('g').attr('class', 'node-content')
+        this.container = this.svg.append('g')
+        this.linkGroup = this.container.append('g').attr('class', 'links')
+        this.linkTextGroup = this.container.append('g').attr('class', 'linkTexts')
+        this.nodeGroup = this.container.append('g').attr('class', 'nodes')
+        this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
+        this.labelGroup = this.container.append('g').attr('class', 'texts')
+        this.contentGroup = this.container.append('g').attr('class', 'node-content')
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
