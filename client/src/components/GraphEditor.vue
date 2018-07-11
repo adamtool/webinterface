@@ -322,8 +322,9 @@
        * We try to keep the Petri Net centered in the middle of the viewing area by applying a force to it.
        */
       updateCenterForce: function () {
-        const centerX = this.dimensions.width / 2
-        const centerY = this.dimensions.height / 2
+        const transform = d3.zoomTransform(this.svg.node())
+        const centerX = transform.invertX(this.dimensions.width / 2)
+        const centerY = transform.invertY(this.dimensions.height / 2)
         console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
         // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
         // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
@@ -476,10 +477,12 @@
           .attr('orient', 'auto')
           .append('svg:path')
           .attr('d', 'M0,-5L10,0L0,5')
-        this.zoom = d3.zoom().on('zoom', () => {
+        const onZoom = () => {
           const transform = d3.zoomTransform(this.svg.node())
           this.container.attr('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.k})`)
-        })
+          this.updateCenterForce()
+        }
+        this.zoom = d3.zoom().on('zoom', onZoom)
         this.svg.call(this.zoom)
 
         this.container = this.svg.append('g')
