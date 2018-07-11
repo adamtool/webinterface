@@ -380,9 +380,9 @@
       // zoom out far enough that all the nodes can be seen.  :)
       zoomToFitAllNodes: function () {
         const bbox = this.container.node().getBBox()
-        const svgWidth = this.svg.node().clientWidth
+        const svgWidth = this.svgWidth()
         const toolbarHeight = this.$refs.toolbarContainer.clientHeight
-        const svgHeight = this.svg.node().clientHeight - toolbarHeight
+        const svgHeight = this.svgHeight() - toolbarHeight
         const containerCenter = [
           bbox.x + bbox.width / 2,
           bbox.y + bbox.height / 2]
