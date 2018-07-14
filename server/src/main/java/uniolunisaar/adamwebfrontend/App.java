@@ -59,7 +59,7 @@ public class App {
             petriGamesReadFromApt.put(petriGameUUID, petriGameAndMore);
             System.out.println("Generated petri game with ID " + petriGameUUID);
 
-            JsonElement petriNetD3Json = petriGameAndMore.getPetriGameClient();
+            JsonElement petriNetD3Json = PetriNetD3.of(petriGame.getNet(), true);
             JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
 
             JsonObject responseJson = new JsonObject();

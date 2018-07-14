@@ -33,12 +33,14 @@ public class PetriNetD3 {
     /**
      * Extract all the information needed to display a PetriNet in our graph editor.
      *
-     * @param net - A PetriNet
+     * @param net                 - A PetriNet
+     * @param shouldSendPositions - If true, the x/y coordinates saved in the petri net will be included
+     *                            in the json object that is returned. Otherwise, an empty list is sent.
      * @return A JSON object containing the relevant information from the PetriNet
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement of(PetriNet net) {
+    public static JsonElement of(PetriNet net, boolean shouldSendPositions) {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -57,7 +59,28 @@ public class PetriNetD3 {
             links.add(petriNetLink);
         }
 
-        // Add X/Y coordinates for nodes that have them
+        Map<String, NodePosition> nodePositions = shouldSendPositions ?
+                nodePositionsOf(net) :
+                new HashMap<>();
+
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
+        return new Gson().toJsonTree(petriNetD3);
+    }
+
+    /**
+     *
+     * @param net A P
+     * @return
+     */
+    public static JsonElement of(PetriNet net) {
+        return of(net, false);
+    }
+
+    /**
+     * @param net A PetriNet whose nodes may have X/Y coordinates saved as extensions
+     * @return A Map from node ID -> NodePosition (which can be converted into a JSON Object)
+     */
+    private static Map<String, NodePosition> nodePositionsOf(PetriNet net) {
         Map<String, NodePosition> nodePositions = new HashMap<>();
         for (Node node : net.getNodes()) {
             // TODO note that this does not cover the strange case of a node having only one of X or Y specified.
@@ -68,9 +91,7 @@ public class PetriNetD3 {
                 nodePositions.put(node.getId(), new NodePosition(x, y));
             }
         }
-
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
-        return new Gson().toJsonTree(petriNetD3);
+        return nodePositions;
     }
 
     static class PetriNetLink extends GraphLink {
