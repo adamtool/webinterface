@@ -198,12 +198,18 @@ public class App {
         post("/insertPlace", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();
+            double x = body.get("x").getAsDouble();
+            double y = body.get("y").getAsDouble();
 
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             PetriNet net = petriGame.getNet();
 
-            net.createPlace();
+            Place place = net.createPlace();
+            AdamExtensions.setXCoord(place, x);
+            AdamExtensions.setYCoord(place, y);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet(), )
 
             JsonElement petriGameClient = petriGameAndMore.getPetriGameClient();
 
