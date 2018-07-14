@@ -7,8 +7,13 @@ import static spark.Spark.*;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import uniol.apt.adt.pn.Node;
+import uniol.apt.adt.pn.PetriNet;
+import uniol.apt.adt.pn.Place;
+import uniol.apt.adt.pn.Transition;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.tools.Logger;
 
 import java.io.IOException;
@@ -189,6 +194,27 @@ public class App {
             responseJson.add("apt", aptJson);
             return responseJson.toString();
         });
+
+        post("/insertPlace", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+
+            net.createPlace();
+
+            JsonElement petriGameClient = petriGameAndMore.getPetriGameClient();
+
+            return successResponse(petriGameClient);
+        });
+//        post("/renameNode", (req, res) -> {
+//
+//            if (net.containsNode(nodeId)) {
+//                return errorResponse("A node with the id '" + nodeId + "' already exists in the petri game.");
+//            }
+//        })
     }
 
     private static void enableCORS() {
@@ -211,5 +237,20 @@ public class App {
                 });
 
         before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
+    }
+
+    private static String successResponse(JsonElement result) {
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("result", result);
+        return responseJson.toString();
+    }
+
+
+    private static String errorResponse(String reason) {
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "error");
+        responseJson.addProperty("reason", reason);
+        return responseJson.toString();
     }
 }

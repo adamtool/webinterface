@@ -483,9 +483,13 @@
           this.updateCenterForce()
         }
         this.zoom = d3.zoom().on('zoom', onZoom)
-        this.svg.call(this.zoom)
 
         this.container = this.svg.append('g')
+        this.svg.on('click', d => {
+          console.log('emitting insertNode')
+          this.$emit('insertNode')
+        })
+        // this.svg.call(this.zoom)
         this.linkGroup = this.container.append('g').attr('class', 'links')
         this.linkTextGroup = this.container.append('g').attr('class', 'linkTexts')
         this.nodeGroup = this.container.append('g').attr('class', 'nodes')

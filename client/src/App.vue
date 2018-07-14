@@ -73,6 +73,7 @@
                            ref='graphEditorPetriGame'
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                           v-on:insertNode='insertNode'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -304,7 +305,8 @@
           toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
-          convertAptToGraph: this.baseUrl + '/convertAptToGraph'
+          convertAptToGraph: this.baseUrl + '/convertAptToGraph',
+          insertNode: this.baseUrl + '/insertPlace'
         }
       },
       webSocketUrl: function () {
@@ -567,6 +569,18 @@
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
             this.isAptEditorVisible = true
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      insertNode: function (event) {
+        console.log('processing insertNode event')
+        axios.post(this.restEndpoints.insertNode, {
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
           })
         }).catch(() => {
           this.logError('Network error')
