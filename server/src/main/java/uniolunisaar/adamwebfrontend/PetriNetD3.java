@@ -2,18 +2,12 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import uniol.apt.adt.Node;
-import uniol.apt.adt.pn.Flow;
-import uniol.apt.adt.pn.PetriNet;
-import uniol.apt.adt.pn.Place;
-import uniol.apt.adt.pn.Transition;
+import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.tools.Tools;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents the data needed to display a PetriNet in our graph editor.
@@ -34,13 +28,12 @@ public class PetriNetD3 {
      * Extract all the information needed to display a PetriNet in our graph editor.
      *
      * @param net                 - A PetriNet
-     * @param shouldSendPositions - If true, the x/y coordinates saved in the petri net will be included
-     *                            in the json object that is returned. Otherwise, an empty list is sent.
+     * @param shouldSendPositions - We will send x/y coordinates for these nodes to the client.
      * @return A JSON object containing the relevant information from the PetriNet
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement of(PetriNet net, boolean shouldSendPositions) {
+    public static JsonElement of(PetriNet net, Set<Node> shouldSendPositions) {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -59,21 +52,32 @@ public class PetriNetD3 {
             links.add(petriNetLink);
         }
 
-        Map<String, NodePosition> nodePositions = shouldSendPositions ?
-                nodePositionsOf(net) :
-                new HashMap<>();
+        Map<String, NodePosition> nodePositions = shouldSendPositions.stream()
+                .filter(PetriNetD3::hasPosition)
+                .collect(Collectors.toMap(
+                        Node::getId, PetriNetD3::positionOf
+                ));
 
         PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
         return new Gson().toJsonTree(petriNetD3);
     }
 
+    private static boolean hasPosition(Node node) {
+        return AdamExtensions.hasXCoord(node) && AdamExtensions.hasYCoord(node);
+    }
+
+    private static NodePosition positionOf(Node node) {
+        double x = AdamExtensions.getXCoord(node);
+        double y = AdamExtensions.getYCoord(node);
+        return new NodePosition(x, y);
+    }
+
     /**
-     *
      * @param net A P
      * @return
      */
     public static JsonElement of(PetriNet net) {
-        return of(net, false);
+        return of(net, new HashSet<>());
     }
 
     /**

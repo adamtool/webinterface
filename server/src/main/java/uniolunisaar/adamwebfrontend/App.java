@@ -7,22 +7,15 @@ import static spark.Spark.*;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import uniol.apt.adt.pn.Node;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
-import uniol.apt.adt.pn.Transition;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.tools.Logger;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class App {
@@ -59,7 +52,7 @@ public class App {
             petriGamesReadFromApt.put(petriGameUUID, petriGameAndMore);
             System.out.println("Generated petri game with ID " + petriGameUUID);
 
-            JsonElement petriNetD3Json = PetriNetD3.of(petriGame.getNet(), true);
+            JsonElement petriNetD3Json = PetriNetD3.of(petriGame.getNet(), petriGame.getNet().getNodes());
             JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
 
             JsonObject responseJson = new JsonObject();
@@ -209,9 +202,7 @@ public class App {
             AdamExtensions.setXCoord(place, x);
             AdamExtensions.setYCoord(place, y);
 
-            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet(), )
-
-            JsonElement petriGameClient = petriGameAndMore.getPetriGameClient();
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet(), new HashSet<>(Collections.singletonList(place)));
 
             return successResponse(petriGameClient);
         });

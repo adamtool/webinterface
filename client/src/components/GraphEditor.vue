@@ -486,8 +486,13 @@
         this.svg.call(this.zoom)
         this.svg.on('click', d => {
           const mouseCoordinates = d3.mouse(this.svg.node())
+          const transform = d3.zoomTransform(this.svg.node())
+          const fixedCoordinates = [
+            transform.invertX(mouseCoordinates[0]),
+            transform.invertY(mouseCoordinates[1])
+          ]
           console.log('emitting insertNode')
-          this.$emit('insertNode', mouseCoordinates)
+          this.$emit('insertNode', fixedCoordinates)
         })
 
         this.container = this.svg.append('g')
