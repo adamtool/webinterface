@@ -43,6 +43,11 @@
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
 
     </svg>
+    <v-radio-group v-model="nodeTypeToInsert" style="position: relative; top: 160px; width: 150px;">
+      <v-radio label="SYSPLACE" value="SYSPLACE"/>
+      <v-radio label="ENVPLACE" value="ENVPLACE"/>
+      <v-radio label="TRANSITION" value="TRANSITION"/>
+    </v-radio-group>
   </div>
 </template>
 
@@ -233,6 +238,7 @@
     },
     data () {
       return {
+        nodeTypeToInsert: 'SYSPLACE',
         saveGraphAPTRequestPreview: {},
         nodeRadius: 27,
         exportedGraphJson: {},
@@ -490,7 +496,7 @@
           const nodeSpec = {
             x: transform.invertX(mouseCoordinates[0]),
             y: transform.invertY(mouseCoordinates[1]),
-            type: 'TRANSITION' // TODO: Allow specifying SYSPLACE, ENVPLACE, TRANSITION
+            type: this.nodeTypeToInsert
           }
           console.log('emitting insertNode')
           this.$emit('insertNode', nodeSpec)
