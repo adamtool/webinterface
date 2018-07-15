@@ -487,12 +487,13 @@
         this.svg.on('click', d => {
           const mouseCoordinates = d3.mouse(this.svg.node())
           const transform = d3.zoomTransform(this.svg.node())
-          const fixedCoordinates = [
-            transform.invertX(mouseCoordinates[0]),
-            transform.invertY(mouseCoordinates[1])
-          ]
+          const nodeSpec = {
+            x: transform.invertX(mouseCoordinates[0]),
+            y: transform.invertY(mouseCoordinates[1]),
+            type: 'TRANSITION' // TODO: Allow specifying SYSPLACE, ENVPLACE, TRANSITION
+          }
           console.log('emitting insertNode')
-          this.$emit('insertNode', fixedCoordinates)
+          this.$emit('insertNode', nodeSpec)
         })
 
         this.container = this.svg.append('g')

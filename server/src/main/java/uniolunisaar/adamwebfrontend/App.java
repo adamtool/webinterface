@@ -7,6 +7,7 @@ import static spark.Spark.*;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import uniol.apt.adt.pn.Node;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
 import uniolunisaar.adam.Adam;
@@ -193,16 +194,33 @@ public class App {
             String gameId = body.get("petriGameId").getAsString();
             double x = body.get("x").getAsDouble();
             double y = body.get("y").getAsDouble();
+            String nodeType = body.get("nodeType").getAsString();
+            GraphNodeType graphNodeType = GraphNodeType.valueOf(nodeType);
 
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             PetriNet net = petriGame.getNet();
 
-            Place place = net.createPlace();
-            AdamExtensions.setXCoord(place, x);
-            AdamExtensions.setYCoord(place, y);
+            Node node = null;
+            switch (graphNodeType) {
+                case SYSPLACE:
+                    node = net.createPlace();
+                    break;
+                case ENVPLACE:
+                    Place place = net.createPlace();
+                    AdamExtensions.setEnvironment(place);
+                    node = place;
+                    break;
+                case TRANSITION:
+                    node = net.createTransition();
+                    break;
+                case GRAPH_STRATEGY_BDD_STATE:
+                    return errorResponse("You can't insert a GRAPH_STRATEGY_BDD_STATE into a Petri Game.");
+            }
+            AdamExtensions.setXCoord(node, x);
+            AdamExtensions.setYCoord(node, y);
 
-            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet(), new HashSet<>(Collections.singletonList(place)));
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet(), new HashSet<>(Collections.singletonList(node)));
 
             return successResponse(petriGameClient);
         });

@@ -574,12 +574,13 @@
           this.logError('Network error')
         })
       },
-      insertNode: function (position) {
+      insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
         axios.post(this.restEndpoints.insertNode, {
           petriGameId: this.petriGame.uuid,
-          x: position[0],
-          y: position[1]
+          nodeType: nodeSpec.type,
+          x: nodeSpec.x,
+          y: nodeSpec.y
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.petriGame.net = response.data.result
