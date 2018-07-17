@@ -162,6 +162,16 @@
       arrowheadId: function () {
         return 'arrowhead-' + this._uid
       },
+      // Given a d3 selection, apply to it all of the event handlers that we want nodes to have.
+      // Usage: selection.call(applyNodeEventHandler)
+      applyNodeEventHandler: function () {
+        return selection => {
+          this.dragDrop(selection)
+          // Clicks are handled in our dragDrop event handler.
+          selection.on('click', () => d3.event.stopPropagation())
+          selection.on('contextmenu', this.onNodeRightClick)
+        }
+      },
       dragDrop: function () {
         // We save the start position of every dragdrop to tell if it is actually a mouse click.
         // This is necessary because otherwise, dragdrops and mouse clicks interfere with each other.
@@ -506,6 +516,14 @@
         this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
         this.labelGroup = this.container.append('g').attr('class', 'texts')
         this.contentGroup = this.container.append('g').attr('class', 'node-content')
+        // This is the arrow that we draw when the user is adding a transition between two nodes
+        // (via click-and-drag)
+        this.addLinkArrow = this.container.append('path')
+          .attr('stroke-width', 3)
+          .attr('fill', 'none')
+          .attr('stroke', '#000000')
+          .attr('marker-end', 'url(#' + this.arrowheadId + ')')
+          .attr('d', `M0,0 L500,100`)
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
@@ -526,8 +544,7 @@
           .data(this.nodes, this.keyFunction)
         const labelEnter = newLabelElements
           .enter().append('text')
-          .call(this.dragDrop)
-          .on('contextmenu', this.onNodeRightClick)
+          .call(this.applyNodeEventHandler)
           .attr('text-anchor', 'middle')
         newLabelElements.exit().remove()
         this.labelElements = labelEnter.merge(newLabelElements)
@@ -550,8 +567,7 @@
           .data(this.nodes.filter(node => node.content !== undefined || node.initialToken !== undefined), this.keyFunction)
         const contentEnter = newContentElements
           .enter().append('text')
-          .call(this.dragDrop)
-          .on('contextmenu', this.onNodeRightClick)
+          .call(this.applyNodeEventHandler)
           .attr('text-anchor', 'middle')
           .attr('dy', '-8')
           .attr('font-family', '\'Inconsolata\', monospace')
@@ -583,8 +599,8 @@
           .selectAll('circle')
           .data(this.nodes.filter(node => node.isSpecial === true), this.keyFunction)
         const newIsSpecialElements = isSpecialElements.enter().append('circle')
-        newIsSpecialElements.call(this.dragDrop)
-          .on('contextmenu', this.onNodeRightClick)
+        newIsSpecialElements
+          .call(this.applyNodeEventHandler)
         isSpecialElements.exit().remove()
         this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
         this.isSpecialElements
@@ -601,8 +617,7 @@
           return document.createElementNS('http://www.w3.org/2000/svg', shape)
         })
         newNodeElements
-          .call(this.dragDrop)
-          .on('contextmenu', this.onNodeRightClick)
+          .call(this.applyNodeEventHandler)
         nodeElements.exit().remove()
         this.nodeElements = nodeElements.merge(newNodeElements)
         this.nodeElements
