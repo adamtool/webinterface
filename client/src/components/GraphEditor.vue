@@ -172,7 +172,7 @@
           selection.on('contextmenu', this.onNodeRightClick)
         }
       },
-      dragDrop: function () {
+      moveNodeDragDrop: function () {
         // We save the start position of every dragdrop to tell if it is actually a mouse click.
         // This is necessary because otherwise, dragdrops and mouse clicks interfere with each other.
         // Either the dragdrop overrides the mouse click, forcing you to click perfectly,
@@ -183,15 +183,15 @@
         let yStart
         const deadzone = 20
         let deadzoneExceeded
-        return d3.drag()
-          .on('start', node => {
+        return {
+          'start': node => {
             node.fx = node.x
             node.fy = node.y
             xStart = d3.event.x
             yStart = d3.event.y
             deadzoneExceeded = false
-          })
-          .on('drag', node => {
+          },
+          'drag': node => {
             if (!deadzoneExceeded) {
               const distanceDragged = Math.sqrt(Math.pow(d3.event.x - xStart, 2) + Math.pow(d3.event.y - yStart, 2))
               if (distanceDragged > deadzone) {
@@ -203,8 +203,8 @@
               node.fx = d3.event.x
               node.fy = d3.event.y
             }
-          })
-          .on('end', node => {
+          },
+          'end': node => {
             if (!d3.event.active) {
               this.simulation.alphaTarget(0)
             }
@@ -212,6 +212,39 @@
             if (!deadzoneExceeded) {
               this.onNodeClick(node)
             }
+          }
+        }
+      },
+      drawFlowDragDrop: function () {
+        let startNode
+        return {
+          'start': node => {
+            startNode = node
+            const mousePos = d3.mouse(this.svg.node())
+            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
+          },
+          'drag': node => {
+            const mousePos = d3.mouse(this.svg.node())
+            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
+          },
+          'end': node => {
+            // TODO figure out which node the drag ends on top of
+            this.dragLine.attr('d', '')
+          }
+        }
+      },
+      dragDrop: function () {
+        let dragDropHandler
+        return d3.drag()
+          .on('start', node => {
+            dragDropHandler = this.drawFlowDragDrop // TODO determine handler dynamically
+            dragDropHandler['start'](node)
+          })
+          .on('drag', node => {
+            dragDropHandler['drag'](node)
+          })
+          .on('end', node => {
+            dragDropHandler['end'](node)
           })
       }
     },
@@ -518,12 +551,12 @@
         this.contentGroup = this.container.append('g').attr('class', 'node-content')
         // This is the arrow that we draw when the user is adding a transition between two nodes
         // (via click-and-drag)
-        this.addLinkArrow = this.container.append('path')
+        this.dragLine = this.container.append('path')
           .attr('stroke-width', 3)
           .attr('fill', 'none')
           .attr('stroke', '#000000')
           .attr('marker-end', 'url(#' + this.arrowheadId + ')')
-          .attr('d', `M0,0 L500,100`)
+          .attr('d', '')
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
