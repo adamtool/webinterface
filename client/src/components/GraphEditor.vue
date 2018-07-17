@@ -45,6 +45,10 @@
       <v-radio label="ENVPLACE" value="ENVPLACE"/>
       <v-radio label="TRANSITION" value="TRANSITION"/>
     </v-radio-group>
+    <v-radio-group v-model="dragDropMode" style="position: relative; top: 260px; width: 150px;">
+      <v-radio label="move nodes" :value="this.moveNodeDragDrop"/>
+      <v-radio label="draw flows" :value="this.drawFlowDragDrop"/>
+    </v-radio-group>
   </div>
 </template>
 
@@ -228,7 +232,26 @@
             this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
           },
           'end': node => {
-            // TODO figure out which node the drag ends on top of
+            const mousePos = d3.mouse(this.svg.node())
+            // figure out which node the drag ends on top of
+            let nearestNode
+            let minDistance = 99999
+            this.nodes.forEach(n => {
+              if (n !== node) {
+                const dx = mousePos[0] - n.x
+                const dy = mousePos[1] - n.y
+                const distance = Math.sqrt(dx * dx + dy * dy)
+                if (distance < minDistance) {
+                  minDistance = distance
+                  nearestNode = n
+                }
+              }
+            })
+            console.log(`The nearest node has a distance of ${minDistance} from the mouse.  It's this node:`)
+            console.log(nearestNode)
+            // TODO create a flow (emit an appropriate event and send a request to the server)
+            // TODO handle the case where there's only one node in the graph
+            // TODO live preview of which node the flow will end up going to
             this.dragLine.attr('d', '')
           }
         }
@@ -237,7 +260,7 @@
         let dragDropHandler
         return d3.drag()
           .on('start', node => {
-            dragDropHandler = this.drawFlowDragDrop // TODO determine handler dynamically
+            dragDropHandler = this.dragDropMode // TODO determine handler dynamically
             dragDropHandler['start'](node)
           })
           .on('drag', node => {
@@ -280,6 +303,7 @@
     },
     data () {
       return {
+        dragDropMode: this.moveNodeDragDrop,
         nodeTypeToInsert: 'SYSPLACE',
         saveGraphAPTRequestPreview: {},
         nodeRadius: 27,
