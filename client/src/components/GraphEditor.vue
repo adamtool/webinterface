@@ -36,9 +36,6 @@
         <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
       </div>
     </div>
-    <div style="height:50px; display:none">
-      <pre>{{ this.links }}</pre>
-    </div>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
 
@@ -105,6 +102,8 @@
     name: 'graph-editor',
     components: {},
     mounted: function () {
+      this.nodes = []
+      this.links = []
       this.importGraph(this.graph)
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
@@ -242,8 +241,6 @@
         saveGraphAPTRequestPreview: {},
         nodeRadius: 27,
         exportedGraphJson: {},
-        nodes: this.deepCopy(this.graph.nodes),
-        links: this.deepCopy(this.graph.links),
         svg: undefined,
         linkGroup: undefined,
         linkTextGroup: undefined,
