@@ -252,7 +252,16 @@
             // TODO create a flow (emit an appropriate event and send a request to the server)
             // TODO handle the case where there's only one node in the graph
             // TODO live preview of which node the flow will end up going to
+            // TODO filter out invalid "nearestNode" candidates (e.g. transition -> transition, place -> place)
+            // TODO specify maximum distance between mouse and nearestNode so that a click-drag
+            // can be terminated w/o creating a flow
+            // TODO Figure out a way to specify token flows
+
             this.dragLine.attr('d', '')
+            this.$emit('createFlow', {
+              source: startNode.id,
+              destination: nearestNode.id
+            })
           }
         }
       },

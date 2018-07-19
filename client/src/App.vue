@@ -74,6 +74,7 @@
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            v-on:insertNode='insertNode'
+                           v-on:createFlow='createFlow'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -306,7 +307,8 @@
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
           convertAptToGraph: this.baseUrl + '/convertAptToGraph',
-          insertNode: this.baseUrl + '/insertPlace'
+          insertNode: this.baseUrl + '/insertPlace',
+          createFlow: this.baseUrl + '/createFlow'
         }
       },
       webSocketUrl: function () {
@@ -569,6 +571,20 @@
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
             this.isAptEditorVisible = true
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      createFlow: function (flowSpec) {
+        console.log('processing createFlow event')
+        axios.post(this.restEndpoints.createFlow, {
+          petriGameId: this.petriGame.uuid,
+          source: flowSpec.source,
+          destination: flowSpec.destination
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
           })
         }).catch(() => {
           this.logError('Network error')

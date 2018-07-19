@@ -224,6 +224,23 @@ public class App {
 
             return successResponse(petriGameClient);
         });
+
+        post("/createFlow", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String source = body.get("source").getAsString();
+            String destination = body.get("destination").getAsString();
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+
+            net.createFlow(source, destination);
+            // TODO Allow specifying token flows somehow
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+
+            return successResponse(petriGameClient);
+        });
+
 //        post("/renameNode", (req, res) -> {
 //
 //            if (net.containsNode(nodeId)) {
