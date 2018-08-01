@@ -1,7 +1,9 @@
 <template>
   <div class="graph-editor" :id="rootElementId">
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
-    <div style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa" ref="toolbarContainer">
+    <div
+      style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
+      ref="toolbarContainer">
       <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
         <div>Repulsion Strength</div>
         <input type="range" min="30" max="1000" step="1"
@@ -240,25 +242,11 @@
             const transform = d3.zoomTransform(this.svg.node())
             const mousePosZoom = transform.invert(mousePos)
             // figure out which node the drag ends on top of
-            let nearestNode
-            let minDistance = 99999
-            this.nodes.forEach(n => {
-              if (n !== node) {
-                const dx = mousePosZoom[0] - n.x
-                const dy = mousePosZoom[1] - n.y
-                const distance = Math.sqrt(dx * dx + dy * dy)
-                if (distance < minDistance) {
-                  minDistance = distance
-                  nearestNode = n
-                }
-              }
-            })
-            console.log(`The nearest node has a distance of ${minDistance} from the mouse.  It's this node:`)
+            const nearestNode = findFlowTarget(mousePosZoom[0], mousePosZoom[1], startNode, this.nodes)
+            console.log(`We will try to draw a flow to this node:`)
             console.log(nearestNode)
-            // TODO create a flow (emit an appropriate event and send a request to the server)
             // TODO handle the case where there's only one node in the graph
             // TODO live preview of which node the flow will end up going to
-            // TODO filter out invalid "nearestNode" candidates (e.g. transition -> transition, place -> place)
             // TODO specify maximum distance between mouse and nearestNode so that a click-drag
             // can be terminated w/o creating a flow
             // TODO Figure out a way to specify token flows
@@ -268,6 +256,36 @@
               source: startNode.id,
               destination: nearestNode.id
             })
+          }
+        }
+
+        // Your mouse cursor is at mouseX, mouseY.  You want to draw a flow that starts at startNode
+        // and ends at another node which is close to the mouse cursor.  To figure out what eligible
+        // end node is closest to the mouse, use this function.
+        function findFlowTarget (mouseX, mouseY, startNode, nodes) {
+          let nearestNode
+          let minDistance = 99999
+          nodes.filter(isEligible)
+            .forEach(n => {
+              const dx = mouseX - n.x
+              const dy = mouseY - n.y
+              const distance = Math.sqrt(dx * dx + dy * dy)
+              if (distance < minDistance) {
+                minDistance = distance
+                nearestNode = n
+              }
+            })
+          return nearestNode
+
+          // Only create flows from Transition to Place or from Place to Transition
+          function isEligible (node) {
+            if (startNode.type === 'TRANSITION') {
+              return node.type === 'SYSPLACE' || node.type === 'ENVPLACE'
+            } else if (startNode.type === 'SYSPLACE' || startNode.type === 'ENVPLACE') {
+              return node.type === 'TRANSITION'
+            } else {
+              return false
+            }
           }
         }
       },
@@ -455,7 +473,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-            'The fixed positions you have moved them to will be lost.')) {
+          'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
