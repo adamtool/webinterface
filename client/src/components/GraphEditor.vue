@@ -225,21 +225,27 @@
           'start': node => {
             startNode = node
             const mousePos = d3.mouse(this.svg.node())
-            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
+            const transform = d3.zoomTransform(this.svg.node())
+            const mousePosZoom = transform.invert(mousePos)
+            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePosZoom[0]},${mousePosZoom[1]}`)
           },
           'drag': node => {
             const mousePos = d3.mouse(this.svg.node())
-            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
+            const transform = d3.zoomTransform(this.svg.node())
+            const mousePosZoom = transform.invert(mousePos)
+            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePosZoom[0]},${mousePosZoom[1]}`)
           },
           'end': node => {
             const mousePos = d3.mouse(this.svg.node())
+            const transform = d3.zoomTransform(this.svg.node())
+            const mousePosZoom = transform.invert(mousePos)
             // figure out which node the drag ends on top of
             let nearestNode
             let minDistance = 99999
             this.nodes.forEach(n => {
               if (n !== node) {
-                const dx = mousePos[0] - n.x
-                const dy = mousePos[1] - n.y
+                const dx = mousePosZoom[0] - n.x
+                const dy = mousePosZoom[1] - n.y
                 const distance = Math.sqrt(dx * dx + dy * dy)
                 if (distance < minDistance) {
                   minDistance = distance
