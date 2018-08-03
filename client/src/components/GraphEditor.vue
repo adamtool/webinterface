@@ -265,7 +265,8 @@
         // end node is closest to the mouse, use this function.
         function findFlowTarget (mousePos, startNode, nodes, links) {
           let nearestNode
-          let minDistance = 99999
+          // Only nodes within this many units of the startNode will be under consideration.
+          let minDistance = 50
           nodes.filter(isEligible)
             .forEach(n => {
               const dx = mousePos[0] - n.x
