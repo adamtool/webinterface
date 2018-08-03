@@ -235,9 +235,7 @@
           },
           'end': node => {
             // figure out which node the drag ends on top of
-            const nearestNode = findFlowTarget(this.mousePosZoom(), startNode, this.nodes)
-            console.log(`We will try to draw a flow to this node:`)
-            console.log(nearestNode)
+            const nearestNode = findFlowTarget(this.mousePosZoom(), startNode, this.nodes, this.links)
             // TODO handle the case where there's only one node in the graph
             // TODO live preview of which node the flow will end up going to
             // TODO specify maximum distance between mouse and nearestNode so that a click-drag
@@ -245,6 +243,13 @@
             // TODO Figure out a way to specify token flows
 
             this.dragLine.attr('d', '')
+            if (nearestNode === undefined) {
+              console.log('No candidate node found.  Not creating a flow.')
+              return
+            }
+
+            console.log(`We will try to draw a flow to this node:`)
+            console.log(nearestNode)
             this.$emit('createFlow', {
               source: startNode.id,
               destination: nearestNode.id
@@ -255,7 +260,7 @@
         // Your mouse cursor is at mouseX, mouseY.  You want to draw a flow that starts at startNode
         // and ends at another node which is close to the mouse cursor.  To figure out what eligible
         // end node is closest to the mouse, use this function.
-        function findFlowTarget (mousePos, startNode, nodes) {
+        function findFlowTarget (mousePos, startNode, nodes, links) {
           let nearestNode
           let minDistance = 99999
           nodes.filter(isEligible)
@@ -272,13 +277,15 @@
 
           // Only create flows from Transition to Place or from Place to Transition
           function isEligible (node) {
-            if (startNode.type === 'TRANSITION') {
-              return node.type === 'SYSPLACE' || node.type === 'ENVPLACE'
-            } else if (startNode.type === 'SYSPLACE' || startNode.type === 'ENVPLACE') {
-              return node.type === 'TRANSITION'
-            } else {
-              return false
-            }
+            const transitionToPlace = startNode.type === 'TRANSITION' &&
+              ['SYSPLACE', 'ENVPLACE'].includes(node.type)
+            const placeToTransition =
+              ['SYSPLACE', 'ENVPLACE'].includes(startNode.type) &&
+              node.type === 'TRANSITION'
+            const linkExists = links.find(link => {
+              return link.source === startNode && link.target === node
+            })
+            return (transitionToPlace || placeToTransition) && !linkExists
           }
         }
       },
