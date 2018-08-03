@@ -233,15 +233,10 @@
             const mousePos = this.mousePosZoom()
             this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
             this.drawFlowTarget = findFlowTarget(mousePos, startNode, this.nodes, this.links)
-            this.updateD3()
           },
           'end': node => {
             // figure out which node the drag ends on top of
             const nearestNode = findFlowTarget(this.mousePosZoom(), startNode, this.nodes, this.links)
-            // TODO handle the case where there's only one node in the graph
-            // TODO live preview of which node the flow will end up going to
-            // TODO specify maximum distance between mouse and nearestNode so that a click-drag
-            // can be terminated w/o creating a flow
             // TODO Figure out a way to specify token flows
 
             this.dragLine.attr('d', '')
