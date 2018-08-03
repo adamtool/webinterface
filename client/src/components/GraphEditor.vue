@@ -367,7 +367,7 @@
 
             // Save the mouse coordinates so that the new nodes will appear where the user clicked.
             // I.e. at the location of the parent node that is being expanded.
-            const mouseCoordinates = d3.mouse(this.svg.node())
+            const mouseCoordinates = this.mousePosZoom()
             this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the postset of this State is visible
             this.$emit('toggleStatePostset', d.id)
@@ -386,7 +386,7 @@
             // Freeze the State's position
             d.fx = d.x
             d.fy = d.y
-            const mouseCoordinates = d3.mouse(this.svg.node())
+            const mouseCoordinates = this.mousePosZoom()
             this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the preset of this State is visible
             this.$emit('toggleStatePreset', d.id)
@@ -587,11 +587,10 @@
         this.zoom = d3.zoom().on('zoom', onZoom)
         this.svg.call(this.zoom)
         this.svg.on('click', d => {
-          const mouseCoordinates = d3.mouse(this.svg.node())
-          const transform = d3.zoomTransform(this.svg.node())
+          const mousePos = this.mousePosZoom()
           const nodeSpec = {
-            x: transform.invertX(mouseCoordinates[0]),
-            y: transform.invertY(mouseCoordinates[1]),
+            x: mousePos[0],
+            y: mousePos[1],
             type: this.nodeTypeToInsert
           }
           console.log('emitting insertNode')
