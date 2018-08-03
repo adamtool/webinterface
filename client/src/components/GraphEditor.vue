@@ -226,23 +226,16 @@
         return {
           'start': node => {
             startNode = node
-            const mousePos = d3.mouse(this.svg.node())
-            const transform = d3.zoomTransform(this.svg.node())
-            const mousePosZoom = transform.invert(mousePos)
-            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePosZoom[0]},${mousePosZoom[1]}`)
+            const mousePos = this.mousePosZoom()
+            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
           },
           'drag': node => {
-            const mousePos = d3.mouse(this.svg.node())
-            const transform = d3.zoomTransform(this.svg.node())
-            const mousePosZoom = transform.invert(mousePos)
-            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePosZoom[0]},${mousePosZoom[1]}`)
+            const mousePos = this.mousePosZoom()
+            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
           },
           'end': node => {
-            const mousePos = d3.mouse(this.svg.node())
-            const transform = d3.zoomTransform(this.svg.node())
-            const mousePosZoom = transform.invert(mousePos)
             // figure out which node the drag ends on top of
-            const nearestNode = findFlowTarget(mousePosZoom[0], mousePosZoom[1], startNode, this.nodes)
+            const nearestNode = findFlowTarget(this.mousePosZoom(), startNode, this.nodes)
             console.log(`We will try to draw a flow to this node:`)
             console.log(nearestNode)
             // TODO handle the case where there's only one node in the graph
@@ -262,13 +255,13 @@
         // Your mouse cursor is at mouseX, mouseY.  You want to draw a flow that starts at startNode
         // and ends at another node which is close to the mouse cursor.  To figure out what eligible
         // end node is closest to the mouse, use this function.
-        function findFlowTarget (mouseX, mouseY, startNode, nodes) {
+        function findFlowTarget (mousePos, startNode, nodes) {
           let nearestNode
           let minDistance = 99999
           nodes.filter(isEligible)
             .forEach(n => {
-              const dx = mouseX - n.x
-              const dy = mouseY - n.y
+              const dx = mousePos[0] - n.x
+              const dy = mousePos[1] - n.y
               const distance = Math.sqrt(dx * dx + dy * dy)
               if (distance < minDistance) {
                 minDistance = distance
@@ -402,6 +395,12 @@
       }
     },
     methods: {
+      // Return zoom-transformed x/y coordinates of mouse cursor as a 2-element array [x, y]
+      mousePosZoom: function () {
+        const mousePos = d3.mouse(this.svg.node())
+        const transform = d3.zoomTransform(this.svg.node())
+        return transform.invert(mousePos)
+      },
       onLoadNewPetriGame: function () {
         // When we load a new petri game, the positions of nodes from the previously loaded Petri Game
         // should not be carried over.
@@ -473,7 +472,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-          'The fixed positions you have moved them to will be lost.')) {
+            'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
