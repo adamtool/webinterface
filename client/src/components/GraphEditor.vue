@@ -232,6 +232,8 @@
           'drag': node => {
             const mousePos = this.mousePosZoom()
             this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
+            this.drawFlowTarget = findFlowTarget(mousePos, startNode, this.nodes, this.links)
+            this.updateD3()
           },
           'end': node => {
             // figure out which node the drag ends on top of
@@ -245,15 +247,16 @@
             this.dragLine.attr('d', '')
             if (nearestNode === undefined) {
               console.log('No candidate node found.  Not creating a flow.')
-              return
+            } else {
+              console.log(`We will try to draw a flow to this node:`)
+              console.log(nearestNode)
+              this.$emit('createFlow', {
+                source: startNode.id,
+                destination: nearestNode.id
+              })
             }
 
-            console.log(`We will try to draw a flow to this node:`)
-            console.log(nearestNode)
-            this.$emit('createFlow', {
-              source: startNode.id,
-              destination: nearestNode.id
-            })
+            this.drawFlowTarget = undefined
           }
         }
 
@@ -619,6 +622,12 @@
           .attr('stroke', '#000000')
           .attr('marker-end', 'url(#' + this.arrowheadId + ')')
           .attr('d', '')
+        // This is the "preview circle" that highlights the node that a flow will be drawn to
+        // when the user is doing a drag-drop to draw a flow
+        this.drawFlowPreview = this.container.append('circle')
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('fill-opacity', 0)
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
@@ -814,6 +823,11 @@
         this.updateSimulation()
       },
       updateSimulation: function () {
+        const drawFlowPreviewSizes = {
+          'ENVPLACE': this.nodeRadius * 1.4,
+          'SYSPLACE': this.nodeRadius * 1.4,
+          'TRANSITION': this.nodeRadius * 1.6
+        }
         this.simulation.nodes(this.nodes).on('tick', () => {
           this.nodeElements.filter('rect')
             .attr('transform', node =>
@@ -831,6 +845,23 @@
           this.contentElements
             .attr('x', node => node.x)
             .attr('y', node => node.y - this.calculateNodeHeight(node) / 2 + 30)
+          this.drawFlowPreview
+            .attr('transform', () => {
+              const target = this.drawFlowTarget
+              if (target) {
+                return `translate(${target.x},${target.y})`
+              } else {
+                return ''
+              }
+            })
+            .attr('r', () => {
+              const target = this.drawFlowTarget
+              if (target) {
+                return drawFlowPreviewSizes[target.type]
+              } else {
+                return 0
+              }
+            })
 
           // Draw a line from the edge of one node to the edge of another.
           // We have to do this so that the arrowheads will be correctly aligned for nodes of varying size.
