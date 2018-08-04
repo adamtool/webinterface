@@ -1,7 +1,6 @@
 <template>
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
-  <!--You can set tabIndex to -1 to prevent it from getting a border when it has focus.-->
-  <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="0">
+  <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <div
       style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
@@ -199,11 +198,20 @@
       moveNodeDragDrop: function () {
         return {
           'start': node => {
+            if (!this.selectedNodesIds.includes(node.id)) {
+              this.selectedNodesIds = [node.id]
+            }
             node.fx = node.x
             node.fy = node.y
           },
           'drag': node => {
             this.simulation.alphaTarget(0.7).restart()
+            this.nodes.forEach(node => {
+              if (this.selectedNodesIds.includes(node.id)) {
+                node.fx = node.x + d3.event.dx
+                node.fy = node.y + d3.event.dy
+              }
+            })
             node.fx = d3.event.x
             node.fy = d3.event.y
           },
