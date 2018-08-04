@@ -75,6 +75,7 @@
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
+                           v-on:deleteNode='deleteNode'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -308,7 +309,8 @@
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
           convertAptToGraph: this.baseUrl + '/convertAptToGraph',
           insertNode: this.baseUrl + '/insertPlace',
-          createFlow: this.baseUrl + '/createFlow'
+          createFlow: this.baseUrl + '/createFlow',
+          deleteNode: this.baseUrl + '/deleteNode'
         }
       },
       webSocketUrl: function () {
@@ -589,6 +591,9 @@
         }).catch(() => {
           this.logError('Network error')
         })
+      },
+      deleteNode: function (nodeId) {
+        console.log('processing deleteNode event for node id ' + nodeId)
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')

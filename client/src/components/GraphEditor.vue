@@ -47,9 +47,13 @@
       <v-radio label="ENVPLACE" value="ENVPLACE"/>
       <v-radio label="TRANSITION" value="TRANSITION"/>
     </v-radio-group>
-    <v-radio-group v-model="dragDropMode" style="position: relative; top: 260px; width: 150px;">
+    <v-radio-group v-model="dragDropMode" style="position: relative; top: 220px; width: 150px;">
       <v-radio label="move nodes" value="moveNode"/>
       <v-radio label="draw flows" value="drawFlow"/>
+    </v-radio-group>
+    <v-radio-group v-model="leftClickMode" style="position: relative; top: 280px; width: 150px;">
+      <v-radio label="unfreeze nodes" value="unfreezeNode"/>
+      <v-radio label="delete nodes" value="deleteNode"/>
     </v-radio-group>
   </div>
 </template>
@@ -315,6 +319,7 @@
     },
     data () {
       return {
+        leftClickMode: 'unfreezeNode',
         dragDropMode: 'moveNode',
         nodeTypeToInsert: 'SYSPLACE',
         saveGraphAPTRequestPreview: {},
@@ -359,9 +364,16 @@
             // Toggle whether the postset of this State is visible
             this.$emit('toggleStatePostset', d.id)
           } else {
-            // I like to be able to unfreeze nodes by clicking on them.
-            d.fx = null
-            d.fy = null
+            const clickHandlers = {
+              'unfreezeNode': (d) => {
+                d.fx = null
+                d.fy = null
+              },
+              'deleteNode': (d) => {
+                this.$emit('deleteNode', d.id)
+              }
+            }
+            clickHandlers[this.leftClickMode](d)
           }
         },
         onNodeRightClick: (d) => {
