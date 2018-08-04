@@ -47,13 +47,17 @@
       <v-radio label="ENVPLACE" value="ENVPLACE"/>
       <v-radio label="TRANSITION" value="TRANSITION"/>
     </v-radio-group>
-    <v-radio-group v-model="dragDropMode" style="position: relative; top: 220px; width: 150px;">
+    <v-radio-group v-model="dragDropMode" style="position: relative; top: 200px; width: 150px;">
       <v-radio label="move nodes" value="moveNode"/>
       <v-radio label="draw flows" value="drawFlow"/>
     </v-radio-group>
-    <v-radio-group v-model="leftClickMode" style="position: relative; top: 280px; width: 150px;">
+    <v-radio-group v-model="leftClickMode" style="position: relative; top: 250px; width: 150px;">
       <v-radio label="unfreeze nodes" value="unfreezeNode"/>
       <v-radio label="delete nodes" value="deleteNode"/>
+    </v-radio-group>
+    <v-radio-group v-model="backgroundDragDropMode" style="position: relative; top: 300px; width: 150px;">
+      <v-radio label="zoom and pan" value="zoom"/>
+      <v-radio label="select nodes" value="selectNodes"/>
     </v-radio-group>
   </div>
 </template>
@@ -285,6 +289,26 @@
           .on('end', node => {
             dragDropHandler['end'](node)
           })
+      },
+      backgroundDragDrop: function () {
+        let startX, startY
+        return d3.drag()
+          .clickDistance(2)
+          .on('start', () => {
+            [startX, startY] = this.mousePosZoom()
+          })
+          .on('drag', () => {
+            const [currentX, currentY] = this.mousePosZoom()
+            this.selectNodesPreview
+              .attr('x', startX)
+              .attr('y', startY)
+              .attr('width', currentX - startX)
+              .attr('height', currentY - startY)
+          })
+          .on('end', () => {
+            const [currentX, currentY] = this.mousePosZoom()
+            console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
+          })
       }
     },
     watch: {
@@ -319,6 +343,7 @@
     },
     data () {
       return {
+        backgroundDragDropMode: 'zoom',
         leftClickMode: 'unfreezeNode',
         dragDropMode: 'moveNode',
         nodeTypeToInsert: 'SYSPLACE',
@@ -583,7 +608,13 @@
           this.container.attr('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.k})`)
           this.updateCenterForce()
         }
-        this.zoom = d3.zoom().on('zoom', onZoom)
+        this.zoom = d3.zoom()
+          .on('zoom', onZoom)
+          .filter(() => {
+            const isLeftClick = d3.event.button === 0
+            const isZoomMode = this.backgroundDragDropMode === 'zoom'
+            return isLeftClick && isZoomMode
+          })
         this.svg.call(this.zoom)
         this.svg.on('click', d => {
           const mousePos = this.mousePosZoom()
@@ -595,6 +626,7 @@
           console.log('emitting insertNode')
           this.$emit('insertNode', nodeSpec)
         })
+        this.backgroundDragDrop(this.svg)
 
         this.container = this.svg.append('g')
         this.linkGroup = this.container.append('g').attr('class', 'links')
@@ -617,6 +649,11 @@
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
+        // This is the rectangle shown when the user is trying to select a group of nodes
+        this.selectNodesPreview = this.container.append('rect')
+          .attr('stroke', 'black')
+          .attr('fill', 'none')
+          .attr('stroke-width', 2)
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
