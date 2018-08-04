@@ -57,6 +57,10 @@
       <v-radio label="unfreeze nodes" value="unfreezeNode"/>
       <v-radio label="delete nodes" value="deleteNode"/>
     </v-radio-group>
+    <v-radio-group v-model="backgroundClickMode" style="position: relative; top: 80px; width: 150px;">
+      <v-radio label="cancel selection" value="cancelSelection"/>
+      <v-radio label="insert node" value="insertNode"/>
+    </v-radio-group>
     <v-radio-group v-model="backgroundDragDropMode" style="position: relative; top: 80px; width: 150px;">
       <v-radio label="zoom and pan" value="zoom"/>
       <v-radio label="select nodes" value="selectNodes"/>
@@ -386,6 +390,7 @@
     data () {
       return {
         selectedNodesIds: [],
+        backgroundClickMode: 'cancelSelection',
         backgroundDragDropMode: 'zoom',
         leftClickMode: 'unfreezeNode',
         dragDropMode: 'moveNode',
@@ -666,15 +671,23 @@
             return isLeftClick && isZoomMode
           })
         this.svg.call(this.zoom)
-        this.svg.on('click', d => {
-          const mousePos = this.mousePosZoom()
-          const nodeSpec = {
-            x: mousePos[0],
-            y: mousePos[1],
-            type: this.nodeTypeToInsert
+        const backgroundClickHandlers = {
+          'insertNode': () => {
+            const mousePos = this.mousePosZoom()
+            const nodeSpec = {
+              x: mousePos[0],
+              y: mousePos[1],
+              type: this.nodeTypeToInsert
+            }
+            console.log('emitting insertNode')
+            this.$emit('insertNode', nodeSpec)
+          },
+          'cancelSelection': () => {
+            this.selectedNodesIds = []
           }
-          console.log('emitting insertNode')
-          this.$emit('insertNode', nodeSpec)
+        }
+        this.svg.on('click', d => {
+          backgroundClickHandlers[this.backgroundClickMode](d)
         })
         this.backgroundDragDrop(this.svg)
 
