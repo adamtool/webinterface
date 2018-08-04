@@ -300,19 +300,39 @@
           .on('drag', () => {
             const [currentX, currentY] = this.mousePosZoom()
             this.selectNodesPreview
-              .attr('d', `M${startX},${startY}
-              L${startX},${currentY}
-              L${currentX},${currentY}
-              L${currentX}, ${startY}
-              L${startX}, ${startY}`)
+              .attr('d', rectanglePath(startX, startY, currentX, currentY))
+            this.selectedNodesIds = findSelectedNodes(this.nodes, startX, startY, currentX, currentY)
+              .map(node => node.id)
           })
           .on('end', () => {
             const [currentX, currentY] = this.mousePosZoom()
+            const selectedNodes = findSelectedNodes(this.nodes, startX, startY, currentX, currentY)
             console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
+            console.log('selected nodes:')
+            console.log(selectedNodes)
           })
+        function rectanglePath (x0, y0, x1, y1) {
+          return `M${x0},${y0}
+              L${x0},${y1}
+              L${x1},${y1}
+              L${x1}, ${y0}
+              L${x0}, ${y0}`
+        }
+        function findSelectedNodes (nodes, startX, startY, currentX, currentY) {
+          return nodes.filter(node => {
+            const xFits = (node.x > startX && node.x < currentX) ||
+              (node.x < startX && node.x > currentX)
+            const yFits = (node.y > startY && node.y < currentY) ||
+              (node.y < startY && node.y > currentY)
+            return xFits && yFits
+          })
+        }
       }
     },
     watch: {
+      selectedNodesIds: function () {
+        this.updateD3()
+      },
       repulsionStrength: function (strength) {
         this.updateRepulsionStrength(strength)
       },
@@ -344,6 +364,7 @@
     },
     data () {
       return {
+        selectedNodesIds: [],
         backgroundDragDropMode: 'zoom',
         leftClickMode: 'unfreezeNode',
         dragDropMode: 'moveNode',
@@ -778,7 +799,9 @@
             }
           })
           .attr('fill', data => {
-            if (data.type === 'ENVPLACE') {
+            if (this.selectedNodesIds.includes(data.id)) {
+              return '#5555FF'
+            } else if (data.type === 'ENVPLACE') {
               return 'white'
             } else if (data.type === 'SYSPLACE') {
               return 'lightgrey'
