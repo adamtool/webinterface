@@ -225,6 +225,21 @@ public class App {
             return successResponse(petriGameClient);
         });
 
+        post("/deleteNode", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeId = body.get("nodeId").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+
+            net.removeNode(nodeId);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+            return successResponse(petriGameClient);
+        });
+
         post("/createFlow", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();

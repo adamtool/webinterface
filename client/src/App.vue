@@ -594,6 +594,16 @@
       },
       deleteNode: function (nodeId) {
         console.log('processing deleteNode event for node id ' + nodeId)
+        axios.post(this.restEndpoints.deleteNode, {
+          petriGameId: this.petriGame.uuid,
+          nodeId: nodeId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
