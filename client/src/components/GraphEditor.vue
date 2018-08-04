@@ -300,10 +300,11 @@
           .on('drag', () => {
             const [currentX, currentY] = this.mousePosZoom()
             this.selectNodesPreview
-              .attr('x', startX)
-              .attr('y', startY)
-              .attr('width', currentX - startX)
-              .attr('height', currentY - startY)
+              .attr('d', `M${startX},${startY}
+              L${startX},${currentY}
+              L${currentX},${currentY}
+              L${currentX}, ${startY}
+              L${startX}, ${startY}`)
           })
           .on('end', () => {
             const [currentX, currentY] = this.mousePosZoom()
@@ -650,7 +651,7 @@
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
         // This is the rectangle shown when the user is trying to select a group of nodes
-        this.selectNodesPreview = this.container.append('rect')
+        this.selectNodesPreview = this.container.append('path')
           .attr('stroke', 'black')
           .attr('fill', 'none')
           .attr('stroke-width', 2)
