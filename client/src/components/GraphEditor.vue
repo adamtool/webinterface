@@ -173,51 +173,26 @@
       applyNodeEventHandler: function () {
         return selection => {
           this.dragDrop(selection)
-          // Clicks are handled in our dragDrop event handler.
-          selection.on('click', () => d3.event.stopPropagation())
+          selection.on('click', this.onNodeClick)
           selection.on('contextmenu', this.onNodeRightClick)
         }
       },
       moveNodeDragDrop: function () {
-        // We save the start position of every dragdrop to tell if it is actually a mouse click.
-        // This is necessary because otherwise, dragdrops and mouse clicks interfere with each other.
-        // Either the dragdrop overrides the mouse click, forcing you to click perfectly,
-        // or the dragdrop and mouse click fire the same event twice in a row.
-        // So we won't bother listening for mouse clicks separately.  We just process mouse clicks
-        // as a special case of dragdrop.  A dragdrop over a short distance counts as a mouse click.
-        let xStart
-        let yStart
-        const deadzone = 20
-        let deadzoneExceeded
         return {
           'start': node => {
             node.fx = node.x
             node.fy = node.y
-            xStart = d3.event.x
-            yStart = d3.event.y
-            deadzoneExceeded = false
           },
           'drag': node => {
-            if (!deadzoneExceeded) {
-              const distanceDragged = Math.sqrt(Math.pow(d3.event.x - xStart, 2) + Math.pow(d3.event.y - yStart, 2))
-              if (distanceDragged > deadzone) {
-                deadzoneExceeded = true
-              }
-            }
-            if (deadzoneExceeded) {
-              this.simulation.alphaTarget(0.7).restart()
-              node.fx = d3.event.x
-              node.fy = d3.event.y
-            }
+            this.simulation.alphaTarget(0.7).restart()
+            node.fx = d3.event.x
+            node.fy = d3.event.y
           },
           'end': node => {
             if (!d3.event.active) {
               this.simulation.alphaTarget(0)
             }
             this.onGraphModified()
-            if (!deadzoneExceeded) {
-              this.onNodeClick(node)
-            }
           }
         }
       },
@@ -291,8 +266,9 @@
       dragDrop: function () {
         let dragDropHandler
         return d3.drag()
+          .clickDistance(2)
           .on('start', node => {
-            dragDropHandler = this.dragDropMode // TODO determine handler dynamically
+            dragDropHandler = this.dragDropMode
             dragDropHandler['start'](node)
           })
           .on('drag', node => {
@@ -364,6 +340,7 @@
         linkStrength: this.linkStrengthDefault,
         gravityStrength: this.gravityStrengthDefault,
         onNodeClick: (d) => {
+          d3.event.stopPropagation()
           // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
             // Expand or collapse the postset of the State that has been clicked.
