@@ -56,6 +56,7 @@
     <v-radio-group v-model="leftClickMode" style="position: relative; top: 80px; width: 150px;">
       <v-radio label="unfreeze nodes" value="unfreezeNode"/>
       <v-radio label="delete nodes" value="deleteNode"/>
+      <v-radio label="select node" value="selectNode"/>
     </v-radio-group>
     <v-radio-group v-model="backgroundClickMode" style="position: relative; top: 80px; width: 150px;">
       <v-radio label="cancel selection" value="cancelSelection"/>
@@ -200,24 +201,26 @@
         }
       },
       moveNodeDragDrop: function () {
+        let isSelectionDrag
         return {
           'start': node => {
-            if (!this.selectedNodesIds.includes(node.id)) {
-              this.selectedNodesIds = [node.id]
-            }
+            isSelectionDrag = this.selectedNodesIds.includes(node.id)
             node.fx = node.x
             node.fy = node.y
           },
           'drag': node => {
             this.simulation.alphaTarget(0.7).restart()
-            this.nodes.forEach(node => {
-              if (this.selectedNodesIds.includes(node.id)) {
-                node.fx = node.x + d3.event.dx
-                node.fy = node.y + d3.event.dy
-              }
-            })
-            node.fx = d3.event.x
-            node.fy = d3.event.y
+            if (isSelectionDrag) {
+              this.nodes.forEach(node => {
+                if (this.selectedNodesIds.includes(node.id)) {
+                  node.fx = node.x + d3.event.dx
+                  node.fy = node.y + d3.event.dy
+                }
+              })
+            } else {
+              node.fx = d3.event.x
+              node.fy = d3.event.y
+            }
           },
           'end': node => {
             if (!d3.event.active) {
@@ -389,10 +392,11 @@
     },
     data () {
       return {
+        // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodesIds: [],
         backgroundClickMode: 'cancelSelection',
-        backgroundDragDropMode: 'zoom',
-        leftClickMode: 'unfreezeNode',
+        backgroundDragDropMode: 'selectNodes',
+        leftClickMode: 'selectNode',
         dragDropMode: 'moveNode',
         nodeTypeToInsert: 'SYSPLACE',
         saveGraphAPTRequestPreview: {},
@@ -444,6 +448,18 @@
               },
               'deleteNode': (d) => {
                 this.$emit('deleteNode', d.id)
+              },
+              'selectNode': (d) => {
+                console.log(d3.event)
+                if (d3.event.ctrlKey) {
+                  if (this.selectedNodesIds.includes(d.id)) {
+                    this.selectedNodesIds = this.selectedNodesIds.filter(id => id !== d.id)
+                  } else {
+                    this.selectedNodesIds.push(d.id)
+                  }
+                } else {
+                  this.selectedNodesIds = [d.id]
+                }
               }
             }
             clickHandlers[this.leftClickMode](d)
