@@ -48,8 +48,8 @@
       <v-radio label="TRANSITION" value="TRANSITION"/>
     </v-radio-group>
     <v-radio-group v-model="dragDropMode" style="position: relative; top: 260px; width: 150px;">
-      <v-radio label="move nodes" :value="this.moveNodeDragDrop"/>
-      <v-radio label="draw flows" :value="this.drawFlowDragDrop"/>
+      <v-radio label="move nodes" value="moveNode"/>
+      <v-radio label="draw flows" value="drawFlow"/>
     </v-radio-group>
   </div>
 </template>
@@ -264,11 +264,15 @@
         }
       },
       dragDrop: function () {
+        const dragDropHandlers = {
+          'moveNode': this.moveNodeDragDrop,
+          'drawFlow': this.drawFlowDragDrop
+        }
         let dragDropHandler
         return d3.drag()
           .clickDistance(2)
           .on('start', node => {
-            dragDropHandler = this.dragDropMode
+            dragDropHandler = dragDropHandlers[this.dragDropMode]
             dragDropHandler['start'](node)
           })
           .on('drag', node => {
@@ -311,7 +315,7 @@
     },
     data () {
       return {
-        dragDropMode: this.moveNodeDragDrop,
+        dragDropMode: 'moveNode',
         nodeTypeToInsert: 'SYSPLACE',
         saveGraphAPTRequestPreview: {},
         nodeRadius: 27,
