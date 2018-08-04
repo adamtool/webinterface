@@ -1,5 +1,7 @@
 <template>
-  <div class="graph-editor" :id="rootElementId">
+  <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
+  <!--You can set tabIndex to -1 to prevent it from getting a border when it has focus.-->
+  <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="0">
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <div
       style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
@@ -125,6 +127,14 @@
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
       this.updateSvgDimensions()
+      this.$refs.rootElement.addEventListener('keyup', (event) => {
+        console.log(event)
+        switch (event.keyCode) {
+          case 46:
+            this.deleteSelectedNodes()
+            break // 'delete' key
+        }
+      })
     },
     props: {
       graph: {
@@ -312,6 +322,7 @@
             console.log(this.selectedNodesIds)
             this.selectNodesPreview.attr('d', '')
           })
+
         function rectanglePath (x0, y0, x1, y1) {
           return `M${x0},${y0}
               L${x0},${y1}
@@ -319,6 +330,7 @@
               L${x1}, ${y0}
               L${x0}, ${y0}`
         }
+
         function findSelectedNodes (nodes, startX, startY, currentX, currentY) {
           return nodes.filter(node => {
             const xFits = (node.x > startX && node.x < currentX) ||
