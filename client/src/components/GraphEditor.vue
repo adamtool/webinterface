@@ -36,6 +36,7 @@
         <button style="display: none;" v-on:click="updateD3">Update D3</button>
         <button v-on:click="freezeAllNodes">Freeze all nodes</button>
         <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+        <button class="btn-danger" v-on:click="deleteSelectedNodes">Delete selected nodes</button>
       </div>
     </div>
 
@@ -47,15 +48,15 @@
       <v-radio label="ENVPLACE" value="ENVPLACE"/>
       <v-radio label="TRANSITION" value="TRANSITION"/>
     </v-radio-group>
-    <v-radio-group v-model="dragDropMode" style="position: relative; top: 200px; width: 150px;">
+    <v-radio-group v-model="dragDropMode" style="position: relative; top: 120px; width: 150px;">
       <v-radio label="move nodes" value="moveNode"/>
       <v-radio label="draw flows" value="drawFlow"/>
     </v-radio-group>
-    <v-radio-group v-model="leftClickMode" style="position: relative; top: 250px; width: 150px;">
+    <v-radio-group v-model="leftClickMode" style="position: relative; top: 80px; width: 150px;">
       <v-radio label="unfreeze nodes" value="unfreezeNode"/>
       <v-radio label="delete nodes" value="deleteNode"/>
     </v-radio-group>
-    <v-radio-group v-model="backgroundDragDropMode" style="position: relative; top: 300px; width: 150px;">
+    <v-radio-group v-model="backgroundDragDropMode" style="position: relative; top: 80px; width: 150px;">
       <v-radio label="zoom and pan" value="zoom"/>
       <v-radio label="select nodes" value="selectNodes"/>
     </v-radio-group>
@@ -306,10 +307,10 @@
           })
           .on('end', () => {
             const [currentX, currentY] = this.mousePosZoom()
-            const selectedNodes = findSelectedNodes(this.nodes, startX, startY, currentX, currentY)
             console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
             console.log('selected nodes:')
-            console.log(selectedNodes)
+            console.log(this.selectedNodesIds)
+            this.selectNodesPreview.attr('d', '')
           })
         function rectanglePath (x0, y0, x1, y1) {
           return `M${x0},${y0}
@@ -441,6 +442,13 @@
       }
     },
     methods: {
+      deleteSelectedNodes: function () {
+        console.log('deleting selected nodes')
+        this.selectedNodesIds.forEach(id => {
+          this.$emit('deleteNode', id)
+        })
+        this.selectedNodesIds = []
+      },
       // Return zoom-transformed x/y coordinates of mouse cursor as a 2-element array [x, y]
       mousePosZoom: function () {
         const mousePos = d3.mouse(this.svg.node())
