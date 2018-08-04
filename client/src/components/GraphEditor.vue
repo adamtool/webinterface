@@ -38,6 +38,7 @@
         <button v-on:click="freezeAllNodes">Freeze all nodes</button>
         <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
         <button class="btn-danger" v-on:click="deleteSelectedNodes">Delete selected nodes</button>
+        <button v-on:click="invertSelection">Invert selection</button>
       </div>
     </div>
 
@@ -483,6 +484,10 @@
       }
     },
     methods: {
+      invertSelection: function () {
+        this.selectedNodesIds = this.nodes.filter(node => !this.selectedNodesIds.includes(node.id))
+          .map(node => node.id)
+      },
       deleteSelectedNodes: function () {
         console.log('deleting selected nodes')
         this.selectedNodesIds.forEach(id => {
