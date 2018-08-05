@@ -1048,12 +1048,16 @@
         })
       },
       updateSelectionBorder: function () {
-        const domNodeElements = this.nodeElements
-          .filter(node => this.selectedNodesIds.includes(node.id))
-          .nodes()
-        const border = containingBorder(domNodeElements)
-        const path = rectanglePath(...border)
-        this.selectionBorder.attr('d', path)
+        if (this.selectedNodesIds.length === 0) {
+          this.selectionBorder.attr('d', '')
+        } else {
+          const domNodeElements = this.nodeElements
+            .filter(node => this.selectedNodesIds.includes(node.id))
+            .nodes()
+          const border = containingBorder(domNodeElements)
+          const path = rectanglePath(...border)
+          this.selectionBorder.attr('d', path)
+        }
       },
       /**
        * Perform a diff of the new graph against our existing graph, updating our graph in-place.
