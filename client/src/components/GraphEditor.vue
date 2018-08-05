@@ -353,9 +353,35 @@
     },
     watch: {
       selectedNodesIds: function () {
-        const bbox = this.nodeGroup.node().getBBox()
-        const {x, y, width, height} = bbox
-        this.selectionBorder.attr('d', rectanglePath(x, y, x + width, y + height))
+        const elements = this.nodeElements.filter(node => this.selectedNodesIds.includes(node.id))
+        const outerExtents = containingBorder(elements)
+        const path = rectanglePath(...outerExtents)
+        this.selectionBorder.attr('d', path)
+        function containingBorder (nodeElements) {
+          let xMin = 9999999
+          let yMin = 9999999
+          let xMax = -9999999
+          let yMax = -9999999
+          nodeElements.each(function (d) {
+            const bbox = this.getBBox()
+            const {x: x0, y: y0, width, height} = bbox
+            const x1 = x0 + width
+            const y1 = y0 + height
+            if (x0 < xMin) {
+              xMin = x0
+            }
+            if (x1 > xMax) {
+              xMax = x1
+            }
+            if (y0 < yMin) {
+              yMin = y0
+            }
+            if (y1 > yMax) {
+              yMax = y1
+            }
+          })
+          return [xMin, yMin, xMax, yMax]
+        }
         this.updateD3()
       },
       repulsionStrength: function (strength) {
