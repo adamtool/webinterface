@@ -116,7 +116,7 @@
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
   import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
-  import { rectanglePath, transformedBoundingBox } from '../svgFunctions'
+  import { rectanglePath, containingBorder } from '../svgFunctions'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
@@ -353,8 +353,10 @@
     },
     watch: {
       selectedNodesIds: function () {
-        const elements = this.nodeElements.filter(node => this.selectedNodesIds.includes(node.id))
-        const [left, top, right, bottom] = containingBorder(elements)
+        const domNodeElements = this.nodeElements
+          .filter(node => this.selectedNodesIds.includes(node.id))
+          .nodes()
+        const [left, top, right, bottom] = containingBorder(domNodeElements)
         const transform = d3.zoomTransform(this.svg.node())
         const x0 = transform.invertX(left)
         const x1 = transform.invertX(right)
@@ -362,34 +364,6 @@
         const y1 = transform.invertY(bottom)
         const path = rectanglePath(x0, y0, x1, y1)
         this.selectionBorder.attr('d', path)
-        function containingBorder (nodeElements) {
-          let xMin = 9999999
-          let yMin = 9999999
-          let xMax = -9999999
-          let yMax = -9999999
-          nodeElements.each(function (d) {
-            // const rect = this.getBoundingClientRect()
-            // const {left: x0, right: x1, top: y0, bottom: y1} = rect
-            const bbox = transformedBoundingBox(this)
-            const {x: x0, y: y0, width, height} = bbox
-            const x1 = x0 + width
-            const y1 = y0 + height
-
-            if (x0 < xMin) {
-              xMin = x0
-            }
-            if (x1 > xMax) {
-              xMax = x1
-            }
-            if (y0 < yMin) {
-              yMin = y0
-            }
-            if (y1 > yMax) {
-              yMax = y1
-            }
-          })
-          return [xMin, yMin, xMax, yMax]
-        }
         this.updateD3()
       },
       repulsionStrength: function (strength) {
