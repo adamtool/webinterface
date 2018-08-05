@@ -116,7 +116,7 @@
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
   import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
-  import { rectanglePath } from '../svgFunctions'
+  import { rectanglePath, transformedBoundingBox } from '../svgFunctions'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
@@ -368,8 +368,12 @@
           let xMax = -9999999
           let yMax = -9999999
           nodeElements.each(function (d) {
-            const rect = this.getBoundingClientRect()
-            const {left: x0, right: x1, top: y0, bottom: y1} = rect
+            // const rect = this.getBoundingClientRect()
+            // const {left: x0, right: x1, top: y0, bottom: y1} = rect
+            const bbox = transformedBoundingBox(this)
+            const {x: x0, y: y0, width, height} = bbox
+            const x1 = x0 + width
+            const y1 = y0 + height
 
             if (x0 < xMin) {
               xMin = x0
