@@ -6,6 +6,39 @@ function rectanglePath (x0, y0, x1, y1) {
               L${x0}, ${y0}`
 }
 
+function arcPath (x1, y1, x2, y2) {
+  // Draw an arc between two points
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const dr = Math.sqrt(dx * dx + dy * dy)
+  // Defaults for normal edge.
+  const drx = dr
+  const dry = dr
+  const xRotation = 0 // degrees
+  const largeArc = 0 // 1 or 0
+  const sweep = 1 // 1 or 0
+
+  return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+}
+
+function loopPath (x1, y1, x2, y2) {
+  // Self edge.
+  // Fiddle with this angle to get loop oriented.
+  const xRotation = 0
+
+  // Needs to be 1.
+  const largeArc = 1
+  // Change sweep to change orientation of loop.
+  const sweep = 0
+
+  // Make drx and dry different to get an ellipse
+  // instead of a circle.
+  const drx = 45
+  const dry = 45
+
+  return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+}
+
 // Return the rectangular bounding box surrounding a set of dom nodes (e.g. svg elements)
 function containingBorder (domNodes) {
   let xMin = 9999999
@@ -81,5 +114,5 @@ function transformedBoundingBox (el) {
 }
 
 export {
-  rectanglePath, containingBorder
+  rectanglePath, arcPath, loopPath, containingBorder
 }

@@ -116,7 +116,7 @@
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
   import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
-  import { rectanglePath, containingBorder } from '../svgFunctions'
+  import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
@@ -1023,43 +1023,14 @@
                 // Straight line for a single edge between two distinct nodes
                 return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
               } else if (multipleLinksBetweenNodes) {
-                // Do a bunch more fun math to make an arc
-                const x1 = d.source.x
-                const y1 = d.source.y
-                const x2 = targetX
-                const y2 = targetY
-                const dx = x2 - x1
-                const dy = y2 - y1
-                const dr = Math.sqrt(dx * dx + dy * dy)
-                // Defaults for normal edge.
-                const drx = dr
-                const dry = dr
-                const xRotation = 0 // degrees
-                const largeArc = 0 // 1 or 0
-                const sweep = 1 // 1 or 0
-
-                return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+                return arcPath(d.source.x, d.source.y, targetX, targetY)
               } else if (linkIsLoop) {
-                // Self edge.
-                // Fiddle with this angle to get loop oriented.
-                const xRotation = 0
-
-                // Needs to be 1.
-                const largeArc = 1
-                // Change sweep to change orientation of loop.
-                const sweep = 0
-
-                // Make drx and dry different to get an ellipse
-                // instead of a circle.
-                const drx = 45
-                const dry = 45
-
                 // Place the loop around the upper-right corner of the node.
                 const x1 = d.source.x + this.calculateNodeWidth(d.source) / 2
                 const y1 = d.source.y
                 const x2 = d.source.x
                 const y2 = d.source.y - this.calculateNodeHeight(d.source) / 2
-                return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+                return loopPath(x1, y1, x2, y2)
               }
             })
           // Position link labels at the center of the links based on the distance calculated above
