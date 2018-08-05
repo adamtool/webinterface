@@ -353,17 +353,6 @@
     },
     watch: {
       selectedNodesIds: function () {
-        const domNodeElements = this.nodeElements
-          .filter(node => this.selectedNodesIds.includes(node.id))
-          .nodes()
-        const [left, top, right, bottom] = containingBorder(domNodeElements)
-        const transform = d3.zoomTransform(this.svg.node())
-        const x0 = transform.invertX(left)
-        const x1 = transform.invertX(right)
-        const y0 = transform.invertY(top)
-        const y1 = transform.invertY(bottom)
-        const path = rectanglePath(x0, y0, x1, y1)
-        this.selectionBorder.attr('d', path)
         this.updateD3()
       },
       repulsionStrength: function (strength) {
@@ -746,7 +735,7 @@
         this.selectionBorder = this.container.append('path')
           .attr('stroke', '#000099')
           .attr('fill', 'none')
-          .attr('stroke-width', 2)
+          .attr('stroke-width', 5)
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
@@ -984,6 +973,8 @@
               }
             })
 
+          this.updateSelectionBorder()
+
           // Draw a line from the edge of one node to the edge of another.
           // We have to do this so that the arrowheads will be correctly aligned for nodes of varying size.
           // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
@@ -1084,6 +1075,14 @@
           // increase again past the threshold.
           this.simulation.alpha(0.7)
         })
+      },
+      updateSelectionBorder: function () {
+        const domNodeElements = this.nodeElements
+          .filter(node => this.selectedNodesIds.includes(node.id))
+          .nodes()
+        const border = containingBorder(domNodeElements)
+        const path = rectanglePath(...border)
+        this.selectionBorder.attr('d', path)
       },
       /**
        * Perform a diff of the new graph against our existing graph, updating our graph in-place.
