@@ -354,8 +354,13 @@
     watch: {
       selectedNodesIds: function () {
         const elements = this.nodeElements.filter(node => this.selectedNodesIds.includes(node.id))
-        const outerExtents = containingBorder(elements)
-        const path = rectanglePath(...outerExtents)
+        const [left, top, right, bottom] = containingBorder(elements)
+        const transform = d3.zoomTransform(this.svg.node())
+        const x0 = transform.invertX(left)
+        const x1 = transform.invertX(right)
+        const y0 = transform.invertY(top)
+        const y1 = transform.invertY(bottom)
+        const path = rectanglePath(x0, y0, x1, y1)
         this.selectionBorder.attr('d', path)
         function containingBorder (nodeElements) {
           let xMin = 9999999
@@ -363,10 +368,9 @@
           let xMax = -9999999
           let yMax = -9999999
           nodeElements.each(function (d) {
-            const bbox = this.getBBox()
-            const {x: x0, y: y0, width, height} = bbox
-            const x1 = x0 + width
-            const y1 = y0 + height
+            const rect = this.getBoundingClientRect()
+            const {left: x0, right: x1, top: y0, bottom: y1} = rect
+
             if (x0 < xMin) {
               xMin = x0
             }
