@@ -116,6 +116,7 @@
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
   import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
+  import { rectanglePath } from '../svgFunctions'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
@@ -339,14 +340,6 @@
             this.selectNodesPreview.attr('d', '')
           })
 
-        function rectanglePath (x0, y0, x1, y1) {
-          return `M${x0},${y0}
-              L${x0},${y1}
-              L${x1},${y1}
-              L${x1}, ${y0}
-              L${x0}, ${y0}`
-        }
-
         function findSelectedNodes (nodes, startX, startY, currentX, currentY) {
           return nodes.filter(node => {
             const xFits = (node.x > startX && node.x < currentX) ||
@@ -360,6 +353,9 @@
     },
     watch: {
       selectedNodesIds: function () {
+        const bbox = this.nodeGroup.node().getBBox()
+        const {x, y, width, height} = bbox
+        this.selectionBorder.attr('d', rectanglePath(x, y, x + width, y + height))
         this.updateD3()
       },
       repulsionStrength: function (strength) {
@@ -736,6 +732,11 @@
         // This is the rectangle shown when the user is trying to select a group of nodes
         this.selectNodesPreview = this.container.append('path')
           .attr('stroke', 'black')
+          .attr('fill', 'none')
+          .attr('stroke-width', 2)
+        // This is the border drawn around all selected nodes.
+        this.selectionBorder = this.container.append('path')
+          .attr('stroke', '#000099')
           .attr('fill', 'none')
           .attr('stroke-width', 2)
 
