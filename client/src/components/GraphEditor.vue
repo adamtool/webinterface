@@ -740,9 +740,15 @@
         this.zoom = d3.zoom()
           .on('zoom', onZoom)
           .filter(() => {
-            const isLeftClick = d3.event.button === 0
-            const isZoomMode = this.backgroundDragDropMode === 'zoom'
-            return isLeftClick && isZoomMode
+            const isWheel = d3.event instanceof WheelEvent
+            if (isWheel) {
+              return true
+            } else {
+              const hotkeyHeldDown = d3.event.shiftKey
+              const isLeftClick = d3.event.button === 0
+              const isZoomMode = this.backgroundDragDropMode === 'zoom'
+              return isLeftClick && (hotkeyHeldDown || isZoomMode)
+            }
           })
         this.svg.call(this.zoom)
         const backgroundClickHandlers = {
