@@ -148,6 +148,9 @@
       this.$refs.rootElement.addEventListener('keyup', (event) => {
         console.log(event)
         switch (event.keyCode) {
+          case 27:
+            this.selectedNodesIds = []
+            break // 'Esc' key
           case 46:
             this.deleteSelectedNodes()
             break // 'delete' key
