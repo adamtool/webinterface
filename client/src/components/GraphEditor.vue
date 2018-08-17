@@ -786,6 +786,7 @@
             }
             console.log('emitting insertNode')
             this.$emit('insertNode', nodeSpec)
+            this.selectedNodesIds = []
           },
           'cancelSelection': () => {
             this.selectedNodesIds = []
