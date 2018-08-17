@@ -127,9 +127,29 @@
   import { layoutNodes } from '@/autoLayout'
   import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
   import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
+  import 'd3-context-menu/css/d3-context-menu.css'
+  import contextMenuFactory from 'd3-context-menu'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
+
+  const items = [
+    {
+      title: 'Delete node',
+      action: function (d) {
+        this.$emit('deleteNode', d.id)
+      },
+      disabled: false // optional, defaults to false
+    },
+    {
+      title: 'Item #2',
+      action: function (d, i) {
+        console.log('You have clicked the second item!')
+        console.log('The data for this circle is: ' + d)
+      }
+    }
+  ]
+  const openMenu = contextMenuFactory(items)
 
   export default {
     name: 'graph-editor',
@@ -183,6 +203,24 @@
       }
     },
     computed: {
+      contextMenuItems: function () {
+        return [
+          {
+            title: 'Delete node',
+            action: function (d) {
+              this.$emit('deleteNode', d.id)
+            },
+            disabled: false // optional, defaults to false
+          },
+          {
+            title: 'Item #2',
+            action: function (d, i) {
+              console.log('You have clicked the second item!')
+              console.log('The data for this circle is: ' + d)
+            }
+          }
+        ]
+      },
       // TODO Figure out why Strategy BDD/Graph Strat BDD / GGBDD nodes still spawn at 0,0 ???
       nodeSpawnPoint: function () {
         if (this.lastUserClick) {
@@ -532,6 +570,8 @@
             this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the preset of this State is visible
             this.$emit('toggleStatePreset', d.id)
+          } else {
+            openMenu(d)
           }
         }
       }
