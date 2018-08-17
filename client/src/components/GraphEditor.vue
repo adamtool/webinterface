@@ -133,24 +133,6 @@
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
-  const items = [
-    {
-      title: 'Delete node',
-      action: function (d) {
-        this.$emit('deleteNode', d.id)
-      },
-      disabled: false // optional, defaults to false
-    },
-    {
-      title: 'Item #2',
-      action: function (d, i) {
-        console.log('You have clicked the second item!')
-        console.log('The data for this circle is: ' + d)
-      }
-    }
-  ]
-  const openMenu = contextMenuFactory(items)
-
   export default {
     name: 'graph-editor',
     components: {},
@@ -203,6 +185,9 @@
       }
     },
     computed: {
+      openContextMenu: function () {
+        return contextMenuFactory(this.contextMenuItems)
+      },
       contextMenuItems: function () {
         return [
           {
@@ -214,10 +199,7 @@
           },
           {
             title: 'Item #2',
-            action: function (d, i) {
-              console.log('You have clicked the second item!')
-              console.log('The data for this circle is: ' + d)
-            }
+            disabled: true
           }
         ]
       },
@@ -571,7 +553,7 @@
             // Toggle whether the preset of this State is visible
             this.$emit('toggleStatePreset', d.id)
           } else {
-            openMenu(d)
+            this.openContextMenu(d)
           }
         }
       }
