@@ -218,6 +218,14 @@
               }
             },
             action: this.toggleEnvironmentPlace
+          },
+          {
+            title: 'Set initial token',
+            action: this.setInitialTokenInteractively
+          },
+          {
+            title: 'Toggle isSpecial',
+            disabled: true // TODO implement this
           }
         ]
       },
@@ -663,8 +671,26 @@
         this.$emit('toggleEnvironmentPlace', d.id)
       },
       renameNodeInteractively: function (d) {
+        const callback = (text) => {
+          console.log('Emitting renameNode')
+          this.$emit('renameNode', {
+            idOld: d.id,
+            idNew: text
+          })
+        }
         console.log('Opening text input box to rename the following node:')
         console.log(d)
+        this.getTextInput(callback)
+      },
+      setInitialTokenInteractively: function () {
+        console.log('TODO implement me!!!')
+      },
+      // Open a text input field in the svg and focus it.  Let the user type stuff in, and call
+      // callback with whatever text the user entered.
+      // This is meant to be called in a mouse click handler so that the text input box appears by
+      // the mouse cursor.
+      // TODO Make this look better
+      getTextInput: function (callback) {
         const [mouseX, mouseY] = this.mousePosZoom()
         const fo = this.container.append('foreignObject')
           .attr('x', mouseX)
@@ -674,11 +700,8 @@
         const endTextEntry = () => {
           const text = textInput.node().value
           fo.remove()
-          console.log('Emitting renameNode')
-          this.$emit('renameNode', {
-            idOld: d.id,
-            idNew: text
-          })
+          console.log(`Calling text entry callback with value '${text}'`)
+          callback(text)
         }
         const textInput = fo.append('xhtml:body')
           .append('form')
