@@ -55,28 +55,29 @@
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
 
     </svg>
-    <v-radio-group v-model="nodeTypeToInsert" style="position: relative; top: 220px; width: 150px;">
-      <v-radio label="SYSPLACE" value="SYSPLACE"/>
-      <v-radio label="ENVPLACE" value="ENVPLACE"/>
-      <v-radio label="TRANSITION" value="TRANSITION"/>
-    </v-radio-group>
-    <v-radio-group v-model="dragDropMode" style="position: relative; top: 180px; width: 150px;">
-      <v-radio label="move nodes" value="moveNode"/>
-      <v-radio label="draw flows" value="drawFlow"/>
-    </v-radio-group>
-    <v-radio-group v-model="leftClickMode" style="position: relative; top: 140px; width: 150px;">
-      <v-radio label="unfreeze nodes" value="unfreezeNode"/>
-      <v-radio label="delete nodes" value="deleteNode"/>
-      <v-radio label="select node" value="selectNode"/>
-    </v-radio-group>
-    <v-radio-group v-model="backgroundClickMode" style="position: relative; top: 120px; width: 150px;">
-      <v-radio label="cancel selection" value="cancelSelection"/>
-      <v-radio label="insert node" value="insertNode"/>
-    </v-radio-group>
-    <v-radio-group v-model="backgroundDragDropMode" style="position: relative; top: 100px; width: 150px;">
-      <v-radio label="zoom and pan" value="zoom"/>
-      <v-radio label="select nodes" value="selectNodes"/>
-    </v-radio-group>
+    <!--Sidebar showing all of the current event handlers' statuses-->
+    <!--<v-radio-group v-model="nodeTypeToInsert" style="position: relative; top: 220px; width: 150px;">-->
+      <!--<v-radio label="SYSPLACE" value="SYSPLACE"/>-->
+      <!--<v-radio label="ENVPLACE" value="ENVPLACE"/>-->
+      <!--<v-radio label="TRANSITION" value="TRANSITION"/>-->
+    <!--</v-radio-group>-->
+    <!--<v-radio-group v-model="dragDropMode" style="position: relative; top: 180px; width: 150px;">-->
+      <!--<v-radio label="move nodes" value="moveNode"/>-->
+      <!--<v-radio label="draw flows" value="drawFlow"/>-->
+    <!--</v-radio-group>-->
+    <!--<v-radio-group v-model="leftClickMode" style="position: relative; top: 140px; width: 150px;">-->
+      <!--<v-radio label="unfreeze nodes" value="unfreezeNode"/>-->
+      <!--<v-radio label="delete nodes" value="deleteNode"/>-->
+      <!--<v-radio label="select node" value="selectNode"/>-->
+    <!--</v-radio-group>-->
+    <!--<v-radio-group v-model="backgroundClickMode" style="position: relative; top: 120px; width: 150px;">-->
+      <!--<v-radio label="cancel selection" value="cancelSelection"/>-->
+      <!--<v-radio label="insert node" value="insertNode"/>-->
+    <!--</v-radio-group>-->
+    <!--<v-radio-group v-model="backgroundDragDropMode" style="position: relative; top: 100px; width: 150px;">-->
+      <!--<v-radio label="zoom and pan" value="zoom"/>-->
+      <!--<v-radio label="select nodes" value="selectNodes"/>-->
+    <!--</v-radio-group>-->
   </div>
 </template>
 
