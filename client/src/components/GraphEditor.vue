@@ -216,8 +216,20 @@
             disabled: false // optional, defaults to false
           },
           {
-            title: 'Item #2',
-            disabled: true
+            title: function (d) {
+              switch (d.type) {
+                case 'SYSPLACE':
+                case 'ENVPLACE':
+                  return `Rename Place ${d.id}`
+                case 'TRANSITION':
+                  return `Rename Transition ${d.id}`
+                default:
+                  throw new Error('Unhandled case in switch statement for right click context menu')
+              }
+            },
+            action: function (d) {
+              this.renameNodeInteractively(d)
+            }
           }
         ]
       },
@@ -617,6 +629,11 @@
       }
     },
     methods: {
+      renameNodeInteractively: function (d) {
+        // TODO let the user type in a new id, then emit an appropriate event
+        console.log('This should allow the user to rename the following node')
+        console.log(d)
+      },
       invertSelection: function () {
         this.selectedNodesIds = this.nodes.filter(node => !this.selectedNodesIds.includes(node.id))
           .map(node => node.id)
