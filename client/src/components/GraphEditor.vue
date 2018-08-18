@@ -203,30 +203,22 @@
               switch (d.type) {
                 case 'SYSPLACE':
                 case 'ENVPLACE':
-                  return `Delete Place ${d.id}`
+                  return `Place ${d.id}`
                 case 'TRANSITION':
-                  return `Delete Transition ${d.id}`
+                  return `Transition ${d.id}`
                 default:
                   throw new Error('Unhandled case in switch statement for right click context menu')
               }
-            },
-            action: function (d) {
-              this.$emit('deleteNode', d.id)
-            },
-            disabled: false // optional, defaults to false
+            }
           },
           {
-            title: function (d) {
-              switch (d.type) {
-                case 'SYSPLACE':
-                case 'ENVPLACE':
-                  return `Rename Place ${d.id}`
-                case 'TRANSITION':
-                  return `Rename Transition ${d.id}`
-                default:
-                  throw new Error('Unhandled case in switch statement for right click context menu')
-              }
-            },
+            title: 'Delete',
+            action: function (d) {
+              this.$emit('deleteNode', d.id)
+            }
+          },
+          {
+            title: 'Rename',
             action: function (d) {
               this.renameNodeInteractively(d)
             }
