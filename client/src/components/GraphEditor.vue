@@ -725,12 +725,6 @@
           .attr('y', mouseY - 40)
           .attr('width', '200px')
           .attr('height', '100px')
-        const endTextEntry = () => {
-          const text = textInput.node().value
-          fo.remove()
-          console.log(`Calling text entry callback with value '${text}'`)
-          callback(text)
-        }
         const body = fo.append('xhtml:body')
         body.append('span').text(label)
         const textInput = body.append('form')
@@ -739,13 +733,16 @@
           .attr('background', '#BBBBEE')
           .on('keyup', () => {
             if (d3.event.key === 'Enter') {
-              endTextEntry()
+              const text = textInput.node().value
+              fo.remove()
+              console.log(`Calling text entry callback with value '${text}'`)
+              callback(text)
             } else if (d3.event.key === 'Escape') {
               fo.remove()
             }
           })
           .on('blur', () => {
-            endTextEntry()
+            fo.remove()
           })
         textInput.node().focus()
       },
