@@ -197,33 +197,47 @@
         return contextMenuFactory(this.contextMenuItems)
       },
       contextMenuItems: function () {
-        return [
-          {
-            title: function (d) {
-              switch (d.type) {
-                case 'SYSPLACE':
-                case 'ENVPLACE':
-                  return `Place ${d.id}`
-                case 'TRANSITION':
-                  return `Transition ${d.id}`
-                default:
-                  throw new Error('Unhandled case in switch statement for right click context menu')
+        return (d) => {
+          if (this.selectedNodesIds.length > 1) {
+            return [
+              {
+                title: 'Selection'
+              },
+              {
+                title: 'Delete selected',
+                action: this.deleteSelectedNodes
               }
-            }
-          },
-          {
-            title: 'Delete',
-            action: function (d) {
-              this.$emit('deleteNode', d.id)
-            }
-          },
-          {
-            title: 'Rename',
-            action: function (d) {
-              this.renameNodeInteractively(d)
-            }
+            ]
+          } else {
+            return [
+              {
+                title: function (d) {
+                  switch (d.type) {
+                    case 'SYSPLACE':
+                    case 'ENVPLACE':
+                      return `Place ${d.id}`
+                    case 'TRANSITION':
+                      return `Transition ${d.id}`
+                    default:
+                      throw new Error('Unhandled case in switch statement for right click context menu')
+                  }
+                }
+              },
+              {
+                title: 'Delete',
+                action: function (d) {
+                  this.$emit('deleteNode', d.id)
+                }
+              },
+              {
+                title: 'Rename',
+                action: function (d) {
+                  this.renameNodeInteractively(d)
+                }
+              }
+            ]
           }
-        ]
+        }
       },
       // TODO Figure out why Strategy BDD/Graph Strat BDD / GGBDD nodes still spawn at 0,0 ???
       nodeSpawnPoint: function () {
@@ -291,6 +305,10 @@
             // Toggle whether the preset of this State is visible
             this.$emit('toggleStatePreset', d.id)
           } else {
+            // Cancel selection if a non-selected node is clicked
+            if (!this.selectedNodesIds.includes(d.id)) {
+              this.selectedNodesIds = [d.id]
+            }
             this.openContextMenu(d)
           }
         }
