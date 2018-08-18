@@ -188,6 +188,11 @@
       }
     },
     computed: {
+      closeContextMenu: function () {
+        return () => {
+          contextMenuFactory('close')
+        }
+      },
       openContextMenu: function () {
         return contextMenuFactory(this.contextMenuItems)
       },
@@ -419,7 +424,31 @@
             }
           default:
             return () => {
-              console.log('No left click handler was found for leftClickMode === ' + this.leftClickMode)
+              console.log(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
+            }
+        }
+      },
+      backgroundClickHandler: function () {
+        switch (this.backgroundClickMode) {
+          case 'insertNode':
+            return () => {
+              const mousePos = this.mousePosZoom()
+              const nodeSpec = {
+                x: mousePos[0],
+                y: mousePos[1],
+                type: this.nodeTypeToInsert
+              }
+              console.log('emitting insertNode')
+              this.$emit('insertNode', nodeSpec)
+              this.selectedNodesIds = []
+            }
+          case 'cancelSelection':
+            return () => {
+              this.selectedNodesIds = []
+            }
+          default:
+            return () => {
+              console.log(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
             }
         }
       }
@@ -558,6 +587,7 @@
             // Toggle whether the postset of this State is visible
             this.$emit('toggleStatePostset', d.id)
           } else {
+            this.closeContextMenu()
             this.nodeClickHandler(d)
           }
         },
@@ -795,24 +825,9 @@
             }
           })
         this.svg.call(this.zoom)
-        const backgroundClickHandlers = {
-          'insertNode': () => {
-            const mousePos = this.mousePosZoom()
-            const nodeSpec = {
-              x: mousePos[0],
-              y: mousePos[1],
-              type: this.nodeTypeToInsert
-            }
-            console.log('emitting insertNode')
-            this.$emit('insertNode', nodeSpec)
-            this.selectedNodesIds = []
-          },
-          'cancelSelection': () => {
-            this.selectedNodesIds = []
-          }
-        }
         this.svg.on('click', d => {
-          backgroundClickHandlers[this.backgroundClickMode](d)
+          this.closeContextMenu()
+          this.backgroundClickHandler(d)
         })
         this.backgroundDragDrop(this.svg)
 
