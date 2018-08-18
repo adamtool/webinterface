@@ -356,6 +356,7 @@
         return d3.drag()
           .clickDistance(2)
           .on('start', node => {
+            this.closeContextMenu()
             dragDropHandler = dragDropHandlers[this.dragDropMode]
             dragDropHandler['start'](node)
           })
@@ -371,6 +372,7 @@
         return d3.drag()
           .clickDistance(2)
           .on('start', () => {
+            this.closeContextMenu();
             [startX, startY] = this.mousePosZoom()
           })
           .on('drag', () => {
