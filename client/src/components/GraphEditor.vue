@@ -147,13 +147,13 @@
       this.updateSvgDimensions()
       this.$refs.rootElement.addEventListener('keyup', (event) => {
         console.log(event)
-        switch (event.keyCode) {
-          case 27:
+        switch (event.key) {
+          case 'Escape':
             this.selectedNodesIds = []
-            break // 'Esc' key
-          case 46:
+            break
+          case 'Delete':
             this.deleteSelectedNodes()
-            break // 'delete' key
+            break
         }
       })
     },
