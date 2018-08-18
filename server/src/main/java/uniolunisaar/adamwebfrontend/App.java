@@ -288,6 +288,22 @@ public class App {
             return successResponse(petriGameClient);
         });
 
+        post("/setInitialToken", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeId = body.get("nodeId").getAsString();
+            int tokens = body.get("tokens").getAsInt();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+            Place place = net.getPlace(nodeId);
+            place.setInitialToken(tokens);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+            return successResponse(petriGameClient);
+        });
+
         post("/createFlow", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();

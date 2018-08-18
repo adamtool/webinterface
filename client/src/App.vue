@@ -78,6 +78,7 @@
                            v-on:deleteNode='deleteNode'
                            v-on:renameNode='renameNode'
                            v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                           v-on:setInitialToken='setInitialToken'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -314,7 +315,8 @@
           createFlow: this.baseUrl + '/createFlow',
           deleteNode: this.baseUrl + '/deleteNode',
           renameNode: this.baseUrl + '/renameNode',
-          toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace'
+          toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace',
+          setInitialToken: this.baseUrl + '/setInitialToken'
         }
       },
       webSocketUrl: function () {
@@ -629,6 +631,20 @@
         axios.post(this.restEndpoints.toggleEnvironmentPlace, {
           petriGameId: this.petriGame.uuid,
           nodeId: nodeId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      setInitialToken: function ({nodeId, tokens}) {
+        console.log('processing setInitialToken event')
+        axios.post(this.restEndpoints.setInitialToken, {
+          petriGameId: this.petriGame.uuid,
+          nodeId: nodeId,
+          tokens: tokens
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.petriGame.net = response.data.result

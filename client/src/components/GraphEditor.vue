@@ -682,8 +682,21 @@
         console.log(d)
         this.getTextInput(callback)
       },
-      setInitialTokenInteractively: function () {
-        console.log('TODO implement me!!!')
+      setInitialTokenInteractively: function (d) {
+        const callback = (text) => {
+          const tokens = parseInt(text)
+          if (isNaN(tokens)) {
+            throw new Error('The text entered can\'t be parsed into an integer, so we can\'t set' +
+              ' the initial token count to that.')
+          } else {
+            console.log('Emitting setInitialToken')
+            this.$emit('setInitialToken', {
+              nodeId: d.id,
+              tokens: tokens
+            })
+          }
+        }
+        this.getTextInput(callback)
       },
       // Open a text input field in the svg and focus it.  Let the user type stuff in, and call
       // callback with whatever text the user entered.
