@@ -250,6 +250,80 @@
           selection.on('contextmenu', this.onNodeRightClick)
         }
       },
+      nodeClickHandler: function () {
+        switch (this.leftClickMode) {
+          case 'unfreezeNode':
+            return (d) => {
+              d.fx = null
+              d.fy = null
+            }
+          case 'deleteNode':
+            return (d) => {
+              this.$emit('deleteNode', d.id)
+            }
+          case 'selectNode':
+            return (d) => {
+              console.log(d3.event)
+              if (d3.event.ctrlKey) {
+                if (this.selectedNodesIds.includes(d.id)) {
+                  this.selectedNodesIds = this.selectedNodesIds.filter(id => id !== d.id)
+                } else {
+                  this.selectedNodesIds.push(d.id)
+                }
+              } else {
+                this.selectedNodesIds = [d.id]
+              }
+            }
+          default:
+            return () => {
+              console.log(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
+            }
+        }
+      },
+      backgroundClickHandler: function () {
+        switch (this.backgroundClickMode) {
+          case 'insertNode':
+            return () => {
+              const mousePos = this.mousePosZoom()
+              const nodeSpec = {
+                x: mousePos[0],
+                y: mousePos[1],
+                type: this.nodeTypeToInsert
+              }
+              console.log('emitting insertNode')
+              this.$emit('insertNode', nodeSpec)
+              this.selectedNodesIds = []
+            }
+          case 'cancelSelection':
+            return () => {
+              this.selectedNodesIds = []
+            }
+          default:
+            return () => {
+              console.log(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
+            }
+        }
+      },
+      dragDrop: function () {
+        const dragDropHandlers = {
+          'moveNode': this.moveNodeDragDrop,
+          'drawFlow': this.drawFlowDragDrop
+        }
+        let dragDropHandler
+        return d3.drag()
+          .clickDistance(2)
+          .on('start', node => {
+            this.closeContextMenu()
+            dragDropHandler = dragDropHandlers[this.dragDropMode]
+            dragDropHandler['start'](node)
+          })
+          .on('drag', node => {
+            dragDropHandler['drag'](node)
+          })
+          .on('end', node => {
+            dragDropHandler['end'](node)
+          })
+      },
       moveNodeDragDrop: function () {
         let isSelectionDrag
         return {
@@ -347,26 +421,6 @@
           }
         }
       },
-      dragDrop: function () {
-        const dragDropHandlers = {
-          'moveNode': this.moveNodeDragDrop,
-          'drawFlow': this.drawFlowDragDrop
-        }
-        let dragDropHandler
-        return d3.drag()
-          .clickDistance(2)
-          .on('start', node => {
-            this.closeContextMenu()
-            dragDropHandler = dragDropHandlers[this.dragDropMode]
-            dragDropHandler['start'](node)
-          })
-          .on('drag', node => {
-            dragDropHandler['drag'](node)
-          })
-          .on('end', node => {
-            dragDropHandler['end'](node)
-          })
-      },
       backgroundDragDrop: function () {
         let startX, startY
         return d3.drag()
@@ -398,60 +452,6 @@
               (node.y < startY && node.y > currentY)
             return xFits && yFits
           })
-        }
-      },
-      nodeClickHandler: function () {
-        switch (this.leftClickMode) {
-          case 'unfreezeNode':
-            return (d) => {
-              d.fx = null
-              d.fy = null
-            }
-          case 'deleteNode':
-            return (d) => {
-              this.$emit('deleteNode', d.id)
-            }
-          case 'selectNode':
-            return (d) => {
-              console.log(d3.event)
-              if (d3.event.ctrlKey) {
-                if (this.selectedNodesIds.includes(d.id)) {
-                  this.selectedNodesIds = this.selectedNodesIds.filter(id => id !== d.id)
-                } else {
-                  this.selectedNodesIds.push(d.id)
-                }
-              } else {
-                this.selectedNodesIds = [d.id]
-              }
-            }
-          default:
-            return () => {
-              console.log(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
-            }
-        }
-      },
-      backgroundClickHandler: function () {
-        switch (this.backgroundClickMode) {
-          case 'insertNode':
-            return () => {
-              const mousePos = this.mousePosZoom()
-              const nodeSpec = {
-                x: mousePos[0],
-                y: mousePos[1],
-                type: this.nodeTypeToInsert
-              }
-              console.log('emitting insertNode')
-              this.$emit('insertNode', nodeSpec)
-              this.selectedNodesIds = []
-            }
-          case 'cancelSelection':
-            return () => {
-              this.selectedNodesIds = []
-            }
-          default:
-            return () => {
-              console.log(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
-            }
         }
       }
     },
