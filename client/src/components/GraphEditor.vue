@@ -327,7 +327,7 @@
           } else {
             // Cancel selection if a non-selected node is clicked
             if (!this.selectedNodesIds.includes(d.id)) {
-              this.selectedNodesIds = [d.id]
+              this.selectedNodesIds = []
             }
             this.openContextMenu(d)
           }
