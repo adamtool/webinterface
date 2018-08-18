@@ -610,6 +610,17 @@
       renameNode: function ({idOld, idNew}) {
         console.log('processing renameNode event')
         console.log(`renaming node '${idOld}' to '${idNew}' (TODO, not yet implemented)`)
+        axios.post(this.restEndpoints.renameNode, {
+          petriGameId: this.petriGame.uuid,
+          nodeIdOld: idOld,
+          nodeIdNew: idNew
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')

@@ -240,6 +240,45 @@ public class App {
             return successResponse(petriGameClient);
         });
 
+        post("/renameNode", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeIdOld = body.get("nodeIdOld").getAsString();
+            String nodeIdNew = body.get("nodeIdNew").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+            Node oldNode = net.getNode(nodeIdOld);
+            Set<Node> presetNodes = net.getPresetNodes(oldNode);
+            Set<Node> postsetNodes = net.getPostsetNodes(oldNode);
+
+            Node newNode;
+            if (oldNode instanceof Place) {
+                Place place = net.createPlace(nodeIdNew);
+                newNode = place;
+                if (AdamExtensions.isEnvironment((Place)oldNode)) {
+                    AdamExtensions.setEnvironment(place);
+                }
+            } else {
+                newNode = net.createTransition(nodeIdNew);
+            }
+
+            for (Node n : presetNodes) {
+                net.createFlow(n, newNode);
+            }
+            for (Node n: postsetNodes) {
+                net.createFlow(newNode, n);
+            }
+            // TODO Handle token flow extension.  (Right now, token flow annotations do not get
+            // updated to reflect the new node ID, so there are problems.)
+            newNode.copyExtensions(oldNode);
+            net.removeNode(nodeIdOld);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+            return successResponse(petriGameClient);
+        });
+
         post("/createFlow", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();
