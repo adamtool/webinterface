@@ -76,6 +76,7 @@
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
                            v-on:deleteNode='deleteNode'
+                           v-on:renameNode='renameNode'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -310,7 +311,8 @@
           convertAptToGraph: this.baseUrl + '/convertAptToGraph',
           insertNode: this.baseUrl + '/insertPlace',
           createFlow: this.baseUrl + '/createFlow',
-          deleteNode: this.baseUrl + '/deleteNode'
+          deleteNode: this.baseUrl + '/deleteNode',
+          renameNode: this.baseUrl + '/renameNode'
         }
       },
       webSocketUrl: function () {
@@ -604,6 +606,10 @@
         }).catch(() => {
           this.logError('Network error')
         })
+      },
+      renameNode: function ({idOld, idNew}) {
+        console.log('processing renameNode event')
+        console.log(`renaming node '${idOld}' to '${idNew}' (TODO, not yet implemented)`)
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')

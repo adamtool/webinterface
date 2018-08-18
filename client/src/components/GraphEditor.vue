@@ -630,9 +630,36 @@
     },
     methods: {
       renameNodeInteractively: function (d) {
-        // TODO let the user type in a new id, then emit an appropriate event
-        console.log('This should allow the user to rename the following node')
+        console.log('Opening text input box to rename the following node:')
         console.log(d)
+        const [mouseX, mouseY] = this.mousePosZoom()
+        const fo = this.container.append('foreignObject')
+          .attr('x', mouseX)
+          .attr('y', mouseY)
+          .attr('width', '200px')
+          .attr('height', '100px')
+        const endTextEntry = () => {
+          const text = textInput.node().value
+          fo.remove()
+          console.log('Emitting renameNode')
+          this.$emit('renameNode', {
+            idOld: d.id,
+            idNew: text
+          })
+        }
+        const textInput = fo.append('xhtml:body')
+          .append('form')
+          .append('input')
+          .attr('type', 'text')
+          .on('keyup', () => {
+            if (d3.event.key === 'Enter') {
+              endTextEntry()
+            }
+          })
+          .on('blur', () => {
+            endTextEntry()
+          })
+        textInput.node().focus()
       },
       invertSelection: function () {
         this.selectedNodesIds = this.nodes.filter(node => !this.selectedNodesIds.includes(node.id))
