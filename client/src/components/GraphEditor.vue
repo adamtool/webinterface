@@ -392,6 +392,36 @@
             return xFits && yFits
           })
         }
+      },
+      nodeClickHandler: function () {
+        switch (this.leftClickMode) {
+          case 'unfreezeNode':
+            return (d) => {
+              d.fx = null
+              d.fy = null
+            }
+          case 'deleteNode':
+            return (d) => {
+              this.$emit('deleteNode', d.id)
+            }
+          case 'selectNode':
+            return (d) => {
+              console.log(d3.event)
+              if (d3.event.ctrlKey) {
+                if (this.selectedNodesIds.includes(d.id)) {
+                  this.selectedNodesIds = this.selectedNodesIds.filter(id => id !== d.id)
+                } else {
+                  this.selectedNodesIds.push(d.id)
+                }
+              } else {
+                this.selectedNodesIds = [d.id]
+              }
+            }
+          default:
+            return () => {
+              console.log('No left click handler was found for leftClickMode === ' + this.leftClickMode)
+            }
+        }
       }
     },
     watch: {
@@ -528,28 +558,7 @@
             // Toggle whether the postset of this State is visible
             this.$emit('toggleStatePostset', d.id)
           } else {
-            const clickHandlers = {
-              'unfreezeNode': (d) => {
-                d.fx = null
-                d.fy = null
-              },
-              'deleteNode': (d) => {
-                this.$emit('deleteNode', d.id)
-              },
-              'selectNode': (d) => {
-                console.log(d3.event)
-                if (d3.event.ctrlKey) {
-                  if (this.selectedNodesIds.includes(d.id)) {
-                    this.selectedNodesIds = this.selectedNodesIds.filter(id => id !== d.id)
-                  } else {
-                    this.selectedNodesIds.push(d.id)
-                  }
-                } else {
-                  this.selectedNodesIds = [d.id]
-                }
-              }
-            }
-            clickHandlers[this.leftClickMode](d)
+            this.nodeClickHandler(d)
           }
         },
         onNodeRightClick: (d) => {
