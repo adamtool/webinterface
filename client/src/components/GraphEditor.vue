@@ -250,6 +250,47 @@
           selection.on('contextmenu', this.onNodeRightClick)
         }
       },
+      onNodeClick: function () {
+        return (d) => {
+          d3.event.stopPropagation()
+          // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
+          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            // Expand or collapse the postset of the State that has been clicked.
+            // Freeze the State's position
+            d.fx = d.x
+            d.fy = d.y
+
+            // Save the mouse coordinates so that the new nodes will appear where the user clicked.
+            // I.e. at the location of the parent node that is being expanded.
+            const mouseCoordinates = this.mousePosZoom()
+            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
+            // Toggle whether the postset of this State is visible
+            this.$emit('toggleStatePostset', d.id)
+          } else {
+            this.closeContextMenu()
+            this.nodeClickHandler(d)
+          }
+        }
+      },
+      onNodeRightClick: function () {
+        return (d) => {
+          d3.event.preventDefault() // Prevent the right click menu from appearing
+          d3.event.stopPropagation()
+          console.log(d)
+          // TODO refactor duplicate code?
+          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            // Freeze the State's position
+            d.fx = d.x
+            d.fy = d.y
+            const mouseCoordinates = this.mousePosZoom()
+            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
+            // Toggle whether the preset of this State is visible
+            this.$emit('toggleStatePreset', d.id)
+          } else {
+            this.openContextMenu(d)
+          }
+        }
+      },
       nodeClickHandler: function () {
         switch (this.leftClickMode) {
           case 'unfreezeNode':
@@ -572,44 +613,7 @@
           .alphaMin(0.002),
         repulsionStrength: this.repulsionStrengthDefault,
         linkStrength: this.linkStrengthDefault,
-        gravityStrength: this.gravityStrengthDefault,
-        onNodeClick: (d) => {
-          d3.event.stopPropagation()
-          // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
-          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
-            // Expand or collapse the postset of the State that has been clicked.
-            // Freeze the State's position
-            d.fx = d.x
-            d.fy = d.y
-
-            // Save the mouse coordinates so that the new nodes will appear where the user clicked.
-            // I.e. at the location of the parent node that is being expanded.
-            const mouseCoordinates = this.mousePosZoom()
-            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
-            // Toggle whether the postset of this State is visible
-            this.$emit('toggleStatePostset', d.id)
-          } else {
-            this.closeContextMenu()
-            this.nodeClickHandler(d)
-          }
-        },
-        onNodeRightClick: (d) => {
-          d3.event.preventDefault() // Prevent the right click menu from appearing
-          d3.event.stopPropagation()
-          console.log(d)
-          // TODO refactor duplicate code?
-          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
-            // Freeze the State's position
-            d.fx = d.x
-            d.fy = d.y
-            const mouseCoordinates = this.mousePosZoom()
-            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
-            // Toggle whether the preset of this State is visible
-            this.$emit('toggleStatePreset', d.id)
-          } else {
-            this.openContextMenu(d)
-          }
-        }
+        gravityStrength: this.gravityStrengthDefault
       }
     },
     methods: {
