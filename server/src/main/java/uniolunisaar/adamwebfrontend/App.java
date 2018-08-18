@@ -290,7 +290,7 @@ public class App {
             Place place = net.getPlace(nodeId);
             boolean environment = AdamExtensions.isEnvironment(place);
             if (environment) {
-                return errorResponse("Can't un-set the isEnvironment extension.  " +
+                return errorResponse("Can't turn an environment place into a system place yet.  " +
                         "TODO: Implement AdamExtensions.setNotEnvironment(Place place)");
             } else {
                 AdamExtensions.setEnvironment(place);
