@@ -906,7 +906,7 @@
         this.selectionBorder = this.container.append('path')
           .attr('stroke', '#000099')
           .attr('fill', 'none')
-          .attr('stroke-width', 5)
+          .attr('stroke-width', 0) // TODO Only draw this border when we need it for 'stretching'
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
