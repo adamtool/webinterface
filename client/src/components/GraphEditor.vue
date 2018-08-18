@@ -194,7 +194,17 @@
       contextMenuItems: function () {
         return [
           {
-            title: 'Delete node',
+            title: function (d) {
+              switch (d.type) {
+                case 'SYSPLACE':
+                case 'ENVPLACE':
+                  return `Delete Place ${d.id}`
+                case 'TRANSITION':
+                  return `Delete Transition ${d.id}`
+                default:
+                  throw new Error('Unhandled case in switch statement for right click context menu')
+              }
+            },
             action: function (d) {
               this.$emit('deleteNode', d.id)
             },
