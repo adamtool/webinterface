@@ -279,6 +279,27 @@ public class App {
             return successResponse(petriGameClient);
         });
 
+        post("/toggleEnvironmentPlace", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeId = body.get("nodeId").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+            Place place = net.getPlace(nodeId);
+            boolean environment = AdamExtensions.isEnvironment(place);
+            if (environment) {
+                return errorResponse("Can't un-set the isEnvironment extension.  " +
+                        "TODO: Implement AdamExtensions.setNotEnvironment(Place place)");
+            } else {
+                AdamExtensions.setEnvironment(place);
+            }
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+            return successResponse(petriGameClient);
+        });
+
         post("/createFlow", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();
@@ -336,7 +357,7 @@ public class App {
     private static String errorResponse(String reason) {
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "error");
-        responseJson.addProperty("reason", reason);
+        responseJson.addProperty("message", reason);
         return responseJson.toString();
     }
 }

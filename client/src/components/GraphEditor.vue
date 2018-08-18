@@ -199,45 +199,65 @@
       contextMenuItems: function () {
         return (d) => {
           if (this.selectedNodesIds.length > 1) {
-            return [
-              {
-                title: 'Selection'
-              },
-              {
-                title: 'Delete selected',
-                action: this.deleteSelectedNodes
-              }
-            ]
+            return this.contextMenuItemsSelection
+          } else if (d.type === 'TRANSITION') {
+            return this.contextMenuItemsNormal
           } else {
-            return [
-              {
-                title: function (d) {
-                  switch (d.type) {
-                    case 'SYSPLACE':
-                    case 'ENVPLACE':
-                      return `Place ${d.id}`
-                    case 'TRANSITION':
-                      return `Transition ${d.id}`
-                    default:
-                      throw new Error('Unhandled case in switch statement for right click context menu')
-                  }
-                }
-              },
-              {
-                title: 'Delete',
-                action: function (d) {
-                  this.$emit('deleteNode', d.id)
-                }
-              },
-              {
-                title: 'Rename',
-                action: function (d) {
-                  this.renameNodeInteractively(d)
-                }
-              }
-            ]
+            return this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
           }
         }
+      },
+      contextMenuItemsPlace: function () {
+        return [
+          {
+            title: function (d) {
+              if (d.type === 'ENVPLACE') {
+                return 'Change to system place'
+              } else {
+                return 'Change to environment place'
+              }
+            },
+            action: this.toggleEnvironmentPlace
+          }
+        ]
+      },
+      contextMenuItemsSelection: function () {
+        return [
+          {
+            title: 'Selection'
+          },
+          {
+            title: 'Delete selected',
+            action: this.deleteSelectedNodes
+          }
+        ]
+      },
+      contextMenuItemsNormal: function () {
+        return [
+          {
+            title: (d) => {
+              switch (d.type) {
+                case 'SYSPLACE':
+                case 'ENVPLACE':
+                  return `Place ${d.id}`
+                case 'TRANSITION':
+                  return `Transition ${d.id}`
+                default:
+                  throw new Error('Unhandled case in switch statement for right click context menu')
+              }
+            }
+          },
+          {
+            title: 'Delete',
+            action: (d) => {
+              this.$emit('deleteNode', d.id)
+            }
+          },
+          {
+            title: 'Rename',
+            action: this.renameNodeInteractively
+          }
+        ]
       },
       // TODO Figure out why Strategy BDD/Graph Strat BDD / GGBDD nodes still spawn at 0,0 ???
       nodeSpawnPoint: function () {
@@ -639,6 +659,9 @@
       }
     },
     methods: {
+      toggleEnvironmentPlace: function (d) {
+        this.$emit('toggleEnvironmentPlace', d.id)
+      },
       renameNodeInteractively: function (d) {
         console.log('Opening text input box to rename the following node:')
         console.log(d)

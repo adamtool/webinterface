@@ -77,6 +77,7 @@
                            v-on:createFlow='createFlow'
                            v-on:deleteNode='deleteNode'
                            v-on:renameNode='renameNode'
+                           v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -312,7 +313,8 @@
           insertNode: this.baseUrl + '/insertPlace',
           createFlow: this.baseUrl + '/createFlow',
           deleteNode: this.baseUrl + '/deleteNode',
-          renameNode: this.baseUrl + '/renameNode'
+          renameNode: this.baseUrl + '/renameNode',
+          toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace'
         }
       },
       webSocketUrl: function () {
@@ -609,11 +611,24 @@
       },
       renameNode: function ({idOld, idNew}) {
         console.log('processing renameNode event')
-        console.log(`renaming node '${idOld}' to '${idNew}' (TODO, not yet implemented)`)
+        console.log(`renaming node '${idOld}' to '${idNew}'`)
         axios.post(this.restEndpoints.renameNode, {
           petriGameId: this.petriGame.uuid,
           nodeIdOld: idOld,
           nodeIdNew: idNew
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      toggleEnvironmentPlace: function (nodeId) {
+        console.log('processing toggleEnvironmentPlace event')
+        axios.post(this.restEndpoints.toggleEnvironmentPlace, {
+          petriGameId: this.petriGame.uuid,
+          nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.petriGame.net = response.data.result
