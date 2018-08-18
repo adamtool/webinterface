@@ -667,6 +667,9 @@
       },
       deleteSelectedNodes: function () {
         console.log('deleting selected nodes')
+        // TODO There's a bug here. If we send a bunch of requests in a row, the responses may come
+        // out of order, leaving us // in an inconsistent state with the server.
+        // A possible solution: Just send a single request with a set of node IDs to be deleted.
         this.selectedNodesIds.forEach(id => {
           this.$emit('deleteNode', id)
         })
