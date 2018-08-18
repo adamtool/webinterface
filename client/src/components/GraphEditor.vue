@@ -695,7 +695,7 @@
         }
         console.log('Opening text input box to rename the following node:')
         console.log(d)
-        this.getTextInput(callback)
+        this.getTextInput('Rename', callback)
       },
       setInitialTokenInteractively: function (d) {
         const callback = (text) => {
@@ -711,18 +711,18 @@
             })
           }
         }
-        this.getTextInput(callback)
+        this.getTextInput('Set initial token', callback)
       },
       // Open a text input field in the svg and focus it.  Let the user type stuff in, and call
       // callback with whatever text the user entered.
       // This is meant to be called in a mouse click handler so that the text input box appears by
       // the mouse cursor.
       // TODO Make this look better
-      getTextInput: function (callback) {
+      getTextInput: function (label, callback) {
         const [mouseX, mouseY] = this.mousePosZoom()
         const fo = this.container.append('foreignObject')
           .attr('x', mouseX)
-          .attr('y', mouseY)
+          .attr('y', mouseY - 40)
           .attr('width', '200px')
           .attr('height', '100px')
         const endTextEntry = () => {
@@ -731,13 +731,17 @@
           console.log(`Calling text entry callback with value '${text}'`)
           callback(text)
         }
-        const textInput = fo.append('xhtml:body')
-          .append('form')
+        const body = fo.append('xhtml:body')
+        body.append('span').text(label)
+        const textInput = body.append('form')
           .append('input')
           .attr('type', 'text')
+          .attr('background', '#BBBBEE')
           .on('keyup', () => {
             if (d3.event.key === 'Enter') {
               endTextEntry()
+            } else if (d3.event.key === 'Escape') {
+              fo.remove()
             }
           })
           .on('blur', () => {
