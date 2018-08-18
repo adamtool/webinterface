@@ -92,18 +92,6 @@ public class App {
             responseJson.add("strategyBDD", strategyBDDJson);
             return responseJson.toString();
         });
-        exception(Exception.class, (exception, request, response) -> {
-            exception.printStackTrace();
-
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "error");
-            String exceptionName = exception.getClass().getSimpleName();
-            String exceptionAsString = exceptionName + ": " + exception.getMessage();
-            responseJson.addProperty("message", exceptionAsString);
-
-            String responseBody = responseJson.toString();
-            response.body(responseBody);
-        });
 
         // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.
         // Right now you can crash the server just by sending a bunch of requests to this endpoint
@@ -316,12 +304,13 @@ public class App {
             return successResponse(petriGameClient);
         });
 
-//        post("/renameNode", (req, res) -> {
-//
-//            if (net.containsNode(nodeId)) {
-//                return errorResponse("A node with the id '" + nodeId + "' already exists in the petri game.");
-//            }
-//        })
+        exception(Exception.class, (exception, request, response) -> {
+            exception.printStackTrace();
+            String exceptionName = exception.getClass().getSimpleName();
+            String exceptionAsString = exceptionName + ": " + exception.getMessage();
+            String responseBody = errorResponse(exceptionAsString);
+            response.body(responseBody);
+        });
     }
 
     private static void enableCORS() {
