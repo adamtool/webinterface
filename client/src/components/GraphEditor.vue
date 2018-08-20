@@ -695,7 +695,7 @@
         }
         console.log('Opening text input box to rename the following node:')
         console.log(d)
-        this.getTextInput('Rename', callback)
+        this.getTextInput(`Rename ${d.id}`, callback)
       },
       setInitialTokenInteractively: function (d) {
         const callback = (text) => {
@@ -711,7 +711,7 @@
             })
           }
         }
-        this.getTextInput('Set initial token', callback)
+        this.getTextInput(`Set initial token for ${d.id}`, callback)
       },
       // Open a text input field in the svg and focus it.  Let the user type stuff in, and call
       // callback with whatever text the user entered.
