@@ -418,27 +418,19 @@
       },
       moveNodeDragDrop: function () {
         let isSelectionDrag
-        let lastX, lastY
-        let
         return {
           'start': node => {
             isSelectionDrag = this.selectedNodesIds.includes(node.id)
             node.fx = node.x
             node.fy = node.y
-            lastX = d3.event.x
-            lastY = d3.event.y
           },
           'drag': node => {
             this.simulation.alphaTarget(0.7).restart()
             if (isSelectionDrag) {
-              const currentX = d3.event.x
-              const currentY = d3.event.y
-              const [dx, dy] = [currentX - lastX, currentY - lastY];
-              ([lastX, lastY] = [currentX, currentY])
               this.nodes.forEach(node => {
                 if (this.selectedNodesIds.includes(node.id)) {
-                  node.fx = node.x + dx
-                  node.fy = node.y + dy
+                  node.fx = node.x + d3.event.dx
+                  node.fy = node.y + d3.event.dy
                 }
               })
             } else {
