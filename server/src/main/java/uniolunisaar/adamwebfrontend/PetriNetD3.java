@@ -2,18 +2,12 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import uniol.apt.adt.Node;
-import uniol.apt.adt.pn.Flow;
-import uniol.apt.adt.pn.PetriNet;
-import uniol.apt.adt.pn.Place;
-import uniol.apt.adt.pn.Transition;
+import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.tools.Tools;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents the data needed to display a PetriNet in our graph editor.
@@ -33,12 +27,13 @@ public class PetriNetD3 {
     /**
      * Extract all the information needed to display a PetriNet in our graph editor.
      *
-     * @param net - A PetriNet
+     * @param net                 - A PetriNet
+     * @param shouldSendPositions - We will send x/y coordinates for these nodes to the client.
      * @return A JSON object containing the relevant information from the PetriNet
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement of(PetriNet net) {
+    public static JsonElement of(PetriNet net, Set<Node> shouldSendPositions) {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -57,7 +52,39 @@ public class PetriNetD3 {
             links.add(petriNetLink);
         }
 
-        // Add X/Y coordinates for nodes that have them
+        Map<String, NodePosition> nodePositions = shouldSendPositions.stream()
+                .filter(PetriNetD3::hasPosition)
+                .collect(Collectors.toMap(
+                        Node::getId, PetriNetD3::positionOf
+                ));
+
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
+        return new Gson().toJsonTree(petriNetD3);
+    }
+
+    private static boolean hasPosition(Node node) {
+        return AdamExtensions.hasXCoord(node) && AdamExtensions.hasYCoord(node);
+    }
+
+    private static NodePosition positionOf(Node node) {
+        double x = AdamExtensions.getXCoord(node);
+        double y = AdamExtensions.getYCoord(node);
+        return new NodePosition(x, y);
+    }
+
+    /**
+     * @param net A P
+     * @return
+     */
+    public static JsonElement of(PetriNet net) {
+        return of(net, new HashSet<>());
+    }
+
+    /**
+     * @param net A PetriNet whose nodes may have X/Y coordinates saved as extensions
+     * @return A Map from node ID -> NodePosition (which can be converted into a JSON Object)
+     */
+    private static Map<String, NodePosition> nodePositionsOf(PetriNet net) {
         Map<String, NodePosition> nodePositions = new HashMap<>();
         for (Node node : net.getNodes()) {
             // TODO note that this does not cover the strange case of a node having only one of X or Y specified.
@@ -68,9 +95,7 @@ public class PetriNetD3 {
                 nodePositions.put(node.getId(), new NodePosition(x, y));
             }
         }
-
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
-        return new Gson().toJsonTree(petriNetD3);
+        return nodePositions;
     }
 
     static class PetriNetLink extends GraphLink {

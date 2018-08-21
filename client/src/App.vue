@@ -73,6 +73,12 @@
                            ref='graphEditorPetriGame'
                            v-on:graphModified='onGraphModified'
                            v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                           v-on:insertNode='insertNode'
+                           v-on:createFlow='createFlow'
+                           v-on:deleteNode='deleteNode'
+                           v-on:renameNode='renameNode'
+                           v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                           v-on:setInitialToken='setInitialToken'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -304,7 +310,13 @@
           toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
-          convertAptToGraph: this.baseUrl + '/convertAptToGraph'
+          convertAptToGraph: this.baseUrl + '/convertAptToGraph',
+          insertNode: this.baseUrl + '/insertPlace',
+          createFlow: this.baseUrl + '/createFlow',
+          deleteNode: this.baseUrl + '/deleteNode',
+          renameNode: this.baseUrl + '/renameNode',
+          toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace',
+          setInitialToken: this.baseUrl + '/setInitialToken'
         }
       },
       webSocketUrl: function () {
@@ -567,6 +579,90 @@
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
             this.isAptEditorVisible = true
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      createFlow: function (flowSpec) {
+        console.log('processing createFlow event')
+        axios.post(this.restEndpoints.createFlow, {
+          petriGameId: this.petriGame.uuid,
+          source: flowSpec.source,
+          destination: flowSpec.destination
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      deleteNode: function (nodeId) {
+        console.log('processing deleteNode event for node id ' + nodeId)
+        axios.post(this.restEndpoints.deleteNode, {
+          petriGameId: this.petriGame.uuid,
+          nodeId: nodeId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      renameNode: function ({idOld, idNew}) {
+        console.log('processing renameNode event')
+        console.log(`renaming node '${idOld}' to '${idNew}'`)
+        axios.post(this.restEndpoints.renameNode, {
+          petriGameId: this.petriGame.uuid,
+          nodeIdOld: idOld,
+          nodeIdNew: idNew
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      toggleEnvironmentPlace: function (nodeId) {
+        console.log('processing toggleEnvironmentPlace event')
+        axios.post(this.restEndpoints.toggleEnvironmentPlace, {
+          petriGameId: this.petriGame.uuid,
+          nodeId: nodeId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      setInitialToken: function ({nodeId, tokens}) {
+        console.log('processing setInitialToken event')
+        axios.post(this.restEndpoints.setInitialToken, {
+          petriGameId: this.petriGame.uuid,
+          nodeId: nodeId,
+          tokens: tokens
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      insertNode: function (nodeSpec) {
+        console.log('processing insertNode event')
+        axios.post(this.restEndpoints.insertNode, {
+          petriGameId: this.petriGame.uuid,
+          nodeType: nodeSpec.type,
+          x: nodeSpec.x,
+          y: nodeSpec.y
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
           })
         }).catch(() => {
           this.logError('Network error')

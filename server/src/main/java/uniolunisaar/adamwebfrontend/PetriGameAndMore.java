@@ -159,4 +159,9 @@ public class PetriGameAndMore {
             super(s);
         }
     }
+
+    // TODO Reconsider the way this is done.  It seems like a bad smell to have this method here.
+    public PetriGame getPetriGame() {
+        return petriGame;
+    }
 }

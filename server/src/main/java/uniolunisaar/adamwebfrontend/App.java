@@ -7,17 +7,16 @@ import static spark.Spark.*;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import uniol.apt.adt.pn.Node;
+import uniol.apt.adt.pn.PetriNet;
+import uniol.apt.adt.pn.Place;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.tools.Logger;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class App {
@@ -54,7 +53,7 @@ public class App {
             petriGamesReadFromApt.put(petriGameUUID, petriGameAndMore);
             System.out.println("Generated petri game with ID " + petriGameUUID);
 
-            JsonElement petriNetD3Json = petriGameAndMore.getPetriGameClient();
+            JsonElement petriNetD3Json = PetriNetD3.of(petriGame.getNet(), petriGame.getNet().getNodes());
             JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
 
             JsonObject responseJson = new JsonObject();
@@ -92,18 +91,6 @@ public class App {
             responseJson.addProperty("status", "success");
             responseJson.add("strategyBDD", strategyBDDJson);
             return responseJson.toString();
-        });
-        exception(Exception.class, (exception, request, response) -> {
-            exception.printStackTrace();
-
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "error");
-            String exceptionName = exception.getClass().getSimpleName();
-            String exceptionAsString = exceptionName + ": " + exception.getMessage();
-            responseJson.addProperty("message", exceptionAsString);
-
-            String responseBody = responseJson.toString();
-            response.body(responseBody);
         });
 
         // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.
@@ -189,6 +176,157 @@ public class App {
             responseJson.add("apt", aptJson);
             return responseJson.toString();
         });
+
+        post("/insertPlace", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            double x = body.get("x").getAsDouble();
+            double y = body.get("y").getAsDouble();
+            String nodeType = body.get("nodeType").getAsString();
+            GraphNodeType graphNodeType = GraphNodeType.valueOf(nodeType);
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+
+            Node node = null;
+            switch (graphNodeType) {
+                case SYSPLACE:
+                    node = net.createPlace();
+                    break;
+                case ENVPLACE:
+                    Place place = net.createPlace();
+                    AdamExtensions.setEnvironment(place);
+                    node = place;
+                    break;
+                case TRANSITION:
+                    node = net.createTransition();
+                    break;
+                case GRAPH_STRATEGY_BDD_STATE:
+                    return errorResponse("You can't insert a GRAPH_STRATEGY_BDD_STATE into a Petri Game.");
+            }
+            AdamExtensions.setXCoord(node, x);
+            AdamExtensions.setYCoord(node, y);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet(), new HashSet<>(Collections.singletonList(node)));
+
+            return successResponse(petriGameClient);
+        });
+
+        post("/deleteNode", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeId = body.get("nodeId").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+
+            net.removeNode(nodeId);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+            return successResponse(petriGameClient);
+        });
+
+        post("/renameNode", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeIdOld = body.get("nodeIdOld").getAsString();
+            String nodeIdNew = body.get("nodeIdNew").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+            Node oldNode = net.getNode(nodeIdOld);
+            Set<Node> presetNodes = net.getPresetNodes(oldNode);
+            Set<Node> postsetNodes = net.getPostsetNodes(oldNode);
+
+            Node newNode;
+            if (oldNode instanceof Place) {
+                Place place = net.createPlace(nodeIdNew);
+                newNode = place;
+                if (AdamExtensions.isEnvironment((Place)oldNode)) {
+                    AdamExtensions.setEnvironment(place);
+                }
+            } else {
+                newNode = net.createTransition(nodeIdNew);
+            }
+
+            for (Node n : presetNodes) {
+                net.createFlow(n, newNode);
+            }
+            for (Node n: postsetNodes) {
+                net.createFlow(newNode, n);
+            }
+            // TODO Handle token flow extension.  (Right now, token flow annotations do not get
+            // updated to reflect the new node ID, so there are problems.)
+            newNode.copyExtensions(oldNode);
+            net.removeNode(nodeIdOld);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+            return successResponse(petriGameClient);
+        });
+
+        post("/toggleEnvironmentPlace", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeId = body.get("nodeId").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+            Place place = net.getPlace(nodeId);
+            boolean environment = AdamExtensions.isEnvironment(place);
+            if (environment) {
+                return errorResponse("Can't turn an environment place into a system place yet.  " +
+                        "TODO: Implement AdamExtensions.setNotEnvironment(Place place)");
+            } else {
+                AdamExtensions.setEnvironment(place);
+            }
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+            return successResponse(petriGameClient);
+        });
+
+        post("/setInitialToken", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeId = body.get("nodeId").getAsString();
+            int tokens = body.get("tokens").getAsInt();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+            Place place = net.getPlace(nodeId);
+            place.setInitialToken(tokens);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+            return successResponse(petriGameClient);
+        });
+
+        post("/createFlow", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String source = body.get("source").getAsString();
+            String destination = body.get("destination").getAsString();
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            PetriNet net = petriGame.getNet();
+
+            net.createFlow(source, destination);
+            // TODO Allow specifying token flows somehow
+            JsonElement petriGameClient = PetriNetD3.of(petriGame.getNet());
+
+            return successResponse(petriGameClient);
+        });
+
+        exception(Exception.class, (exception, request, response) -> {
+            exception.printStackTrace();
+            String exceptionName = exception.getClass().getSimpleName();
+            String exceptionAsString = exceptionName + ": " + exception.getMessage();
+            String responseBody = errorResponse(exceptionAsString);
+            response.body(responseBody);
+        });
     }
 
     private static void enableCORS() {
@@ -211,5 +349,20 @@ public class App {
                 });
 
         before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
+    }
+
+    private static String successResponse(JsonElement result) {
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("result", result);
+        return responseJson.toString();
+    }
+
+
+    private static String errorResponse(String reason) {
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "error");
+        responseJson.addProperty("message", reason);
+        return responseJson.toString();
     }
 }

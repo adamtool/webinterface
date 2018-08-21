@@ -1,7 +1,10 @@
 <template>
-  <div class="graph-editor" :id="rootElementId">
+  <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
+  <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
-    <div style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa" ref="toolbarContainer">
+    <div
+      style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
+      ref="toolbarContainer">
       <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
         <div>Repulsion Strength</div>
         <input type="range" min="30" max="1000" step="1"
@@ -34,15 +37,47 @@
         <button style="display: none;" v-on:click="updateD3">Update D3</button>
         <button v-on:click="freezeAllNodes">Freeze all nodes</button>
         <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+        <button class="btn-danger" v-on:click="deleteSelectedNodes">Delete selected nodes</button>
+        <button v-on:click="invertSelection">Invert selection</button>
       </div>
-    </div>
-    <div style="height:50px; display:none">
-      <pre>{{ this.links }}</pre>
+      <div class="graph-editor-toolbar">
+        <v-radio-group v-model="selectedTool" row>
+          <v-radio label="select" value="select"/>
+          <v-radio label="draw flows" value="drawFlow"/>
+          <v-radio label="insert sysplace" value="insertSysPlace"/>
+          <v-radio label="insert envplace" value="insertEnvPlace"/>
+          <v-radio label="insert transition" value="insertTransition"/>
+          <v-radio label="delete node" value="deleteNode"/>
+        </v-radio-group>
+      </div>
     </div>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
 
     </svg>
+    <!--Sidebar showing all of the current event handlers' statuses-->
+    <!--<v-radio-group v-model="nodeTypeToInsert" style="position: relative; top: 220px; width: 150px;">-->
+    <!--<v-radio label="SYSPLACE" value="SYSPLACE"/>-->
+    <!--<v-radio label="ENVPLACE" value="ENVPLACE"/>-->
+    <!--<v-radio label="TRANSITION" value="TRANSITION"/>-->
+    <!--</v-radio-group>-->
+    <!--<v-radio-group v-model="dragDropMode" style="position: relative; top: 180px; width: 150px;">-->
+    <!--<v-radio label="move nodes" value="moveNode"/>-->
+    <!--<v-radio label="draw flows" value="drawFlow"/>-->
+    <!--</v-radio-group>-->
+    <!--<v-radio-group v-model="leftClickMode" style="position: relative; top: 140px; width: 150px;">-->
+    <!--<v-radio label="unfreeze nodes" value="unfreezeNode"/>-->
+    <!--<v-radio label="delete nodes" value="deleteNode"/>-->
+    <!--<v-radio label="select node" value="selectNode"/>-->
+    <!--</v-radio-group>-->
+    <!--<v-radio-group v-model="backgroundClickMode" style="position: relative; top: 120px; width: 150px;">-->
+    <!--<v-radio label="cancel selection" value="cancelSelection"/>-->
+    <!--<v-radio label="insert node" value="insertNode"/>-->
+    <!--</v-radio-group>-->
+    <!--<v-radio-group v-model="backgroundDragDropMode" style="position: relative; top: 100px; width: 150px;">-->
+    <!--<v-radio label="zoom and pan" value="zoom"/>-->
+    <!--<v-radio label="select nodes" value="selectNodes"/>-->
+    <!--</v-radio-group>-->
   </div>
 </template>
 
@@ -92,6 +127,9 @@
   import { saveFileAs } from '@/fileutilities'
   import { layoutNodes } from '@/autoLayout'
   import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
+  import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
+  import 'd3-context-menu/css/d3-context-menu.css'
+  import contextMenuFactory from 'd3-context-menu'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
@@ -100,12 +138,25 @@
     name: 'graph-editor',
     components: {},
     mounted: function () {
+      this.nodes = []
+      this.links = []
       this.importGraph(this.graph)
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
       this.updateSvgDimensions()
+      this.$refs.rootElement.addEventListener('keyup', (event) => {
+        console.log(event)
+        switch (event.key) {
+          case 'Escape':
+            this.selectedNodesIds = []
+            break
+          case 'Delete':
+            this.deleteSelectedNodes()
+            break
+        }
+      })
     },
     props: {
       graph: {
@@ -138,6 +189,85 @@
       }
     },
     computed: {
+      closeContextMenu: function () {
+        return () => {
+          contextMenuFactory('close')
+        }
+      },
+      openContextMenu: function () {
+        return contextMenuFactory(this.contextMenuItems)
+      },
+      contextMenuItems: function () {
+        return (d) => {
+          if (this.selectedNodesIds.length > 1) {
+            return this.contextMenuItemsSelection
+          } else if (d.type === 'TRANSITION') {
+            return this.contextMenuItemsNormal
+          } else {
+            return this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
+          }
+        }
+      },
+      contextMenuItemsPlace: function () {
+        return [
+          {
+            title: function (d) {
+              if (d.type === 'ENVPLACE') {
+                return 'Change to system place'
+              } else {
+                return 'Change to environment place'
+              }
+            },
+            action: this.toggleEnvironmentPlace
+          },
+          {
+            title: 'Set initial token',
+            action: this.setInitialTokenInteractively
+          },
+          {
+            title: 'Toggle isSpecial',
+            disabled: true // TODO implement this
+          }
+        ]
+      },
+      contextMenuItemsSelection: function () {
+        return [
+          {
+            title: 'Selection'
+          },
+          {
+            title: 'Delete selected',
+            action: this.deleteSelectedNodes
+          }
+        ]
+      },
+      contextMenuItemsNormal: function () {
+        return [
+          {
+            title: (d) => {
+              switch (d.type) {
+                case 'SYSPLACE':
+                case 'ENVPLACE':
+                  return `Place ${d.id}`
+                case 'TRANSITION':
+                  return `Transition ${d.id}`
+                default:
+                  throw new Error('Unhandled case in switch statement for right click context menu')
+              }
+            }
+          },
+          {
+            title: 'Delete',
+            action: (d) => {
+              this.$emit('deleteNode', d.id)
+            }
+          },
+          {
+            title: 'Rename',
+            action: this.renameNodeInteractively
+          }
+        ]
+      },
       // TODO Figure out why Strategy BDD/Graph Strat BDD / GGBDD nodes still spawn at 0,0 ???
       nodeSpawnPoint: function () {
         if (this.lastUserClick) {
@@ -158,50 +288,332 @@
       arrowheadId: function () {
         return 'arrowhead-' + this._uid
       },
-      dragDrop: function () {
-        // We save the start position of every dragdrop to tell if it is actually a mouse click.
-        // This is necessary because otherwise, dragdrops and mouse clicks interfere with each other.
-        // Either the dragdrop overrides the mouse click, forcing you to click perfectly,
-        // or the dragdrop and mouse click fire the same event twice in a row.
-        // So we won't bother listening for mouse clicks separately.  We just process mouse clicks
-        // as a special case of dragdrop.  A dragdrop over a short distance counts as a mouse click.
-        let xStart
-        let yStart
-        const deadzone = 20
-        let deadzoneExceeded
-        return d3.drag()
-          .on('start', node => {
-            node.fx = node.x
-            node.fy = node.y
-            xStart = d3.event.x
-            yStart = d3.event.y
-            deadzoneExceeded = false
-          })
-          .on('drag', node => {
-            if (!deadzoneExceeded) {
-              const distanceDragged = Math.sqrt(Math.pow(d3.event.x - xStart, 2) + Math.pow(d3.event.y - yStart, 2))
-              if (distanceDragged > deadzone) {
-                deadzoneExceeded = true
+      // Given a d3 selection, apply to it all of the event handlers that we want nodes to have.
+      // Usage: selection.call(applyNodeEventHandler)
+      applyNodeEventHandler: function () {
+        return selection => {
+          this.dragDrop(selection)
+          selection.on('click', this.onNodeClick)
+          selection.on('contextmenu', this.onNodeRightClick)
+        }
+      },
+      onNodeClick: function () {
+        return (d) => {
+          d3.event.stopPropagation()
+          // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
+          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            // Expand or collapse the postset of the State that has been clicked.
+            // Freeze the State's position
+            d.fx = d.x
+            d.fy = d.y
+
+            // Save the mouse coordinates so that the new nodes will appear where the user clicked.
+            // I.e. at the location of the parent node that is being expanded.
+            const mouseCoordinates = this.mousePosZoom()
+            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
+            // Toggle whether the postset of this State is visible
+            this.$emit('toggleStatePostset', d.id)
+          } else {
+            this.closeContextMenu()
+            this.nodeClickHandler(d)
+          }
+        }
+      },
+      onNodeRightClick: function () {
+        return (d) => {
+          d3.event.preventDefault() // Prevent the right click menu from appearing
+          d3.event.stopPropagation()
+          console.log(d)
+          // TODO refactor duplicate code?
+          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            // Freeze the State's position
+            d.fx = d.x
+            d.fy = d.y
+            const mouseCoordinates = this.mousePosZoom()
+            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
+            // Toggle whether the preset of this State is visible
+            this.$emit('toggleStatePreset', d.id)
+          } else {
+            // Cancel selection if a non-selected node is clicked
+            if (!this.selectedNodesIds.includes(d.id)) {
+              this.selectedNodesIds = []
+            }
+            this.openContextMenu(d)
+          }
+        }
+      },
+      nodeClickHandler: function () {
+        switch (this.leftClickMode) {
+          case 'unfreezeNode':
+            return (d) => {
+              d.fx = null
+              d.fy = null
+            }
+          case 'deleteNode':
+            return (d) => {
+              this.$emit('deleteNode', d.id)
+            }
+          case 'selectNode':
+            return (d) => {
+              console.log(d3.event)
+              if (d3.event.ctrlKey) {
+                if (this.selectedNodesIds.includes(d.id)) {
+                  this.selectedNodesIds = this.selectedNodesIds.filter(id => id !== d.id)
+                } else {
+                  this.selectedNodesIds.push(d.id)
+                }
+              } else {
+                this.selectedNodesIds = [d.id]
               }
             }
-            if (deadzoneExceeded) {
-              this.simulation.alphaTarget(0.7).restart()
+          default:
+            return () => {
+              console.log(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
+            }
+        }
+      },
+      backgroundClickHandler: function () {
+        switch (this.backgroundClickMode) {
+          case 'insertNode':
+            return () => {
+              const mousePos = this.mousePosZoom()
+              const nodeSpec = {
+                x: mousePos[0],
+                y: mousePos[1],
+                type: this.nodeTypeToInsert
+              }
+              console.log('emitting insertNode')
+              this.$emit('insertNode', nodeSpec)
+              this.selectedNodesIds = []
+            }
+          case 'cancelSelection':
+            return () => {
+              this.selectedNodesIds = []
+            }
+          default:
+            return () => {
+              console.log(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
+            }
+        }
+      },
+      dragDrop: function () {
+        const dragDropHandlers = {
+          'moveNode': this.moveNodeDragDrop,
+          'drawFlow': this.drawFlowDragDrop
+        }
+        let dragDropHandler
+        return d3.drag()
+          .clickDistance(2)
+          .on('start', node => {
+            this.closeContextMenu()
+            dragDropHandler = dragDropHandlers[this.dragDropMode]
+            dragDropHandler['start'](node)
+          })
+          .on('drag', node => {
+            dragDropHandler['drag'](node)
+          })
+          .on('end', node => {
+            dragDropHandler['end'](node)
+          })
+      },
+      moveNodeDragDrop: function () {
+        let isSelectionDrag
+        return {
+          'start': node => {
+            isSelectionDrag = this.selectedNodesIds.includes(node.id)
+            node.fx = node.x
+            node.fy = node.y
+          },
+          'drag': node => {
+            this.simulation.alphaTarget(0.7).restart()
+            if (isSelectionDrag) {
+              this.nodes.forEach(node => {
+                if (this.selectedNodesIds.includes(node.id)) {
+                  node.fx = node.x + d3.event.dx
+                  node.fy = node.y + d3.event.dy
+                }
+              })
+            } else {
               node.fx = d3.event.x
               node.fy = d3.event.y
             }
-          })
-          .on('end', node => {
+          },
+          'end': node => {
             if (!d3.event.active) {
               this.simulation.alphaTarget(0)
             }
             this.onGraphModified()
-            if (!deadzoneExceeded) {
-              this.onNodeClick(node)
+          }
+        }
+      },
+      drawFlowDragDrop: function () {
+        let startNode
+        return {
+          'start': node => {
+            startNode = node
+            const mousePos = this.mousePosZoom()
+            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
+          },
+          'drag': node => {
+            const mousePos = this.mousePosZoom()
+            this.dragLine.attr('d', `M${startNode.x},${startNode.y}L${mousePos[0]},${mousePos[1]}`)
+            this.drawFlowTarget = findFlowTarget(mousePos, startNode, this.nodes, this.links)
+          },
+          'end': node => {
+            // figure out which node the drag ends on top of
+            const nearestNode = findFlowTarget(this.mousePosZoom(), startNode, this.nodes, this.links)
+            // TODO Figure out a way to specify token flows
+
+            this.dragLine.attr('d', '')
+            if (nearestNode === undefined) {
+              console.log('No candidate node found.  Not creating a flow.')
+            } else {
+              console.log(`We will try to draw a flow to this node:`)
+              console.log(nearestNode)
+              this.$emit('createFlow', {
+                source: startNode.id,
+                destination: nearestNode.id
+              })
+            }
+
+            this.drawFlowTarget = undefined
+          }
+        }
+
+        // Your mouse cursor is at mouseX, mouseY.  You want to draw a flow that starts at startNode
+        // and ends at another node which is close to the mouse cursor.  To figure out what eligible
+        // end node is closest to the mouse, use this function.
+        function findFlowTarget (mousePos, startNode, nodes, links) {
+          let nearestNode
+          // Only nodes within this many units of the startNode will be under consideration.
+          let minDistance = 50
+          nodes.filter(isEligible)
+            .forEach(n => {
+              const dx = mousePos[0] - n.x
+              const dy = mousePos[1] - n.y
+              const distance = Math.sqrt(dx * dx + dy * dy)
+              if (distance < minDistance) {
+                minDistance = distance
+                nearestNode = n
+              }
+            })
+          return nearestNode
+
+          // Only create flows from Transition to Place or from Place to Transition
+          function isEligible (node) {
+            const transitionToPlace = startNode.type === 'TRANSITION' &&
+              ['SYSPLACE', 'ENVPLACE'].includes(node.type)
+            const placeToTransition =
+              ['SYSPLACE', 'ENVPLACE'].includes(startNode.type) &&
+              node.type === 'TRANSITION'
+            const linkExists = links.find(link => {
+              return link.source === startNode && link.target === node
+            })
+            return (transitionToPlace || placeToTransition) && !linkExists
+          }
+        }
+      },
+      backgroundDragDrop: function () {
+        let startX, startY
+        let previousSelection // These nodes were selected as this drag drop began
+        return d3.drag()
+          .clickDistance(2)
+          .on('start', () => {
+            this.closeContextMenu();
+            [startX, startY] = this.mousePosZoom()
+            previousSelection = this.selectedNodesIds.slice() // Clone the current selection
+          })
+          .on('drag', () => {
+            const [currentX, currentY] = this.mousePosZoom()
+            this.selectNodesPreview
+              .attr('d', rectanglePath(startX, startY, currentX, currentY))
+            const nodesInRectangle = findSelectedNodes(this.nodes, startX, startY, currentX, currentY)
+              .map(node => node.id)
+            const event = d3.event.sourceEvent // d3.event is a drag event; its sourceEvent is a mouseMove
+            if (event.ctrlKey) {
+              // Emulate Windows Explorer's well-known ctrl + drag-select behavior
+              // TODO Consider instead using ctrl to add to a selection and alt to remove from it, a la photoshop
+              // TODO Update selection when ctrl is pressed or released, even if no more drag events arrive
+              const newNodes = nodesInRectangle.filter(n => !previousSelection.includes(n))
+              const oldNodes = previousSelection.filter(n => !nodesInRectangle.includes(n))
+              const xor = newNodes.concat(oldNodes)
+              this.selectedNodesIds = xor
+            } else {
+              this.selectedNodesIds = nodesInRectangle
             }
           })
+          .on('end', () => {
+            const [currentX, currentY] = this.mousePosZoom()
+            console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
+            console.log('selected nodes:')
+            console.log(this.selectedNodesIds)
+            this.selectNodesPreview.attr('d', '')
+          })
+
+        function findSelectedNodes (nodes, startX, startY, currentX, currentY) {
+          return nodes.filter(node => {
+            const xFits = (node.x > startX && node.x < currentX) ||
+              (node.x < startX && node.x > currentX)
+            const yFits = (node.y > startY && node.y < currentY) ||
+              (node.y < startY && node.y > currentY)
+            return xFits && yFits
+          })
+        }
       }
     },
     watch: {
+      selectedTool: function (tool) {
+        switch (tool) {
+          case 'select': {
+            this.backgroundClickMode = 'cancelSelection'
+            this.backgroundDragDropMode = 'selectNodes'
+            this.leftClickMode = 'selectNode'
+            this.dragDropMode = 'moveNode'
+            break
+          }
+          case 'drawFlow': {
+            this.backgroundDragDropMode = 'zoom'
+            this.backgroundClickMode = 'cancelSelection'
+            this.leftClickMode = 'selectNode'
+            this.dragDropMode = 'drawFlow'
+            break
+          }
+          case 'insertSysPlace': {
+            this.backgroundDragDropMode = 'selectNodes'
+            this.backgroundClickMode = 'insertNode'
+            this.leftClickMode = 'selectNode'
+            this.dragDropMode = 'moveNode'
+            this.nodeTypeToInsert = 'SYSPLACE'
+            break
+          }
+          case 'insertEnvPlace': {
+            this.backgroundDragDropMode = 'selectNodes'
+            this.backgroundClickMode = 'insertNode'
+            this.leftClickMode = 'selectNode'
+            this.dragDropMode = 'moveNode'
+            this.nodeTypeToInsert = 'ENVPLACE'
+            break
+          }
+          case 'insertTransition': {
+            this.backgroundDragDropMode = 'selectNodes'
+            this.backgroundClickMode = 'insertNode'
+            this.leftClickMode = 'selectNode'
+            this.dragDropMode = 'moveNode'
+            this.nodeTypeToInsert = 'TRANSITION'
+            break
+          }
+          case 'deleteNode': {
+            this.backgroundDragDropMode = 'selectNodes'
+            this.backgroundClickMode = 'cancelSelection'
+            this.leftClickMode = 'deleteNode'
+            this.dragDropMode = 'moveNode'
+            break
+          }
+        }
+      },
+      selectedNodesIds: function () {
+        this.updateD3()
+      },
       repulsionStrength: function (strength) {
         this.updateRepulsionStrength(strength)
       },
@@ -233,11 +645,17 @@
     },
     data () {
       return {
+        // TODO consider using a set instead of an array to prevent bugs from happening
+        selectedNodesIds: [],
+        selectedTool: 'select',
+        backgroundClickMode: 'cancelSelection',
+        backgroundDragDropMode: 'selectNodes',
+        leftClickMode: 'selectNode',
+        dragDropMode: 'moveNode',
+        nodeTypeToInsert: 'SYSPLACE',
         saveGraphAPTRequestPreview: {},
         nodeRadius: 27,
         exportedGraphJson: {},
-        nodes: this.deepCopy(this.graph.nodes),
-        links: this.deepCopy(this.graph.links),
         svg: undefined,
         linkGroup: undefined,
         linkTextGroup: undefined,
@@ -260,45 +678,94 @@
           .alphaMin(0.002),
         repulsionStrength: this.repulsionStrengthDefault,
         linkStrength: this.linkStrengthDefault,
-        gravityStrength: this.gravityStrengthDefault,
-        onNodeClick: (d) => {
-          // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
-          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
-            // Expand or collapse the postset of the State that has been clicked.
-            // Freeze the State's position
-            d.fx = d.x
-            d.fy = d.y
-
-            // Save the mouse coordinates so that the new nodes will appear where the user clicked.
-            // I.e. at the location of the parent node that is being expanded.
-            const mouseCoordinates = d3.mouse(this.svg.node())
-            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
-            // Toggle whether the postset of this State is visible
-            this.$emit('toggleStatePostset', d.id)
-          } else {
-            // I like to be able to unfreeze nodes by clicking on them.
-            d.fx = null
-            d.fy = null
-          }
-        },
-        onNodeRightClick: (d) => {
-          d3.event.preventDefault() // Prevent the right click menu from appearing
-          d3.event.stopPropagation()
-          console.log(d)
-          // TODO refactor duplicate code?
-          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
-            // Freeze the State's position
-            d.fx = d.x
-            d.fy = d.y
-            const mouseCoordinates = d3.mouse(this.svg.node())
-            this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
-            // Toggle whether the preset of this State is visible
-            this.$emit('toggleStatePreset', d.id)
-          }
-        }
+        gravityStrength: this.gravityStrengthDefault
       }
     },
     methods: {
+      toggleEnvironmentPlace: function (d) {
+        this.$emit('toggleEnvironmentPlace', d.id)
+      },
+      renameNodeInteractively: function (d) {
+        const callback = (text) => {
+          console.log('Emitting renameNode')
+          this.$emit('renameNode', {
+            idOld: d.id,
+            idNew: text
+          })
+        }
+        console.log('Opening text input box to rename the following node:')
+        console.log(d)
+        this.getTextInput(`Rename ${d.id}`, callback)
+      },
+      setInitialTokenInteractively: function (d) {
+        const callback = (text) => {
+          const tokens = parseInt(text)
+          if (isNaN(tokens)) {
+            throw new Error('The text entered can\'t be parsed into an integer, so we can\'t set' +
+              ' the initial token count to that.')
+          } else {
+            console.log('Emitting setInitialToken')
+            this.$emit('setInitialToken', {
+              nodeId: d.id,
+              tokens: tokens
+            })
+          }
+        }
+        this.getTextInput(`Set initial token for ${d.id}`, callback)
+      },
+      // Open a text input field in the svg and focus it.  Let the user type stuff in, and call
+      // callback with whatever text the user entered.
+      // This is meant to be called in a mouse click handler so that the text input box appears by
+      // the mouse cursor.
+      // TODO Make this look better
+      getTextInput: function (label, callback) {
+        const [mouseX, mouseY] = this.mousePosZoom()
+        const fo = this.container.append('foreignObject')
+          .attr('x', mouseX)
+          .attr('y', mouseY - 40)
+          .attr('width', '200px')
+          .attr('height', '100px')
+        const body = fo.append('xhtml:body')
+        body.append('span').text(label)
+        const textInput = body.append('form')
+          .append('input')
+          .attr('type', 'text')
+          .attr('background', '#BBBBEE')
+          .on('keyup', () => {
+            if (d3.event.key === 'Enter') {
+              const text = textInput.node().value
+              fo.remove()
+              console.log(`Calling text entry callback with value '${text}'`)
+              callback(text)
+            } else if (d3.event.key === 'Escape') {
+              fo.remove()
+            }
+          })
+          .on('blur', () => {
+            fo.remove()
+          })
+        textInput.node().focus()
+      },
+      invertSelection: function () {
+        this.selectedNodesIds = this.nodes.filter(node => !this.selectedNodesIds.includes(node.id))
+          .map(node => node.id)
+      },
+      deleteSelectedNodes: function () {
+        console.log('deleting selected nodes')
+        // TODO There's a bug here. If we send a bunch of requests in a row, the responses may come
+        // out of order, leaving us // in an inconsistent state with the server.
+        // A possible solution: Just send a single request with a set of node IDs to be deleted.
+        this.selectedNodesIds.forEach(id => {
+          this.$emit('deleteNode', id)
+        })
+        this.selectedNodesIds = []
+      },
+      // Return zoom-transformed x/y coordinates of mouse cursor as a 2-element array [x, y]
+      mousePosZoom: function () {
+        const mousePos = d3.mouse(this.svg.node())
+        const transform = d3.zoomTransform(this.svg.node())
+        return transform.invert(mousePos)
+      },
       onLoadNewPetriGame: function () {
         // When we load a new petri game, the positions of nodes from the previously loaded Petri Game
         // should not be carried over.
@@ -482,8 +949,25 @@
           this.container.attr('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.k})`)
           this.updateCenterForce()
         }
-        this.zoom = d3.zoom().on('zoom', onZoom)
+        this.zoom = d3.zoom()
+          .on('zoom', onZoom)
+          .filter(() => {
+            const isWheel = d3.event instanceof WheelEvent
+            if (isWheel) {
+              return true
+            } else {
+              const hotkeyHeldDown = d3.event.shiftKey
+              const isLeftClick = d3.event.button === 0
+              const isZoomMode = this.backgroundDragDropMode === 'zoom'
+              return isLeftClick && (hotkeyHeldDown || isZoomMode)
+            }
+          })
         this.svg.call(this.zoom)
+        this.svg.on('click', d => {
+          this.closeContextMenu()
+          this.backgroundClickHandler(d)
+        })
+        this.backgroundDragDrop(this.svg)
 
         this.container = this.svg.append('g')
         this.linkGroup = this.container.append('g').attr('class', 'links')
@@ -492,6 +976,30 @@
         this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
         this.labelGroup = this.container.append('g').attr('class', 'texts')
         this.contentGroup = this.container.append('g').attr('class', 'node-content')
+        // This is the arrow that we draw when the user is adding a transition between two nodes
+        // (via click-and-drag)
+        this.dragLine = this.container.append('path')
+          .attr('stroke-width', 3)
+          .attr('fill', 'none')
+          .attr('stroke', '#000000')
+          .attr('marker-end', 'url(#' + this.arrowheadId + ')')
+          .attr('d', '')
+        // This is the "preview circle" that highlights the node that a flow will be drawn to
+        // when the user is doing a drag-drop to draw a flow
+        this.drawFlowPreview = this.container.append('circle')
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('fill-opacity', 0)
+        // This is the rectangle shown when the user is trying to select a group of nodes
+        this.selectNodesPreview = this.container.append('path')
+          .attr('stroke', 'black')
+          .attr('fill', 'none')
+          .attr('stroke-width', 2)
+        // This is the border drawn around all selected nodes.
+        this.selectionBorder = this.container.append('path')
+          .attr('stroke', '#000099')
+          .attr('fill', 'none')
+          .attr('stroke-width', 0) // TODO Only draw this border when we need it for 'stretching'
 
         console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
@@ -512,8 +1020,7 @@
           .data(this.nodes, this.keyFunction)
         const labelEnter = newLabelElements
           .enter().append('text')
-          .call(this.dragDrop)
-          .on('contextmenu', this.onNodeRightClick)
+          .call(this.applyNodeEventHandler)
           .attr('text-anchor', 'middle')
         newLabelElements.exit().remove()
         this.labelElements = labelEnter.merge(newLabelElements)
@@ -536,8 +1043,7 @@
           .data(this.nodes.filter(node => node.content !== undefined || node.initialToken !== undefined), this.keyFunction)
         const contentEnter = newContentElements
           .enter().append('text')
-          .call(this.dragDrop)
-          .on('contextmenu', this.onNodeRightClick)
+          .call(this.applyNodeEventHandler)
           .attr('text-anchor', 'middle')
           .attr('dy', '-8')
           .attr('font-family', '\'Inconsolata\', monospace')
@@ -569,8 +1075,8 @@
           .selectAll('circle')
           .data(this.nodes.filter(node => node.isSpecial === true), this.keyFunction)
         const newIsSpecialElements = isSpecialElements.enter().append('circle')
-        newIsSpecialElements.call(this.dragDrop)
-          .on('contextmenu', this.onNodeRightClick)
+        newIsSpecialElements
+          .call(this.applyNodeEventHandler)
         isSpecialElements.exit().remove()
         this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
         this.isSpecialElements
@@ -587,8 +1093,7 @@
           return document.createElementNS('http://www.w3.org/2000/svg', shape)
         })
         newNodeElements
-          .call(this.dragDrop)
-          .on('contextmenu', this.onNodeRightClick)
+          .call(this.applyNodeEventHandler)
         nodeElements.exit().remove()
         this.nodeElements = nodeElements.merge(newNodeElements)
         this.nodeElements
@@ -618,7 +1123,9 @@
             }
           })
           .attr('fill', data => {
-            if (data.type === 'ENVPLACE') {
+            if (this.selectedNodesIds.includes(data.id)) {
+              return '#5555FF'
+            } else if (data.type === 'ENVPLACE') {
               return 'white'
             } else if (data.type === 'SYSPLACE') {
               return 'lightgrey'
@@ -690,6 +1197,11 @@
         this.updateSimulation()
       },
       updateSimulation: function () {
+        const drawFlowPreviewSizes = {
+          'ENVPLACE': this.nodeRadius * 1.4,
+          'SYSPLACE': this.nodeRadius * 1.4,
+          'TRANSITION': this.nodeRadius * 1.6
+        }
         this.simulation.nodes(this.nodes).on('tick', () => {
           this.nodeElements.filter('rect')
             .attr('transform', node =>
@@ -707,6 +1219,25 @@
           this.contentElements
             .attr('x', node => node.x)
             .attr('y', node => node.y - this.calculateNodeHeight(node) / 2 + 30)
+          this.drawFlowPreview
+            .attr('transform', () => {
+              const target = this.drawFlowTarget
+              if (target) {
+                return `translate(${target.x},${target.y})`
+              } else {
+                return ''
+              }
+            })
+            .attr('r', () => {
+              const target = this.drawFlowTarget
+              if (target) {
+                return drawFlowPreviewSizes[target.type]
+              } else {
+                return 0
+              }
+            })
+
+          this.updateSelectionBorder()
 
           // Draw a line from the edge of one node to the edge of another.
           // We have to do this so that the arrowheads will be correctly aligned for nodes of varying size.
@@ -756,43 +1287,14 @@
                 // Straight line for a single edge between two distinct nodes
                 return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
               } else if (multipleLinksBetweenNodes) {
-                // Do a bunch more fun math to make an arc
-                const x1 = d.source.x
-                const y1 = d.source.y
-                const x2 = targetX
-                const y2 = targetY
-                const dx = x2 - x1
-                const dy = y2 - y1
-                const dr = Math.sqrt(dx * dx + dy * dy)
-                // Defaults for normal edge.
-                const drx = dr
-                const dry = dr
-                const xRotation = 0 // degrees
-                const largeArc = 0 // 1 or 0
-                const sweep = 1 // 1 or 0
-
-                return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+                return arcPath(d.source.x, d.source.y, targetX, targetY)
               } else if (linkIsLoop) {
-                // Self edge.
-                // Fiddle with this angle to get loop oriented.
-                const xRotation = 0
-
-                // Needs to be 1.
-                const largeArc = 1
-                // Change sweep to change orientation of loop.
-                const sweep = 0
-
-                // Make drx and dry different to get an ellipse
-                // instead of a circle.
-                const drx = 45
-                const dry = 45
-
                 // Place the loop around the upper-right corner of the node.
                 const x1 = d.source.x + this.calculateNodeWidth(d.source) / 2
                 const y1 = d.source.y
                 const x2 = d.source.x
                 const y2 = d.source.y - this.calculateNodeHeight(d.source) / 2
-                return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
+                return loopPath(x1, y1, x2, y2)
               }
             })
           // Position link labels at the center of the links based on the distance calculated above
@@ -808,6 +1310,18 @@
           // increase again past the threshold.
           this.simulation.alpha(0.7)
         })
+      },
+      updateSelectionBorder: function () {
+        if (this.selectedNodesIds.length === 0) {
+          this.selectionBorder.attr('d', '')
+        } else {
+          const domNodeElements = this.nodeElements
+            .filter(node => this.selectedNodesIds.includes(node.id))
+            .nodes()
+          const border = containingBorder(domNodeElements)
+          const path = rectanglePath(...border)
+          this.selectionBorder.attr('d', path)
+        }
       },
       /**
        * Perform a diff of the new graph against our existing graph, updating our graph in-place.
