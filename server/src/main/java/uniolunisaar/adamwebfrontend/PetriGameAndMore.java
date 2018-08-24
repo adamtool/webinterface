@@ -7,8 +7,8 @@ import uniol.apt.io.parser.ParseException;
 import uniol.apt.io.renderer.RenderException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.exceptions.*;
+import uniolunisaar.adam.ds.petrigame.AdamExtensions;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
 import java.util.Map;
@@ -71,7 +71,7 @@ public class PetriGameAndMore {
      * @return the APT representation of the annotated Petri Net.
      */
     public String savePetriGameWithXYCoordinates(Map<String, NodePosition> nodePositions) throws RenderException {
-        for (Node node : petriGame.getNet().getNodes()) {
+        for (Node node : petriGame.getNodes()) {
             String nodeId = node.getId();
             if (nodePositions.containsKey(nodeId)) {
                 NodePosition position = nodePositions.get(nodeId);
@@ -82,14 +82,14 @@ public class PetriGameAndMore {
                         "APT generation failed: the x/y coordinates are missing for the node " + node);
             }
         }
-        return Adam.getAPT(petriGame.getNet());
+        return Adam.getAPT(petriGame);
     }
 
     public boolean calculateExistsWinningStrategy() throws NotSupportedGameException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, ParseException, NoSuitableDistributionFoundException {
         if (existsWinningStrategy.isPresent()) {
             return existsWinningStrategy.get();
         } else {
-            boolean existsWinningStrategy = Adam.existsWinningStrategyBDD(this.petriGame.getNet());
+            boolean existsWinningStrategy = Adam.existsWinningStrategyBDD(this.petriGame);
             this.existsWinningStrategy = Optional.of(existsWinningStrategy);
             return existsWinningStrategy;
         }
@@ -100,7 +100,7 @@ public class PetriGameAndMore {
         if (this.strategyBDD.isPresent()) {
             strategyBDD = this.strategyBDD.get();
         } else {
-            strategyBDD = Adam.getStrategyBDD(this.petriGame.getNet());
+            strategyBDD = Adam.getStrategyBDD(this.petriGame);
             removeXAndYCoordinates(strategyBDD);
             this.strategyBDD = Optional.of(strategyBDD);
         }
@@ -113,7 +113,7 @@ public class PetriGameAndMore {
         // TODO It might make sense to use Future to represent the ongoing computation.
         // TODO This also applies to the other calculation methods like calculateStrategyBDD and calculateExistsWinningStrategy.
         if (!this.graphStrategyBDD.isPresent()) {
-            BDDGraph graphStrategyBDD = Adam.getGraphStrategyBDD(this.petriGame.getNet());
+            BDDGraph graphStrategyBDD = Adam.getGraphStrategyBDD(this.petriGame);
             this.graphStrategyBDD = Optional.of(graphStrategyBDD);
         }
         return BDDGraphD3.of(this.graphStrategyBDD.get());
@@ -121,7 +121,7 @@ public class PetriGameAndMore {
 
     public JsonElement calculateGraphGameBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
         if (!this.graphGameBDDExplorer.isPresent()) {
-            BDDGraph graphGameBDD = Adam.getGraphGameBDD(this.petriGame.getNet());
+            BDDGraph graphGameBDD = Adam.getGraphGameBDD(this.petriGame);
             BDDGraphExplorer graphExplorer = BDDGraphExplorer.of(graphGameBDD);
             this.graphGameBDDExplorer = Optional.of(graphExplorer);
         }
@@ -129,7 +129,7 @@ public class PetriGameAndMore {
     }
 
     public JsonElement getPetriGameClient() {
-        return PetriNetD3.of(this.petriGame.getNet());
+        return PetriNetD3.of(this.petriGame);
     }
 
     public JsonElement toggleGraphGameBDDNodePostset(int nodeId) throws GraphGameBDDNotYetCalculated {
