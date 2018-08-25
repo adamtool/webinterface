@@ -273,8 +273,7 @@ public class App {
             Place place = petriGame.getPlace(nodeId);
             boolean environment = AdamExtensions.isEnvironment(place);
             if (environment) {
-                return errorResponse("Can't turn an environment place into a system place yet.  " +
-                        "TODO: Implement AdamExtensions.setNotEnvironment(Place place)");
+                AdamExtensions.setSystem(place);
             } else {
                 AdamExtensions.setEnvironment(place);
             }
