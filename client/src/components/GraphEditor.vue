@@ -151,7 +151,7 @@
         console.log(event)
         switch (event.key) {
           case 'Escape':
-            this.selectedNodesIds = []
+            this.selectedNodes = []
             break
           case 'Delete':
             this.deleteSelectedNodes()
@@ -200,7 +200,7 @@
       },
       contextMenuItems: function () {
         return (d) => {
-          if (this.selectedNodesIds.length > 1) {
+          if (this.selectedNodes.length > 1) {
             return this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
             return this.contextMenuItemsNormal
@@ -336,8 +336,8 @@
             this.$emit('toggleStatePreset', d.id)
           } else {
             // Cancel selection if a non-selected node is clicked
-            if (!this.selectedNodesIds.includes(d.id)) {
-              this.selectedNodesIds = []
+            if (!this.selectedNodes.includes(d)) {
+              this.selectedNodes = []
             }
             this.openContextMenu(d)
           }
@@ -358,13 +358,13 @@
             return (d) => {
               console.log(d3.event)
               if (d3.event.ctrlKey) {
-                if (this.selectedNodesIds.includes(d.id)) {
-                  this.selectedNodesIds = this.selectedNodesIds.filter(id => id !== d.id)
+                if (this.selectedNodes.includes(d)) {
+                  this.selectedNodes = this.selectedNodes.filter(node => node !== d)
                 } else {
-                  this.selectedNodesIds.push(d.id)
+                  this.selectedNodes.push(d)
                 }
               } else {
-                this.selectedNodesIds = [d.id]
+                this.selectedNodes = [d]
               }
             }
           default:
@@ -385,11 +385,11 @@
               }
               console.log('emitting insertNode')
               this.$emit('insertNode', nodeSpec)
-              this.selectedNodesIds = []
+              this.selectedNodes = []
             }
           case 'cancelSelection':
             return () => {
-              this.selectedNodesIds = []
+              this.selectedNodes = []
             }
           default:
             return () => {
@@ -423,15 +423,14 @@
         let dragStartX, dragStartY
         return {
           'start': node => {
-            isSelectionDrag = this.selectedNodesIds.includes(node.id)
+            isSelectionDrag = this.selectedNodes.includes(node)
             dragStartX = d3.event.x
             dragStartY = d3.event.y
-            const selectedNodes = this.nodes.filter(node => this.selectedNodesIds.includes(node.id))
             // Clever way to turn an array into a map.
             // See https://codereview.stackexchange.com/questions/57614/convert-object-array-to-hash-map-using-lodash#answer-84028
-            nodeStartPositions = chain(selectedNodes)
+            nodeStartPositions = chain(this.selectedNodes)
               .keyBy('id')
-              .mapValues(node => ({ x: node.x, y: node.y }))
+              .mapValues(node => ({x: node.x, y: node.y}))
               .value()
 
             // Freeze the node that is being dragged.
@@ -452,11 +451,9 @@
               // position of every node in the selection by hand.
               const dx = d3.event.x - dragStartX
               const dy = d3.event.y - dragStartY
-              this.nodes.forEach(node => {
-                if (this.selectedNodesIds.includes(node.id)) {
-                  node.fx = nodeStartPositions[node.id].x + dx
-                  node.fy = nodeStartPositions[node.id].y + dy
-                }
+              this.selectedNodes.forEach(node => {
+                node.fx = nodeStartPositions[node.id].x + dx
+                node.fy = nodeStartPositions[node.id].y + dy
               })
             } else {
               node.fx = d3.event.x
@@ -546,14 +543,13 @@
           .on('start', () => {
             this.closeContextMenu();
             [startX, startY] = this.mousePosZoom()
-            previousSelection = this.selectedNodesIds.slice() // Clone the current selection
+            previousSelection = this.selectedNodes.slice() // Clone the current selection
           })
           .on('drag', () => {
             const [currentX, currentY] = this.mousePosZoom()
             this.selectNodesPreview
               .attr('d', rectanglePath(startX, startY, currentX, currentY))
             const nodesInRectangle = findSelectedNodes(this.nodes, startX, startY, currentX, currentY)
-              .map(node => node.id)
             const event = d3.event.sourceEvent // d3.event is a drag event; its sourceEvent is a mouseMove
             if (event.ctrlKey) {
               // Emulate Windows Explorer's well-known ctrl + drag-select behavior
@@ -562,16 +558,16 @@
               const newNodes = nodesInRectangle.filter(n => !previousSelection.includes(n))
               const oldNodes = previousSelection.filter(n => !nodesInRectangle.includes(n))
               const xor = newNodes.concat(oldNodes)
-              this.selectedNodesIds = xor
+              this.selectedNodes = xor
             } else {
-              this.selectedNodesIds = nodesInRectangle
+              this.selectedNodes = nodesInRectangle
             }
           })
           .on('end', () => {
             const [currentX, currentY] = this.mousePosZoom()
             console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
             console.log('selected nodes:')
-            console.log(this.selectedNodesIds)
+            console.log(this.selectedNodes)
             this.selectNodesPreview.attr('d', '')
           })
 
@@ -636,7 +632,7 @@
           }
         }
       },
-      selectedNodesIds: function () {
+      selectedNodes: function () {
         this.updateD3()
       },
       repulsionStrength: function (strength) {
@@ -671,7 +667,7 @@
     data () {
       return {
         // TODO consider using a set instead of an array to prevent bugs from happening
-        selectedNodesIds: [],
+        selectedNodes: [],
         selectedTool: 'select',
         backgroundClickMode: 'cancelSelection',
         backgroundDragDropMode: 'selectNodes',
@@ -772,18 +768,17 @@
         textInput.node().focus()
       },
       invertSelection: function () {
-        this.selectedNodesIds = this.nodes.filter(node => !this.selectedNodesIds.includes(node.id))
-          .map(node => node.id)
+        this.selectedNodes = this.nodes.filter(node => !this.selectedNodes.includes(node))
       },
       deleteSelectedNodes: function () {
         console.log('deleting selected nodes')
         // TODO There's a bug here. If we send a bunch of requests in a row, the responses may come
         // out of order, leaving us // in an inconsistent state with the server.
         // A possible solution: Just send a single request with a set of node IDs to be deleted.
-        this.selectedNodesIds.forEach(id => {
-          this.$emit('deleteNode', id)
+        this.selectedNodes.forEach(node => {
+          this.$emit('deleteNode', node.id)
         })
-        this.selectedNodesIds = []
+        this.selectedNodes = []
       },
       // Return zoom-transformed x/y coordinates of mouse cursor as a 2-element array [x, y]
       mousePosZoom: function () {
@@ -862,7 +857,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-            'The fixed positions you have moved them to will be lost.')) {
+          'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
@@ -1148,7 +1143,7 @@
             }
           })
           .attr('fill', data => {
-            if (this.selectedNodesIds.includes(data.id)) {
+            if (this.selectedNodes.includes(data)) {
               return '#5555FF'
             } else if (data.type === 'ENVPLACE') {
               return 'white'
@@ -1337,11 +1332,11 @@
         })
       },
       updateSelectionBorder: function () {
-        if (this.selectedNodesIds.length === 0) {
+        if (this.selectedNodes.length === 0) {
           this.selectionBorder.attr('d', '')
         } else {
           const domNodeElements = this.nodeElements
-            .filter(node => this.selectedNodesIds.includes(node.id))
+            .filter(this.selectedNodes.includes)
             .nodes()
           const border = containingBorder(domNodeElements)
           const path = rectanglePath(...border)
