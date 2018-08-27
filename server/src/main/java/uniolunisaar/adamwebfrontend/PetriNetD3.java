@@ -3,7 +3,7 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
-import uniolunisaar.adam.ds.util.AdamExtensions;
+import uniolunisaar.adam.ds.petrigame.AdamExtensions;
 import uniolunisaar.adam.tools.Tools;
 
 import java.util.*;
