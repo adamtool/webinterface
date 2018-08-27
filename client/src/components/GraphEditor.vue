@@ -130,6 +130,7 @@
   import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
+  import { chain } from 'lodash'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
@@ -418,19 +419,43 @@
       },
       moveNodeDragDrop: function () {
         let isSelectionDrag
+        let nodeStartPositions = {} // Map from node ID -> {x, y}
+        let dragStartX, dragStartY
         return {
           'start': node => {
             isSelectionDrag = this.selectedNodesIds.includes(node.id)
+            dragStartX = d3.event.x
+            dragStartY = d3.event.y
+            const selectedNodes = this.nodes.filter(node => this.selectedNodesIds.includes(node.id))
+            // Clever way to turn an array into a map.
+            // See https://codereview.stackexchange.com/questions/57614/convert-object-array-to-hash-map-using-lodash#answer-84028
+            nodeStartPositions = chain(selectedNodes)
+              .keyBy('id')
+              .mapValues(node => ({ x: node.x, y: node.y }))
+              .value()
+
+            // Freeze the node that is being dragged.
             node.fx = node.x
             node.fy = node.y
           },
           'drag': node => {
             this.simulation.alphaTarget(0.7).restart()
             if (isSelectionDrag) {
+              // To you, dear reader, this might seem overcomplicated.  You might ask, "Ann,
+              // why didn't you simply write this:
+              // node.fx += d3.event.dx
+              // node.fy += d3.event.dy?
+              // The answer, dear reader, is that, in Firefox on Debian, not all of the events
+              // arrive as one might expect.
+              // The sum of all d3.event.dx and dy does not add up exactly to the total distance moved.
+              // That is why we have to calculate dx and dy ourselves and add them to the start
+              // position of every node in the selection by hand.
+              const dx = d3.event.x - dragStartX
+              const dy = d3.event.y - dragStartY
               this.nodes.forEach(node => {
                 if (this.selectedNodesIds.includes(node.id)) {
-                  node.fx = node.x + d3.event.dx
-                  node.fy = node.y + d3.event.dy
+                  node.fx = nodeStartPositions[node.id].x + dx
+                  node.fy = nodeStartPositions[node.id].y + dy
                 }
               })
             } else {
