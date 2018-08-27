@@ -444,11 +444,11 @@
               // why didn't you simply write this:
               // node.fx += d3.event.dx
               // node.fy += d3.event.dy?
-              // The answer, dear reader, is that, in Firefox on Debian, not all of the events
-              // arrive as one might expect.
+              // The answer is that, in Firefox on Debian, the mouse events don't work exactly like
+              // you might expect them to.
               // The sum of all d3.event.dx and dy does not add up exactly to the total distance moved.
-              // That is why we have to calculate dx and dy ourselves and add them to the start
-              // position of every node in the selection by hand.
+              // That is why we have to calculate the distance ourselves and add it to the start
+              // position of each node in the selection by hand.
               const dx = d3.event.x - dragStartX
               const dy = d3.event.y - dragStartY
               this.selectedNodes.forEach(node => {
@@ -1257,7 +1257,10 @@
               }
             })
 
-          this.updateSelectionBorder()
+          // TODO implement super cool feature to stretch and shrink a selection (moving all nodes proportionally)
+          // But for now don't use this function because the border, if drawn incorrectly, messes
+          // up the "zoom to fit all nodes" functionality
+          // this.updateSelectionBorder()
 
           // Draw a line from the edge of one node to the edge of another.
           // We have to do this so that the arrowheads will be correctly aligned for nodes of varying size.
@@ -1332,6 +1335,7 @@
         })
       },
       updateSelectionBorder: function () {
+        // TODO Figure out why this sometimes yields a border from -999999 to 999999
         if (this.selectedNodes.length === 0) {
           this.selectionBorder.attr('d', '')
         } else {
