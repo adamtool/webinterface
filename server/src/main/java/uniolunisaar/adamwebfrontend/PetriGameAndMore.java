@@ -1,14 +1,15 @@
 package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonElement;
-import uniol.apt.adt.Node;
+import uniol.apt.adt.pn.Node;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.io.parser.ParseException;
 import uniol.apt.io.renderer.RenderException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.exceptions.*;
-import uniolunisaar.adam.ds.petrigame.AdamExtensions;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.util.AdamExtensions;
+import uniolunisaar.adam.logic.exceptions.ParameterMissingException;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
 import java.util.Map;
@@ -25,7 +26,7 @@ import java.util.Set;
 public class PetriGameAndMore {
     private final PetriGame petriGame;
     private Optional<Boolean> existsWinningStrategy = Optional.empty();
-    private Optional<PetriNet> strategyBDD = Optional.empty();
+    private Optional<PetriGame> strategyBDD = Optional.empty();
     private Optional<BDDGraph> graphStrategyBDD = Optional.empty();
     private Optional<BDDGraphExplorer> graphGameBDDExplorer = Optional.empty();
 
@@ -52,14 +53,14 @@ public class PetriGameAndMore {
      * X/Y coordinate annotations from a Strategy BDD before sending it to the client.
      * @param strategyBDD
      */
-    private static void removeXAndYCoordinates(PetriNet strategyBDD) {
-        Set<uniol.apt.adt.pn.Node> nodes = strategyBDD.getNodes();
-        for (uniol.apt.adt.pn.Node node : nodes) {
-            if (AdamExtensions.hasXCoord(node)) {
-                node.removeExtension(AdamExtensions.Extensions.xCoord.name());
+    private static void removeXAndYCoordinates(PetriGame strategyBDD) {
+        Set<Node> nodes = strategyBDD.getNodes();
+        for (Node node : nodes) {
+            if (strategyBDD.hasXCoord(node)) {
+                node.removeExtension(AdamExtensions.xCoord.name());
             }
-            if (AdamExtensions.hasYCoord(node)) {
-                node.removeExtension(AdamExtensions.Extensions.yCoord.name());
+            if (strategyBDD.hasYCoord(node)) {
+                node.removeExtension(AdamExtensions.yCoord.name());
             }
         }
     }
@@ -75,8 +76,8 @@ public class PetriGameAndMore {
             String nodeId = node.getId();
             if (nodePositions.containsKey(nodeId)) {
                 NodePosition position = nodePositions.get(nodeId);
-                AdamExtensions.setXCoord(node, position.x);
-                AdamExtensions.setYCoord(node, position.y);
+                petriGame.setXCoord(node, position.x);
+                petriGame.setYCoord(node, position.y);
             } else {
                 throw new IllegalArgumentException(
                         "APT generation failed: the x/y coordinates are missing for the node " + node);
@@ -85,7 +86,7 @@ public class PetriGameAndMore {
         return Adam.getAPT(petriGame);
     }
 
-    public boolean calculateExistsWinningStrategy() throws NotSupportedGameException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, ParseException, NoSuitableDistributionFoundException {
+    public boolean calculateExistsWinningStrategy() throws SolvingException, CouldNotFindSuitableWinningConditionException, ParseException {
         if (existsWinningStrategy.isPresent()) {
             return existsWinningStrategy.get();
         } else {
@@ -95,8 +96,8 @@ public class PetriGameAndMore {
         }
     }
 
-    public JsonElement calculateStrategyBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
-        PetriNet strategyBDD;
+    public JsonElement calculateStrategyBDD() throws ParseException, SolvingException, CouldNotFindSuitableWinningConditionException, NoStrategyExistentException {
+        PetriGame strategyBDD;
         if (this.strategyBDD.isPresent()) {
             strategyBDD = this.strategyBDD.get();
         } else {
@@ -107,7 +108,7 @@ public class PetriGameAndMore {
         return PetriNetD3.of(strategyBDD);
     }
 
-    public JsonElement calculateGraphStrategyBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
+    public JsonElement calculateGraphStrategyBDD() throws ParseException, SolvingException, CouldNotFindSuitableWinningConditionException, NoStrategyExistentException {
         // TODO It's still possible to crash the server by calling this method many times in succession.
         // TODO Introduce some kind of thread safety and make sure that the calculation only happens once.
         // TODO It might make sense to use Future to represent the ongoing computation.
@@ -119,7 +120,7 @@ public class PetriGameAndMore {
         return BDDGraphD3.of(this.graphStrategyBDD.get());
     }
 
-    public JsonElement calculateGraphGameBDD() throws ParseException, ParameterMissingException, CouldNotFindSuitableWinningConditionException, NoSuitableDistributionFoundException, NotSupportedGameException, NoStrategyExistentException {
+    public JsonElement calculateGraphGameBDD() throws ParseException, SolvingException, CouldNotFindSuitableWinningConditionException, NoStrategyExistentException {
         if (!this.graphGameBDDExplorer.isPresent()) {
             BDDGraph graphGameBDD = Adam.getGraphGameBDD(this.petriGame);
             BDDGraphExplorer graphExplorer = BDDGraphExplorer.of(graphGameBDD);

@@ -3,10 +3,13 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
-import uniolunisaar.adam.ds.petrigame.AdamExtensions;
+import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.tools.Tools;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -33,12 +36,12 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement of(PetriNet net, Set<Node> shouldSendPositions) {
+    public static JsonElement of(PetriGame net, Set<Node> shouldSendPositions) {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
         for (Place place : net.getPlaces()) {
-            PetriNetNode placeNode = PetriNetNode.of(place);
+            PetriNetNode placeNode = PetriNetNode.of(net, place);
             nodes.add(placeNode);
         }
 
@@ -52,51 +55,30 @@ public class PetriNetD3 {
             links.add(petriNetLink);
         }
 
+        Predicate<Node> hasPosition = (node) -> net.hasXCoord(node) && net.hasYCoord(node);
+        Function<Node, NodePosition> positionOfNode = (node) -> {
+            double x = net.getXCoord(node);
+            double y = net.getYCoord(node);
+            return new NodePosition(x, y);
+        };
+
         Map<String, NodePosition> nodePositions = shouldSendPositions.stream()
-                .filter(PetriNetD3::hasPosition)
+                .filter(hasPosition)
                 .collect(Collectors.toMap(
-                        Node::getId, PetriNetD3::positionOf
+                        Node::getId, positionOfNode
                 ));
 
         PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
         return new Gson().toJsonTree(petriNetD3);
     }
 
-    private static boolean hasPosition(Node node) {
-        return AdamExtensions.hasXCoord(node) && AdamExtensions.hasYCoord(node);
-    }
-
-    private static NodePosition positionOf(Node node) {
-        double x = AdamExtensions.getXCoord(node);
-        double y = AdamExtensions.getYCoord(node);
-        return new NodePosition(x, y);
-    }
-
     /**
-     * @param net A P
-     * @return
+     * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
-    public static JsonElement of(PetriNet net) {
-        return of(net, new HashSet<>());
+    public static JsonElement of(PetriGame game) {
+        return of(game, new HashSet<>());
     }
 
-    /**
-     * @param net A PetriNet whose nodes may have X/Y coordinates saved as extensions
-     * @return A Map from node ID -> NodePosition (which can be converted into a JSON Object)
-     */
-    private static Map<String, NodePosition> nodePositionsOf(PetriNet net) {
-        Map<String, NodePosition> nodePositions = new HashMap<>();
-        for (Node node : net.getNodes()) {
-            // TODO note that this does not cover the strange case of a node having only one of X or Y specified.
-            // I won't bother checking for that here, since it would clutter up the code.
-            if (AdamExtensions.hasXCoord(node) && AdamExtensions.hasYCoord(node)) {
-                double x = AdamExtensions.getXCoord(node);
-                double y = AdamExtensions.getYCoord(node);
-                nodePositions.put(node.getId(), new NodePosition(x, y));
-            }
-        }
-        return nodePositions;
-    }
 
     static class PetriNetLink extends GraphLink {
         private final String tokenFlow; // Null if there is no token flow given
@@ -148,13 +130,13 @@ public class PetriNetD3 {
             return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false);
         }
 
-        static PetriNetNode of(Place place) {
+        static PetriNetNode of(PetriGame game, Place place) {
             String id = place.getId();
             String label = id;
-            boolean isEnvironment = AdamExtensions.isEnvironment(place);
-            boolean isBad = AdamExtensions.isBad(place);
+            boolean isEnvironment = game.isEnvironment(place);
+            boolean isBad = game.isBad(place);
             long initialToken = place.getInitialToken().getValue();
-            boolean isSpecial = AdamExtensions.isSpecial(place);
+            boolean isSpecial = game.isSpecial(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
             return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial);
         }
