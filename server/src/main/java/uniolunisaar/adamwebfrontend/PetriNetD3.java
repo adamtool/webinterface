@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.petrigame.TokenFlow;
 import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.tools.Tools;
 
@@ -48,12 +49,18 @@ public class PetriNetD3 {
         for (Transition transition : net.getTransitions()) {
             PetriNetNode transitionNode = PetriNetNode.of(transition);
             nodes.add(transitionNode);
+
+//            for (TokenFlow tokenFlow : net.getTokenFlows(transition)) {
+//                Place presetPlace = tokenFlow.getPresetPlace();
+//                Set<Place> postset = tokenFlow.getPostset();
+//                new PetriNetLink()
+//            }
         }
 
-        for (Flow flow : net.getEdges()) {
-            PetriNetLink petriNetLink = PetriNetLink.of(flow);
-            links.add(petriNetLink);
-        }
+//        for (Flow flow : net.getEdges()) {
+//            PetriNetLink petriNetLink = PetriNetLink.of(flow);
+//            links.add(petriNetLink);
+//        }
 
         Predicate<Node> hasPosition = (node) -> net.hasXCoord(node) && net.hasYCoord(node);
         Function<Node, NodePosition> positionOfNode = (node) -> {
