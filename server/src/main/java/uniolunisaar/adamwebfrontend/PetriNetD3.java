@@ -6,6 +6,7 @@ import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.TokenFlow;
 import uniolunisaar.adam.ds.util.AdamExtensions;
+import uniolunisaar.adam.logic.util.AdamTools;
 import uniolunisaar.adam.tools.Tools;
 
 import java.util.*;
@@ -57,10 +58,14 @@ public class PetriNetD3 {
 //            }
         }
 
-//        for (Flow flow : net.getEdges()) {
-//            PetriNetLink petriNetLink = PetriNetLink.of(flow);
-//            links.add(petriNetLink);
-//        }
+
+        Map<Flow, String> flowRelationFromTransitions = AdamTools.getFlowRelationFromTransitions(net);
+        for (Flow flow : net.getEdges()) {
+
+            String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
+            PetriNetLink petriNetLink = PetriNetLink.of(flow, net, arcLabel);
+            links.add(petriNetLink);
+        }
 
         Predicate<Node> hasPosition = (node) -> net.hasXCoord(node) && net.hasYCoord(node);
         Function<Node, NodePosition> positionOfNode = (node) -> {
@@ -97,23 +102,24 @@ public class PetriNetD3 {
             this.tokenFlowHue = tokenFlowHue;
         }
 
-        static PetriNetLink of(Flow flow) {
+        static PetriNetLink of(Flow flow, PetriGame net, String arcLabel) {
             String sourceId = flow.getSource().getId();
             String targetId = flow.getTarget().getId();
-            String tokenFlow = null;
             Float tokenFlowHue = null;
 
-            if (AdamExtensions.hasTokenFlow(flow)) {
-                tokenFlow = AdamExtensions.getTokenFlow(flow);
+            if (!arcLabel.equals("")) {
                 // Give a unique color to each of the token flows associated with a transition.
-                if (!tokenFlow.contains(",")) { // Flows with multiple tokens are black.
-                    int max = AdamExtensions.getTokenFlow(flow.getTransition()).size();
-                    int id = Tools.calcStringIDSmallPrecedenceReverse(tokenFlow);
+                if (!arcLabel.contains(",")) { // Flows with multiple tokens are black.
+                    TokenFlow init = net.getInitialTokenFlows(flow.getTransition());
+                    int max =
+                            net.getTokenFlows(flow.getTransition()).size() + ((init == null) ? 0 :
+                                    init.getPostset().size() - 1);
+                    int id = Tools.calcStringIDSmallPrecedenceReverse(arcLabel);
                     tokenFlowHue = ((id + 1) * 1.f) / (max * 1.f);
                 }
             }
 
-            return new PetriNetLink(sourceId, targetId, tokenFlow, tokenFlowHue);
+            return new PetriNetLink(sourceId, targetId, arcLabel, tokenFlowHue);
         }
     }
 
