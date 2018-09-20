@@ -13,7 +13,7 @@ sa2
 sa3
 
 .transitions
-t1[tfl="{sa2}->{sa3},{env1}->{env2}"]
+t1[tfl="sa2->{sa3},env1->{env2}"]
 t2
 t3
 tenv

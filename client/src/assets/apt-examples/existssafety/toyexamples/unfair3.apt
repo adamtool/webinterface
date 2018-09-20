@@ -14,8 +14,8 @@ S2[token=1]
 .transitions
 t1
 t2
-t3[tfl="{S1}->{},{}->{S2}"]
-t4[tfl="{S2}->{},{}->{S1}"]
+t3[tfl=">->{S2}"]
+t4[tfl=">->{S1}"]
 
 
 .flows

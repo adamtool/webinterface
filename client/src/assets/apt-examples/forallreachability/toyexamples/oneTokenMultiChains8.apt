@@ -13,7 +13,7 @@ sb1[reach="true"]
 sb2
 
 .transitions
-t1[tfl="{sa1,sb1}->{sa2}"]
+t1[tfl="sa1->{sa2},sb1->{sa2}"]
 tenv
 
 .flows

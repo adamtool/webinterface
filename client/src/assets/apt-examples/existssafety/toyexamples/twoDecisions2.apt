@@ -20,8 +20,8 @@ t1
 t2
 t3
 t4
-b1[tfl="{S2}->{bad2},{E3}->{bad1}"]
-b2[tfl="{S3}->{bad2},{E2}->{bad1}"]
+b1[tfl="S2->{bad2},E3->{bad1}"]
+b2[tfl="S3->{bad2},E2->{bad1}"]
 
 .flows
 t1: {E1} -> {E2}

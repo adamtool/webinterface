@@ -1,0 +1,42 @@
+// Adaption of Paul Gölz's example
+// added place S
+// should have strategy for old definition checking the ndet within the strategy
+// should have NO strategy for the new definition where we check the ndet in the
+// original game.
+.name "nondet"
+.description "Alarm system."
+.type LPN
+.options
+winningCondition="A_SAFETY"
+
+.places
+A[yCoord=358.04, xCoord=179.6]
+B[yCoord=126.38, xCoord=578.64, env="true"]
+C[yCoord=610.5, xCoord=112.37]
+D[yCoord=411.29, xCoord=501.51, env="true"]
+E[yCoord=594.54, xCoord=610.05, env="true"]
+F[yCoord=645.16, xCoord=365.66]
+G[yCoord=587.04, xCoord=512.35, env="true"]
+H[yCoord=855.53, xCoord=395.45]
+K[yCoord=339.56, xCoord=433.62, env="true"]
+S
+
+.transitions
+a[label="a", yCoord=479.27, xCoord=311.28]
+b[label="b", yCoord=239.03, xCoord=698.43]
+c[label="c", yCoord=498.54, xCoord=489.83]
+d[label="d", yCoord=484.35, xCoord=569.78]
+e[label="e", yCoord=718.98, xCoord=258.9]
+f[label="f", yCoord=748.18, xCoord=497.85]
+i[label="i", yCoord=231.06, xCoord=457.47]
+
+.flows
+a: {1*A, 1*K} -> {1*D, 1*C}
+b: {1*B} -> {1*E}
+c: {1*D} -> {1*G}
+d: {1*D,S} -> {1*E}
+e: {1*C, 1*F} -> {1*C, 1*H}
+f: {1*E, 1*F} -> {1*H, 1*E}
+i: {1*B} -> {1*K}
+
+.initial_marking {1*A, 1*B, 1*F,S}

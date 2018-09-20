@@ -14,8 +14,8 @@ bad1[bad="true"]
 bad2[bad="true"]
 
 .transitions
-t1[tfl="{S1}->{bad2},{bad1}->{},{}->{S2},{S3}->{S4}"]
-t2[tfl="{S2}->{bad1},{bad2}->{},{}->{S1},{S4}->{S3}"]
+t1[tfl="S1->{bad2},>->{S2},S3->{S4}"]
+t2[tfl="S2->{bad1},>->{S1},S4->{S3}"]
 
 .flows
 t1 : {S1,bad1,S3} -> {S2,bad2,S4}

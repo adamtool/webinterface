@@ -14,7 +14,7 @@ p5
 .transitions
 l
 r
-s[tfl="{p3}->{p4},{}->{p5}"]
+s[tfl="p3->{p4},>->{p5}"]
 
 .flows
 l : {p1} -> {p2}

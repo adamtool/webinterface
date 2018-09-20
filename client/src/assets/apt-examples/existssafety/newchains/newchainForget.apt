@@ -13,10 +13,10 @@ sb2[bad="true"]
 sb3
 
 .transitions
-t1[tfl="{}->{sa2}"]
-t2[tfl="{sa2}->{sb2}"]
-t3[tfl="{}->{sb3}"]
-t4[tfl="{sb3}->{sa1,sb1}"]
+t1[tfl=">->{sa2}"]
+t2[tfl="sa2->{sb2}"]
+t3[tfl=">->{sb3}"]
+t4[tfl="sb3->{sa1,sb1}"]
 
 .flows
 t1: {sa1} -> {sa2}

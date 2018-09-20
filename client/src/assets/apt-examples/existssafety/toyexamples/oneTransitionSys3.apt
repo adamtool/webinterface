@@ -10,7 +10,7 @@ S1[token=1,bad="true"]
 S2[token=1]
 
 .transitions
-t[tfl=""]
+t[tfl=">->{S2}"]
 
 .flows
 t: {S1} -> {S2}

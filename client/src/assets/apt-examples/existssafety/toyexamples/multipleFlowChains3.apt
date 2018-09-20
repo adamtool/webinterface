@@ -13,7 +13,7 @@ E4
 E5
 
 .transitions
-t1[tfl="{E1}->{E3,E4,E5},{E2}->{E3,E4,E5},{}->{E5}"]
+t1[tfl="E1->{E3,E4,E5},E2->{E3,E4,E5},>->{E5}"]
 
 .flows
 t1 : {E1,E2} -> {E3,E4,E5}

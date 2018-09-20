@@ -1,4 +1,4 @@
-// should have NO strategy (new chain created an never can reach a good place)
+// should have NO strategy (new chain created and never can reach a good place)
 .name "oneTokenMultiChains2.net"
 .type LPN
 .options
@@ -14,7 +14,7 @@ sb2
 sb3
 
 .transitions
-t1[tfl="{sa1}->{sa2},{sb1}->{sa2}"]
+t1[tfl="sa1->{sa2},sb1->{sa2},>->{sb2}"]
 t2
 tenv
 

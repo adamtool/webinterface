@@ -12,7 +12,7 @@ bad1[token=1,bad="true"]
 bad2[token=2, bad="true"]
 
 .transitions
-t1[tfl="{S1}->{bad1},{S2}->{bad2}"]
+t1[tfl="S1->{bad1},S2->{bad2}"]
 t2
 t3
 

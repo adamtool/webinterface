@@ -17,10 +17,10 @@ sb3[reach="true"]
 sb4
 
 .transitions
-t1[tfl="{sa1}->{sa2},{sb1}->{sb2}"]
-t2[tfl="{sa2}->{},{sb2}->{}"]
+t1[tfl="sa1->{sa2},sb1->{sb2}"]
+t2[tfl=""]
 //t2[tfl="{sa2}->{},{sb2}->{}, {}->{sa3}, {}->{sb3}"]
-t3[tfl="{sa3}->{sa4},{sb3}->{sb4}"]
+t3[tfl="sa3->{sa4},sb3->{sb4}"]
 tenv
 
 .flows

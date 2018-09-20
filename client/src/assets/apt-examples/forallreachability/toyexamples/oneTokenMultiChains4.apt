@@ -19,7 +19,7 @@ sb3[token=2]
 t1
 t2
 t3
-t4[tfl="{sa2,sb3}->{sa3,sa4}"]
+t4[tfl="sa2->{sa3,sa4},sb3->{sa3,sa4}"]
 tenv
 
 .flows

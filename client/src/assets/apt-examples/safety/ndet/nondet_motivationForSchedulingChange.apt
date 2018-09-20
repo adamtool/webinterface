@@ -1,0 +1,60 @@
+// Extension of Paul's example which should motivate the need to change the scheduling between mcuts when searching for nondeterminism 
+.name "nondet strategy"
+.type LPN
+.description "Alarm system."
+.options
+winningCondition="SAFETY"
+
+.places
+A
+B[env="true"]
+BL[env="true"]
+BR[env="true"]
+C
+D[env="true"]
+E[env="true"]
+E1[env="true"]
+F
+G[env="true"]
+H
+K[env="true"]
+K1[env="true"]
+bad[bad="true"]
+S1
+S2
+SL
+SR
+
+.transitions
+a
+b
+c
+d
+e
+f
+i
+t1
+tl
+tr
+b1
+b2
+s1
+s2
+
+.flows
+a: {A,K1} -> {C,D}
+b: {B} -> {E1,BR}
+c: {D} -> {G}
+d: {D} -> {E}
+e: {C,F} -> {C,H}
+f: {E,F} -> {E,H}
+i: {B} -> {K,BL}
+t1:{S1} -> {S2}
+tl:{S2} -> {SL}
+tr:{S2} -> {SR}
+b1:{SL,BL} -> {bad}
+b2:{SR,BR} -> {bad}
+s1:{E1,S2} -> {E}
+s2:{K,S2} -> {K1}
+
+.initial_marking {A,B,F,S1}

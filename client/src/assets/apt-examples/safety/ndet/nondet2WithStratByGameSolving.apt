@@ -2,7 +2,8 @@
 // there should be a strategy because the problem which the ndet2 example
 // has can be avoided by the system choosing a good strategy inbetween the
 // game. This strategy would be overseen, when we only consider the reachability
-// graph for the intermediate game.
+// graph for the intermediate game. (THIS WAS FOR THE OLD DEFINITION)
+// THE NEW DEFINITION: there should be NO strategy (exactly because of the reason mentioned above)
 .name "nondet strategy"
 .type LPN
 .description "Alarm system."

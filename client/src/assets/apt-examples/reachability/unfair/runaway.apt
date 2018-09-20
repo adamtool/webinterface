@@ -1,0 +1,37 @@
+// @author Nick Würdemann
+// should have no strategy since the enviroment plays unfair
+.name "Runaway"
+.description "This example should NOT have a winning strategy"
+.type LPN
+.options
+winningCondition="REACHABILITY"
+
+.places
+E0[yCoord=200.00, xCoord=600.00, env="env"]
+E1[yCoord=200.00, bad="true", xCoord=900.00, env="env"]
+E2[yCoord=200.00, xCoord=300.00, env="env"]
+E3[yCoord=200.00, xCoord=1200.00, env="env"]
+S0[yCoord=400.00, xCoord=600.00]
+S1[yCoord=400.00, xCoord=900.00]
+S2[yCoord=400.00, xCoord=300.00,reach="true"]
+S3[yCoord=400.00, xCoord=1200.00,reach="true"]
+
+.transitions
+ae[label="ae", yCoord=150.00, xCoord=750.00, tfl="{E0} -> {E1}"]
+be[label="be", yCoord=250.00, xCoord=750.00, tfl="{E1} -> {E0}"]
+a[label="a", yCoord=350.00, xCoord=750.00, tfl="{S0} -> {S1}"]
+b[label="b", yCoord=450.00, xCoord=750.00, tfl="{S1} -> {S0}"]
+w1[label="w1", yCoord=300.00, xCoord=450.00, tfl="{S0}->{S2},{E0}->{E2}"]
+w2[label="w2", yCoord=300.00, xCoord=1050.00, tfl="{S1}->{S3},{E1}->{E3}"]
+
+.flows
+ae: {1*E0} -> {1*E1}
+be:{1*E1}->{1*E0}
+a: {1*S0} -> {1*S1}
+b:{1*S1}->{1*S0}
+w1:{1*S0}->{1*S2}
+w1:{1*E0}->{1*E2}
+w2:{1*S1}->{1*S3}
+w2:{1*E1}->{1*E3}
+
+.initial_marking {1*E0, 1*S1}

@@ -12,7 +12,7 @@ E1[env="true"]
 E2[reach="true",env="true"]
 
 .transitions
-t[tfl="{E1}->{}"]
+t[tfl=""]
 
 .flows
 t: {E1} -> {E2}

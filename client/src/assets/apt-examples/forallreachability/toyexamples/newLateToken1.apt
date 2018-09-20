@@ -14,7 +14,7 @@ sa4[token=2]
 
 .transitions
 t1
-t2[tfl="{sa2}->{sa3}"]
+t2[tfl="sa2->{sa3}"]
 tenv
 
 .flows

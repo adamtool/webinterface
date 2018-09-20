@@ -22,9 +22,9 @@ t1
 t2
 t3
 tb3
-t4[tfl="{sa2}->{sa3,sa4}"]
+t4[tfl="sa2->{sa3,sa4}"]
 tenv
-tmerge[tfl="{sb4, saa2}->{sa2}"]
+tmerge[tfl="sb4->{sa2}, saa2->{sa2}"]
 
 .flows
 tenv: {env} -> {env1}
