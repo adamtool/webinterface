@@ -1086,7 +1086,11 @@
               console.log(`max content line length: ${maxLineLength}`)
               return node.content
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
-              return node.initialToken === 0 ? '' : node.initialToken
+              if (node.isInitialTokenFlow) {
+                return `${node.initialToken}\ninit`
+              } else {
+                return node.initialToken === 0 ? '' : node.initialToken
+              }
             }
           })
 

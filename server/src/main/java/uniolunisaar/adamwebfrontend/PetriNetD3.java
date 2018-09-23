@@ -128,19 +128,22 @@ public class PetriNetD3 {
         private final boolean isBad;
         private final long initialToken;
         private final boolean isSpecial;
+        private final boolean isInitialTokenFlow;
 
-        private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad, long initialToken, boolean isSpecial) {
+        private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
+                             long initialToken, boolean isSpecial, boolean isInitialTokenFlow) {
             super(id, label, type);
             this.isBad = isBad;
             this.initialToken = initialToken;
             this.isSpecial = isSpecial;
+            this.isInitialTokenFlow = isInitialTokenFlow;
         }
 
         static PetriNetNode of(Transition t) {
             String id = t.getId();
             String label = t.getLabel();
             // Transitions are never bad or special and have no tokens
-            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false);
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false);
         }
 
         static PetriNetNode of(PetriGame game, Place place) {
@@ -150,8 +153,9 @@ public class PetriNetD3 {
             boolean isBad = game.isBad(place);
             long initialToken = place.getInitialToken().getValue();
             boolean isSpecial = game.isSpecial(place);
+            boolean isInitialTokenFlow = game.isInitialTokenflow(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
-            return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial);
+            return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial, isInitialTokenFlow);
         }
     }
 }
