@@ -226,6 +226,10 @@
             action: this.setInitialTokenInteractively
           },
           {
+            title: 'Toggle isInitialTokenFlow',
+            action: this.toggleIsInitialTokenFlow
+          },
+          {
             title: 'Toggle isSpecial',
             disabled: true // TODO implement this
           }
@@ -706,6 +710,9 @@
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
       },
+      toggleIsInitialTokenFlow: function (d) {
+        this.$emit('toggleIsInitialTokenFlow', d.id)
+      },
       renameNodeInteractively: function (d) {
         const callback = (text) => {
           console.log('Emitting renameNode')
@@ -857,7 +864,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-          'The fixed positions you have moved them to will be lost.')) {
+            'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
@@ -1086,11 +1093,7 @@
               console.log(`max content line length: ${maxLineLength}`)
               return node.content
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
-              if (node.isInitialTokenFlow) {
-                return `${node.initialToken}\ninit`
-              } else {
-                return node.initialToken === 0 ? '' : node.initialToken
-              }
+              return node.initialToken === 0 ? '' : node.initialToken
             }
           })
 
@@ -1135,6 +1138,8 @@
           .attr('stroke-dasharray', d => {
             if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && d.isGood) {
               return '20,10'
+            } else if ((d.type === 'ENVPLACE' || d.type === 'SYSPLACE') && d.isInitialTokenFlow) {
+              return '10,10'
             } else {
               return ''
             }

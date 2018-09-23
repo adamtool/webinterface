@@ -258,6 +258,25 @@ public class App {
             return successResponse(petriGameClient);
         });
 
+        post("/toggleIsInitialTokenFlow", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeId = body.get("nodeId").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            Place place = petriGame.getPlace(nodeId);
+            boolean isInitialTokenFlow = petriGame.isInitialTokenflow(place);
+            if (isInitialTokenFlow) {
+                petriGame.removeInitialTokenflow(place);
+            } else {
+                petriGame.setInitialTokenflow(place);
+            }
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame);
+            return successResponse(petriGameClient);
+        });
+
         post("/setInitialToken", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();
