@@ -1107,7 +1107,7 @@
         isSpecialElements.exit().remove()
         this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
         this.isSpecialElements
-          .attr('r', this.nodeRadius * 0.89)
+          .attr('r', this.nodeRadius * 0.87)
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
