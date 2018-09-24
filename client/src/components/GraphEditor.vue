@@ -50,6 +50,7 @@
           <v-radio label="delete node" value="deleteNode"/>
         </v-radio-group>
       </div>
+      <div>{{ winningCondition }}</div>
     </div>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
@@ -670,6 +671,7 @@
     },
     data () {
       return {
+        winningCondition: '',
         // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
         selectedTool: 'select',
@@ -1363,6 +1365,7 @@
        */
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
+        this.winningCondition = graphJsonCopy.winningCondition
         const newLinks = graphJsonCopy.links
         const newNodes = graphJsonCopy.nodes
         const newNodePositions = graphJsonCopy.nodePositions
