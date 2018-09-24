@@ -148,7 +148,7 @@
   Vue.use(BootstrapVue)
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
-  import aptExample from './verySmallExample.apt'
+  import aptExample from './somewhatSmallExample.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
