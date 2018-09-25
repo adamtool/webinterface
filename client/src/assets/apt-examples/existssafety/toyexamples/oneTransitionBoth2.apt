@@ -12,7 +12,7 @@ E2[token=1,bad="true"]
 S2[token=2,bad="true"]
 
 .transitions
-t[tfl="{S1,E1}->{S2,E2}"]
+t[tfl="S1->{S2,E2},E1->{S2,E2}"]
 
 .flows
 t: {E1,S1} -> {E2,S2}

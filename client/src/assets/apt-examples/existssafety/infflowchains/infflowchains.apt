@@ -12,7 +12,7 @@ sb1
 sb2
 
 .transitions
-t3[tfl="{sa1,sb1}->{sa2},{}->{sb2}"]
+t3[tfl="sa1->{sa2},sb1->{sa2},>->{sb2}"]
 t4
 t5
 

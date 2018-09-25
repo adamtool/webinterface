@@ -13,7 +13,7 @@ sb1
 sb2[buchi="true"]
 
 .transitions
-t1[tfl="{sa1}->{sa2},{sb1}->{sb2}"]
+t1[tfl="sa1->{sa2},sb1->{sb2}"]
 t2
 t3
 tenv

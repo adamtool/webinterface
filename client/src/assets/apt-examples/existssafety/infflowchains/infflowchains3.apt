@@ -11,8 +11,8 @@ s2
 s3[bad="true"]
 
 .transitions
-t3[tfl="{s1}->{s2},{}->{s3}"]
-t4[tfl="{s2,s3}->{s1}"]
+t3[tfl="s1->{s2},>->{s3}"]
+t4[tfl="s2->{s1},s3->{s1}"]
 
 .flows
 t3: {s1} -> {s2,s3}

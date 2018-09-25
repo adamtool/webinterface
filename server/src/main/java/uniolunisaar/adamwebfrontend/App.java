@@ -10,7 +10,6 @@ import com.google.gson.reflect.TypeToken;
 import uniol.apt.adt.pn.Node;
 import uniol.apt.adt.pn.Place;
 import uniolunisaar.adam.Adam;
-import uniolunisaar.adam.ds.petrigame.AdamExtensions;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.tools.Logger;
 
@@ -194,7 +193,7 @@ public class App {
                     break;
                 case ENVPLACE:
                     Place place = petriGame.createPlace();
-                    AdamExtensions.setEnvironment(place);
+                    petriGame.setEnvironment(place);
                     node = place;
                     break;
                 case TRANSITION:
@@ -203,8 +202,8 @@ public class App {
                 case GRAPH_STRATEGY_BDD_STATE:
                     return errorResponse("You can't insert a GRAPH_STRATEGY_BDD_STATE into a Petri Game.");
             }
-            AdamExtensions.setXCoord(node, x);
-            AdamExtensions.setYCoord(node, y);
+            petriGame.setXCoord(node, x);
+            petriGame.setYCoord(node, y);
 
             JsonElement petriGameClient = PetriNetD3.of(petriGame, new HashSet<>(Collections.singletonList(node)));
 
@@ -234,30 +233,7 @@ public class App {
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             Node oldNode = petriGame.getNode(nodeIdOld);
-            Set<Node> presetNodes = petriGame.getPresetNodes(oldNode);
-            Set<Node> postsetNodes = petriGame.getPostsetNodes(oldNode);
-
-            Node newNode;
-            if (oldNode instanceof Place) {
-                Place place = petriGame.createPlace(nodeIdNew);
-                newNode = place;
-                if (AdamExtensions.isEnvironment((Place)oldNode)) {
-                    AdamExtensions.setEnvironment(place);
-                }
-            } else {
-                newNode = petriGame.createTransition(nodeIdNew);
-            }
-
-            for (Node n : presetNodes) {
-                petriGame.createFlow(n, newNode);
-            }
-            for (Node n: postsetNodes) {
-                petriGame.createFlow(newNode, n);
-            }
-            // TODO Handle token flow extension.  (Right now, token flow annotations do not get
-            // updated to reflect the new node ID, so there are problems.)
-            newNode.copyExtensions(oldNode);
-            petriGame.removeNode(nodeIdOld);
+            petriGame.rename(oldNode, nodeIdNew);
 
             JsonElement petriGameClient = PetriNetD3.of(petriGame);
             return successResponse(petriGameClient);
@@ -271,11 +247,30 @@ public class App {
             PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             Place place = petriGame.getPlace(nodeId);
-            boolean environment = AdamExtensions.isEnvironment(place);
+            boolean environment = petriGame.isEnvironment(place);
             if (environment) {
-                AdamExtensions.setSystem(place);
+                petriGame.setSystem(place);
             } else {
-                AdamExtensions.setEnvironment(place);
+                petriGame.setEnvironment(place);
+            }
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame);
+            return successResponse(petriGameClient);
+        });
+
+        post("/toggleIsInitialTokenFlow", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String nodeId = body.get("nodeId").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            Place place = petriGame.getPlace(nodeId);
+            boolean isInitialTokenFlow = petriGame.isInitialTokenflow(place);
+            if (isInitialTokenFlow) {
+                petriGame.removeInitialTokenflow(place);
+            } else {
+                petriGame.setInitialTokenflow(place);
             }
 
             JsonElement petriGameClient = PetriNetD3.of(petriGame);

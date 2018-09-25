@@ -3,10 +3,15 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
-import uniolunisaar.adam.ds.petrigame.AdamExtensions;
+import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.petrigame.TokenFlow;
+import uniolunisaar.adam.ds.util.AdamExtensions;
+import uniolunisaar.adam.logic.util.AdamTools;
 import uniolunisaar.adam.tools.Tools;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -33,70 +38,59 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement of(PetriNet net, Set<Node> shouldSendPositions) {
+    public static JsonElement of(PetriGame net, Set<Node> shouldSendPositions) {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
         for (Place place : net.getPlaces()) {
-            PetriNetNode placeNode = PetriNetNode.of(place);
+            PetriNetNode placeNode = PetriNetNode.of(net, place);
             nodes.add(placeNode);
         }
 
         for (Transition transition : net.getTransitions()) {
             PetriNetNode transitionNode = PetriNetNode.of(transition);
             nodes.add(transitionNode);
+
+//            for (TokenFlow tokenFlow : net.getTokenFlows(transition)) {
+//                Place presetPlace = tokenFlow.getPresetPlace();
+//                Set<Place> postset = tokenFlow.getPostset();
+//                new PetriNetLink()
+//            }
         }
 
+
+        Map<Flow, String> flowRelationFromTransitions = AdamTools.getFlowRelationFromTransitions(net);
         for (Flow flow : net.getEdges()) {
-            PetriNetLink petriNetLink = PetriNetLink.of(flow);
+
+            String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
+            PetriNetLink petriNetLink = PetriNetLink.of(flow, net, arcLabel);
             links.add(petriNetLink);
         }
 
+        Predicate<Node> hasPosition = (node) -> net.hasXCoord(node) && net.hasYCoord(node);
+        Function<Node, NodePosition> positionOfNode = (node) -> {
+            double x = net.getXCoord(node);
+            double y = net.getYCoord(node);
+            return new NodePosition(x, y);
+        };
+
         Map<String, NodePosition> nodePositions = shouldSendPositions.stream()
-                .filter(PetriNetD3::hasPosition)
+                .filter(hasPosition)
                 .collect(Collectors.toMap(
-                        Node::getId, PetriNetD3::positionOf
+                        Node::getId, positionOfNode
                 ));
 
         PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
         return new Gson().toJsonTree(petriNetD3);
     }
 
-    private static boolean hasPosition(Node node) {
-        return AdamExtensions.hasXCoord(node) && AdamExtensions.hasYCoord(node);
-    }
-
-    private static NodePosition positionOf(Node node) {
-        double x = AdamExtensions.getXCoord(node);
-        double y = AdamExtensions.getYCoord(node);
-        return new NodePosition(x, y);
-    }
-
     /**
-     * @param net A P
-     * @return
+     * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
-    public static JsonElement of(PetriNet net) {
-        return of(net, new HashSet<>());
+    public static JsonElement of(PetriGame game) {
+        return of(game, new HashSet<>());
     }
 
-    /**
-     * @param net A PetriNet whose nodes may have X/Y coordinates saved as extensions
-     * @return A Map from node ID -> NodePosition (which can be converted into a JSON Object)
-     */
-    private static Map<String, NodePosition> nodePositionsOf(PetriNet net) {
-        Map<String, NodePosition> nodePositions = new HashMap<>();
-        for (Node node : net.getNodes()) {
-            // TODO note that this does not cover the strange case of a node having only one of X or Y specified.
-            // I won't bother checking for that here, since it would clutter up the code.
-            if (AdamExtensions.hasXCoord(node) && AdamExtensions.hasYCoord(node)) {
-                double x = AdamExtensions.getXCoord(node);
-                double y = AdamExtensions.getYCoord(node);
-                nodePositions.put(node.getId(), new NodePosition(x, y));
-            }
-        }
-        return nodePositions;
-    }
 
     static class PetriNetLink extends GraphLink {
         private final String tokenFlow; // Null if there is no token flow given
@@ -108,23 +102,24 @@ public class PetriNetD3 {
             this.tokenFlowHue = tokenFlowHue;
         }
 
-        static PetriNetLink of(Flow flow) {
+        static PetriNetLink of(Flow flow, PetriGame net, String arcLabel) {
             String sourceId = flow.getSource().getId();
             String targetId = flow.getTarget().getId();
-            String tokenFlow = null;
             Float tokenFlowHue = null;
 
-            if (AdamExtensions.hasTokenFlow(flow)) {
-                tokenFlow = AdamExtensions.getTokenFlow(flow);
+            if (!arcLabel.equals("")) {
                 // Give a unique color to each of the token flows associated with a transition.
-                if (!tokenFlow.contains(",")) { // Flows with multiple tokens are black.
-                    int max = AdamExtensions.getTokenFlow(flow.getTransition()).size();
-                    int id = Tools.calcStringIDSmallPrecedenceReverse(tokenFlow);
+                if (!arcLabel.contains(",")) { // Flows with multiple tokens are black.
+                    TokenFlow init = net.getInitialTokenFlows(flow.getTransition());
+                    int max =
+                            net.getTokenFlows(flow.getTransition()).size() + ((init == null) ? 0 :
+                                    init.getPostset().size() - 1);
+                    int id = Tools.calcStringIDSmallPrecedenceReverse(arcLabel);
                     tokenFlowHue = ((id + 1) * 1.f) / (max * 1.f);
                 }
             }
 
-            return new PetriNetLink(sourceId, targetId, tokenFlow, tokenFlowHue);
+            return new PetriNetLink(sourceId, targetId, arcLabel, tokenFlowHue);
         }
     }
 
@@ -133,30 +128,34 @@ public class PetriNetD3 {
         private final boolean isBad;
         private final long initialToken;
         private final boolean isSpecial;
+        private final boolean isInitialTokenFlow;
 
-        private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad, long initialToken, boolean isSpecial) {
+        private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
+                             long initialToken, boolean isSpecial, boolean isInitialTokenFlow) {
             super(id, label, type);
             this.isBad = isBad;
             this.initialToken = initialToken;
             this.isSpecial = isSpecial;
+            this.isInitialTokenFlow = isInitialTokenFlow;
         }
 
         static PetriNetNode of(Transition t) {
             String id = t.getId();
             String label = t.getLabel();
             // Transitions are never bad or special and have no tokens
-            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false);
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false);
         }
 
-        static PetriNetNode of(Place place) {
+        static PetriNetNode of(PetriGame game, Place place) {
             String id = place.getId();
             String label = id;
-            boolean isEnvironment = AdamExtensions.isEnvironment(place);
-            boolean isBad = AdamExtensions.isBad(place);
+            boolean isEnvironment = game.isEnvironment(place);
+            boolean isBad = game.isBad(place);
             long initialToken = place.getInitialToken().getValue();
-            boolean isSpecial = AdamExtensions.isSpecial(place);
+            boolean isSpecial = game.isSpecial(place);
+            boolean isInitialTokenFlow = game.isInitialTokenflow(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
-            return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial);
+            return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial, isInitialTokenFlow);
         }
     }
 }

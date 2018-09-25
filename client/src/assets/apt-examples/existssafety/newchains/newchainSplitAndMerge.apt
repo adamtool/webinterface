@@ -17,10 +17,10 @@ sb3
 
 .transitions
 t1
-t2[tfl="{sa2}->{sa3,sb2},{sb1}->{sb2}"]
+t2[tfl="sa2->{sa3,sb2},sb1->{sb2}"]
 t3
 t4
-t5[tfl="{sb3,sa4}->{sa5}"]
+t5[tfl="sb3->{sa5},sa4->{sa5}"]
 
 .flows
 t1: {sa1} -> {sa2}

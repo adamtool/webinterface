@@ -9,7 +9,7 @@ E1[bad="true"]
 E2
 
 .transitions
-t1[tfl="{E1}->{E2}"]
+t1[tfl="E1->{E2}"]
 
 .flows
 t1 : {E1} -> {E2}

@@ -23,8 +23,8 @@ a
 b
 c
 d
-e[tfl="{C}->{H1}"]
-f[tfl="{F}->{H2}"]
+e[tfl="C->{H1}"]
+f[tfl="F->{H2}"]
 i
 
 

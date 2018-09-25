@@ -12,8 +12,8 @@ sa2[buchi="true"]
 sb2
 
 .transitions
-t1[tfl="{sa1}->{sa2},{}->{sb2}"]
-t2[tfl="{sa2,sb2}->{sa1}"]
+t1[tfl="sa1->{sa2},>->{sb2}"]
+t2[tfl="sa2->{sa1},sb2->{sa1}"]
 tenv
 tenv1
 

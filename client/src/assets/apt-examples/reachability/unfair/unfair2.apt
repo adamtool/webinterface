@@ -1,4 +1,5 @@
 // the system looses because it cannot reach the nonexistent place to reach
+// Two env token!
 .name "unfoldingAdditionalSystem"
 .type LPN
 .description "Testing the correctness of additional system places in the unfolding"

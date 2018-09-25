@@ -1,0 +1,51 @@
+// High-Level version of the burglar example
+// should have strategy for all n
+.name "burglar.net"
+.type HL-PN
+.description "alarm system"
+.options
+winningCondition="SAFETY"
+
+.places
+env[env="true"]
+loc[env="true", init="N"]
+C[env="true"]
+I[env="true"]
+S[init="N"]
+D
+P
+Alarm
+Bad[bad="true"]
+Good
+
+.transitions
+i
+t
+fr
+info
+fa
+a
+bad1
+bad2[pred="b != x"]
+g
+
+.flows
+i: {env,x*loc} -> {x*C}
+t: {x*C,x*S} -> {x*I,x*D}
+fr: {D} -> {P}
+info: {x*D,F(x)*S} -> {N*P}
+fa: {y*S} -> {y*P}
+a: {z*P} -> {(z,v)*Alarm}
+bad1: {x*C,(a,b)*Alarm} -> {x*Bad}
+bad2: {x*I,(a,b)*Alarm} -> {x*Bad}
+g: {x*I,G(x)*Alarm} -> {x*Good}
+
+.types
+x,y,z,v,a,b:N
+
+.functions
+N={n_1,..,n_n}
+F: (int x) -> N.remove(x)
+G: (int x) -> {fo
+
+.initial_marking {env}

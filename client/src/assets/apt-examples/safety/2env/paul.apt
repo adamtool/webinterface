@@ -1,0 +1,46 @@
+// Figure 7.1a of Paul's Bachelor thesis
+.name "burglar.net"
+.type LPN
+.description "alarm system"
+.options
+winningCondition="SAFETY"
+
+.places
+r1[env="true"]
+r2[env="true"]
+c1[env="true"]
+c2[env="true"]
+c11[env="true"]
+c22[env="true"]
+sd
+s1
+s2
+s0
+s00
+bad[bad="true"]
+
+.transitions
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+
+.flows
+t1: {sd} -> {s1}
+t2: {sd} -> {s2}
+t3: {r1,c2} -> {r2,c2}
+t4: {r2,c1} -> {r1,c1}
+t5: {c1} -> {c11}
+t6: {c2} -> {c22}
+t7: {s0,c22} -> {s00}
+t8: {s00,c11} -> {sd,c11}
+t9: {r1,s2} -> {bad}
+t10:{r2,s1} -> {bad}
+
+.initial_marking {r1,c1,c2,s0}

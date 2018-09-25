@@ -1,0 +1,20 @@
+// should be won by the system since env cannot cutoff concurrent parts of the system
+.name "UnfairEnv"
+.type LPN
+.description "env unfair"
+.options
+winningCondition="E_REACHABILITY"
+
+.places
+S1
+S2[reach]
+E1[env]
+
+.transitions
+ts[tfl="{S1}->{S2},{E1}->{E1}"]
+te
+
+.flows
+ts: {S1} -> {S2}
+te: {E1}->{E1}
+.initial_marking {S1,E1}

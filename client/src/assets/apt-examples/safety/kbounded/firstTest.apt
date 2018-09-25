@@ -1,0 +1,30 @@
+// do not miss the deadlock. Should have a strategy. All problems concerning
+// missing a deadlock would encounter ndet?!
+.name "deadlocked strategy"
+.type LPN
+.description "dead."
+.options
+winningCondition="A_SAFETY"
+
+.places
+E[env="true"]
+E0[env="true"]
+E1[env="true"]
+E2[env="true"]
+S[token=1]
+S0[token=2]
+S1[token=2]
+
+.transitions
+a
+b
+c
+d
+
+.flows
+a: {E} -> {E0}
+b: {E} -> {E1}
+c: {E1,S} -> {E2}
+d: {S,S0} -> {S1}
+
+.initial_marking {E, 2*S, S0}

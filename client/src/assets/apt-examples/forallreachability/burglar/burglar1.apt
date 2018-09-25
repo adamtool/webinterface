@@ -33,14 +33,14 @@ t5
 t6
 t7
 t8
-t9[tfl="{bb}->{alarm},{ab}->{alarm},{eb}->{eb}"]
-t10[tfl="{aa}->{alarm},{ba}->{alarm},{ea}->{ea}"]
+t9[tfl="bb->{alarm},ab->{alarm},eb->{eb}"]
+t10[tfl="aa->{alarm},ba->{alarm},ea->{ea}"]
 tx
 ta
 ty
 tb
-tbb[tfl="{a}->{pb},{s4}->{pa}"]
-taa[tfl="{s3}->{pb},{b}->{pa}"]
+tbb[tfl="a->{pb},s4->{pa}"]
+taa[tfl="s3->{pb},b->{pa}"]
 
 .flows
 // left arm

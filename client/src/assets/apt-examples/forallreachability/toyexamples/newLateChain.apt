@@ -13,7 +13,7 @@ sa3[token=1]
 
 .transitions
 t1
-t2[tfl="{sa2}->{}"]
+t2[tfl=""]
 tenv
 
 .flows

@@ -226,6 +226,10 @@
             action: this.setInitialTokenInteractively
           },
           {
+            title: 'Toggle isInitialTokenFlow',
+            action: this.toggleIsInitialTokenFlow
+          },
+          {
             title: 'Toggle isSpecial',
             disabled: true // TODO implement this
           }
@@ -706,6 +710,9 @@
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
       },
+      toggleIsInitialTokenFlow: function (d) {
+        this.$emit('toggleIsInitialTokenFlow', d.id)
+      },
       renameNodeInteractively: function (d) {
         const callback = (text) => {
           console.log('Emitting renameNode')
@@ -857,7 +864,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-          'The fixed positions you have moved them to will be lost.')) {
+            'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
@@ -1100,7 +1107,7 @@
         isSpecialElements.exit().remove()
         this.isSpecialElements = isSpecialElements.merge(newIsSpecialElements)
         this.isSpecialElements
-          .attr('r', this.nodeRadius * 0.89)
+          .attr('r', this.nodeRadius * 0.87)
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
@@ -1131,6 +1138,8 @@
           .attr('stroke-dasharray', d => {
             if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && d.isGood) {
               return '20,10'
+            } else if ((d.type === 'ENVPLACE' || d.type === 'SYSPLACE') && d.isInitialTokenFlow) {
+              return '10,10'
             } else {
               return ''
             }

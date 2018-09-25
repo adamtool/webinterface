@@ -1,0 +1,118 @@
+// Burglar adaption of nick wuerdemann. Has an error and thus no winning strategy
+// since com has to be activated by both playern.
+.name "roibinhood"
+.description "Robin Hood and Little John chase the King"
+.type LPN
+.options
+winningCondition="E_REACHABILITY"
+
+.places
+Catch1[token=1,yCoord=1224.54, xCoord=476.75, reach="true"]
+Catch2[token=2,yCoord=1224.54, xCoord=476.75, reach="true"]
+L1[token=1,yCoord=1902.25, xCoord=91.7]
+L2[token=2,yCoord=1960.25, xCoord=600.7]
+LE[yCoord=935.92, xCoord=213.94, env="true"]
+M1[token=1,yCoord=1899.21, xCoord=227.98]
+M2[token=2,yCoord=1946.21, xCoord=814.98]
+ME[yCoord=933.33, xCoord=387.22, env="true"]
+R1[token=1,yCoord=1934.25, xCoord=383.7]
+R2[token=2,yCoord=1953.25, xCoord=1045.7]
+RE[yCoord=935.05, xCoord=572.05, env="true"]
+bin[yCoord=1086.44, xCoord=467.43, env="true"]
+env[yCoord=265.83, xCoord=403.55, env="true"]
+escl[yCoord=759.66, xCoord=286.38, env="true"]
+escr[yCoord=746.6, xCoord=509.55, env="true"]
+hl[yCoord=500.19, xCoord=293.52, env="true"]
+hr[yCoord=505.17, xCoord=497.98, env="true"]
+infl1[token=1,yCoord=1628.12, xCoord=71.43]
+infl2[token=2,yCoord=1611.56, xCoord=636.61]
+infr1[token=1,yCoord=1614.09, xCoord=472.18]
+infr2[token=2,yCoord=1658.13, xCoorMAXTOKENCOUNTd=1002.71]
+invl1[token=1,yCoord=1499.56, xCoord=163.33]
+invl2[token=2,yCoord=1501.61, xCoord=688.96]
+invr1[token=1,yCoord=1504.25, xCoord=426.84]
+invr2[token=2,yCoord=1531.92, xCoord=883.1]
+sys1[token=1,yCoord=1184.59, xCoord=335.58]
+sys2[token=2,yCoord=1188.54, xCoord=778.2]
+
+.transitions
+cl1[label="cl1", yCoord=1107.94, xCoord=53.84]
+cl2[label="cl2", yCoord=1093.39, xCoord=677.98]
+cm1[label="cm1", yCoord=1109.9, xCoord=175.57]
+cm2[label="cm2", yCoord=1102.95, xCoord=805.03]
+com1[label="com1", yCoord=1742.79, xCoord=541.93]
+com2[label="com2", yCoord=1529.44, xCoord=550.73]
+cr1[label="cr1", yCoord=1109.91, xCoord=255.08]
+cr2[label="cr2", yCoord=1107.02, xCoord=899.22]
+le[label="le", yCoord=391.9, xCoord=344.85]
+lle[label="lle", yCoord=846.95, xCoord=250.25]
+lls1[label="lls1", yCoord=1773.61, xCoord=67.43]
+lls1p[label="lls1p", yCoord=1771.63, xCoord=136.94]
+lls2[label="lls2", yCoord=1832.67, xCoord=576.63]
+lls2p[label="lls2p", yCoord=1830.43, xCoord=630.55]
+lre[label="lre", yCoord=848.41, xCoord=346.82]
+lrs1[label="lrs1", yCoord=1771.95, xCoord=200.58]
+lrs1p[label="lrs1p", yCoord=1771.18, xCoord=262.17]
+lrs2[label="lrs2", yCoord=1830.32, xCoord=691.77]
+lrs2p[label="lrs2p", yCoord=1826.26, xCoord=759.86]
+ls1[label="ls1", yCoord=1350.82, xCoord=217.69]
+ls2[label="ls2", yCoord=1339.37, xCoord=708.2]
+re[label="re", yCoord=390.39, xCoord=457.51]
+rle[label="rle", yCoord=854.62, xCoord=449.34]
+rls1[label="rls1", yCoord=1765.61, xCoord=386.44]
+rls1p[label="rls1p", yCoord=1768.76, xCoord=324.42]
+rls2[label="rls2", yCoord=1833.79, xCoord=847.85]
+rls2p[label="rls2p", yCoord=1839.24, xCoord=921.89]
+rre[label="rre", yCoord=855.9, xCoord=543.11]
+rrs1[label="rrs1", yCoord=1837.32, xCoord=476.79]
+rrs1p[label="rrs1p", yCoord=1838.71, xCoord=416.19]
+rrs2[label="rrs2", yCoord=1839.84, xCoord=1006.96]
+rrs2p[label="rrs2p", yCoord=1843.74, xCoord=1077.74]
+rs1[label="rs1", yCoord=1353.4, xCoord=395.6]
+rs2[label="rs2", yCoord=1342.84, xCoord=873.44]
+sbl1[label="sbl1", yCoord=627.32, xCoord=212.62]
+sbl2[label="sbl2", yCoord=605.73, xCoord=336.5]
+sbr1[label="sbr1", yCoord=626.45, xCoord=464.13]
+sbr2[label="sbr2", yCoord=604.41, xCoord=607.12]
+
+.flows
+cl1: {1*L1, 1*LE} -> {1*bin, 1*Catch1}
+cl2: {1*L2, 1*LE} -> {1*Catch2, 1*bin}
+cm1: {1*ME, 1*M1} -> {1*bin, 1*Catch1}
+cm2: {1*M2, 1*ME} -> {1*bin, 1*Catch2}
+com1: {1*invl1, 1*invr2} -> {1*infr2, 1*infl1}
+com2: {1*invl2, 1*invr1} -> {1*infr1, 1*infl2}
+cr1: {1*R1, 1*RE} -> {1*bin, 1*Catch1}
+cr2: {1*R2, 1*RE} -> {1*bin, 1*Catch2}
+le: {1*env} -> {1*hl}
+lle: {1*escl} -> {1*LE}
+lls1: {1*infl1} -> {1*L1}
+lls1p: {1*invl1} -> {1*L1}
+lls2: {1*infl2} -> {1*L2}
+lls2p: {1*invl2} -> {1*L2}
+lre: {1*escl} -> {1*ME}
+lrs1: {1*infl1} -> {1*M1}
+lrs1p: {1*invl1} -> {1*M1}
+lrs2: {1*infl2} -> {1*M2}
+lrs2p: {1*invl2} -> {1*M2}
+ls1: {1*sys1} -> {1*invl1}
+ls2: {1*sys2} -> {1*invl2}
+re: {1*env} -> {1*hr}
+rle: {1*escr} -> {1*ME}
+rls1: {1*infr1} -> {1*M1}
+rls1p: {1*invr1} -> {1*M1}
+rls2: {1*infr2} -> {1*M2}
+rls2p: {1*invr2} -> {1*M2}
+rre: {1*escr} -> {1*RE}
+rrs1: {1*infr1} -> {1*R1}
+rrs1p: {1*invr1} -> {1*R1}
+rrs2: {1*infr2} -> {1*R2}
+rrs2p: {1*invr2} -> {1*R2}
+rs1: {1*sys1} -> {1*invr1}
+rs2: {1*sys2} -> {1*invr2}
+sbl1: {1*hl, 1*invl1} -> {1*escl, 1*invl1}
+sbl2: {1*invl2, 1*hl} -> {1*escl, 1*invl2}
+sbr1: {1*hr, 1*invr1} -> {1*escr, 1*invr1}
+sbr2: {1*hr, 1*invr2} -> {1*escr, 1*invr2}
+
+.initial_marking {1*env, 1*sys1, 1*sys2}

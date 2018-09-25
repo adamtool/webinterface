@@ -1,0 +1,41 @@
+// Paul's bad markings example -> Sys should win but maybe wrong strategy is produced
+.name "unfoldingAdditionalSystem"
+.type LPN
+.description "Testing the correctness of additional system places in the unfolding"
+.options
+winningCondition="SAFETY"
+
+.places
+S1
+S2
+S3
+S4
+S5
+S6
+S7
+S8
+bad[bad="true"]
+
+.transitions
+t1
+t1L
+t1R
+t2
+b2L
+b2R
+b1
+b2
+b3
+
+.flows
+t1  : {S1} -> {S2}
+t1L : {S2} -> {S3}
+t1R : {S2} -> {S4}
+t2  : {S5} -> {S6}
+b2L : {S6} -> {S7}
+b2R : {S6} -> {S8}
+b1  : {S3,S8} -> {bad}
+b2  : {S1,S7} -> {bad}
+b3  : {S4,S5} -> {bad}
+
+.initial_marking {S1,S5}

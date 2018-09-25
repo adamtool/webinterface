@@ -5,10 +5,10 @@
 winningCondition="A_BUCHI"
 
 .places
-env[env="true"]
+env[env="true", ifl="true"]
 env1[env="true",buchi="true"]
-sa1[buchi="true"]
-sb1
+sa1[buchi="true", ifl="true"]
+sb1[ifl="true"]
 sa2
 sb2[buchi="true"]
 
