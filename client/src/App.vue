@@ -60,7 +60,7 @@
              v-on:click="toggleAptEditor">
           <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
-        <v-tabs class="tabs-component-full-height" style="flex-grow: 1;">
+        <v-tabs class="tabs-component-full-height" style="flex-grow: 1;" id="splitLeftSide">
           <v-tab>Petri Game</v-tab>
           <v-tab>APT Editor</v-tab>
           <v-tab-item>
@@ -94,6 +94,13 @@
             </div>
           </v-tab-item>
         </v-tabs>
+        <!--<div v-if="strategyBDD || graphStrategyBDD || graphGameBDD">-->
+        <div id="splitRightSide">
+          <v-tabs>
+            <v-tab>E.g. StrategyBDD</v-tab>
+            <v-tab-item>Here would be the strategy BDD</v-tab-item>
+          </v-tabs>
+        </div>
       </div>
       <!--<div id="graphEditorContainer">-->
       <!--<tabs>-->
@@ -229,7 +236,7 @@
       this.log('Hello!')
 
       // Initialize draggable, resizable panes for APT editor and log viewer
-      // this.aptEditorSplit = this.createAptEditorSplit()
+      this.aptEditorSplit = this.createAptEditorSplit()
       this.createVerticalSplit()
     },
     data: function () {
@@ -367,7 +374,7 @@
         return split
       },
       createAptEditorSplit: function () {
-        const split = Split(['#aptEditorContainer', '#graphEditorContainer'], {
+        const split = Split(['#splitLeftSide', '#splitRightSide'], {
           sizes: this.aptEditorSplitSizes,
           minSize: 0,
           gutterSize: 20,
