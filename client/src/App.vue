@@ -44,6 +44,10 @@
                          label="Get Graph Strategy BDD"/>
           <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
         </hsc-menu-bar-item>
+        <hsc-menu-bar-item label="Settings">
+          <hsc-menu-item :label="showPhysicsControls ? 'Hide physics controls' : 'Show Physics controls'"
+                         @click="showPhysicsControls = !showPhysicsControls"/>
+        </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
@@ -81,7 +85,7 @@
                            v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
                            v-on:setInitialToken='setInitialToken'
                            v-on:setWinningCondition='setWinningCondition'
-                           :shouldShowPhysicsControls="true"
+                           :shouldShowPhysicsControls="showPhysicsControls"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
                            :shouldShowSaveAPTButton="true"/>
@@ -90,14 +94,14 @@
                  :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
               <GraphEditor :graph='strategyBDD'
                            ref='graphEditorStrategyBDD'
-                           shouldShowPhysicsControls
+                           :shouldShowPhysicsControls="showPhysicsControls"
                            :dimensions='graphEditorDimensions'/>
             </tab>
             <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
                  :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
               <GraphEditor :graph='graphStrategyBDD'
                            ref='graphEditorGraphStrategyBDD'
-                           shouldShowPhysicsControls
+                           :shouldShowPhysicsControls="showPhysicsControls"
                            :dimensions='graphEditorDimensions'/>
             </tab>
             <tab name="Graph Game BDD" v-if="graphGameBDD"
@@ -107,7 +111,7 @@
                            :dimensions='graphEditorDimensions'
                            v-on:toggleStatePostset='toggleGraphGameStatePostset'
                            v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                           :shouldShowPhysicsControls="true"
+                           :shouldShowPhysicsControls="showPhysicsControls"
                            :repulsionStrengthDefault="415"
                            :linkStrengthDefault="0.04"
                            :gravityStrengthDefault="300"/>
@@ -237,6 +241,7 @@
         graphStrategyBDD: null,
         graphGameBDD: null,
         isAptEditorVisible: true,
+        showPhysicsControls: false,
         messageLog: [],
         graphEditorDimensions: {
           width: 0,
