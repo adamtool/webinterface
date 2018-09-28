@@ -55,7 +55,6 @@
         v-model="selectedWinningCondition"
         :items="winningConditions"
         label="Winning Condition"/>
-      <div>{{ winningCondition }}</div>
     </div>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
