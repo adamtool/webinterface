@@ -833,8 +833,7 @@
       },
       updateSvgDimensions: function () {
         this.svg.attr('width', `${this.dimensions.width}px`)
-        // TODO replace hack with proper solution (this is highly specific to my weird tabs component)
-        this.svg.attr('height', `${this.dimensions.height - 59 - 28 + 24}px`)
+        this.svg.attr('height', `${this.dimensions.height}px`)
         this.updateCenterForce()
       },
       /**
