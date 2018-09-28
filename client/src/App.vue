@@ -80,6 +80,7 @@
                            v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
                            v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
                            v-on:setInitialToken='setInitialToken'
+                           v-on:setWinningCondition='setWinningCondition'
                            :shouldShowPhysicsControls="true"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -318,7 +319,8 @@
           renameNode: this.baseUrl + '/renameNode',
           toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace',
           toggleIsInitialTokenFlow: this.baseUrl + '/toggleIsInitialTokenFlow',
-          setInitialToken: this.baseUrl + '/setInitialToken'
+          setInitialToken: this.baseUrl + '/setInitialToken',
+          setWinningCondition: this.baseUrl + '/setWinningCondition'
         }
       },
       webSocketUrl: function () {
@@ -660,6 +662,18 @@
           petriGameId: this.petriGame.uuid,
           nodeId: nodeId,
           tokens: tokens
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      setWinningCondition: function (winningCondition) {
+        axios.post(this.restEndpoints.setWinningCondition, {
+          petriGameId: this.petriGame.uuid,
+          winningCondition: winningCondition
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.petriGame.net = response.data.result

@@ -11,6 +11,8 @@ import uniol.apt.adt.pn.Node;
 import uniol.apt.adt.pn.Place;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
+import uniolunisaar.adam.ds.winningconditions.WinningCondition.Objective;
 import uniolunisaar.adam.tools.Logger;
 
 import java.lang.reflect.Type;
@@ -292,6 +294,19 @@ public class App {
             return successResponse(petriGameClient);
         });
 
+        post("/setWinningCondition", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String winningCondition = body.get("winningCondition").getAsString();
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            Objective objective = Objective.valueOf(winningCondition);
+            PetriGameExtensionHandler.setWinningConditionAnnotation(petriGame, objective);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame);
+            return successResponse(petriGameClient);
+        });
         post("/createFlow", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();

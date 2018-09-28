@@ -50,6 +50,11 @@
           <v-radio label="delete node" value="deleteNode"/>
         </v-radio-group>
       </div>
+      <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
+      <v-select
+        v-model="selectedWinningCondition"
+        :items="winningConditions"
+        label="Winning Condition"/>
       <div>{{ winningCondition }}</div>
     </div>
 
@@ -588,6 +593,14 @@
       }
     },
     watch: {
+      selectedWinningCondition: function (condition) {
+        if (condition !== this.winningCondition) {
+          this.$emit('setWinningCondition', condition)
+        }
+      },
+      winningCondition: function (condition) {
+        this.selectedWinningCondition = condition
+      },
       selectedTool: function (tool) {
         switch (tool) {
           case 'select': {
@@ -672,6 +685,17 @@
     data () {
       return {
         winningCondition: '',
+        selectedWinningCondition: '',
+        winningConditions: [
+          'E_REACHABILITY',
+          'A_REACHABILITY',
+          'E_SAFETY',
+          'A_SAFETY',
+          'E_BUCHI',
+          'A_BUCHI',
+          'E_PARITY',
+          'A_PARITY',
+          'LTL'],
         // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
         selectedTool: 'select',
