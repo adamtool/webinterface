@@ -55,74 +55,74 @@
     </my-theme>
 
     <div style="width: 100%; height: 100vh">
-      <div style="display: flex; flex-direction: row;" ref="horizontalSplitDiv">
-        <div class="flex-column-divider"
-             v-on:click="toggleAptEditor">
-          <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
-        </div>
+      <v-tabs class="tabs-component-full-height">
+        <v-tab>Petri Game</v-tab>
+        <v-tab>APT Editor</v-tab>
+        <v-tab-item>
+          <div id="graphEditorContainer">
+            <GraphEditor :graph='petriGame.net'
+                         :dimensions='graphEditorDimensions'
+                         ref='graphEditorPetriGame'
+                         v-on:graphModified='onGraphModified'
+                         v-on:saveGraphAsAPT='savePetriGameAsAPT'
+                         v-on:insertNode='insertNode'
+                         v-on:createFlow='createFlow'
+                         v-on:deleteNode='deleteNode'
+                         v-on:renameNode='renameNode'
+                         v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                         v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                         v-on:setInitialToken='setInitialToken'
+                         v-on:setWinningCondition='setWinningCondition'
+                         :shouldShowPhysicsControls="showPhysicsControls"
+                         :repulsionStrengthDefault="360"
+                         :linkStrengthDefault="0.086"
+                         :shouldShowSaveAPTButton="true"/>
 
-        <div id="aptEditorContainer" :style="aptEditorStyle">
-          <div style="display: flex; flex-direction: column; height: 100%">
+          </div>
+        </v-tab-item>
+        <v-tab-item>
+          <div :style="aptEditorStyle">
             <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
               APT Editor
             </div>
             <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
           </div>
-        </div>
-        <div id="graphEditorContainer">
-          <tabs>
-            <tab name="Petri Game" :style="petriGameTabStyle">
-              <GraphEditor :graph='petriGame.net'
-                           :dimensions='graphEditorDimensions'
-                           ref='graphEditorPetriGame'
-                           v-on:graphModified='onGraphModified'
-                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                           v-on:insertNode='insertNode'
-                           v-on:createFlow='createFlow'
-                           v-on:deleteNode='deleteNode'
-                           v-on:renameNode='renameNode'
-                           v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
-                           v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
-                           v-on:setInitialToken='setInitialToken'
-                           v-on:setWinningCondition='setWinningCondition'
-                           :shouldShowPhysicsControls="showPhysicsControls"
-                           :repulsionStrengthDefault="360"
-                           :linkStrengthDefault="0.086"
-                           :shouldShowSaveAPTButton="true"/>
-            </tab>
-            <tab name="Strategy BDD" v-if="strategyBDD"
-                 :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='strategyBDD'
-                           ref='graphEditorStrategyBDD'
-                           :shouldShowPhysicsControls="showPhysicsControls"
-                           :dimensions='graphEditorDimensions'/>
-            </tab>
-            <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
-                 :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='graphStrategyBDD'
-                           ref='graphEditorGraphStrategyBDD'
-                           :shouldShowPhysicsControls="showPhysicsControls"
-                           :dimensions='graphEditorDimensions'/>
-            </tab>
-            <tab name="Graph Game BDD" v-if="graphGameBDD"
-                 :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='graphGameBDD'
-                           ref='graphEditorGraphGameBDD'
-                           :dimensions='graphEditorDimensions'
-                           v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                           v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                           :shouldShowPhysicsControls="showPhysicsControls"
-                           :repulsionStrengthDefault="415"
-                           :linkStrengthDefault="0.04"
-                           :gravityStrengthDefault="300"/>
-            </tab>
-          </tabs>
-        </div>
-      </div>
-      <!--End first row-->
-      <div ref="messageLogDiv">
-        <LogViewer :messages="messageLog"/>
-      </div>
+        </v-tab-item>
+      </v-tabs>
+    </div>
+    <!--<div id="graphEditorContainer">-->
+    <!--<tabs>-->
+    <!--<tab name="Strategy BDD" v-if="strategyBDD"-->
+    <!--:suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">-->
+    <!--<GraphEditor :graph='strategyBDD'-->
+    <!--ref='graphEditorStrategyBDD'-->
+    <!--:shouldShowPhysicsControls="showPhysicsControls"-->
+    <!--:dimensions='graphEditorDimensions'/>-->
+    <!--</tab>-->
+    <!--<tab name="Graph Strategy BDD" v-if="graphStrategyBDD"-->
+    <!--:suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">-->
+    <!--<GraphEditor :graph='graphStrategyBDD'-->
+    <!--ref='graphEditorGraphStrategyBDD'-->
+    <!--:shouldShowPhysicsControls="showPhysicsControls"-->
+    <!--:dimensions='graphEditorDimensions'/>-->
+    <!--</tab>-->
+    <!--<tab name="Graph Game BDD" v-if="graphGameBDD"-->
+    <!--:suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">-->
+    <!--<GraphEditor :graph='graphGameBDD'-->
+    <!--ref='graphEditorGraphGameBDD'-->
+    <!--:dimensions='graphEditorDimensions'-->
+    <!--v-on:toggleStatePostset='toggleGraphGameStatePostset'-->
+    <!--v-on:toggleStatePreset='toggleGraphGameStatePreset'-->
+    <!--:shouldShowPhysicsControls="showPhysicsControls"-->
+    <!--:repulsionStrengthDefault="415"-->
+    <!--:linkStrengthDefault="0.04"-->
+    <!--:gravityStrengthDefault="300"/>-->
+    <!--</tab>-->
+    <!--</tabs>-->
+    <!--</div>-->
+    <!--End first row-->
+    <div ref="messageLogDiv">
+      <LogViewer :messages="messageLog"/>
     </div>
   </v-app>
 </template>
@@ -223,8 +223,8 @@
       this.log('Hello!')
 
       // Initialize draggable, resizable panes for APT editor and log viewer
-      this.aptEditorSplit = this.createAptEditorSplit()
-      this.createVerticalSplit()
+      // this.aptEditorSplit = this.createAptEditorSplit()
+      // this.createVerticalSplit()
     },
     data: function () {
       return {
@@ -303,7 +303,8 @@
             this.showErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
         }
         const borderStyle = `border: 3px solid ${color};`
-        return hideStyle + borderStyle
+        const layoutStyle = 'display: flex; flex-direction: column; height: 100%;'
+        return layoutStyle + hideStyle + borderStyle
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -780,6 +781,32 @@
     padding-left: 10px;
     resize: none;
     font-size: 18px;
+  }
+
+  #graphEditorContainer {
+    height: 100%;
+  }
+
+  .tabs-component-full-height,
+  .tabs-component-full-height > .v-tabs__items > .v-tabs__content {
+    height: 100%;
+  }
+
+  .tabs-component-full-height {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tabs-component-full-height > .v-tabs__bar {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+  }
+
+  .tabs-component-full-height > .v-tabs__items {
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: available;
   }
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/
