@@ -57,10 +57,10 @@
     <div style="width: 100%; height: 100vh">
       <div style="display: flex; flex-direction: row; height: 100%; width: 100%;" ref="horizontalSplitDiv">
         <div class="flex-column-divider"
-             v-on:click="toggleAptEditor">
-          <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
+             v-on:click="toggleLeftPane">
+          <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
-        <v-tabs class="tabs-component-full-height" style="flex-grow: 1;" id="splitLeftSide">
+        <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide">
           <v-tab>Petri Game</v-tab>
           <v-tab>APT Editor</v-tab>
           <v-tab-item>
@@ -236,7 +236,7 @@
       this.log('Hello!')
 
       // Initialize draggable, resizable panes for APT editor and log viewer
-      this.aptEditorSplit = this.createAptEditorSplit()
+      this.horizontalSplit = this.createHorizontalSplit()
       this.createVerticalSplit()
     },
     data: function () {
@@ -253,7 +253,7 @@
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
-        isAptEditorVisible: true,
+        isLeftPaneVisible: true,
         showPhysicsControls: false,
         messageLog: [],
         graphEditorDimensions: {
@@ -265,9 +265,9 @@
           text: '',
           color: undefined
         },
-        aptEditorSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
-        aptEditorSplitSizes: [25, 75],
-        aptEditorMinWidth: 7.65 // Percentage of flexbox container's width
+        horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
+        horizontalSplitSizes: [25, 75],
+        leftPaneMinWidth: 7.65 // Percentage of flexbox container's width
       }
     },
     watch: {
@@ -299,8 +299,10 @@
       aptFileTree: function () {
         return aptFileTree
       },
+      splitLeftSideStyle: function () {
+        return this.isLeftPaneVisible ? '' : 'display: none;'
+      },
       aptEditorStyle: function () {
-        const hideStyle = this.isAptEditorVisible ? '' : 'display: none;'
         let color
         switch (this.aptParseStatus) {
           case 'success':
@@ -317,7 +319,7 @@
         }
         const borderStyle = `border: 3px solid ${color};`
         const layoutStyle = 'display: flex; flex-direction: column; height: 100%;'
-        return layoutStyle + hideStyle + borderStyle
+        return layoutStyle + borderStyle
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -373,9 +375,9 @@
         })
         return split
       },
-      createAptEditorSplit: function () {
+      createHorizontalSplit: function () {
         const split = Split(['#splitLeftSide', '#splitRightSide'], {
-          sizes: this.aptEditorSplitSizes,
+          sizes: this.horizontalSplitSizes,
           minSize: 0,
           gutterSize: 20,
           elementStyle: function (dimension, size, gutterSize) {
@@ -389,39 +391,39 @@
             }
           },
           onDrag: () => {
-            const aptEditorWidth = split.getSizes()[0]
-            const shouldAptEditorCollapse = aptEditorWidth <= this.aptEditorMinWidth
-            if (shouldAptEditorCollapse && this.isAptEditorVisible) {
-              this.logVerbose('collapsing apt editor')
-              this.isAptEditorVisible = false
+            const leftPaneWidth = split.getSizes()[0]
+            const leftPaneShouldCollapse = leftPaneWidth <= this.leftPaneMinWidth
+            if (leftPaneShouldCollapse && this.isLeftPaneVisible) {
+              this.logVerbose('collapsing left pane')
+              this.isLeftPaneVisible = false
             }
-            if (shouldAptEditorCollapse) {
+            if (leftPaneShouldCollapse) {
               split.setSizes([0, 100])
             }
-            if (!shouldAptEditorCollapse && !this.isAptEditorVisible) {
+            if (!leftPaneShouldCollapse && !this.isLeftPaneVisible) {
               this.logVerbose('expanding apt editor')
-              this.isAptEditorVisible = true
+              this.isLeftPaneVisible = true
             }
           },
           onDragEnd: () => {
-            if (this.isAptEditorVisible) {
-              // Save current sizes so that we can restore them in toggleAptEditor()
-              this.aptEditorSplitSizes = split.getSizes()
+            if (this.isLeftPaneVisible) {
+              // Save current sizes so that we can restore them in toggleLeftPane()
+              this.horizontalSplitSizes = split.getSizes()
             }
           }
         })
         return split
       },
       // Hide or show APT editor, restoring its size if appropriate
-      toggleAptEditor: function () {
-        this.logVerbose('toggleAptEditor()')
-        const restoring = !this.isAptEditorVisible
+      toggleLeftPane: function () {
+        this.logVerbose('toggleLeftPane()')
+        const restoring = !this.isLeftPaneVisible
         if (restoring) {
-          this.aptEditorSplit.setSizes(this.aptEditorSplitSizes)
+          this.horizontalSplit.setSizes(this.horizontalSplitSizes)
         } else {
-          this.aptEditorSplit.setSizes([0, 100])
+          this.horizontalSplit.setSizes([0, 100])
         }
-        this.isAptEditorVisible = !this.isAptEditorVisible
+        this.isLeftPaneVisible = !this.isLeftPaneVisible
       },
       // Load APT from a text file stored on the user's local filesystem
       // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
@@ -601,7 +603,7 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
-            this.isAptEditorVisible = true
+            this.isLeftPaneVisible = true
           })
         }).catch(() => {
           this.logError('Network error')
@@ -728,7 +730,7 @@
         // to be reset.
         this.$refs.graphEditorPetriGame.onLoadNewPetriGame()
         this.apt = apt
-        this.isAptEditorVisible = true
+        this.isLeftPaneVisible = true
       },
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
