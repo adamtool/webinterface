@@ -38,16 +38,15 @@
         </button>
         <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
       </div>
-      <div class="graph-editor-toolbar" v-if="showEditorTools">
-        <v-radio-group v-model="selectedTool" row>
-          <v-radio label="select" value="select"/>
-          <v-radio label="draw flows" value="drawFlow"/>
-          <v-radio label="insert sysplace" value="insertSysPlace"/>
-          <v-radio label="insert envplace" value="insertEnvPlace"/>
-          <v-radio label="insert transition" value="insertTransition"/>
-          <v-radio label="delete node" value="deleteNode"/>
-        </v-radio-group>
-      </div>
+      <v-radio-group v-model="selectedTool" v-if="showEditorTools" row>
+        <v-radio label="select" value="select"/>
+        <v-radio label="draw flows" value="drawFlow"/>
+        <v-radio label="draw token flows" value="drawTokenFlow"/>
+        <v-radio label="insert sysplace" value="insertSysPlace"/>
+        <v-radio label="insert envplace" value="insertEnvPlace"/>
+        <v-radio label="insert transition" value="insertTransition"/>
+        <v-radio label="delete node" value="deleteNode"/>
+      </v-radio-group>
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
       <v-select
         v-if="showEditorTools"
@@ -162,6 +161,9 @@
             break
           case 'Delete':
             this.deleteSelectedNodes()
+            break
+          case 'Enter':
+            this.drawTokenFlowHandler.finish()
             break
         }
       })
@@ -386,10 +388,77 @@
                 this.selectedNodes = [d]
               }
             }
+          case 'drawTokenFlow':
+            return this.drawTokenFlowHandler.onClick
           default:
             return () => {
               console.log(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
             }
+        }
+      },
+      drawTokenFlowHandler: function () {
+        let state = 0
+        let source
+        let transition
+        let targets = new Set()
+
+        function logCurrentState () {
+          const src = source ? source.id : 'none'
+          const trans = transition ? transition.id : 'none'
+          const targetList = Array.from(targets).map(t => t.id).join(', ')
+          console.log(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\ntargets: ${targetList}`)
+        }
+
+        return {
+          finish: () => {
+            if (source && transition && targets.size > 0) {
+              this.$emit('createTokenFlow', {
+                source, transition, targets
+              })
+            } else {
+              console.log('Aborting drawTokenFlow.  A source, transition, and at least one target must be specified.')
+            }
+            state = 0
+            source = undefined
+            transition = undefined
+            targets = new Set()
+          },
+          onClick: (d) => {
+            switch (state) {
+              case 0: {
+                if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
+                  source = d
+                  logCurrentState()
+                  state = 1
+                } else {
+                  console.log('DrawTokenFlow: Ignoring click on node that isnt a place')
+                }
+                break
+              }
+              case 1: {
+                if (d.type === 'TRANSITION') {
+                  transition = d
+                  logCurrentState()
+                  state = 2
+                } else {
+                  console.log('DrawTokenFlow: Ignoring click on node that isnt a transition')
+                }
+                break
+              }
+              case 2: {
+                if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
+                  if (targets.has(d)) {
+                    targets.delete(d)
+                  } else {
+                    targets.add(d)
+                  }
+                  logCurrentState()
+                } else {
+                  console.log('DrawTokenFlow: Ignoring click on node that isnt a place')
+                }
+              }
+            }
+          }
         }
       },
       backgroundClickHandler: function () {
@@ -626,6 +695,13 @@
             this.dragDropMode = 'drawFlow'
             break
           }
+          case 'drawTokenFlow': {
+            this.backgroundDragDropMode = 'zoom'
+            this.backgroundClickMode = 'cancelSelection'
+            this.leftClickMode = 'drawTokenFlow'
+            this.dragDropMode = 'moveNode'
+            break
+          }
           case 'insertSysPlace': {
             this.backgroundDragDropMode = 'selectNodes'
             this.backgroundClickMode = 'insertNode'
@@ -656,6 +732,9 @@
             this.leftClickMode = 'deleteNode'
             this.dragDropMode = 'moveNode'
             break
+          }
+          default: {
+            console.log('Unknown tool: ' + tool)
           }
         }
       },

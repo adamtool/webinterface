@@ -70,6 +70,7 @@
                          v-on:graphModified='onGraphModified'
                          v-on:insertNode='insertNode'
                          v-on:createFlow='createFlow'
+                         v-on:createTokenFlow='createTokenFlow'
                          v-on:deleteNode='deleteNode'
                          v-on:renameNode='renameNode'
                          v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
@@ -603,6 +604,12 @@
         }).catch(() => {
           this.logError('Network error')
         })
+      },
+      createTokenFlow: function ({source, transition, targets}) {
+        console.log('processing createTokenFlow event')
+        console.log(source)
+        console.log(transition)
+        console.log(targets)
       },
       deleteNode: function (nodeId) {
         console.log('processing deleteNode event for node id ' + nodeId)
