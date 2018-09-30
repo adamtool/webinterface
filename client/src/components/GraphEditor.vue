@@ -402,11 +402,23 @@
         let transition
         let postset = new Set()
 
-        function logCurrentState () {
+        // Log our state and display it using D3
+        const logCurrentState = () => {
           const src = source ? source.id : 'none'
           const trans = transition ? transition.id : 'none'
           const targetList = Array.from(postset).map(t => t.id).join(', ')
           console.log(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
+          this.drawTokenFlowPreviewLinks = [{
+            source: source,
+            target: transition
+          }].concat(Array.from(postset).map(postNode => ({
+            source: transition,
+            target: postNode
+          })))
+          this.drawTokenFlowPreviewSource = source
+          this.drawTokenFlowPreviewTransition = transition
+          this.drawTokenFlowPreviewPostset = Array.from(postset)
+          this.updateD3()
         }
 
         return {
@@ -424,14 +436,19 @@
             source = undefined
             transition = undefined
             postset = new Set()
+            this.drawTokenFlowPreviewLinks = []
+            this.drawTokenFlowPreviewSource = undefined
+            this.drawTokenFlowPreviewTransition = undefined
+            this.drawTokenFlowPreviewPostset = []
+            this.updateD3()
           },
           onClick: (d) => {
             switch (state) {
               case 0: {
                 if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
                   source = d
-                  logCurrentState()
                   state = 1
+                  logCurrentState()
                 } else {
                   console.log('DrawTokenFlow: Ignoring click on node that isnt a place')
                 }
@@ -440,8 +457,8 @@
               case 1: {
                 if (d.type === 'TRANSITION') {
                   transition = d
-                  logCurrentState()
                   state = 2
+                  logCurrentState()
                 } else {
                   console.log('DrawTokenFlow: Ignoring click on node that isnt a transition')
                 }
@@ -790,6 +807,10 @@
           'E_PARITY',
           'A_PARITY',
           'LTL'],
+        drawTokenFlowPreviewLinks: [],
+        drawTokenFlowPreviewSource: undefined,
+        drawTokenFlowPreviewTransition: undefined,
+        drawTokenFlowPreviewPostset: [],
         // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
         selectedTool: 'select',
@@ -1116,6 +1137,7 @@
         this.linkTextGroup = this.container.append('g').attr('class', 'linkTexts')
         this.nodeGroup = this.container.append('g').attr('class', 'nodes')
         this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
+        this.drawTokenFlowPreviewGroup = this.container.append('g').attr('class', 'drawTokenFlowPreview')
         this.labelGroup = this.container.append('g').attr('class', 'texts')
         this.contentGroup = this.container.append('g').attr('class', 'node-content')
         // This is the arrow that we draw when the user is adding a transition between two nodes
@@ -1227,6 +1249,29 @@
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
 
+        const tokenFlowPreviewNodes = this.drawTokenFlowPreviewPostset
+          .concat([this.drawTokenFlowPreviewTransition, this.drawTokenFlowPreviewSource])
+          .filter(d => d !== undefined)
+        const drawTokenFlowPreviewCircles = this.drawTokenFlowPreviewGroup
+          .selectAll('circle')
+          .data(tokenFlowPreviewNodes)
+        const newCircles = drawTokenFlowPreviewCircles.enter()
+          .append('circle')
+        newCircles.call(this.applyNodeEventHandler)
+        drawTokenFlowPreviewCircles.exit().remove()
+        this.drawTokenFlowPreviewCircles = drawTokenFlowPreviewCircles.merge(newCircles)
+        this.drawTokenFlowPreviewCircles
+          .attr('r', d => {
+            if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
+              return this.nodeRadius * 1.4
+            } else {
+              return this.nodeRadius * 1.6
+            }
+          })
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('fill-opacity', 0.1)
+
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')
           .data(this.nodes, this.keyFunction)
@@ -1292,15 +1337,23 @@
         }
         const newLinkElements = this.linkGroup
           .selectAll('path')
-          .data(this.links)
+          .data(this.links.concat(this.drawTokenFlowPreviewLinks))
         const linkEnter = newLinkElements
           .enter().append('path')
           .attr('fill', 'none')
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
-          .attr('stroke-width', 3)
+          .attr('stroke-width', link => {
+            if (this.drawTokenFlowPreviewLinks.includes(link)) {
+              return 6
+            } else {
+              return 3
+            }
+          })
           .attr('stroke', link => {
-            if (link.tokenFlowHue !== undefined) {
+            if (this.drawTokenFlowPreviewLinks.includes(link)) {
+              return '#444444'
+            } else if (link.tokenFlowHue !== undefined) {
               return getTokenFlowColor(link)
             } else {
               return '#E5E5E5'
@@ -1379,6 +1432,10 @@
               } else {
                 return 0
               }
+            })
+          this.drawTokenFlowPreviewCircles
+            .attr('transform', d => {
+              return `translate(${d.x},${d.y})`
             })
 
           // TODO implement super cool feature to stretch and shrink a selection (moving all nodes proportionally)
