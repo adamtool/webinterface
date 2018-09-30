@@ -24,10 +24,6 @@
       </div>
       <div class="graph-editor-toolbar">
         <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
-        <button style="margin-right: auto" v-if="shouldShowSaveAPTButton"
-                v-on:click="saveGraphAsAPT">
-          Save graph as APT
-        </button>
         <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
           Zoom to fit all nodes
         </button>
@@ -174,10 +170,6 @@
         required: true
       },
       shouldShowPhysicsControls: {
-        type: Boolean,
-        default: false
-      },
-      shouldShowSaveAPTButton: {
         type: Boolean,
         default: false
       },
@@ -703,7 +695,6 @@
         leftClickMode: 'selectNode',
         dragDropMode: 'moveNode',
         nodeTypeToInsert: 'SYSPLACE',
-        saveGraphAPTRequestPreview: {},
         nodeRadius: 27,
         exportedGraphJson: {},
         svg: undefined,
@@ -954,18 +945,15 @@
           }
         })
       },
-      saveGraphAsAPT: function () {
-        this.freezeAllNodes()
+      getNodeXYCoordinates: function () {
         // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as value.
-        const mapNodeIDXY = this.nodes.reduce(function (map, node) {
+        return this.nodes.reduce(function (map, node) {
           map[node.id] = {
             x: node.x.toFixed(2),
             y: node.y.toFixed(2)
           }
           return map
         }, {})
-        this.saveGraphAPTRequestPreview = JSON.stringify(mapNodeIDXY, null, 2)
-        this.$emit('saveGraphAsAPT', mapNodeIDXY)
       },
       onGraphModified: function () {
         // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.

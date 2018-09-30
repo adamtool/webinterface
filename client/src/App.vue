@@ -60,16 +60,16 @@
              v-on:click="toggleLeftPane">
           <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
-        <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide">
+        <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
+                v-model="selectedTabLeftSide">
           <v-tab>Petri Game</v-tab>
-          <v-tab>APT Editor</v-tab>
+          <v-tab @click="onSwitchToAptEditor">APT Editor</v-tab>
           <v-tab-item>
             <div id="graphEditorContainer">
               <GraphEditor :graph='petriGame.net'
                            :dimensions='graphEditorDimensions'
                            ref='graphEditorPetriGame'
                            v-on:graphModified='onGraphModified'
-                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
                            v-on:deleteNode='deleteNode'
@@ -80,9 +80,7 @@
                            v-on:setWinningCondition='setWinningCondition'
                            :shouldShowPhysicsControls="showPhysicsControls"
                            :repulsionStrengthDefault="360"
-                           :linkStrengthDefault="0.086"
-                           :shouldShowSaveAPTButton="true"/>
-
+                           :linkStrengthDefault="0.086"/>
             </div>
           </v-tab-item>
           <v-tab-item>
@@ -267,7 +265,8 @@
         },
         horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
         horizontalSplitSizes: [25, 75],
-        leftPaneMinWidth: 7.65 // Percentage of flexbox container's width
+        leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
+        selectedTabLeftSide: 0
       }
     },
     watch: {
@@ -593,17 +592,26 @@
           this.logError('Network error')
         })
       },
-      // Our graph editor may give us an object with Node IDs as keys and x,y coordinates as values.
-      // We send those x,y coordinates to the server and get back an APT with those coordinates in it.
-      // We put that APT into the APT editor .
-      savePetriGameAsAPT: function (mapNodeIDXY) {
+      onSwitchToAptEditor: function () {
+        const isAptEditorAlreadySelected = this.selectedTabLeftSide === 1
+        if (isAptEditorAlreadySelected) {
+          return
+        }
+        this.logVerbose('Switching to APT editor')
+        this.savePetriGameAsAPT()
+      },
+      savePetriGameAsAPT: function () {
+        // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
+        // We send those x,y coordinates to the server, and the server saves them as annotations
+        // into the PetriGame object.
+        // Then, the server converts the PetriGame into APT format and gives that to us.
+        const nodePositions = this.$refs.graphEditorPetriGame.getNodeXYCoordinates()
         axios.post(this.restEndpoints.savePetriGameAsAPT, {
           petriGameId: this.petriGame.uuid,
-          nodeXYCoordinateAnnotations: mapNodeIDXY
+          nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
-            this.isLeftPaneVisible = true
           })
         }).catch(() => {
           this.logError('Network error')
