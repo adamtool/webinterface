@@ -65,23 +65,20 @@
           <v-tab>Petri Game</v-tab>
           <v-tab @click="onSwitchToAptEditor">APT Editor</v-tab>
           <v-tab-item>
-            <div id="graphEditorContainer">
-              <GraphEditor :graph='petriGame.net'
-                           :dimensions='graphEditorDimensions'
-                           ref='graphEditorPetriGame'
-                           v-on:graphModified='onGraphModified'
-                           v-on:insertNode='insertNode'
-                           v-on:createFlow='createFlow'
-                           v-on:deleteNode='deleteNode'
-                           v-on:renameNode='renameNode'
-                           v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
-                           v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
-                           v-on:setInitialToken='setInitialToken'
-                           v-on:setWinningCondition='setWinningCondition'
-                           :shouldShowPhysicsControls="showPhysicsControls"
-                           :repulsionStrengthDefault="360"
-                           :linkStrengthDefault="0.086"/>
-            </div>
+            <GraphEditor :graph='petriGame.net'
+                         ref='graphEditorPetriGame'
+                         v-on:graphModified='onGraphModified'
+                         v-on:insertNode='insertNode'
+                         v-on:createFlow='createFlow'
+                         v-on:deleteNode='deleteNode'
+                         v-on:renameNode='renameNode'
+                         v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                         v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                         v-on:setInitialToken='setInitialToken'
+                         v-on:setWinningCondition='setWinningCondition'
+                         :shouldShowPhysicsControls="showPhysicsControls"
+                         :repulsionStrengthDefault="360"
+                         :linkStrengthDefault="0.086"/>
           </v-tab-item>
           <v-tab-item>
             <div :style="aptEditorStyle">
@@ -171,8 +168,6 @@
   import makeWebSocket from '@/logWebSocket'
   import { saveFileAs } from './fileutilities'
 
-  const ResizeSensor = require('css-element-queries/src/ResizeSensor')
-
   import Split from 'split.js'
 
   export default {
@@ -218,20 +213,6 @@
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
-      const flexElem = document.getElementById('graphEditorContainer')
-      const updateGraphEditorDimensions = () => {
-        const width = flexElem.clientWidth
-        const height = flexElem.clientHeight
-        // this.logVerbose('flex element changed to ' + width + ' x ' + height)
-        this.graphEditorDimensions = {
-          width: width,
-          height: height
-        }
-      }
-
-      // eslint-disable-next-line no-new
-      new ResizeSensor(flexElem, updateGraphEditorDimensions)
-      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
       this.log('Hello!')
 
       // Initialize draggable, resizable panes for APT editor and log viewer
@@ -255,10 +236,6 @@
         isLeftPaneVisible: true,
         showPhysicsControls: false,
         messageLog: [],
-        graphEditorDimensions: {
-          width: 0,
-          height: 0
-        },
         snackbarMessage: {
           display: false,
           text: '',
@@ -810,10 +787,6 @@
     padding-left: 10px;
     resize: none;
     font-size: 18px;
-  }
-
-  #graphEditorContainer {
-    height: 100%;
   }
 
   .tabs-component-full-height,

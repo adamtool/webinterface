@@ -132,6 +132,8 @@
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import { chain } from 'lodash'
+  const ResizeSensor = require('css-element-queries/src/ResizeSensor')
+  import Vue from 'vue'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
@@ -159,13 +161,21 @@
             break
         }
       })
+      const parent = this.$refs.rootElement.parentElement
+      const updateGraphEditorDimensions = () => {
+        const width = parent.clientWidth
+        const height = parent.clientHeight
+        this.dimensions = {
+          width: width,
+          height: height
+        }
+      }
+      // eslint-disable-next-line no-new
+      new ResizeSensor(parent, updateGraphEditorDimensions)
+      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
     },
     props: {
       graph: {
-        type: Object,
-        required: true
-      },
-      dimensions: {
         type: Object,
         required: true
       },
@@ -669,12 +679,16 @@
         this.importGraph(graph)
         this.updateD3()
       },
-      dimensions: function (dims) {
+      dimensions: function () {
         this.updateSvgDimensions()
       }
     },
     data () {
       return {
+        dimensions: {
+          width: 0,
+          height: 0
+        },
         winningCondition: '',
         selectedWinningCondition: '',
         winningConditions: [
