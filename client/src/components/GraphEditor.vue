@@ -400,20 +400,22 @@
         let state = 0
         let source
         let transition
-        let targets = new Set()
+        let postset = new Set()
 
         function logCurrentState () {
           const src = source ? source.id : 'none'
           const trans = transition ? transition.id : 'none'
-          const targetList = Array.from(targets).map(t => t.id).join(', ')
-          console.log(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\ntargets: ${targetList}`)
+          const targetList = Array.from(postset).map(t => t.id).join(', ')
+          console.log(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
         }
 
         return {
           finish: () => {
-            if (source && transition && targets.size > 0) {
+            if (source && transition && postset.size > 0) {
               this.$emit('createTokenFlow', {
-                source, transition, targets
+                source: source.id,
+                transition: transition.id,
+                postset: Array.from(postset).map(d => d.id)
               })
             } else {
               console.log('Aborting drawTokenFlow.  A source, transition, and at least one target must be specified.')
@@ -421,7 +423,7 @@
             state = 0
             source = undefined
             transition = undefined
-            targets = new Set()
+            postset = new Set()
           },
           onClick: (d) => {
             switch (state) {
@@ -447,10 +449,10 @@
               }
               case 2: {
                 if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
-                  if (targets.has(d)) {
-                    targets.delete(d)
+                  if (postset.has(d)) {
+                    postset.delete(d)
                   } else {
-                    targets.add(d)
+                    postset.add(d)
                   }
                   logCurrentState()
                 } else {

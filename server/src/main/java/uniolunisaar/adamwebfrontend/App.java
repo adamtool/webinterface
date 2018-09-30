@@ -322,6 +322,27 @@ public class App {
             return successResponse(petriGameClient);
         });
 
+        post("/createTokenFlow", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String source = body.get("source").getAsString();
+            String transition = body.get("transition").getAsString();
+            JsonArray postsetJson = body.get("postset").getAsJsonArray();
+            List<String> postset = new ArrayList<>();
+            postsetJson.forEach(jsonElement -> {
+                postset.add(jsonElement.getAsString());
+            });
+
+            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            // TODO Consider creating flows if they don't already exist
+            petriGame.createTokenFlow(source, transition, postset.toArray(new String[postset.size()]));
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame);
+
+            return successResponse(petriGameClient);
+        });
+
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
             String exceptionName = exception.getClass().getSimpleName();
