@@ -23,6 +23,7 @@
         <div class="forceStrengthNumber">{{gravityStrength}}</div>
       </div>
       <div class="graph-editor-toolbar">
+        <button v-on:click="drawTokenFlowHandler.finish()">Finish drawing token flow</button>
         <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
         <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
           Zoom to fit all nodes
@@ -164,6 +165,7 @@
             this.deleteSelectedNodes()
             break
           case 'Enter':
+          case 'Return':
             this.drawTokenFlowHandler.finish()
             break
         }
