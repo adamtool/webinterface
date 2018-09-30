@@ -158,6 +158,7 @@
         switch (event.key) {
           case 'Escape':
             this.selectedNodes = []
+            this.drawTokenFlowHandler.reset()
             break
           case 'Delete':
             this.deleteSelectedNodes()
@@ -402,16 +403,28 @@
         let transition
         let postset = new Set()
 
-        // Log our state and display it using D3
+        // Log our state and also display it using D3
+        // TODO consider refactoring this handler into its own module and using an event/callback-based
+        // interface.  It's kind of spaghettilike to be updating these global variables here that
+        // are used in updateD3.  Those parts of updateD3() that pertain to this tool could probably
+        // be refactored out into their own method, I reckon, into which you could pass the values
+        // of drawTokenFlowPreviewSource, drawTokenFlowPreviewLinks, etc.  That way, they would no
+        // longer need to be global variables like they are now.
+        // You would use it like this:
+        // const handler = drawTokenFlowHandler()
+        //   .onChange({source, transition, postset} => this.updateTokenFlowPreview(source, transition, postset))
+        // Whereby the Vue instance method updateTokenFlowPreview would pass everything into D3.
+        // -Ann
         const logCurrentState = () => {
           const src = source ? source.id : 'none'
           const trans = transition ? transition.id : 'none'
           const targetList = Array.from(postset).map(t => t.id).join(', ')
           console.log(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
-          this.drawTokenFlowPreviewLinks = [{
+          const sourceTransLink = source !== undefined && transition !== undefined ? [{
             source: source,
             target: transition
-          }].concat(Array.from(postset).map(postNode => ({
+          }] : []
+          this.drawTokenFlowPreviewLinks = sourceTransLink.concat(Array.from(postset).map(postNode => ({
             source: transition,
             target: postNode
           })))
@@ -421,7 +434,21 @@
           this.updateD3()
         }
 
+        const reset = () => {
+          console.log('Resetting drawTokenFlow')
+          state = 0
+          source = undefined
+          transition = undefined
+          postset = new Set()
+          this.drawTokenFlowPreviewLinks = []
+          this.drawTokenFlowPreviewSource = undefined
+          this.drawTokenFlowPreviewTransition = undefined
+          this.drawTokenFlowPreviewPostset = []
+          this.updateD3()
+        }
+
         return {
+          reset,
           finish: () => {
             if (source && transition && postset.size > 0) {
               this.$emit('createTokenFlow', {
@@ -432,15 +459,7 @@
             } else {
               console.log('Aborting drawTokenFlow.  A source, transition, and at least one target must be specified.')
             }
-            state = 0
-            source = undefined
-            transition = undefined
-            postset = new Set()
-            this.drawTokenFlowPreviewLinks = []
-            this.drawTokenFlowPreviewSource = undefined
-            this.drawTokenFlowPreviewTransition = undefined
-            this.drawTokenFlowPreviewPostset = []
-            this.updateD3()
+            reset()
           },
           onClick: (d) => {
             switch (state) {
@@ -450,7 +469,7 @@
                   state = 1
                   logCurrentState()
                 } else {
-                  console.log('DrawTokenFlow: Ignoring click on node that isnt a place')
+                  console.log('DrawTokenFlow: Please click on a Place to start drawing a token flow.')
                 }
                 break
               }
@@ -699,6 +718,11 @@
         this.selectedWinningCondition = condition
       },
       selectedTool: function (tool) {
+        // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
+        // That would be more declarative and Vue-like, I think.  -Ann
+        if (tool !== 'drawTokenFlow') {
+          this.drawTokenFlowHandler.reset()
+        }
         switch (tool) {
           case 'select': {
             this.backgroundClickMode = 'cancelSelection'
