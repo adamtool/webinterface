@@ -33,10 +33,12 @@
         <button style="display: none;" v-on:click="updateD3">Update D3</button>
         <button v-on:click="freezeAllNodes">Freeze all nodes</button>
         <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
-        <button class="btn-danger" v-on:click="deleteSelectedNodes">Delete selected nodes</button>
-        <button v-on:click="invertSelection">Invert selection</button>
+        <button class="btn-danger" v-on:click="deleteSelectedNodes"
+                v-if="showEditorTools">Delete selected nodes
+        </button>
+        <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
       </div>
-      <div class="graph-editor-toolbar">
+      <div class="graph-editor-toolbar" v-if="showEditorTools">
         <v-radio-group v-model="selectedTool" row>
           <v-radio label="select" value="select"/>
           <v-radio label="draw flows" value="drawFlow"/>
@@ -48,6 +50,7 @@
       </div>
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
       <v-select
+        v-if="showEditorTools"
         v-model="selectedWinningCondition"
         :items="winningConditions"
         label="Winning Condition"/>
@@ -132,6 +135,7 @@
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import { chain } from 'lodash'
+
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
 
@@ -180,6 +184,10 @@
         required: true
       },
       shouldShowPhysicsControls: {
+        type: Boolean,
+        default: false
+      },
+      showEditorTools: {
         type: Boolean,
         default: false
       },
