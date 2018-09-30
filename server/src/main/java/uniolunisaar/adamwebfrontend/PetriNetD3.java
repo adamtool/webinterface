@@ -82,7 +82,8 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        String winningCondition = PetriGameExtensionHandler.getWinningConditionAnnotation(net);
+        boolean hasWinningCondition = PetriGameExtensionHandler.hasWinningConditionAnnotation(net);
+        String winningCondition = hasWinningCondition ? PetriGameExtensionHandler.getWinningConditionAnnotation(net) : "";
         PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, winningCondition);
         return new Gson().toJsonTree(petriNetD3);
     }
