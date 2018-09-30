@@ -93,12 +93,10 @@
           </v-tab-item>
         </v-tabs>
         <!--<div v-if="strategyBDD || graphStrategyBDD || graphGameBDD">-->
-        <div id="splitRightSide">
-          <v-tabs>
-            <v-tab>E.g. StrategyBDD</v-tab>
-            <v-tab-item>Here would be the strategy BDD</v-tab-item>
-          </v-tabs>
-        </div>
+        <v-tabs class="tabs-component-full-height" id="splitRightSide" :style="splitRightSideStyle">
+          <v-tab>E.g. StrategyBDD</v-tab>
+          <v-tab-item>Here would be the strategy BDD</v-tab-item>
+        </v-tabs>
       </div>
       <!--<div id="graphEditorContainer">-->
       <!--<tabs>-->
@@ -264,7 +262,7 @@
           color: undefined
         },
         horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
-        horizontalSplitSizes: [25, 75],
+        horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
         selectedTabLeftSide: 0
       }
@@ -299,7 +297,12 @@
         return aptFileTree
       },
       splitLeftSideStyle: function () {
-        return this.isLeftPaneVisible ? '' : 'display: none;'
+        const hideStyle = this.isLeftPaneVisible ? '' : 'display: none;'
+        return hideStyle + 'flex-grow: 1;'
+      },
+      splitRightSideStyle: function () {
+        const shouldShow = this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD
+        return shouldShow ? '' : 'display: none;'
       },
       aptEditorStyle: function () {
         let color
