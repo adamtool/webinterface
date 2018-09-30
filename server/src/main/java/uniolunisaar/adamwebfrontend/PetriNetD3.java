@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.ds.petrigame.TokenFlow;
-import uniolunisaar.adam.ds.util.AdamExtensions;
 import uniolunisaar.adam.logic.util.AdamTools;
 import uniolunisaar.adam.tools.Tools;
 
@@ -22,11 +22,13 @@ public class PetriNetD3 {
     private final List<PetriNetLink> links;
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
+    private final String winningCondition;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, String winningCondition) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
+        this.winningCondition = winningCondition;
     }
 
     /**
@@ -80,7 +82,9 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
+        boolean hasWinningCondition = PetriGameExtensionHandler.hasWinningConditionAnnotation(net);
+        String winningCondition = hasWinningCondition ? PetriGameExtensionHandler.getWinningConditionAnnotation(net) : "";
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, winningCondition);
         return new Gson().toJsonTree(petriNetD3);
     }
 

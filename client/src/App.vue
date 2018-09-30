@@ -44,6 +44,10 @@
                          label="Get Graph Strategy BDD"/>
           <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
         </hsc-menu-bar-item>
+        <hsc-menu-bar-item label="Settings">
+          <hsc-menu-item :label="showPhysicsControls ? 'Hide physics controls' : 'Show Physics controls'"
+                         @click="showPhysicsControls = !showPhysicsControls"/>
+        </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
@@ -51,68 +55,68 @@
     </my-theme>
 
     <div style="width: 100%; height: 100vh">
-      <div style="display: flex; flex-direction: row;" ref="horizontalSplitDiv">
+      <div style="display: flex; flex-direction: row; height: 100%; width: 100%;" ref="horizontalSplitDiv">
         <div class="flex-column-divider"
-             v-on:click="toggleAptEditor">
-          <div :class="isAptEditorVisible ? 'arrow-left' : 'arrow-right'"></div>
+             v-on:click="toggleLeftPane">
+          <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
-
-        <div id="aptEditorContainer" :style="aptEditorStyle">
-          <div style="display: flex; flex-direction: column; height: 100%">
-            <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
-              APT Editor
+        <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
+                v-model="selectedTabLeftSide">
+          <v-tab>Petri Game</v-tab>
+          <v-tab @click="onSwitchToAptEditor">APT Editor</v-tab>
+          <v-tab-item>
+            <GraphEditor :graph='petriGame.net'
+                         ref='graphEditorPetriGame'
+                         v-on:graphModified='onGraphModified'
+                         v-on:insertNode='insertNode'
+                         v-on:createFlow='createFlow'
+                         v-on:deleteNode='deleteNode'
+                         v-on:renameNode='renameNode'
+                         v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                         v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                         v-on:setInitialToken='setInitialToken'
+                         v-on:setWinningCondition='setWinningCondition'
+                         showEditorTools
+                         :shouldShowPhysicsControls="showPhysicsControls"
+                         :repulsionStrengthDefault="360"
+                         :linkStrengthDefault="0.086"/>
+          </v-tab-item>
+          <v-tab-item>
+            <div :style="aptEditorStyle">
+              <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
+                APT Editor
+              </div>
+              <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
             </div>
-            <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
-          </div>
-        </div>
-        <div id="graphEditorContainer">
-          <tabs>
-            <tab name="Petri Game" :style="petriGameTabStyle">
-              <GraphEditor :graph='petriGame.net'
-                           :dimensions='graphEditorDimensions'
-                           ref='graphEditorPetriGame'
-                           v-on:graphModified='onGraphModified'
-                           v-on:saveGraphAsAPT='savePetriGameAsAPT'
-                           v-on:insertNode='insertNode'
-                           v-on:createFlow='createFlow'
-                           v-on:deleteNode='deleteNode'
-                           v-on:renameNode='renameNode'
-                           v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
-                           v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
-                           v-on:setInitialToken='setInitialToken'
-                           :shouldShowPhysicsControls="true"
-                           :repulsionStrengthDefault="360"
-                           :linkStrengthDefault="0.086"
-                           :shouldShowSaveAPTButton="true"/>
-            </tab>
-            <tab name="Strategy BDD" v-if="strategyBDD"
-                 :suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='strategyBDD'
-                           ref='graphEditorStrategyBDD'
-                           shouldShowPhysicsControls
-                           :dimensions='graphEditorDimensions'/>
-            </tab>
-            <tab name="Graph Strategy BDD" v-if="graphStrategyBDD"
-                 :suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='graphStrategyBDD'
-                           ref='graphEditorGraphStrategyBDD'
-                           shouldShowPhysicsControls
-                           :dimensions='graphEditorDimensions'/>
-            </tab>
-            <tab name="Graph Game BDD" v-if="graphGameBDD"
-                 :suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">
-              <GraphEditor :graph='graphGameBDD'
-                           ref='graphEditorGraphGameBDD'
-                           :dimensions='graphEditorDimensions'
-                           v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                           v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                           :shouldShowPhysicsControls="true"
-                           :repulsionStrengthDefault="415"
-                           :linkStrengthDefault="0.04"
-                           :gravityStrengthDefault="300"/>
-            </tab>
-          </tabs>
-        </div>
+          </v-tab-item>
+        </v-tabs>
+        <v-tabs class="tabs-component-full-height" id="splitRightSide" :style="splitRightSideStyle">
+          <!--TODO Allow closing these tabs-->
+          <!--TODO Maybe mark the tabs somehow if the Petri Game has been modified since the tabs were opened-->
+          <v-tab v-if="strategyBDD">Strategy BDD</v-tab>
+          <v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>
+          <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
+          <v-tab-item v-if="strategyBDD">
+            <GraphEditor :graph='strategyBDD'
+                         ref='graphEditorStrategyBDD'
+                         :shouldShowPhysicsControls="showPhysicsControls"/>
+          </v-tab-item>
+          <v-tab-item v-if="graphStrategyBDD">
+            <GraphEditor :graph='graphStrategyBDD'
+                         ref='graphEditorGraphStrategyBDD'
+                         :shouldShowPhysicsControls="showPhysicsControls"/>
+          </v-tab-item>
+          <v-tab-item v-if="graphGameBDD">
+            <GraphEditor :graph='graphGameBDD'
+                         ref='graphEditorGraphGameBDD'
+                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                         :shouldShowPhysicsControls="showPhysicsControls"
+                         :repulsionStrengthDefault="415"
+                         :linkStrengthDefault="0.04"
+                         :gravityStrengthDefault="300"/>
+          </v-tab-item>
+        </v-tabs>
       </div>
       <!--End first row-->
       <div ref="messageLogDiv">
@@ -153,8 +157,6 @@
 
   import makeWebSocket from '@/logWebSocket'
   import { saveFileAs } from './fileutilities'
-
-  const ResizeSensor = require('css-element-queries/src/ResizeSensor')
 
   import Split from 'split.js'
 
@@ -201,24 +203,10 @@
     },
     mounted: function () {
       this.parseAPTToPetriGame(this.apt)
-      const flexElem = document.getElementById('graphEditorContainer')
-      const updateGraphEditorDimensions = () => {
-        const width = flexElem.clientWidth
-        const height = flexElem.clientHeight
-        // this.logVerbose('flex element changed to ' + width + ' x ' + height)
-        this.graphEditorDimensions = {
-          width: width,
-          height: height
-        }
-      }
-
-      // eslint-disable-next-line no-new
-      new ResizeSensor(flexElem, updateGraphEditorDimensions)
-      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
       this.log('Hello!')
 
       // Initialize draggable, resizable panes for APT editor and log viewer
-      this.aptEditorSplit = this.createAptEditorSplit()
+      this.horizontalSplit = this.createHorizontalSplit()
       this.createVerticalSplit()
     },
     data: function () {
@@ -235,20 +223,18 @@
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
-        isAptEditorVisible: true,
+        isLeftPaneVisible: true,
+        showPhysicsControls: false,
         messageLog: [],
-        graphEditorDimensions: {
-          width: 0,
-          height: 0
-        },
         snackbarMessage: {
           display: false,
           text: '',
           color: undefined
         },
-        aptEditorSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
-        aptEditorSplitSizes: [25, 75],
-        aptEditorMinWidth: 7.65 // Percentage of flexbox container's width
+        horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
+        horizontalSplitSizes: [50, 50],
+        leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
+        selectedTabLeftSide: 0
       }
     },
     watch: {
@@ -280,8 +266,15 @@
       aptFileTree: function () {
         return aptFileTree
       },
+      splitLeftSideStyle: function () {
+        const hideStyle = this.isLeftPaneVisible ? '' : 'display: none;'
+        return hideStyle + 'flex-grow: 1;'
+      },
+      splitRightSideStyle: function () {
+        const shouldShow = this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD
+        return shouldShow ? '' : 'display: none;'
+      },
       aptEditorStyle: function () {
-        const hideStyle = this.isAptEditorVisible ? '' : 'display: none;'
         let color
         switch (this.aptParseStatus) {
           case 'success':
@@ -297,7 +290,8 @@
             this.showErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
         }
         const borderStyle = `border: 3px solid ${color};`
-        return hideStyle + borderStyle
+        const layoutStyle = 'display: flex; flex-direction: column; height: 100%;'
+        return layoutStyle + borderStyle
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -318,7 +312,8 @@
           renameNode: this.baseUrl + '/renameNode',
           toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace',
           toggleIsInitialTokenFlow: this.baseUrl + '/toggleIsInitialTokenFlow',
-          setInitialToken: this.baseUrl + '/setInitialToken'
+          setInitialToken: this.baseUrl + '/setInitialToken',
+          setWinningCondition: this.baseUrl + '/setWinningCondition'
         }
       },
       webSocketUrl: function () {
@@ -352,9 +347,9 @@
         })
         return split
       },
-      createAptEditorSplit: function () {
-        const split = Split(['#aptEditorContainer', '#graphEditorContainer'], {
-          sizes: this.aptEditorSplitSizes,
+      createHorizontalSplit: function () {
+        const split = Split(['#splitLeftSide', '#splitRightSide'], {
+          sizes: this.horizontalSplitSizes,
           minSize: 0,
           gutterSize: 20,
           elementStyle: function (dimension, size, gutterSize) {
@@ -368,39 +363,39 @@
             }
           },
           onDrag: () => {
-            const aptEditorWidth = split.getSizes()[0]
-            const shouldAptEditorCollapse = aptEditorWidth <= this.aptEditorMinWidth
-            if (shouldAptEditorCollapse && this.isAptEditorVisible) {
-              this.logVerbose('collapsing apt editor')
-              this.isAptEditorVisible = false
+            const leftPaneWidth = split.getSizes()[0]
+            const leftPaneShouldCollapse = leftPaneWidth <= this.leftPaneMinWidth
+            if (leftPaneShouldCollapse && this.isLeftPaneVisible) {
+              this.logVerbose('collapsing left pane')
+              this.isLeftPaneVisible = false
             }
-            if (shouldAptEditorCollapse) {
+            if (leftPaneShouldCollapse) {
               split.setSizes([0, 100])
             }
-            if (!shouldAptEditorCollapse && !this.isAptEditorVisible) {
+            if (!leftPaneShouldCollapse && !this.isLeftPaneVisible) {
               this.logVerbose('expanding apt editor')
-              this.isAptEditorVisible = true
+              this.isLeftPaneVisible = true
             }
           },
           onDragEnd: () => {
-            if (this.isAptEditorVisible) {
-              // Save current sizes so that we can restore them in toggleAptEditor()
-              this.aptEditorSplitSizes = split.getSizes()
+            if (this.isLeftPaneVisible) {
+              // Save current sizes so that we can restore them in toggleLeftPane()
+              this.horizontalSplitSizes = split.getSizes()
             }
           }
         })
         return split
       },
       // Hide or show APT editor, restoring its size if appropriate
-      toggleAptEditor: function () {
-        this.logVerbose('toggleAptEditor()')
-        const restoring = !this.isAptEditorVisible
+      toggleLeftPane: function () {
+        this.logVerbose('toggleLeftPane()')
+        const restoring = !this.isLeftPaneVisible
         if (restoring) {
-          this.aptEditorSplit.setSizes(this.aptEditorSplitSizes)
+          this.horizontalSplit.setSizes(this.horizontalSplitSizes)
         } else {
-          this.aptEditorSplit.setSizes([0, 100])
+          this.horizontalSplit.setSizes([0, 100])
         }
-        this.isAptEditorVisible = !this.isAptEditorVisible
+        this.isLeftPaneVisible = !this.isLeftPaneVisible
       },
       // Load APT from a text file stored on the user's local filesystem
       // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
@@ -570,17 +565,26 @@
           this.logError('Network error')
         })
       },
-      // Our graph editor may give us an object with Node IDs as keys and x,y coordinates as values.
-      // We send those x,y coordinates to the server and get back an APT with those coordinates in it.
-      // We put that APT into the APT editor .
-      savePetriGameAsAPT: function (mapNodeIDXY) {
+      onSwitchToAptEditor: function () {
+        const isAptEditorAlreadySelected = this.selectedTabLeftSide === 1
+        if (isAptEditorAlreadySelected) {
+          return
+        }
+        this.logVerbose('Switching to APT editor')
+        this.savePetriGameAsAPT()
+      },
+      savePetriGameAsAPT: function () {
+        // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
+        // We send those x,y coordinates to the server, and the server saves them as annotations
+        // into the PetriGame object.
+        // Then, the server converts the PetriGame into APT format and gives that to us.
+        const nodePositions = this.$refs.graphEditorPetriGame.getNodeXYCoordinates()
         axios.post(this.restEndpoints.savePetriGameAsAPT, {
           petriGameId: this.petriGame.uuid,
-          nodeXYCoordinateAnnotations: mapNodeIDXY
+          nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
-            this.isAptEditorVisible = true
           })
         }).catch(() => {
           this.logError('Network error')
@@ -668,6 +672,18 @@
           this.logError('Network error')
         })
       },
+      setWinningCondition: function (winningCondition) {
+        axios.post(this.restEndpoints.setWinningCondition, {
+          petriGameId: this.petriGame.uuid,
+          winningCondition: winningCondition
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
         axios.post(this.restEndpoints.insertNode, {
@@ -695,7 +711,7 @@
         // to be reset.
         this.$refs.graphEditorPetriGame.onLoadNewPetriGame()
         this.apt = apt
-        this.isAptEditorVisible = true
+        this.isLeftPaneVisible = true
       },
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
@@ -761,6 +777,28 @@
     padding-left: 10px;
     resize: none;
     font-size: 18px;
+  }
+
+  .tabs-component-full-height,
+  .tabs-component-full-height > .v-tabs__items > .v-tabs__content {
+    height: 100%;
+  }
+
+  .tabs-component-full-height {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tabs-component-full-height > .v-tabs__bar {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+  }
+
+  .tabs-component-full-height > .v-tabs__items {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: available;
   }
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/

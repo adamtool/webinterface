@@ -24,10 +24,6 @@
       </div>
       <div class="graph-editor-toolbar">
         <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
-        <button style="margin-right: auto" v-if="shouldShowSaveAPTButton"
-                v-on:click="saveGraphAsAPT">
-          Save graph as APT
-        </button>
         <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
           Zoom to fit all nodes
         </button>
@@ -37,10 +33,12 @@
         <button style="display: none;" v-on:click="updateD3">Update D3</button>
         <button v-on:click="freezeAllNodes">Freeze all nodes</button>
         <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
-        <button class="btn-danger" v-on:click="deleteSelectedNodes">Delete selected nodes</button>
-        <button v-on:click="invertSelection">Invert selection</button>
+        <button class="btn-danger" v-on:click="deleteSelectedNodes"
+                v-if="showEditorTools">Delete selected nodes
+        </button>
+        <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
       </div>
-      <div class="graph-editor-toolbar">
+      <div class="graph-editor-toolbar" v-if="showEditorTools">
         <v-radio-group v-model="selectedTool" row>
           <v-radio label="select" value="select"/>
           <v-radio label="draw flows" value="drawFlow"/>
@@ -50,6 +48,12 @@
           <v-radio label="delete node" value="deleteNode"/>
         </v-radio-group>
       </div>
+      <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
+      <v-select
+        v-if="showEditorTools"
+        v-model="selectedWinningCondition"
+        :items="winningConditions"
+        label="Winning Condition"/>
     </div>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
@@ -132,6 +136,9 @@
   import contextMenuFactory from 'd3-context-menu'
   import { chain } from 'lodash'
 
+  const ResizeSensor = require('css-element-queries/src/ResizeSensor')
+  import Vue from 'vue'
+
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -158,13 +165,21 @@
             break
         }
       })
+      const parent = this.$refs.rootElement.parentElement
+      const updateGraphEditorDimensions = () => {
+        const width = parent.clientWidth
+        const height = parent.clientHeight
+        this.dimensions = {
+          width: width,
+          height: height
+        }
+      }
+      // eslint-disable-next-line no-new
+      new ResizeSensor(parent, updateGraphEditorDimensions)
+      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
     },
     props: {
       graph: {
-        type: Object,
-        required: true
-      },
-      dimensions: {
         type: Object,
         required: true
       },
@@ -172,7 +187,7 @@
         type: Boolean,
         default: false
       },
-      shouldShowSaveAPTButton: {
+      showEditorTools: {
         type: Boolean,
         default: false
       },
@@ -587,6 +602,14 @@
       }
     },
     watch: {
+      selectedWinningCondition: function (condition) {
+        if (condition !== this.winningCondition) {
+          this.$emit('setWinningCondition', condition)
+        }
+      },
+      winningCondition: function (condition) {
+        this.selectedWinningCondition = condition
+      },
       selectedTool: function (tool) {
         switch (tool) {
           case 'select': {
@@ -664,12 +687,28 @@
         this.importGraph(graph)
         this.updateD3()
       },
-      dimensions: function (dims) {
+      dimensions: function () {
         this.updateSvgDimensions()
       }
     },
     data () {
       return {
+        dimensions: {
+          width: 0,
+          height: 0
+        },
+        winningCondition: '',
+        selectedWinningCondition: '',
+        winningConditions: [
+          'E_REACHABILITY',
+          'A_REACHABILITY',
+          'E_SAFETY',
+          'A_SAFETY',
+          'E_BUCHI',
+          'A_BUCHI',
+          'E_PARITY',
+          'A_PARITY',
+          'LTL'],
         // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
         selectedTool: 'select',
@@ -678,7 +717,6 @@
         leftClickMode: 'selectNode',
         dragDropMode: 'moveNode',
         nodeTypeToInsert: 'SYSPLACE',
-        saveGraphAPTRequestPreview: {},
         nodeRadius: 27,
         exportedGraphJson: {},
         svg: undefined,
@@ -808,8 +846,7 @@
       },
       updateSvgDimensions: function () {
         this.svg.attr('width', `${this.dimensions.width}px`)
-        // TODO replace hack with proper solution (this is highly specific to my weird tabs component)
-        this.svg.attr('height', `${this.dimensions.height - 59 - 28 + 24}px`)
+        this.svg.attr('height', `${this.dimensions.height}px`)
         this.updateCenterForce()
       },
       /**
@@ -930,18 +967,15 @@
           }
         })
       },
-      saveGraphAsAPT: function () {
-        this.freezeAllNodes()
+      getNodeXYCoordinates: function () {
         // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as value.
-        const mapNodeIDXY = this.nodes.reduce(function (map, node) {
+        return this.nodes.reduce(function (map, node) {
           map[node.id] = {
             x: node.x.toFixed(2),
             y: node.y.toFixed(2)
           }
           return map
         }, {})
-        this.saveGraphAPTRequestPreview = JSON.stringify(mapNodeIDXY, null, 2)
-        this.$emit('saveGraphAsAPT', mapNodeIDXY)
       },
       onGraphModified: function () {
         // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.
@@ -1363,6 +1397,7 @@
        */
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
+        this.winningCondition = graphJsonCopy.winningCondition
         const newLinks = graphJsonCopy.links
         const newNodes = graphJsonCopy.nodes
         const newNodePositions = graphJsonCopy.nodePositions
