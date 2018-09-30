@@ -91,6 +91,8 @@
           </v-tab-item>
         </v-tabs>
         <v-tabs class="tabs-component-full-height" id="splitRightSide" :style="splitRightSideStyle">
+          <!--TODO Allow closing these tabs-->
+          <!--TODO Maybe mark the tabs somehow if the Petri Game has been modified since the tabs were opened-->
           <v-tab v-if="strategyBDD">Strategy BDD</v-tab>
           <v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>
           <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
@@ -99,40 +101,23 @@
                          ref='graphEditorStrategyBDD'
                          :shouldShowPhysicsControls="showPhysicsControls"/>
           </v-tab-item>
-          <v-tab-item v-if="graphStrategyBDD">Here would be the Graph strategy BDD</v-tab-item>
-          <v-tab-item v-if="graphGameBDD">Here would be the Graph Game BDD</v-tab-item>
+          <v-tab-item v-if="graphStrategyBDD">
+            <GraphEditor :graph='graphStrategyBDD'
+                         ref='graphEditorGraphStrategyBDD'
+                         :shouldShowPhysicsControls="showPhysicsControls"/>
+          </v-tab-item>
+          <v-tab-item v-if="graphGameBDD">
+            <GraphEditor :graph='graphGameBDD'
+                         ref='graphEditorGraphGameBDD'
+                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                         :shouldShowPhysicsControls="showPhysicsControls"
+                         :repulsionStrengthDefault="415"
+                         :linkStrengthDefault="0.04"
+                         :gravityStrengthDefault="300"/>
+          </v-tab-item>
         </v-tabs>
       </div>
-      <!--<div id="graphEditorContainer">-->
-      <!--<tabs>-->
-      <!--<tab name="Strategy BDD" v-if="strategyBDD"-->
-      <!--:suffix="petriGame.uuid === strategyBDD.uuid ? '' : '****'">-->
-      <!--<GraphEditor :graph='strategyBDD'-->
-      <!--ref='graphEditorStrategyBDD'-->
-      <!--:shouldShowPhysicsControls="showPhysicsControls"-->
-      <!--:dimensions='graphEditorDimensions'/>-->
-      <!--</tab>-->
-      <!--<tab name="Graph Strategy BDD" v-if="graphStrategyBDD"-->
-      <!--:suffix="petriGame.uuid === graphStrategyBDD.uuid ? '' : '****'">-->
-      <!--<GraphEditor :graph='graphStrategyBDD'-->
-      <!--ref='graphEditorGraphStrategyBDD'-->
-      <!--:shouldShowPhysicsControls="showPhysicsControls"-->
-      <!--:dimensions='graphEditorDimensions'/>-->
-      <!--</tab>-->
-      <!--<tab name="Graph Game BDD" v-if="graphGameBDD"-->
-      <!--:suffix="petriGame.uuid === graphGameBDD.uuid ? '' : '****'">-->
-      <!--<GraphEditor :graph='graphGameBDD'-->
-      <!--ref='graphEditorGraphGameBDD'-->
-      <!--:dimensions='graphEditorDimensions'-->
-      <!--v-on:toggleStatePostset='toggleGraphGameStatePostset'-->
-      <!--v-on:toggleStatePreset='toggleGraphGameStatePreset'-->
-      <!--:shouldShowPhysicsControls="showPhysicsControls"-->
-      <!--:repulsionStrengthDefault="415"-->
-      <!--:linkStrengthDefault="0.04"-->
-      <!--:gravityStrengthDefault="300"/>-->
-      <!--</tab>-->
-      <!--</tabs>-->
-      <!--</div>-->
       <!--End first row-->
       <div ref="messageLogDiv">
         <LogViewer :messages="messageLog"/>
