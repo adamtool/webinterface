@@ -326,7 +326,9 @@ public class App {
         post("/createTokenFlow", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();
-            String sourceId = body.get("source").getAsString();
+            Optional<String> sourceId = body.has("source") ?
+                    Optional.of(body.get("source").getAsString()) :
+                    Optional.empty();
             String transitionId = body.get("transition").getAsString();
             JsonArray postsetJson = body.get("postset").getAsJsonArray();
             List<String> postsetIds = new ArrayList<>();
@@ -339,10 +341,12 @@ public class App {
 
             // Create flows if they don't already exist
             Transition transition = petriGame.getTransition(transitionId);
-            Place source = petriGame.getPlace(sourceId);
-            if (!transition.getPreset().contains(source)) {
-                petriGame.createFlow(source, transition);
-            }
+            sourceId.ifPresent(id -> {
+                Place source = petriGame.getPlace(id);
+                if (!transition.getPreset().contains(source)) {
+                    petriGame.createFlow(source, transition);
+                }
+            });
             for (String postsetId : postsetIds) {
                 Place postPlace = petriGame.getPlace(postsetId);
                 if (!transition.getPostset().contains(postPlace)) {
@@ -350,7 +354,13 @@ public class App {
                 }
             }
 
-            petriGame.createTokenFlow(sourceId, transitionId, postsetIds.toArray(new String[postsetIds.size()]));
+            // Create a token flow.  It is an initial token flow if if has no source Place.
+            String[] postsetArray = postsetIds.toArray(new String[postsetIds.size()]);
+            if (sourceId.isPresent()) {
+                petriGame.createTokenFlow(sourceId.get(), transitionId, postsetArray);
+            } else {
+                petriGame.createInitialTokenFlow(transitionId, postsetArray);
+            }
 
             JsonElement petriGameClient = PetriNetD3.of(petriGame);
 

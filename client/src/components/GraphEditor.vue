@@ -450,14 +450,15 @@
         return {
           reset,
           finish: () => {
-            if (source && transition && postset.size > 0) {
+            const sourceId = source ? source.id : undefined
+            if (transition && postset.size > 0) {
               this.$emit('createTokenFlow', {
-                source: source.id,
+                source: sourceId,
                 transition: transition.id,
                 postset: Array.from(postset).map(d => d.id)
               })
             } else {
-              console.log('Aborting drawTokenFlow.  A source, transition, and at least one target must be specified.')
+              console.log('Aborting drawTokenFlow.  A transition and at least one target must be specified.')
             }
             reset()
           },
@@ -465,12 +466,15 @@
             switch (state) {
               case 0: {
                 if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
+                  console.log('DrawTokenFlow: Creating non-initial token flow.')
                   source = d
                   state = 1
-                  logCurrentState()
-                } else {
-                  console.log('DrawTokenFlow: Please click on a Place to start drawing a token flow.')
+                } else if (d.type === 'TRANSITION') {
+                  console.log('DrawTokenFlow: Creating initial token flow.')
+                  transition = d
+                  state = 2
                 }
+                logCurrentState()
                 break
               }
               case 1: {
@@ -479,7 +483,7 @@
                   state = 2
                   logCurrentState()
                 } else {
-                  console.log('DrawTokenFlow: Ignoring click on node that isnt a transition')
+                  console.log('DrawTokenFlow: Please click on a transition.')
                 }
                 break
               }
@@ -492,7 +496,8 @@
                   }
                   logCurrentState()
                 } else {
-                  console.log('DrawTokenFlow: Ignoring click on node that isnt a place')
+                  console.log('DrawTokenFlow: Click on Places to specify a postset and press Enter ' +
+                    'to create the token flow.  Press Esc to abort.')
                 }
               }
             }
