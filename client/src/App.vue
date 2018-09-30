@@ -92,10 +92,13 @@
             </div>
           </v-tab-item>
         </v-tabs>
-        <!--<div v-if="strategyBDD || graphStrategyBDD || graphGameBDD">-->
         <v-tabs class="tabs-component-full-height" id="splitRightSide" :style="splitRightSideStyle">
-          <v-tab>E.g. StrategyBDD</v-tab>
-          <v-tab-item>Here would be the strategy BDD</v-tab-item>
+          <v-tab v-if="strategyBDD">Strategy BDD</v-tab>
+          <v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>
+          <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
+          <v-tab-item v-if="strategyBDD">Here would be the strategy BDD</v-tab-item>
+          <v-tab-item v-if="graphStrategyBDD">Here would be the Graph strategy BDD</v-tab-item>
+          <v-tab-item v-if="graphGameBDD">Here would be the Graph Game BDD</v-tab-item>
         </v-tabs>
       </div>
       <!--<div id="graphEditorContainer">-->
