@@ -192,6 +192,10 @@
         type: Boolean,
         default: false
       },
+      shouldShowPartitions: {
+        type: Boolean,
+        default: false
+      },
       showEditorTools: {
         type: Boolean,
         default: false
@@ -832,6 +836,9 @@
       gravityStrength: function (strength) {
         this.updateGravityStrength(strength)
       },
+      shouldShowPartitions: function () {
+        this.updateD3()
+      },
       graph: function (graph) {
         console.log('GraphEditor: graph changed:')
         console.log(graph)
@@ -1375,9 +1382,19 @@
               return 2
             }
           })
+        const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
+        function partitionColorForPlace (place) {
+          const hueDegrees = place.partition / (maxPartition + 1) * 360
+          console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
+          const luminosity = place.type === 'SYSPLACE' ? 35 : 90
+          return `HSL(${hueDegrees}, ${luminosity + 20}%, ${luminosity}%`
+        }
+        this.nodeElements
           .attr('fill', data => {
             if (this.selectedNodes.includes(data)) {
               return '#5555FF'
+            } else if (this.shouldShowPartitions && data.partition !== -1) {
+              return partitionColorForPlace(data)
             } else if (data.type === 'ENVPLACE') {
               return 'white'
             } else if (data.type === 'SYSPLACE') {

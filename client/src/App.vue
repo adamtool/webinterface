@@ -45,8 +45,10 @@
           <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
         </hsc-menu-bar-item>
         <hsc-menu-bar-item label="Settings">
-          <hsc-menu-item :label="showPhysicsControls ? 'Hide physics controls' : 'Show Physics controls'"
+          <hsc-menu-item :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
                          @click="showPhysicsControls = !showPhysicsControls"/>
+          <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
+                         @click="showPartitions = !showPartitions"/>
         </hsc-menu-bar-item>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
@@ -80,6 +82,7 @@
                          v-on:setWinningCondition='setWinningCondition'
                          showEditorTools
                          :shouldShowPhysicsControls="showPhysicsControls"
+                         :shouldShowPartitions="showPartitions"
                          :repulsionStrengthDefault="360"
                          :linkStrengthDefault="0.086"/>
           </v-tab-item>
@@ -227,6 +230,7 @@
         graphGameBDD: null,
         isLeftPaneVisible: true,
         showPhysicsControls: false,
+        showPartitions: false,
         messageLog: [],
         snackbarMessage: {
           display: false,
