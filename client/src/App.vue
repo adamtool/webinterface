@@ -494,6 +494,8 @@
             // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
             if (response.data.result) {
               this.showSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
+              // We expect an updated petriGame here because there might have been partition annotations added.
+              this.petriGame.net = response.data.petriGame
             } else {
               this.showErrorNotification('No, there is no winning strategy for this Petri Game.')
             }
@@ -511,6 +513,8 @@
           this.withErrorHandling(response, response => {
             this.strategyBDD = response.data.strategyBDD
             this.strategyBDD.uuid = uuid
+            // We expect an updated petriGame here because there might have been partition annotations added.
+            this.petriGame.net = response.data.petriGame
             this.switchToStrategyBDDTab()
           })
         }).catch(() => {
@@ -525,6 +529,8 @@
           this.withErrorHandling(response, response => {
             this.graphStrategyBDD = response.data.graphStrategyBDD
             this.graphStrategyBDD.uuid = uuid
+            // We expect an updated petriGame here because there might have been partition annotations added.
+            this.petriGame.net = response.data.petriGame
             this.switchToGraphStrategyBDDTab()
           })
         }).catch(() => {
@@ -539,6 +545,8 @@
           this.withErrorHandling(response, response => {
             this.graphGameBDD = response.data.graphGameBDD
             this.graphGameBDD.uuid = uuid
+            // We expect an updated petriGame here because there might have been partition annotations added.
+            this.petriGame.net = response.data.petriGame
             this.switchToGraphGameBDDTab()
           })
         }).catch(() => {

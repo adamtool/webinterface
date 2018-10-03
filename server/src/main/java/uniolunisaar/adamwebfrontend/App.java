@@ -80,6 +80,7 @@ public class App {
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.addProperty("result", existsWinningStrategy);
+            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
             return responseJson.toString();
         });
 
@@ -95,6 +96,7 @@ public class App {
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.add("strategyBDD", strategyBDDJson);
+            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
             return responseJson.toString();
         });
 
@@ -112,6 +114,7 @@ public class App {
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.add("graphStrategyBDD", bddGraph);
+            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
             return responseJson.toString();
         });
 
@@ -127,6 +130,7 @@ public class App {
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.add("graphGameBDD", graphGame);
+            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
             return responseJson.toString();
         });
 
