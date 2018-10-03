@@ -71,6 +71,7 @@
                          v-on:insertNode='insertNode'
                          v-on:createFlow='createFlow'
                          v-on:createTokenFlow='createTokenFlow'
+                         v-on:deleteFlow='deleteFlow'
                          v-on:deleteNode='deleteNode'
                          v-on:renameNode='renameNode'
                          v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
@@ -310,6 +311,7 @@
           insertNode: this.baseUrl + '/insertPlace',
           createFlow: this.baseUrl + '/createFlow',
           createTokenFlow: this.baseUrl + '/createTokenFlow',
+          deleteFlow: this.baseUrl + '/deleteFlow',
           deleteNode: this.baseUrl + '/deleteNode',
           renameNode: this.baseUrl + '/renameNode',
           toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace',
@@ -608,14 +610,25 @@
       },
       createTokenFlow: function ({source, transition, postset}) {
         console.log('processing createTokenFlow event')
-        console.log(source)
-        console.log(transition)
-        console.log(postset)
         axios.post(this.restEndpoints.createTokenFlow, {
           petriGameId: this.petriGame.uuid,
           source,
           transition,
           postset
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      deleteFlow: function ({sourceId, targetId}) {
+        console.log('processing deleteFlow event')
+        axios.post(this.restEndpoints.deleteFlow, {
+          petriGameId: this.petriGame.uuid,
+          sourceId,
+          targetId
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.petriGame.net = response.data.result

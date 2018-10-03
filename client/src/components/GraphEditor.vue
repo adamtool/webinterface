@@ -41,12 +41,12 @@
       </div>
       <v-radio-group v-model="selectedTool" v-if="showEditorTools" row>
         <v-radio label="select" value="select"/>
+        <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
         <v-radio label="draw flows" value="drawFlow"/>
         <v-radio label="draw token flows" value="drawTokenFlow"/>
         <v-radio label="insert sysplace" value="insertSysPlace"/>
         <v-radio label="insert envplace" value="insertEnvPlace"/>
         <v-radio label="insert transition" value="insertTransition"/>
-        <v-radio label="delete node" value="deleteNode"/>
       </v-radio-group>
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
       <v-select
@@ -304,6 +304,7 @@
           }
         }
       },
+      // These DOM elements should have unique IDs so that multiple GraphEditors can coexist on one page.
       rootElementId: function () {
         return 'graph-editor-' + this._uid
       },
@@ -313,7 +314,30 @@
       arrowheadId: function () {
         return 'arrowhead-' + this._uid
       },
-      // Given a d3 selection, apply to it all of the event handlers that we want nodes to have.
+      // Given a d3 selection of link elements, apply to it all of the event handlers that we want links to have.
+      // Usage: selection.call(applyNodeEventHandler)
+      applyLinkEventHandler: function () {
+        return selection => {
+          selection.on('click', this.onLinkClick)
+        }
+      },
+      onLinkClick: function () {
+        return (d) => {
+          d3.event.stopPropagation()
+          switch (this.linkClickMode) {
+            case 'deleteFlow':
+              console.log(`onLinkClick: Emitting deleteFlow event: source ${d.source.id}, target ${d.target.id}`)
+              this.$emit('deleteFlow', {
+                sourceId: d.source.id,
+                targetId: d.target.id
+              })
+              break
+            default:
+              console.log(`onLinkClick: linkClickMode === ${this.linkClickMode}; Doing nothing`)
+          }
+        }
+      },
+      // Given a d3 selection of node elements, apply to it all of the event handlers that we want nodes to have.
       // Usage: selection.call(applyNodeEventHandler)
       applyNodeEventHandler: function () {
         return selection => {
@@ -736,6 +760,8 @@
             this.backgroundDragDropMode = 'selectNodes'
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
+            // TODO make it possible to select a set of links
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'drawFlow': {
@@ -743,6 +769,7 @@
             this.backgroundClickMode = 'cancelSelection'
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'drawFlow'
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'drawTokenFlow': {
@@ -750,6 +777,7 @@
             this.backgroundClickMode = 'cancelSelection'
             this.leftClickMode = 'drawTokenFlow'
             this.dragDropMode = 'moveNode'
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'insertSysPlace': {
@@ -758,6 +786,7 @@
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
             this.nodeTypeToInsert = 'SYSPLACE'
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'insertEnvPlace': {
@@ -766,6 +795,7 @@
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
             this.nodeTypeToInsert = 'ENVPLACE'
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'insertTransition': {
@@ -774,13 +804,15 @@
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
             this.nodeTypeToInsert = 'TRANSITION'
+            this.linkClickMode = 'doNothing'
             break
           }
-          case 'deleteNode': {
+          case 'deleteNodesAndFlows': {
             this.backgroundDragDropMode = 'selectNodes'
             this.backgroundClickMode = 'cancelSelection'
             this.leftClickMode = 'deleteNode'
             this.dragDropMode = 'moveNode'
+            this.linkClickMode = 'deleteFlow'
             break
           }
           default: {
@@ -849,6 +881,7 @@
         backgroundDragDropMode: 'selectNodes',
         leftClickMode: 'selectNode',
         dragDropMode: 'moveNode',
+        linkClickMode: 'doNothing',
         nodeTypeToInsert: 'SYSPLACE',
         nodeRadius: 27,
         exportedGraphJson: {},
@@ -1372,6 +1405,7 @@
         const linkEnter = newLinkElements
           .enter().append('path')
           .attr('fill', 'none')
+          .call(this.applyLinkEventHandler)
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
           .attr('stroke-width', link => {
@@ -1399,7 +1433,9 @@
         const linkTextEnter = newLinkTextElements
           .enter().append('text')
           .attr('font-size', 25)
+          .call(this.applyLinkEventHandler)
         linkTextEnter.append('textPath')
+          .call(this.applyLinkEventHandler)
         newLinkTextElements.exit().remove()
         this.linkTextElements = linkTextEnter.merge(newLinkTextElements)
         this.linkTextElements
@@ -1414,8 +1450,10 @@
           .attr('xlink:href', link => '#' + this.generateLinkId(link))
           .text(link => {
             if (link.transitionId !== undefined) {
+              // This is for Graph Game BDDs
               return link.transitionId
             } else if (link.tokenFlow !== undefined) {
+              // This is for Petri Games
               return link.tokenFlow
             } else {
               throw new Error('Both transitionId and tokenFlow are both undefined.')

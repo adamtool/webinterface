@@ -321,9 +321,22 @@ public class App {
             PetriGame petriGame = petriGameAndMore.getPetriGame();
 
             petriGame.createFlow(source, destination);
-            // TODO Allow specifying token flows somehow
             JsonElement petriGameClient = PetriNetD3.of(petriGame);
 
+            return successResponse(petriGameClient);
+        });
+
+        post("/deleteFlow", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String source = body.get("sourceId").getAsString();
+            String target = body.get("targetId").getAsString();
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+            petriGame.removeFlow(source, target);
+
+            JsonElement petriGameClient = PetriNetD3.of(petriGame);
             return successResponse(petriGameClient);
         });
 
