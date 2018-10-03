@@ -163,8 +163,7 @@ public class PetriNetD3 {
             boolean isInitialTokenFlow = game.isInitialTokenflow(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
 
-//            int partition = game.hasPartition(place) ? game.getPartition(place) : -1;
-            int partition = (int)(Math.random() * 5);
+            int partition = game.hasPartition(place) ? game.getPartition(place) : -1;
             return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial, isInitialTokenFlow, partition);
         }
 
