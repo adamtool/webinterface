@@ -23,6 +23,7 @@
         <div class="forceStrengthNumber">{{gravityStrength}}</div>
       </div>
       <div class="graph-editor-toolbar">
+        <button v-on:click="drawTokenFlowHandler.finish()">Finish drawing token flow</button>
         <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
         <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
           Zoom to fit all nodes
@@ -38,16 +39,15 @@
         </button>
         <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
       </div>
-      <div class="graph-editor-toolbar" v-if="showEditorTools">
-        <v-radio-group v-model="selectedTool" row>
-          <v-radio label="select" value="select"/>
-          <v-radio label="draw flows" value="drawFlow"/>
-          <v-radio label="insert sysplace" value="insertSysPlace"/>
-          <v-radio label="insert envplace" value="insertEnvPlace"/>
-          <v-radio label="insert transition" value="insertTransition"/>
-          <v-radio label="delete node" value="deleteNode"/>
-        </v-radio-group>
-      </div>
+      <v-radio-group v-model="selectedTool" v-if="showEditorTools" row>
+        <v-radio label="select" value="select"/>
+        <v-radio label="draw flows" value="drawFlow"/>
+        <v-radio label="draw token flows" value="drawTokenFlow"/>
+        <v-radio label="insert sysplace" value="insertSysPlace"/>
+        <v-radio label="insert envplace" value="insertEnvPlace"/>
+        <v-radio label="insert transition" value="insertTransition"/>
+        <v-radio label="delete node" value="deleteNode"/>
+      </v-radio-group>
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
       <v-select
         v-if="showEditorTools"
@@ -159,9 +159,14 @@
         switch (event.key) {
           case 'Escape':
             this.selectedNodes = []
+            this.drawTokenFlowHandler.reset()
             break
           case 'Delete':
             this.deleteSelectedNodes()
+            break
+          case 'Enter':
+          case 'Return':
+            this.drawTokenFlowHandler.finish()
             break
         }
       })
@@ -386,10 +391,119 @@
                 this.selectedNodes = [d]
               }
             }
+          case 'drawTokenFlow':
+            return this.drawTokenFlowHandler.onClick
           default:
             return () => {
               console.log(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
             }
+        }
+      },
+      drawTokenFlowHandler: function () {
+        let state = 0
+        let source
+        let transition
+        let postset = new Set()
+
+        // Log our state and also display it using D3
+        // TODO consider refactoring this handler into its own module and using an event/callback-based
+        // interface.  It's kind of spaghettilike to be updating these global variables here that
+        // are used in updateD3.  Those parts of updateD3() that pertain to this tool could probably
+        // be refactored out into their own method, I reckon, into which you could pass the values
+        // of drawTokenFlowPreviewSource, drawTokenFlowPreviewLinks, etc.  That way, they would no
+        // longer need to be global variables like they are now.
+        // You would use it like this:
+        // const handler = drawTokenFlowHandler()
+        //   .onChange({source, transition, postset} => this.updateTokenFlowPreview(source, transition, postset))
+        // Whereby the Vue instance method updateTokenFlowPreview would pass everything into D3.
+        // -Ann
+        const logCurrentState = () => {
+          const src = source ? source.id : 'none'
+          const trans = transition ? transition.id : 'none'
+          const targetList = Array.from(postset).map(t => t.id).join(', ')
+          console.log(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
+          const sourceTransLink = source !== undefined && transition !== undefined ? [{
+            source: source,
+            target: transition
+          }] : []
+          this.drawTokenFlowPreviewLinks = sourceTransLink.concat(Array.from(postset).map(postNode => ({
+            source: transition,
+            target: postNode
+          })))
+          this.drawTokenFlowPreviewSource = source
+          this.drawTokenFlowPreviewTransition = transition
+          this.drawTokenFlowPreviewPostset = Array.from(postset)
+          this.updateD3()
+        }
+
+        const reset = () => {
+          console.log('Resetting drawTokenFlow')
+          state = 0
+          source = undefined
+          transition = undefined
+          postset = new Set()
+          this.drawTokenFlowPreviewLinks = []
+          this.drawTokenFlowPreviewSource = undefined
+          this.drawTokenFlowPreviewTransition = undefined
+          this.drawTokenFlowPreviewPostset = []
+          this.updateD3()
+        }
+
+        return {
+          reset,
+          finish: () => {
+            const sourceId = source ? source.id : undefined
+            if (transition && postset.size > 0) {
+              this.$emit('createTokenFlow', {
+                source: sourceId,
+                transition: transition.id,
+                postset: Array.from(postset).map(d => d.id)
+              })
+            } else {
+              console.log('Aborting drawTokenFlow.  A transition and at least one target must be specified.')
+            }
+            reset()
+          },
+          onClick: (d) => {
+            switch (state) {
+              case 0: {
+                if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
+                  console.log('DrawTokenFlow: Creating non-initial token flow.')
+                  source = d
+                  state = 1
+                } else if (d.type === 'TRANSITION') {
+                  console.log('DrawTokenFlow: Creating initial token flow.')
+                  transition = d
+                  state = 2
+                }
+                logCurrentState()
+                break
+              }
+              case 1: {
+                if (d.type === 'TRANSITION') {
+                  transition = d
+                  state = 2
+                  logCurrentState()
+                } else {
+                  console.log('DrawTokenFlow: Please click on a transition.')
+                }
+                break
+              }
+              case 2: {
+                if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
+                  if (postset.has(d)) {
+                    postset.delete(d)
+                  } else {
+                    postset.add(d)
+                  }
+                  logCurrentState()
+                } else {
+                  console.log('DrawTokenFlow: Click on Places to specify a postset and press Enter ' +
+                    'to create the token flow.  Press Esc to abort.')
+                }
+              }
+            }
+          }
         }
       },
       backgroundClickHandler: function () {
@@ -611,6 +725,11 @@
         this.selectedWinningCondition = condition
       },
       selectedTool: function (tool) {
+        // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
+        // That would be more declarative and Vue-like, I think.  -Ann
+        if (tool !== 'drawTokenFlow') {
+          this.drawTokenFlowHandler.reset()
+        }
         switch (tool) {
           case 'select': {
             this.backgroundClickMode = 'cancelSelection'
@@ -624,6 +743,13 @@
             this.backgroundClickMode = 'cancelSelection'
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'drawFlow'
+            break
+          }
+          case 'drawTokenFlow': {
+            this.backgroundDragDropMode = 'zoom'
+            this.backgroundClickMode = 'cancelSelection'
+            this.leftClickMode = 'drawTokenFlow'
+            this.dragDropMode = 'moveNode'
             break
           }
           case 'insertSysPlace': {
@@ -656,6 +782,9 @@
             this.leftClickMode = 'deleteNode'
             this.dragDropMode = 'moveNode'
             break
+          }
+          default: {
+            console.log('Unknown tool: ' + tool)
           }
         }
       },
@@ -709,6 +838,10 @@
           'E_PARITY',
           'A_PARITY',
           'LTL'],
+        drawTokenFlowPreviewLinks: [],
+        drawTokenFlowPreviewSource: undefined,
+        drawTokenFlowPreviewTransition: undefined,
+        drawTokenFlowPreviewPostset: [],
         // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
         selectedTool: 'select',
@@ -1035,6 +1168,7 @@
         this.linkTextGroup = this.container.append('g').attr('class', 'linkTexts')
         this.nodeGroup = this.container.append('g').attr('class', 'nodes')
         this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
+        this.drawTokenFlowPreviewGroup = this.container.append('g').attr('class', 'drawTokenFlowPreview')
         this.labelGroup = this.container.append('g').attr('class', 'texts')
         this.contentGroup = this.container.append('g').attr('class', 'node-content')
         // This is the arrow that we draw when the user is adding a transition between two nodes
@@ -1146,6 +1280,29 @@
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
 
+        const tokenFlowPreviewNodes = this.drawTokenFlowPreviewPostset
+          .concat([this.drawTokenFlowPreviewTransition, this.drawTokenFlowPreviewSource])
+          .filter(d => d !== undefined)
+        const drawTokenFlowPreviewCircles = this.drawTokenFlowPreviewGroup
+          .selectAll('circle')
+          .data(tokenFlowPreviewNodes)
+        const newCircles = drawTokenFlowPreviewCircles.enter()
+          .append('circle')
+        newCircles.call(this.applyNodeEventHandler)
+        drawTokenFlowPreviewCircles.exit().remove()
+        this.drawTokenFlowPreviewCircles = drawTokenFlowPreviewCircles.merge(newCircles)
+        this.drawTokenFlowPreviewCircles
+          .attr('r', d => {
+            if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
+              return this.nodeRadius * 1.4
+            } else {
+              return this.nodeRadius * 1.6
+            }
+          })
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('fill-opacity', 0.1)
+
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')
           .data(this.nodes, this.keyFunction)
@@ -1211,15 +1368,23 @@
         }
         const newLinkElements = this.linkGroup
           .selectAll('path')
-          .data(this.links)
+          .data(this.links.concat(this.drawTokenFlowPreviewLinks))
         const linkEnter = newLinkElements
           .enter().append('path')
           .attr('fill', 'none')
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
-          .attr('stroke-width', 3)
+          .attr('stroke-width', link => {
+            if (this.drawTokenFlowPreviewLinks.includes(link)) {
+              return 6
+            } else {
+              return 3
+            }
+          })
           .attr('stroke', link => {
-            if (link.tokenFlowHue !== undefined) {
+            if (this.drawTokenFlowPreviewLinks.includes(link)) {
+              return '#444444'
+            } else if (link.tokenFlowHue !== undefined) {
               return getTokenFlowColor(link)
             } else {
               return '#E5E5E5'
@@ -1298,6 +1463,10 @@
               } else {
                 return 0
               }
+            })
+          this.drawTokenFlowPreviewCircles
+            .attr('transform', d => {
+              return `translate(${d.x},${d.y})`
             })
 
           // TODO implement super cool feature to stretch and shrink a selection (moving all nodes proportionally)

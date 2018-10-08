@@ -70,6 +70,7 @@
                          v-on:graphModified='onGraphModified'
                          v-on:insertNode='insertNode'
                          v-on:createFlow='createFlow'
+                         v-on:createTokenFlow='createTokenFlow'
                          v-on:deleteNode='deleteNode'
                          v-on:renameNode='renameNode'
                          v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
@@ -308,6 +309,7 @@
           convertAptToGraph: this.baseUrl + '/convertAptToGraph',
           insertNode: this.baseUrl + '/insertPlace',
           createFlow: this.baseUrl + '/createFlow',
+          createTokenFlow: this.baseUrl + '/createTokenFlow',
           deleteNode: this.baseUrl + '/deleteNode',
           renameNode: this.baseUrl + '/renameNode',
           toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace',
@@ -596,6 +598,24 @@
           petriGameId: this.petriGame.uuid,
           source: flowSpec.source,
           destination: flowSpec.destination
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          this.logError('Network error')
+        })
+      },
+      createTokenFlow: function ({source, transition, postset}) {
+        console.log('processing createTokenFlow event')
+        console.log(source)
+        console.log(transition)
+        console.log(postset)
+        axios.post(this.restEndpoints.createTokenFlow, {
+          petriGameId: this.petriGame.uuid,
+          source,
+          transition,
+          postset
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.petriGame.net = response.data.result

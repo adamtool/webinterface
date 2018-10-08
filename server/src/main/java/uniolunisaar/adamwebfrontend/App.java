@@ -9,6 +9,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import uniol.apt.adt.pn.Node;
 import uniol.apt.adt.pn.Place;
+import uniol.apt.adt.pn.Transition;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
@@ -20,12 +21,16 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class App {
-    public static void main(String[] args) {
-        // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
-        final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
-        final Gson gson = new Gson();
-        final JsonParser parser = new JsonParser();
+    // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
+    private final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
+    private final Gson gson = new Gson();
+    private final JsonParser parser = new JsonParser();
 
+    public static void main(String[] args) {
+        new App().startServer();
+    }
+
+    public void startServer() {
         // Tell ADAM to send all of its messages to our websocket clients instead of stdout
         Logger.getInstance().setVerboseMessageStream(LogWebSocket.getPrintStreamVerbose());
         Logger.getInstance().setShortMessageStream(LogWebSocket.getPrintStreamNormal());
@@ -67,7 +72,7 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-            PetriGameAndMore petriGame = petriGamesReadFromApt.get(petriGameId);
+            PetriGameAndMore petriGame = getPetriGame(petriGameId);
 
             System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
             boolean existsWinningStrategy = petriGame.calculateExistsWinningStrategy();
@@ -83,7 +88,7 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-            PetriGameAndMore petriGame = petriGamesReadFromApt.get(petriGameId);
+            PetriGameAndMore petriGame = getPetriGame(petriGameId);
             System.out.println("Calculating strategy BDD for PetriGame id#" + petriGameId);
             JsonElement strategyBDDJson = petriGame.calculateStrategyBDD();
 
@@ -100,7 +105,7 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-            PetriGameAndMore petriGame = petriGamesReadFromApt.get(petriGameId);
+            PetriGameAndMore petriGame = getPetriGame(petriGameId);
             System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
             JsonElement bddGraph = petriGame.calculateGraphStrategyBDD();
 
@@ -115,7 +120,7 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-            PetriGameAndMore petriGame = petriGamesReadFromApt.get(petriGameId);
+            PetriGameAndMore petriGame = getPetriGame(petriGameId);
             System.out.println("Getting graph game BDD for PetriGame id#" + petriGameId);
             JsonElement graphGame = petriGame.calculateGraphGameBDD();
 
@@ -134,7 +139,7 @@ public class App {
             // TODO Instead of using Map.get() directly, write a helper method that will throw
             // TODO an informative exception in case the petri game ID is not found in the map.
             // TODO e.g. PetriGameNotFound
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
             JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNodePostset(stateId);
 
             JsonObject responseJson = new JsonObject();
@@ -149,7 +154,7 @@ public class App {
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
             int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
             JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNodePreset(stateId);
 
             JsonObject responseJson = new JsonObject();
@@ -167,7 +172,7 @@ public class App {
             }.getType();
             Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(petriGameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
             String apt = petriGameAndMore.savePetriGameWithXYCoordinates(nodePositions);
             JsonElement aptJson = new JsonPrimitive(apt);
 
@@ -185,7 +190,7 @@ public class App {
             String nodeType = body.get("nodeType").getAsString();
             GraphNodeType graphNodeType = GraphNodeType.valueOf(nodeType);
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
 
             Node node = null;
@@ -217,7 +222,7 @@ public class App {
             String gameId = body.get("petriGameId").getAsString();
             String nodeId = body.get("nodeId").getAsString();
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
 
             petriGame.removeNode(nodeId);
@@ -232,7 +237,7 @@ public class App {
             String nodeIdOld = body.get("nodeIdOld").getAsString();
             String nodeIdNew = body.get("nodeIdNew").getAsString();
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             Node oldNode = petriGame.getNode(nodeIdOld);
             petriGame.rename(oldNode, nodeIdNew);
@@ -246,7 +251,7 @@ public class App {
             String gameId = body.get("petriGameId").getAsString();
             String nodeId = body.get("nodeId").getAsString();
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             Place place = petriGame.getPlace(nodeId);
             boolean environment = petriGame.isEnvironment(place);
@@ -265,7 +270,7 @@ public class App {
             String gameId = body.get("petriGameId").getAsString();
             String nodeId = body.get("nodeId").getAsString();
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             Place place = petriGame.getPlace(nodeId);
             boolean isInitialTokenFlow = petriGame.isInitialTokenflow(place);
@@ -285,7 +290,7 @@ public class App {
             String nodeId = body.get("nodeId").getAsString();
             int tokens = body.get("tokens").getAsInt();
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             Place place = petriGame.getPlace(nodeId);
             place.setInitialToken(tokens);
@@ -299,7 +304,7 @@ public class App {
             String gameId = body.get("petriGameId").getAsString();
             String winningCondition = body.get("winningCondition").getAsString();
 
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             Objective objective = Objective.valueOf(winningCondition);
             PetriGameExtensionHandler.setWinningConditionAnnotation(petriGame, objective);
@@ -312,11 +317,55 @@ public class App {
             String gameId = body.get("petriGameId").getAsString();
             String source = body.get("source").getAsString();
             String destination = body.get("destination").getAsString();
-            PetriGameAndMore petriGameAndMore = petriGamesReadFromApt.get(gameId);
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
 
             petriGame.createFlow(source, destination);
             // TODO Allow specifying token flows somehow
+            JsonElement petriGameClient = PetriNetD3.of(petriGame);
+
+            return successResponse(petriGameClient);
+        });
+
+        post("/createTokenFlow", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            Optional<String> sourceId = body.has("source") ?
+                    Optional.of(body.get("source").getAsString()) :
+                    Optional.empty();
+            String transitionId = body.get("transition").getAsString();
+            JsonArray postsetJson = body.get("postset").getAsJsonArray();
+            List<String> postsetIds = new ArrayList<>();
+            postsetJson.forEach(jsonElement -> {
+                postsetIds.add(jsonElement.getAsString());
+            });
+
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+            // Create flows if they don't already exist
+            Transition transition = petriGame.getTransition(transitionId);
+            sourceId.ifPresent(id -> {
+                Place source = petriGame.getPlace(id);
+                if (!transition.getPreset().contains(source)) {
+                    petriGame.createFlow(source, transition);
+                }
+            });
+            for (String postsetId : postsetIds) {
+                Place postPlace = petriGame.getPlace(postsetId);
+                if (!transition.getPostset().contains(postPlace)) {
+                    petriGame.createFlow(transition, postPlace);
+                }
+            }
+
+            // Create a token flow.  It is an initial token flow if if has no source Place.
+            String[] postsetArray = postsetIds.toArray(new String[postsetIds.size()]);
+            if (sourceId.isPresent()) {
+                petriGame.createTokenFlow(sourceId.get(), transitionId, postsetArray);
+            } else {
+                petriGame.createInitialTokenFlow(transitionId, postsetArray);
+            }
+
             JsonElement petriGameClient = PetriNetD3.of(petriGame);
 
             return successResponse(petriGameClient);
@@ -329,6 +378,15 @@ public class App {
             String responseBody = errorResponse(exceptionAsString);
             response.body(responseBody);
         });
+    }
+
+    private PetriGameAndMore getPetriGame(String uuid) {
+        if (!petriGamesReadFromApt.containsKey(uuid)) {
+            throw new IllegalArgumentException("We have no PetriGame with the given UUID.  " +
+                    "You might see this error if the server has been restarted after you opened the " +
+                    "web UI.");
+        }
+        return petriGamesReadFromApt.get(uuid);
     }
 
     private static void enableCORS() {
