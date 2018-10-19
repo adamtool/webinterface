@@ -11,9 +11,11 @@ import uniol.apt.adt.pn.Node;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
 import uniolunisaar.adam.Adam;
+import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.ds.winningconditions.WinningCondition.Objective;
+import uniolunisaar.adam.logic.flowltl.IRunFormula;
 import uniolunisaar.adam.tools.Logger;
 
 import java.lang.reflect.Type;
@@ -386,6 +388,32 @@ public class App {
             JsonElement petriGameClient = PetriNetD3.of(petriGame);
 
             return successResponse(petriGameClient);
+        });
+
+        post("/checkLtlFormula", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String formula = body.get("formula").getAsString();
+
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+            IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+            return successResponse(new JsonPrimitive(true));
+        });
+
+        post("/setLtlFormula", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String formula = body.get("formula").getAsString();
+
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+            IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+            PetriGameExtensionHandler.setWinningConditionAnnotation(petriGame, Objective.LTL);
+            // TODO Put the iRunFormula into the PetriGame somehow (ask Manuel how)
+            return errorResponse("setLtlFormula is not yet implemented");
         });
 
         exception(Exception.class, (exception, request, response) -> {
