@@ -45,8 +45,9 @@
           <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
         </hsc-menu-bar-item>
         <hsc-menu-bar-item label="Settings">
-          <hsc-menu-item :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
-                         @click="showPhysicsControls = !showPhysicsControls"/>
+          <hsc-menu-item
+            :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
+            @click="showPhysicsControls = !showPhysicsControls"/>
           <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
                          @click="showPartitions = !showPartitions"/>
         </hsc-menu-bar-item>
@@ -57,7 +58,8 @@
     </my-theme>
 
     <div style="width: 100%; height: 100vh">
-      <div style="display: flex; flex-direction: row; height: 100%; width: 100%;" ref="horizontalSplitDiv">
+      <div style="display: flex; flex-direction: row; height: 100%; width: 100%;"
+           ref="horizontalSplitDiv">
         <div class="flex-column-divider"
              v-on:click="toggleLeftPane">
           <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
@@ -423,7 +425,7 @@
         document.getElementById('file-picker').click()
       },
       saveAptToFile: function () {
-        saveFileAs(this.apt, 'apt.txt')
+        this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, 'apt.txt'))
       },
       saveSvgToFilePetriGame: function () {
         this.$refs.graphEditorPetriGame.saveGraph()
@@ -589,21 +591,24 @@
         this.logVerbose('Switching to APT editor')
         this.savePetriGameAsAPT()
       },
+      // Return a promise that is fulfilled iff the http request to the server is successfully processed
       savePetriGameAsAPT: function () {
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriGame object.
         // Then, the server converts the PetriGame into APT format and gives that to us.
         const nodePositions = this.$refs.graphEditorPetriGame.getNodeXYCoordinates()
-        axios.post(this.restEndpoints.savePetriGameAsAPT, {
+        return axios.post(this.restEndpoints.savePetriGameAsAPT, {
           petriGameId: this.petriGame.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.apt = response.data.apt
           })
-        }).catch(() => {
-          this.logError('Network error')
+        }, reason => {
+          // This function gets called if the promise is rejected (i.e. the http request failed)
+          this.logError('savePetriGameAsAPT(): An error occurred. ' + reason)
+          throw new Error(reason)
         })
       },
       createFlow: function (flowSpec) {
@@ -758,6 +763,8 @@
         this.apt = apt
         this.isLeftPaneVisible = true
       },
+      // TODO Throw an exception here so that the promises this function is used in do not get
+      // mistakenly fulfilled.
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
           case 'success':
