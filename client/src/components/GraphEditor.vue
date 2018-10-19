@@ -22,38 +22,62 @@
                v-model="gravityStrength">
         <div class="forceStrengthNumber">{{gravityStrength}}</div>
       </div>
-      <div class="graph-editor-toolbar">
-        <button v-on:click="drawTokenFlowHandler.finish()">Finish drawing token flow</button>
-        <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
-        <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
-          Zoom to fit all nodes
-        </button>
-        <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
-          Move all nodes to visible area
-        </button>
-        <button style="display: none;" v-on:click="updateD3">Update D3</button>
-        <button v-on:click="freezeAllNodes">Freeze all nodes</button>
-        <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
-        <button class="btn-danger" v-on:click="deleteSelectedNodes"
-                v-if="showEditorTools">Delete selected nodes
-        </button>
-        <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
-      </div>
-      <v-radio-group v-model="selectedTool" v-if="showEditorTools" row>
-        <v-radio label="select" value="select"/>
-        <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
-        <v-radio label="draw flows" value="drawFlow"/>
-        <v-radio label="draw token flows" value="drawTokenFlow"/>
-        <v-radio label="insert sysplace" value="insertSysPlace"/>
-        <v-radio label="insert envplace" value="insertEnvPlace"/>
-        <v-radio label="insert transition" value="insertTransition"/>
-      </v-radio-group>
+
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
-      <v-select
-        v-if="showEditorTools"
-        v-model="selectedWinningCondition"
-        :items="winningConditions"
-        label="Winning Condition"/>
+      <v-container fluid style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
+        <v-layout row>
+          <div class="graph-editor-toolbar">
+            <button v-on:click="drawTokenFlowHandler.finish()">Finish drawing token flow</button>
+            <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
+            <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
+              Zoom to fit all nodes
+            </button>
+            <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
+              Move all nodes to visible area
+            </button>
+            <button style="display: none;" v-on:click="updateD3">Update D3</button>
+            <button v-on:click="freezeAllNodes">Freeze all nodes</button>
+            <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+            <button class="btn-danger" v-on:click="deleteSelectedNodes"
+                    v-if="showEditorTools">Delete selected nodes
+            </button>
+            <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
+          </div>
+        </v-layout>
+        <v-layout row>
+          <v-radio-group v-model="selectedTool" v-if="showEditorTools" row>
+            <v-radio label="select" value="select"/>
+            <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
+            <v-radio label="draw flows" value="drawFlow"/>
+            <v-radio label="draw token flows" value="drawTokenFlow"/>
+            <v-radio label="insert sysplace" value="insertSysPlace"/>
+            <v-radio label="insert envplace" value="insertEnvPlace"/>
+            <v-radio label="insert transition" value="insertTransition"/>
+          </v-radio-group>
+        </v-layout>
+        <v-layout row>
+          <template v-if="showModelChecking">
+            <v-select
+              md6 xs12
+              v-if="showEditorTools"
+              v-model="selectedWinningCondition"
+              :items="winningConditions"
+              label="Winning Condition"/>
+            <v-text-field
+              md6 xs12
+              v-if="showEditorTools && showModelChecking"
+              v-model="ltlFormula"
+              label="LTL Formula"/>
+          </template>
+          <template v-else>
+            <v-select
+              v-if="showEditorTools"
+              v-model="selectedWinningCondition"
+              :items="winningConditions"
+              label="Winning Condition"/>
+          </template>
+        </v-layout>
+      </v-container>
     </div>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
@@ -171,6 +195,8 @@
         }
       })
       const parent = this.$refs.rootElement.parentElement
+      console.log('graph editor parent:')
+      console.log(parent)
       const updateGraphEditorDimensions = () => {
         const width = parent.clientWidth
         const height = parent.clientHeight
@@ -178,6 +204,7 @@
           width: width,
           height: height
         }
+        console.log(`dimensions: ${width}, ${height}`)
       }
       // eslint-disable-next-line no-new
       new ResizeSensor(parent, updateGraphEditorDimensions)
@@ -199,6 +226,11 @@
       showEditorTools: {
         type: Boolean,
         default: false
+      },
+      // This indicates whether features related to model checking should be here.
+      showModelChecking: {
+        type: Boolean,
+        default: true
       },
       repulsionStrengthDefault: {
         type: Number,
@@ -877,6 +909,7 @@
           'E_PARITY',
           'A_PARITY',
           'LTL'],
+        ltlFormula: '', // The LTL formula corresponding to our winning condition
         drawTokenFlowPreviewLinks: [],
         drawTokenFlowPreviewSource: undefined,
         drawTokenFlowPreviewTransition: undefined,
@@ -1074,7 +1107,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-            'The fixed positions you have moved them to will be lost.')) {
+          'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
@@ -1383,12 +1416,14 @@
             }
           })
         const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
+
         function partitionColorForPlace (place) {
           const hueDegrees = place.partition / (maxPartition + 1) * 360
           console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
           const luminosity = place.type === 'SYSPLACE' ? 35 : 90
           return `HSL(${hueDegrees}, ${luminosity + 20}%, ${luminosity}%`
         }
+
         this.nodeElements
           .attr('fill', data => {
             if (this.selectedNodes.includes(data)) {
