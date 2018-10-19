@@ -832,7 +832,8 @@
   }
 
   .tabs-component-full-height,
-  .tabs-component-full-height > .v-tabs__items > .v-tabs__content {
+  .tabs-component-full-height > .v-window > .v-window__container,
+  .tabs-component-full-height > .v-window > .v-window__container > .v-window-item {
     height: 100%;
   }
 
@@ -847,11 +848,12 @@
     flex-basis: auto;
   }
 
-  .tabs-component-full-height > .v-tabs__items {
+  .tabs-component-full-height > .v-window {
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: available;
   }
+
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/
   .arrow-left {
