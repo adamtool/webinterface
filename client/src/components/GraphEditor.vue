@@ -967,23 +967,22 @@
       }
     },
     methods: {
-      checkLtlFormula: debounce(function () {
-        this.modelCheckingRoutes.checkLtlFormula(this.petriGameId, this.ltlFormula)
-          .then((result) => {
-            console.log(result)
-            // TODO Read the actual result from the server.  Maybe it returned 'false'
-            this.ltlParseStatus = 'success'
-            this.ltlParseErrors = []
-          })
-          .catch(error => {
-            // TODO Log the error in the user's log window, not just in the console
-            console.log('Error parsing LTL formula: ' + error)
-            this.ltlParseStatus = 'error'
-            this.ltlParseErrors = [error]
-          })
+      checkLtlFormula: debounce(async function () {
         console.log('Parsing Ltl Formula')
         this.ltlParseStatus = 'running'
         this.ltlParseErrors = []
+        try {
+          const result = await this.modelCheckingRoutes.checkLtlFormula(this.petriGameId, this.ltlFormula)
+          console.log(result)
+          // TODO Read the actual result from the server.  Maybe it returned 'false'
+          this.ltlParseStatus = 'success'
+          this.ltlParseErrors = []
+        } catch (error) {
+          // TODO Log the error in the user's log window, not just in the console
+          console.log('Error parsing LTL formula: ' + error)
+          this.ltlParseStatus = 'error'
+          this.ltlParseErrors = [error]
+        }
       }, 200),
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
