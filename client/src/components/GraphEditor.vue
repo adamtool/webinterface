@@ -57,13 +57,13 @@
         <v-layout row>
           <template v-if="showModelChecking">
             <v-select
-              md6 xs12
+              style="flex: 0 0 200px"
               v-if="showEditorTools"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Winning Condition"/>
             <v-text-field
-              md6 xs12
+              style="flex: 1 1 0"
               :disabled="selectedWinningCondition !== 'LTL'"
               v-if="showEditorTools && showModelChecking"
               v-model="ltlFormula"
