@@ -6,8 +6,7 @@
 
 import * as axios from 'axios'
 
-export default {withPathPrefix, noOpImplementation}
-export { noOpImplementation }
+export { noOpImplementation, withPathPrefix }
 
 // Return an object that has functions to send certain HTTP requests to the server.
 // All of the routes will have the prefix prepended to them.  e.g. withPathPrefix('localhost:8080')

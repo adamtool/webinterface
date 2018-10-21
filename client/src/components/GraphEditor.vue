@@ -218,6 +218,10 @@
         type: Object,
         required: true
       },
+      petriGameId: {
+        type: String,
+        required: true
+      },
       shouldShowPhysicsControls: {
         type: Boolean,
         default: false
@@ -969,14 +973,26 @@
     methods: {
       checkLtlFormula: debounce(async function () {
         console.log('Parsing Ltl Formula')
+        // TODO Show 'running' status somehow in gui to distinguish it from 'success'
+        // TODO Implement a timeout in case the server takes a really long time to respond
         this.ltlParseStatus = 'running'
         this.ltlParseErrors = []
         try {
           const result = await this.modelCheckingRoutes.checkLtlFormula(this.petriGameId, this.ltlFormula)
           console.log(result)
-          // TODO Read the actual result from the server.  Maybe it returned 'false'
-          this.ltlParseStatus = 'success'
-          this.ltlParseErrors = []
+          switch (result.data.status) {
+            case 'success': {
+              this.ltlParseStatus = 'success'
+              this.ltlParseErrors = []
+              break
+            }
+            case 'error': {
+              this.ltlParseStatus = 'error'
+              this.ltlParseErrors = [result.data.message]
+              break
+            }
+            default: throw new Error('Unknown status from server: ' + result.data.status)
+          }
         } catch (error) {
           // TODO Log the error in the user's log window, not just in the console
           console.log('Error parsing LTL formula: ' + error)

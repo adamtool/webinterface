@@ -10,6 +10,7 @@ import com.google.gson.reflect.TypeToken;
 import uniol.apt.adt.pn.Node;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
+import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
@@ -398,8 +399,12 @@ public class App {
             PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
 
-            IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-            return successResponse(new JsonPrimitive(true));
+            try {
+                IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+                return successResponse(new JsonPrimitive(true));
+            } catch (ParseException e) {
+                return errorResponse(e.getMessage());
+            }
         });
 
         post("/setLtlFormula", (req, res) -> {

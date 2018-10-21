@@ -70,6 +70,7 @@
           <v-tab @click="onSwitchToAptEditor">APT Editor</v-tab>
           <v-tab-item>
             <GraphEditor :graph='petriGame.net'
+                         :petriGameId='petriGame.uuid'
                          ref='graphEditorPetriGame'
                          v-on:graphModified='onGraphModified'
                          v-on:insertNode='insertNode'
@@ -84,6 +85,7 @@
                          v-on:setWinningCondition='setWinningCondition'
                          showEditorTools
                          showModelChecking
+                         :modelCheckingRoutes="modelCheckingRoutes"
                          :shouldShowPhysicsControls="showPhysicsControls"
                          :shouldShowPartitions="showPartitions"
                          :repulsionStrengthDefault="360"
@@ -106,16 +108,19 @@
           <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
           <v-tab-item v-if="strategyBDD">
             <GraphEditor :graph='strategyBDD'
+                         :petriGameId='petriGame.uuid'
                          ref='graphEditorStrategyBDD'
                          :shouldShowPhysicsControls="showPhysicsControls"/>
           </v-tab-item>
           <v-tab-item v-if="graphStrategyBDD">
             <GraphEditor :graph='graphStrategyBDD'
+                         :petriGameId='petriGame.uuid'
                          ref='graphEditorGraphStrategyBDD'
                          :shouldShowPhysicsControls="showPhysicsControls"/>
           </v-tab-item>
           <v-tab-item v-if="graphGameBDD">
             <GraphEditor :graph='graphGameBDD'
+                         :petriGameId='petriGame.uuid'
                          ref='graphEditorGraphGameBDD'
                          v-on:toggleStatePostset='toggleGraphGameStatePostset'
                          v-on:toggleStatePreset='toggleGraphGameStatePreset'
@@ -136,9 +141,9 @@
 
 
 <script>
-  import aptFileTree from '@/aptExamples'
-  import GraphEditor from '@/components/GraphEditor'
-  import LogViewer from '@/components/LogViewer'
+  import aptFileTree from './aptExamples'
+  import GraphEditor from './components/GraphEditor'
+  import LogViewer from './components/LogViewer'
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
@@ -147,6 +152,7 @@
   import { debounce } from 'underscore'
   import * as VueMenu from '@hscmap/vue-menu'
   import Vuetify from 'vuetify'
+  import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   Vue.use(Vuetify)
   import 'vuetify/dist/vuetify.min.css'
@@ -326,6 +332,10 @@
           setInitialToken: this.baseUrl + '/setInitialToken',
           setWinningCondition: this.baseUrl + '/setWinningCondition'
         }
+      },
+      // TODO consider refactoring routes so they are handled more like this and less like the above
+      modelCheckingRoutes: function () {
+        return modelCheckingRoutesFactory.withPathPrefix(this.baseUrl)
       },
       webSocketUrl: function () {
         if (this.baseUrl === '') { // This means that we are running in production, with relative URLs
