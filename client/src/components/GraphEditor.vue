@@ -27,7 +27,6 @@
       <v-container fluid style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
         <v-layout row>
           <div class="graph-editor-toolbar">
-            <button v-on:click="drawTokenFlowHandler.finish()">Finish drawing token flow</button>
             <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
             <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
               Zoom to fit all nodes
