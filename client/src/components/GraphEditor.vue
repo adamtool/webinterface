@@ -67,7 +67,7 @@
               :disabled="selectedWinningCondition !== 'LTL'"
               v-if="showEditorTools && showModelChecking"
               v-model="ltlFormula"
-              :error-messages="ltlParsingErrors"
+              :error-messages="ltlParseErrors"
               label="LTL Formula"/>
           </template>
           <template v-else>
@@ -153,14 +153,15 @@
 
 <script>
   import * as d3 from 'd3'
-  import { saveFileAs } from '@/fileutilities'
-  import { layoutNodes } from '@/autoLayout'
-  import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
+  import { saveFileAs } from '../fileutilities'
+  import { layoutNodes } from '../autoLayout'
+  import { noOpImplementation } from '../modelCheckingRoutes'
+  import { pointOnRect, pointOnCircle } from '../shapeIntersections'
   import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import { chain } from 'lodash'
-  import { noOpImplementation } from '../modelCheckingRoutes'
+  import { debounce } from 'underscore'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
@@ -923,7 +924,8 @@
           'E_PARITY',
           'A_PARITY'],
         ltlFormula: 'hello', // The LTL formula corresponding to our winning condition
-        ltlParsingErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
+        ltlParseErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
+        ltlParseStatus: 'success',
         drawTokenFlowPreviewLinks: [],
         drawTokenFlowPreviewSource: undefined,
         drawTokenFlowPreviewTransition: undefined,
@@ -965,15 +967,24 @@
       }
     },
     methods: {
-      checkLtlFormula: function () {
+      checkLtlFormula: debounce(function () {
         this.modelCheckingRoutes.checkLtlFormula(this.petriGameId, this.ltlFormula)
           .then((result) => {
-            // TODO Update LtlParsingErrors / LtlParsingStatus accordingly based on result
-            // TODO throttle this function
             console.log(result)
+            // TODO Read the actual result from the server.  Maybe it returned 'false'
+            this.ltlParseStatus = 'success'
+            this.ltlParseErrors = []
           })
-        console.log('Checking Ltl Formula')
-      },
+          .catch(error => {
+            // TODO Log the error in the user's log window, not just in the console
+            console.log('Error parsing LTL formula: ' + error)
+            this.ltlParseStatus = 'error'
+            this.ltlParseErrors = [error]
+          })
+        console.log('Parsing Ltl Formula')
+        this.ltlParseStatus = 'running'
+        this.ltlParseErrors = []
+      }, 200),
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
       },

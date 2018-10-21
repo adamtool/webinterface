@@ -16,7 +16,7 @@ function withPathPrefix (prefix) {
 
   // Return a promise that gets fulfilled if the server responds to our request.
   // The result of the promise: TODO Specify what the promise's result contains
-  function checkLtlFormula (petriGameId, formula) {
+  async function checkLtlFormula (petriGameId, formula) {
     return axios.post(prefix + '/checkLtlFormula', {
       petriGameId,
       formula
@@ -25,15 +25,20 @@ function withPathPrefix (prefix) {
 }
 
 // This is suitable to be used for mocking.  All requests performed with this implementation will
-// simply fail immediately.
+// simply fail after 500 milliseconds.
 function noOpImplementation () {
   const handler = {
     get: function (target, name) {
-      return function () {
-        return Promise.reject(new Error('Route not implemented'))
+      return async function () {
+        await sleep(500)
+        return Promise.reject(new Error('Route not implemented (this is a mock-up)'))
       }
     }
   }
 
   return new Proxy({}, handler)
+
+  async function sleep (ms) {
+    await new Promise(resolve => setTimeout(resolve, ms))
+  }
 }
