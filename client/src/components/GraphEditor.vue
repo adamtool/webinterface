@@ -64,8 +64,11 @@
               label="Winning Condition"/>
             <v-text-field
               md6 xs12
+              :disabled="selectedWinningCondition !== 'LTL'"
               v-if="showEditorTools && showModelChecking"
               v-model="ltlFormula"
+              @keyup="selectedWinningCondition !== 'LTL' ? checkLtlFormula() : () => {}"
+              :error-messages="ltlParsingErrors"
               label="LTL Formula"/>
           </template>
           <template v-else>
@@ -158,6 +161,7 @@
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import { chain } from 'lodash'
+  import { noOpImplementation } from '../modelCheckingRoutes'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
@@ -227,9 +231,15 @@
         default: false
       },
       // This indicates whether features related to model checking should be here.
+      // If this is true, then you have to supply modelCheckingRoutes as well.
       showModelChecking: {
         type: Boolean,
-        default: true
+        default: false
+      },
+      modelCheckingRoutes: {
+        type: Object,
+        required: false,
+        default: noOpImplementation
       },
       repulsionStrengthDefault: {
         type: Number,
@@ -899,6 +909,7 @@
         winningCondition: '',
         selectedWinningCondition: '',
         winningConditions: [
+          'LTL',
           'E_REACHABILITY',
           'A_REACHABILITY',
           'E_SAFETY',
@@ -906,9 +917,9 @@
           'E_BUCHI',
           'A_BUCHI',
           'E_PARITY',
-          'A_PARITY',
-          'LTL'],
-        ltlFormula: '', // The LTL formula corresponding to our winning condition
+          'A_PARITY'],
+        ltlFormula: 'hello', // The LTL formula corresponding to our winning condition
+        ltlParsingErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
         drawTokenFlowPreviewLinks: [],
         drawTokenFlowPreviewSource: undefined,
         drawTokenFlowPreviewTransition: undefined,
@@ -950,6 +961,15 @@
       }
     },
     methods: {
+      checkLtlFormula: function () {
+        this.modelCheckingRoutes.checkLtlFormula(this.petriGameId, this.ltlFormula)
+          .then((result) => {
+            // TODO Update LtlParsingErrors / LtlParsingStatus accordingly based on result
+            // TODO throttle this function
+            console.log(result)
+          })
+        console.log('Checking Ltl Formula')
+      },
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
       },
@@ -1106,7 +1126,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-          'The fixed positions you have moved them to will be lost.')) {
+            'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null

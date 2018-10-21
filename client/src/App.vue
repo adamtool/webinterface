@@ -83,6 +83,7 @@
                          v-on:setInitialToken='setInitialToken'
                          v-on:setWinningCondition='setWinningCondition'
                          showEditorTools
+                         showModelChecking
                          :shouldShowPhysicsControls="showPhysicsControls"
                          :shouldShowPartitions="showPartitions"
                          :repulsionStrengthDefault="360"
