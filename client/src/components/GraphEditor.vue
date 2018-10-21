@@ -67,7 +67,6 @@
               :disabled="selectedWinningCondition !== 'LTL'"
               v-if="showEditorTools && showModelChecking"
               v-model="ltlFormula"
-              @keyup="selectedWinningCondition !== 'LTL' ? checkLtlFormula() : () => {}"
               :error-messages="ltlParsingErrors"
               label="LTL Formula"/>
           </template>
@@ -785,6 +784,11 @@
       }
     },
     watch: {
+      ltlFormula: function (formula) {
+        if (this.selectedWinningCondition === 'LTL') {
+          this.checkLtlFormula()
+        }
+      },
       selectedWinningCondition: function (condition) {
         if (condition !== this.winningCondition) {
           this.$emit('setWinningCondition', condition)
