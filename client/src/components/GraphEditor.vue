@@ -24,7 +24,8 @@
       </div>
 
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
-      <v-container fluid style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
+      <v-container fluid
+                   style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
         <v-layout row>
           <div class="graph-editor-toolbar">
             <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
@@ -68,6 +69,7 @@
               v-if="showEditorTools && showModelChecking"
               v-model="ltlFormula"
               :error-messages="ltlParseErrors"
+              placeholder="Enter a LTL formula here"
               label="LTL Formula"/>
           </template>
           <template v-else>
@@ -259,6 +261,27 @@
       }
     },
     computed: {
+      winningConditions: function () {
+        if (this.showModelChecking) {
+          return [
+            'LTL',
+            'A_REACHABILITY',
+            'A_SAFETY',
+            'A_BUCHI',
+            'A_PARITY']
+        } else {
+          return [
+            'LTL',
+            'E_REACHABILITY',
+            'A_REACHABILITY',
+            'E_SAFETY',
+            'A_SAFETY',
+            'E_BUCHI',
+            'A_BUCHI',
+            'E_PARITY',
+            'A_PARITY']
+        }
+      },
       closeContextMenu: function () {
         return () => {
           contextMenuFactory('close')
@@ -790,7 +813,7 @@
     },
     watch: {
       ltlFormula: function (formula) {
-        if (this.selectedWinningCondition === 'LTL') {
+        if (this.selectedWinningCondition === 'LTL' && formula !== '') {
           this.checkLtlFormula()
         }
       },
@@ -917,16 +940,6 @@
         },
         winningCondition: '',
         selectedWinningCondition: '',
-        winningConditions: [
-          'LTL',
-          'E_REACHABILITY',
-          'A_REACHABILITY',
-          'E_SAFETY',
-          'A_SAFETY',
-          'E_BUCHI',
-          'A_BUCHI',
-          'E_PARITY',
-          'A_PARITY'],
         ltlFormula: 'hello', // The LTL formula corresponding to our winning condition
         ltlParseErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
         ltlParseStatus: 'success',
@@ -991,7 +1004,8 @@
               this.ltlParseErrors = [result.data.message]
               break
             }
-            default: throw new Error('Unknown status from server: ' + result.data.status)
+            default:
+              throw new Error('Unknown status from server: ' + result.data.status)
           }
         } catch (error) {
           // TODO Log the error in the user's log window, not just in the console
@@ -1156,7 +1170,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-            'The fixed positions you have moved them to will be lost.')) {
+          'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
@@ -1706,6 +1720,7 @@
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
         this.winningCondition = graphJsonCopy.winningCondition
+        this.ltlFormula = graphJsonCopy.ltlFormula
         const newLinks = graphJsonCopy.links
         const newNodes = graphJsonCopy.nodes
         const newNodePositions = graphJsonCopy.nodePositions

@@ -3,9 +3,11 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
+import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.ds.petrigame.TokenFlow;
+import uniolunisaar.adam.ds.winningconditions.WinningCondition.Objective;
 import uniolunisaar.adam.logic.util.AdamTools;
 import uniolunisaar.adam.tools.Tools;
 
@@ -23,12 +25,14 @@ public class PetriNetD3 {
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
     private final String winningCondition;
+    private final String ltlFormula;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, String winningCondition) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, String winningCondition, String ltlFormula) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
         this.winningCondition = winningCondition;
+        this.ltlFormula = ltlFormula;
     }
 
     /**
@@ -83,9 +87,20 @@ public class PetriNetD3 {
                 ));
 
         boolean hasWinningCondition = PetriGameExtensionHandler.hasWinningConditionAnnotation(net);
-        String winningCondition = hasWinningCondition ? PetriGameExtensionHandler.getWinningConditionAnnotation(net) : "";
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, winningCondition);
-        return new Gson().toJsonTree(petriNetD3);
+        if (hasWinningCondition) {
+            String winningCondition = PetriGameExtensionHandler.getWinningConditionAnnotation(net);
+            Objective objective = Objective.valueOf(winningCondition);
+
+            boolean canConvertToLtl = objective.equals(Objective.A_BUCHI) ||
+                    objective.equals(Objective.A_REACHABILITY) ||
+                    objective.equals(Objective.A_SAFETY);
+            String ltlFormula = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) : "";
+            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, winningCondition, ltlFormula);
+            return new Gson().toJsonTree(petriNetD3);
+        } else {
+            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, "", "");
+            return new Gson().toJsonTree(petriNetD3);
+        }
     }
 
     /**
