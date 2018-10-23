@@ -409,7 +409,7 @@ public class App {
             }
         });
 
-        post("/getModelCheckNet", (req, res) -> {
+        post("/getModelCheckingNet", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();
             String formula = body.get("formula").getAsString();

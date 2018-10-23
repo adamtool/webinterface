@@ -1002,6 +1002,28 @@
       }
     },
     methods: {
+      // Send request to server to get the model checking net.
+      // TODO: Show a progress indicator.  Show the net in the GUI.
+      // TODO Consider putting this in App instead of in GraphEditor
+      getModelCheckingNet: async function () {
+        try {
+          const response = await this.modelCheckingRoutes.getModelCheckingNet(this.petriGameId, this.ltlFormula)
+          console.log(response)
+          switch (response.data.status) {
+            case 'success':
+              console.log('Got model checking net!!! yay')
+              console.log(response.data.result)
+              break
+            case 'error':
+              console.log('Couldnt get model checking net :( reason: ' + response.data.message)
+              break
+            default:
+              console.log('Couldnt get model checking net.  unknown status from server: ' + response.data.status)
+          }
+        } catch (error) {
+          console.log('Error getting model checking net: ' + error)
+        }
+      },
       checkLtlFormula: debounce(async function () {
         console.log('Parsing Ltl Formula')
         // TODO Show 'running' status somehow in gui to distinguish it from 'success'

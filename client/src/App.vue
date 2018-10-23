@@ -37,6 +37,7 @@
           </hsc-menu-item>
         </hsc-menu-bar-item>
         <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
+        <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"/>
         <hsc-menu-bar-item label="Analyze">
           <hsc-menu-item @click.native="existsWinningStrategy"
                          label="Exists Winning Strategy?"/>
@@ -494,6 +495,10 @@
         })
         this.aptParseStatus = 'running'
       }, 200),
+      getModelCheckingNet: function () {
+        this.$refs.menubar.deactivate()
+        this.$refs.graphEditorPetriGame.getModelCheckingNet()
+      },
       existsWinningStrategy: function () {
         if (this.petriGame.hasWinningStrategy !== undefined) {
           // TODO maintain state, avoid unnecessarily calculating this multiple times
@@ -864,7 +869,6 @@
     flex-shrink: 1;
     flex-basis: available;
   }
-
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/
   .arrow-left {
