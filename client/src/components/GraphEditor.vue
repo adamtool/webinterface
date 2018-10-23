@@ -68,6 +68,7 @@
               :disabled="selectedWinningCondition !== 'LTL'"
               v-if="showEditorTools && showModelChecking"
               v-model="ltlFormula"
+              :prepend-inner-icon="ltlParseStatusIcon"
               :error-messages="ltlParseErrors"
               placeholder="Enter a LTL formula here"
               label="LTL Formula"/>
@@ -280,6 +281,16 @@
             'A_BUCHI',
             'E_PARITY',
             'A_PARITY']
+        }
+      },
+      ltlParseStatusIcon: function () {
+        if (this.winningCondition !== 'LTL') {
+          return ''
+        }
+        switch (this.ltlParseStatus) {
+          case 'success': return 'thumb_up'
+          case 'error': return 'thumb_down'
+          case 'running': return 'hourglass_empty'
         }
       },
       closeContextMenu: function () {
@@ -824,6 +835,8 @@
       },
       winningCondition: function (condition) {
         this.selectedWinningCondition = condition
+        this.ltlParseStatus = ''
+        this.ltlParseErrors = []
       },
       selectedTool: function (tool) {
         // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
