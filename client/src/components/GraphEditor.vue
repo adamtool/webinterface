@@ -285,12 +285,17 @@
       },
       ltlParseStatusIcon: function () {
         if (this.winningCondition !== 'LTL') {
-          return ''
+          return 'blank'
         }
         switch (this.ltlParseStatus) {
-          case 'success': return 'thumb_up'
-          case 'error': return 'thumb_down'
-          case 'running': return 'hourglass_empty'
+          case 'success':
+            return 'thumb_up'
+          case 'error':
+            return 'thumb_down'
+          case 'running':
+            return 'hourglass_empty'
+          default:
+            return 'blank'
         }
       },
       closeContextMenu: function () {
@@ -1183,7 +1188,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-          'The fixed positions you have moved them to will be lost.')) {
+            'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
