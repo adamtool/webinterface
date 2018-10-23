@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.AdamModelChecker;
+import uniolunisaar.adam.ds.exceptions.NotSupportedGameException;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.ds.petrigame.TokenFlow;
@@ -108,6 +109,12 @@ public class PetriNetD3 {
      */
     public static JsonElement of(PetriGame game) {
         return of(game, new HashSet<>());
+    }
+
+    public static JsonElement of(PetriNet net) throws NotSupportedGameException {
+        // TODO consider if it is reasonable to do this.
+        PetriGame game = new PetriGame(net);
+        return of(game);
     }
 
 

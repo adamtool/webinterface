@@ -8,6 +8,7 @@ import static spark.Spark.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import uniol.apt.adt.pn.Node;
+import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
 import uniol.apt.io.parser.ParseException;
@@ -17,6 +18,7 @@ import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.ds.winningconditions.WinningCondition.Objective;
 import uniolunisaar.adam.logic.flowltl.IRunFormula;
+import uniolunisaar.adam.logic.flowltl.RunFormula;
 import uniolunisaar.adam.tools.Logger;
 
 import java.lang.reflect.Type;
@@ -407,7 +409,7 @@ public class App {
             }
         });
 
-        post("/setLtlFormula", (req, res) -> {
+        post("/getModelCheckNet", (req, res) -> {
             JsonObject body = parser.parse(req.body()).getAsJsonObject();
             String gameId = body.get("petriGameId").getAsString();
             String formula = body.get("formula").getAsString();
@@ -416,9 +418,13 @@ public class App {
             PetriGame petriGame = petriGameAndMore.getPetriGame();
 
             IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-            PetriGameExtensionHandler.setWinningConditionAnnotation(petriGame, Objective.LTL);
-            // TODO Put the iRunFormula into the PetriGame somehow (ask Manuel how)
-            return errorResponse("setLtlFormula is not yet implemented");
+            // TODO ask Manuel if this cast is OK / normal / expected
+            RunFormula runFormula = (RunFormula) iRunFormula;
+
+            PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
+
+            return successResponse(PetriNetD3.of(modelCheckingNet));
+
         });
 
         exception(Exception.class, (exception, request, response) -> {
