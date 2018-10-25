@@ -62,7 +62,8 @@
       <div style="display: flex; flex-direction: row; height: 100%; width: 100%;"
            ref="horizontalSplitDiv">
         <div class="flex-column-divider"
-             v-on:click="toggleLeftPane">
+             v-on:click="toggleLeftPane"
+             v-if="shouldShowRightSide">
           <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
         <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
@@ -286,9 +287,11 @@
         const hideStyle = this.isLeftPaneVisible ? '' : 'display: none;'
         return hideStyle + 'flex-grow: 1;'
       },
+      shouldShowRightSide: function () {
+        return this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD
+      },
       splitRightSideStyle: function () {
-        const shouldShow = this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD
-        return shouldShow ? '' : 'display: none;'
+        return this.shouldShowRightSide ? '' : 'display: none;'
       },
       aptEditorStyle: function () {
         let color
