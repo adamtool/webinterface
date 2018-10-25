@@ -268,8 +268,7 @@
             'LTL',
             'A_REACHABILITY',
             'A_SAFETY',
-            'A_BUCHI',
-            'A_PARITY']
+            'A_BUCHI']
         } else {
           return [
             'LTL',
