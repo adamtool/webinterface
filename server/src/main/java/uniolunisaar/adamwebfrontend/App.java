@@ -405,7 +405,9 @@ public class App {
                 IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
                 return successResponse(new JsonPrimitive(true));
             } catch (ParseException e) {
-                return errorResponse(e.getMessage());
+                Throwable cause = e.getCause();
+                System.out.println(cause.getMessage());
+                return errorResponse(e.getMessage() + "\n" + cause.getMessage());
             }
         });
 
