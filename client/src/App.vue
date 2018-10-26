@@ -85,6 +85,7 @@
                          v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
                          v-on:setInitialToken='setInitialToken'
                          v-on:setWinningCondition='setWinningCondition'
+                         v-on:gotModelCheckingNet='gotModelCheckingNet'
                          showEditorTools
                          showModelChecking
                          :modelCheckingRoutes="modelCheckingRoutes"
@@ -108,6 +109,7 @@
           <v-tab v-if="strategyBDD">Strategy BDD</v-tab>
           <v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>
           <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
+          <v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>
           <v-tab-item v-if="strategyBDD">
             <GraphEditor :graph='strategyBDD'
                          :petriGameId='petriGame.uuid'
@@ -130,6 +132,10 @@
                          :repulsionStrengthDefault="415"
                          :linkStrengthDefault="0.04"
                          :gravityStrengthDefault="300"/>
+          </v-tab-item>
+          <v-tab-item v-if="modelCheckingNet">
+            <GraphEditor :graph="modelCheckingNet"
+                         :shouldShowPhysicsControls="showPhysicsControls"/>
           </v-tab-item>
         </v-tabs>
       </div>
@@ -239,6 +245,7 @@
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
+        modelCheckingNet: null,
         isLeftPaneVisible: true,
         showPhysicsControls: false,
         showPartitions: false,
@@ -288,7 +295,7 @@
         return hideStyle + 'flex-grow: 1;'
       },
       shouldShowRightSide: function () {
-        return this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD
+        return this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD || this.modelCheckingNet
       },
       splitRightSideStyle: function () {
         return this.shouldShowRightSide ? '' : 'display: none;'
@@ -752,6 +759,11 @@
         }).catch(() => {
           this.logError('Network error')
         })
+      },
+      gotModelCheckingNet: function (net) {
+        console.log('App: Got model checking net')
+        console.log(net)
+        this.modelCheckingNet = net
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')

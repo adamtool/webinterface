@@ -1012,6 +1012,12 @@
             case 'success':
               console.log('Got model checking net!!! yay')
               console.log(response.data.result)
+              // TODO Definitely should refactor this so it's not taking place in this component.
+              // I would like the SVG element to be its own thing.
+              // The buttons for auto-layout and so on; the place to enter the LTL formula and
+              // winning condition; the toolbar to select "draw token flows" / "insert sysplace"
+              // etc. should each be their own components, I think.
+              this.$emit('gotModelCheckingNet', response.data.result)
               break
             case 'error':
               console.log('Couldnt get model checking net :( reason: ' + response.data.message)
@@ -1209,7 +1215,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-            'The fixed positions you have moved them to will be lost.')) {
+          'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
