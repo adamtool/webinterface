@@ -3,10 +3,14 @@ var utils = require('./utils')
 var config = require('../config')
 var vueLoaderConfig = require('./vue-loader.conf')
 var DirectoryTreePlugin = require('directory-tree-webpack-plugin')
+var adamwebconf = require('./adam-web.conf')
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
+
+// TODO Delete this.  It's just to test that we can read env variables
+console.log(adamwebconf.useModelChecking)
 
 module.exports = {
   entry: {
