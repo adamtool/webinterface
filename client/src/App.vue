@@ -188,6 +188,15 @@
       baseUrl: {
         type: String,
         default: ''
+      },
+      useModelChecking: {
+        type: Boolean,
+        required: true
+      },
+      // TODO Ask Manuel what the other approach should be called that isn't model checking
+      useOtherApproach: {
+        type: Boolean,
+        required: true
       }
     },
     components: {
@@ -224,6 +233,9 @@
       })
     },
     mounted: function () {
+      console.log(`Configuration: useOtherApproach: ${this.useOtherApproach}
+      useModelChecking: ${this.useModelChecking}
+      baseurl: ${this.baseUrl}`)
       this.parseAPTToPetriGame(this.apt)
       this.log('Hello!')
 
