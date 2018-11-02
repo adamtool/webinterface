@@ -56,7 +56,7 @@
           </v-radio-group>
         </v-layout>
         <v-layout row>
-          <template v-if="showModelChecking">
+          <template v-if="useModelChecking">
             <v-select
               style="flex: 0 0 200px"
               v-if="showEditorTools"
@@ -66,7 +66,7 @@
             <v-text-field
               style="flex: 1 1 0"
               :disabled="selectedWinningCondition !== 'LTL'"
-              v-if="showEditorTools && showModelChecking"
+              v-if="showEditorTools && useModelChecking"
               v-model="ltlFormula"
               :prepend-inner-icon="ltlParseStatusIcon"
               :error-messages="ltlParseErrors"
@@ -239,7 +239,7 @@
       },
       // This indicates whether features related to model checking should be here.
       // If this is true, then you have to supply modelCheckingRoutes as well.
-      showModelChecking: {
+      useModelChecking: {
         type: Boolean,
         default: false
       },
@@ -263,7 +263,7 @@
     },
     computed: {
       winningConditions: function () {
-        if (this.showModelChecking) {
+        if (this.useModelChecking) {
           return [
             'LTL',
             'A_REACHABILITY',
@@ -271,7 +271,6 @@
             'A_BUCHI']
         } else {
           return [
-            'LTL',
             'E_REACHABILITY',
             'A_REACHABILITY',
             'E_SAFETY',

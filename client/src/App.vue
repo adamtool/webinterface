@@ -36,15 +36,18 @@
                                     :callback="onAptExampleSelected"/>
           </hsc-menu-item>
         </hsc-menu-bar-item>
-        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
-        <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"/>
-        <hsc-menu-bar-item label="Analyze">
-          <hsc-menu-item @click.native="existsWinningStrategy"
-                         label="Exists Winning Strategy?"/>
-          <hsc-menu-item @click.native="getGraphStrategyBDD"
-                         label="Get Graph Strategy BDD"/>
-          <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
-        </hsc-menu-bar-item>
+        <template v-if="useOtherApproach">
+          <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
+          <hsc-menu-bar-item label="Analyze">
+            <hsc-menu-item @click.native="existsWinningStrategy"
+                           label="Exists Winning Strategy?"/>
+            <hsc-menu-item @click.native="getGraphStrategyBDD"
+                           label="Get Graph Strategy BDD"/>
+            <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
+          </hsc-menu-bar-item>
+        </template>
+        <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
+                           v-if="useModelChecking"/>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
             :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
@@ -87,7 +90,8 @@
                          v-on:setWinningCondition='setWinningCondition'
                          v-on:gotModelCheckingNet='gotModelCheckingNet'
                          showEditorTools
-                         showModelChecking
+                         :useModelChecking="useModelChecking"
+                         :useOtherApproach="useOtherApproach"
                          :modelCheckingRoutes="modelCheckingRoutes"
                          :shouldShowPhysicsControls="showPhysicsControls"
                          :shouldShowPartitions="showPartitions"
@@ -174,7 +178,8 @@
   Vue.use(BootstrapVue)
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
-  import aptExample from './somewhatSmallExample.apt'
+  import aptExampleLtl from './somewhatSmallExampleLtl.apt'
+  import aptExampleOtherApproach from './somewhatSmallExampleNotLtl.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
@@ -233,6 +238,10 @@
       })
     },
     mounted: function () {
+      console.log(`process:`)
+      console.log(process)
+      console.log('process.env:')
+      console.log(process.env)
       console.log(`Configuration: useOtherApproach: ${this.useOtherApproach}
       useModelChecking: ${this.useModelChecking}
       baseurl: ${this.baseUrl}`)
@@ -245,7 +254,7 @@
     },
     data: function () {
       return {
-        apt: aptExample,
+        apt: this.useModelChecking ? aptExampleLtl : aptExampleOtherApproach,
         aptParseStatus: 'success',
         petriGame: {
           net: {

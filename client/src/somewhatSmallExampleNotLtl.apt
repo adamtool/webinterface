@@ -1,0 +1,23 @@
+.name "Simple Example"
+.description "A very small APT example to reduce CPU load during development and show all the different ways that nodes in a graph can look"
+.type LPN
+.options
+winningCondition="A_REACHABILITY"
+
+.places
+E1[itfl="true", yCoord=632.88, bad="true", xCoord=349.64]
+E2[itfl="true", yCoord=641.01, xCoord=705.01]
+p0[yCoord=347.47, xCoord=513.28, bad="true"]
+p1[yCoord=399.06, xCoord=706.54]
+p2[itfl="true", yCoord=396.93, xCoord=359.28, bad="true", env="true"]
+p3[itfl="true", yCoord=713.19, xCoord=483.51, env="true"]
+p4[bad="true", env="true"]
+p5[env="true"]
+
+.transitions
+t1[label="t1", yCoord=517.96, xCoord=535.35, tfl="p0 -> {p1},p2 -> {p3},E1 -> {E2}"]
+
+.flows
+t1: {1*E1, 1*p0, 1*p2, 1*p4} -> {1*p5, 1*p1, 1*p3, 1*E2}
+
+.initial_marking {1*E1, 99*E2, 1*p2, 1*p3}

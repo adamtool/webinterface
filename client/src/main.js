@@ -1,7 +1,8 @@
+/* eslint-disable no-undef */
 import { createVue } from './main.base'
 
 createVue({
   baseUrl: '',
-  useModelChecking: true,
-  useOtherApproach: true
+  useModelChecking: ADAMWEB_USE_MODEL_CHECKING,
+  useOtherApproach: ADAMWEB_USE_OTHER_APPROACH
 })
