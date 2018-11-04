@@ -9,8 +9,15 @@ function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
 
-// TODO Delete this.  It's just to test that we can read env variables
-console.log(`ADAMWEB_USE_MODEL_CHECKING: ${!!process.env.ADAMWEB_USE_MODEL_CHECKING}`)
+const mode = process.env.ADAMWEB_MODE
+const validModes = ['MODEL_CHECKING', 'OTHER_APPROACH', 'MODEL_CHECKING_AND_OTHER_APPROACH']
+if (!(validModes.includes(mode))) {
+  throw new Error(`The environment variable ADAMWEB_MODE has an invalid value: ${mode}
+  Valid modes: [${validModes.join(', ')}]`)
+}
+const modeQuoted = `'${mode}'`
+
+console.log(`ADAMWEB_MODE: ${mode}`)
 
 module.exports = {
   entry: {
@@ -39,8 +46,7 @@ module.exports = {
     new webpack.DefinePlugin({
       // Read these environment variables and perform a full-text find-and-replace on our source code,
       // replacing occurrences of the env variables' names with their values at compile time.
-      ADAMWEB_USE_MODEL_CHECKING: !!process.env.ADAMWEB_USE_MODEL_CHECKING,
-      ADAMWEB_USE_OTHER_APPROACH: !!process.env.ADAMWEB_USE_OTHER_APPROACH
+      ADAMWEB_MODE: modeQuoted
     })
   ],
   module: {

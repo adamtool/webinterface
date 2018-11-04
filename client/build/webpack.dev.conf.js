@@ -7,9 +7,6 @@ var HtmlWebpackPlugin = require('html-webpack-plugin')
 var FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
 var devConfig = merge(baseWebpackConfig, {
-  entry: {
-    app: './src/main-dev.js'
-  },
   module: {
     rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap })
   },

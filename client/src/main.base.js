@@ -9,18 +9,31 @@ export {
   createVue
 }
 
-function createVue (config) {
+/**
+ * @param baseUrl The URL prefix for all of our requests to the server
+ * @param mode Either 'MODEL_CHECKING', 'OTHER_APPROACH', or 'MODEL_CHECKING_AND_OTHER_APPROACH'.
+ * TODO Rename "OTHER_APPROACH"
+ */
+function createVue ({baseUrl, mode}) {
+  const validModes = ['MODEL_CHECKING', 'OTHER_APPROACH', 'MODEL_CHECKING_AND_OTHER_APPROACH']
+  if (!(validModes.includes(mode))) {
+    throw new Error(`Unrecognized value for ADAMWEB_MODE: ${mode}\nValid modes: [${validModes.join(', ')}]`)
+  }
+  const useModelChecking = mode === 'MODEL_CHECKING_AND_OTHER_APPROACH' || mode === 'MODEL_CHECKING'
+  const useOtherApproach = mode === 'MODEL_CHECKING_AND_OTHER_APPROACH' || mode === 'OTHER_APPROACH'
   /* eslint-disable no-new */
   new Vue({
     el: '#app',
     // Use relative URLs for server requests
     template: '<App ' +
-    'v-bind:baseUrl=this.config.baseUrl ' +
-    'v-bind:useModelChecking=this.config.useModelChecking ' +
-    'v-bind:useOtherApproach=this.config.useOtherApproach />',
+    'v-bind:baseUrl=this.baseUrl ' +
+    'v-bind:useModelChecking=this.useModelChecking ' +
+    'v-bind:useOtherApproach=this.useOtherApproach />',
     data: function () {
       return {
-        config: config
+        baseUrl,
+        useModelChecking,
+        useOtherApproach
       }
     },
     components: {App}
