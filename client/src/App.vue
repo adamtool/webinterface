@@ -238,10 +238,6 @@
       })
     },
     mounted: function () {
-      console.log(`process:`)
-      console.log(process)
-      console.log('process.env:')
-      console.log(process.env)
       console.log(`Configuration: useOtherApproach: ${this.useOtherApproach}
       useModelChecking: ${this.useModelChecking}
       baseurl: ${this.baseUrl}`)
