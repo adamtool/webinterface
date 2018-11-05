@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import AppModelChecking from '../AppModelChecking'
 import AppOtherApproach from '../AppOtherApproach'
+import HomePage from '../HomePage'
 
 Vue.use(Router)
 
@@ -14,8 +15,8 @@ export default new Router({
     },
     {
       path: '/',
-      name: 'Adam Web',
-      component: AppModelChecking
+      name: 'Home Page',
+      component: HomePage
     },
     {
       path: '/otherApproach',
