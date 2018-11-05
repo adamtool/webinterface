@@ -279,9 +279,6 @@
       }
     },
     watch: {
-      petriGame: function () {
-        this.switchToPetriGameTab()
-      },
       apt: function (apt) {
         this.parseAPTToPetriGame(this.apt)
       }
@@ -478,22 +475,21 @@
       saveSvgToFileGraphGameBDD: function () {
         this.$refs.graphEditorGraphGameBDD.saveGraph()
       },
-      switchToPetriGameTab: function () {
-        window.location.href = '#petri-game'
-      },
       switchToStrategyBDDTab: function () {
-        window.location.href = '#strategy-bdd'
+        console.log('TODO implement switchToStrategyBDDTab')
+        // TODO: This should be easy, but it's kind of inconvenient because they can only be
+        // identified by number, and the number of tabs is variable.
+        // you do it with e.g. this.selectedTabRightSide = 0 to switch to the 0th tab
       },
       switchToGraphStrategyBDDTab: function () {
-        window.location.href = '#graph-strategy-bdd'
+        console.log('TODO implement switchToGraphStrategyBDDTab')
       },
       switchToGraphGameBDDTab: function () {
-        window.location.href = '#graph-game-bdd'
+        console.log('TODO implement switchToGraphGameBDDTab')
       },
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAPTToPetriGame: debounce(function (apt) {
-        this.switchToPetriGameTab()
         this.logVerbose('Sending APT source code to backend.')
         axios.post(this.restEndpoints.convertAptToGraph, {
           params: {
