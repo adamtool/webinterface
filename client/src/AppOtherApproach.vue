@@ -1,7 +1,7 @@
 <template>
   <!--TODO Make baseUrl different for dev / production-->
   <!--baseUrl="http://localhost:4567"-->
-  <App baseUrl=""
+  <App baseUrl="http://localhost:4567"
        :useModelChecking="false"
        useOtherApproach/>
 </template>
