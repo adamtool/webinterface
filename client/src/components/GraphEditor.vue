@@ -1631,7 +1631,7 @@
           // This console.log statement shows that, even if a tab of GraphEditor is hidden, the
           // physics simulation keeps running.
           // TODO Disable simulation when this component is not visible
-          console.log('Running simulation tick in GraphEditor with uid ' + this._uid)
+          // console.log('Running simulation tick in GraphEditor with uid ' + this._uid)
           this.nodeElements.filter('rect')
             .attr('transform', node =>
               `translate(

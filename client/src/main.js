@@ -1,11 +1,16 @@
-import { createVue } from './main.base'
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue'
+import MainRouterView from './MainRouterView'
+import router from './router'
 
-createVue({
-  baseUrl: process.env.NODE_ENV === 'development' ? 'http://localhost:4567' : '',
-  // ADAMWEB_MODE is an environment variable meant to be defined at build time.
-  // we can't access this directly over process.env here because this code runs in the client.
-  // ("process.env.NODE_ENV" is a fake environment variable defined through a webpack plugin.)
-  // We pass it through to the client using the DefinePlugin in webpack.base.conf.js.
-// eslint-disable-next-line no-undef
-  mode: ADAMWEB_MODE
+Vue.config.productionTip = false
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#app',
+  router,
+  // Use relative URLs for server requests
+  template: '<MainRouterView/>',
+  components: {MainRouterView}
 })

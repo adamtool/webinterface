@@ -190,10 +190,6 @@
   export default {
     name: 'app',
     props: {
-      baseUrl: {
-        type: String,
-        default: ''
-      },
       useModelChecking: {
         type: Boolean,
         required: true
@@ -284,6 +280,11 @@
       }
     },
     computed: {
+      // This is the prefix used for all HTTP requests to the server.  An empty string means that
+      // relative URLs will be used.
+      baseUrl: function () {
+        return process.env.NODE_ENV === 'development' ? 'http://localhost:4567' : ''
+      },
       // TODO figure out why this doesn't work
       petriGameTabStyle: function () {
         switch (this.petriGame.hasWinningStrategy) {
