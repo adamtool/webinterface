@@ -1642,11 +1642,11 @@
           const svgElement = this.$refs.svg
           const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
           if (!isSvgVisible) {
-            console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible: ' + this._uid)
+            // console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible: ' + this._uid)
             this.simulation.stop()
             setTimeout(() => {
               if (!this.isDestroyed) {
-                console.log('Restarting forceSimulation after 2 seconds')
+                // console.log('Restarting forceSimulation after 2 seconds')
                 this.simulation.restart()
               }
             }, 2000)
