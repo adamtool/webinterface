@@ -596,7 +596,7 @@
         })
       },
       toggleGraphGameStatePostset: function (stateId) {
-        const uuid = this.petriGame.uuid
+        const uuid = this.graphGameBDD.uuid
         axios.post(this.restEndpoints.toggleGraphGameBDDNodePostset, {
           petriGameId: uuid,
           stateId: stateId
@@ -610,7 +610,7 @@
         })
       },
       toggleGraphGameStatePreset: function (stateId) {
-        const uuid = this.petriGame.uuid
+        const uuid = this.graphGameBDD.uuid
         axios.post(this.restEndpoints.toggleGraphGameBDDNodePreset, {
           petriGameId: uuid,
           stateId: stateId
