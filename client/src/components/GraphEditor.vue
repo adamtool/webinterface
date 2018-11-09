@@ -1,7 +1,6 @@
 <template>
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
-    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <div
       style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
       ref="toolbarContainer">
@@ -115,6 +114,28 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
+  /* inconsolata-regular - latin */
+  @font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Inconsolata Regular'), local('Inconsolata-Regular'),
+    url('../assets/fonts/inconsolata-v16-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+    url('../assets/fonts/inconsolata-v16-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  }
+
+  /* inconsolata-700 - latin */
+  @font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Inconsolata Bold'), local('Inconsolata-Bold'),
+    url('../assets/fonts/inconsolata-v16-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+    url('../assets/fonts/inconsolata-v16-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  }
+
+
   .graph-editor {
     /*TODO Make the graph editor use up exactly as much space as is given to it.*/
     /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/

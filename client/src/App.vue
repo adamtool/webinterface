@@ -12,8 +12,6 @@
       <v-btn flat @click.native="snackbarMessage.display = false">Close</v-btn>
     </v-snackbar>
     <input id="file-picker" type="file" style="display: none;" v-on:change="onFileSelected"/>
-    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
-          rel="stylesheet">
     <!--<v-toolbar</v-toolbar-items>-->
     <!--<v-spacer/>-->
     <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
@@ -845,8 +843,52 @@
 </script>
 
 <style>
+  @font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Material Icons'), local('MaterialIcons-Regular'),
+    url('./assets/fonts/MaterialIcons-Regular.woff2') format('woff2'),
+    url('./assets/fonts/MaterialIcons-Regular.woff') format('woff');
+  }
+
+  .material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px; /* Preferred icon size */
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Support for IE. */
+    font-feature-settings: 'liga';
+  }
+
+  /* roboto-regular - latin */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Roboto'), local('Roboto-Regular'),
+    url('./assets/fonts/roboto-v18-latin-regular.woff2') format('woff2'),
+      /* Chrome 26+, Opera 23+, Firefox 39+ */ url('./assets/fonts/roboto-v18-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  }
+
   #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    font-family: 'Roboto', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
