@@ -587,7 +587,7 @@
             return this.drawTokenFlowHandler.onClick
           default:
             return () => {
-              logging.logError(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
+              logging.sendErrorNotification(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
             }
         }
       },
@@ -718,7 +718,7 @@
             }
           default:
             return () => {
-              logging.logError(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
+              logging.sendErrorNotification(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
             }
         }
       },
@@ -991,7 +991,7 @@
             break
           }
           default: {
-            logging.logError('Unknown tool: ' + tool)
+            logging.sendErrorNotification('Unknown tool: ' + tool)
           }
         }
       },
@@ -1050,13 +1050,13 @@
               this.$emit('gotModelCheckingNet', response.data.result)
               break
             case 'error':
-              logging.logError(`Couldn't get model checking net. Reason: ` + response.data.message)
+              logging.sendErrorNotification(`Couldn't get model checking net. Reason: ` + response.data.message)
               break
             default:
-              logging.logError(`Couldn't get model checking net.  Unknown status from server: ` + response.data.status)
+              logging.sendErrorNotification(`Couldn't get model checking net.  Unknown status from server: ` + response.data.status)
           }
         } catch (error) {
-          logging.logError('Error getting model checking net: ' + error)
+          logging.sendErrorNotification('Error getting model checking net: ' + error)
         }
       },
       checkLtlFormula: debounce(async function () {

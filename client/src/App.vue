@@ -234,8 +234,14 @@
       baseurl: ${this.baseUrl}`)
 
       // Subscribe to logging event bus
-      logging.subscribe(message => {
+      logging.subscribeLog(message => {
         this.messageLog.push(message)
+      })
+      logging.subscribeErrorNotification(message => {
+        this.showNotification(message, 'pink')
+      })
+      logging.subscribeSuccessNotification(message => {
+        this.showNotification(message, 'green')
       })
 
       this.parseAPTToPetriGame(this.apt)
@@ -329,7 +335,7 @@
             color = 'lightgray'
             break
           default:
-            this.showErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
+            logging.sendErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
         }
         const borderStyle = `border: 3px solid ${color};`
         const layoutStyle = 'display: flex; flex-direction: column; height: 100%;'
@@ -536,11 +542,11 @@
             this.petriGame.hasWinningStrategy = response.data.result
             // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
             if (response.data.result) {
-              this.showSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
+              logging.sendSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
               // We expect an updated petriGame here because there might have been partition annotations added.
               this.petriGame.net = response.data.petriGame
             } else {
-              this.showErrorNotification('No, there is no winning strategy for this Petri Game.')
+              logging.sendErrorNotification('No, there is no winning strategy for this Petri Game.')
             }
           })
         }).catch(() => {
@@ -817,19 +823,11 @@
             onSuccessCallback(response)
             break
           case 'error':
-            this.showErrorNotification(response.data.message)
+            logging.sendErrorNotification(response.data.message)
             break
           default:
-            this.showErrorNotification(`Received a malformed response from the server: ${response.data}`)
+            logging.sendErrorNotification(`Received a malformed response from the server: ${response.data}`)
         }
-      },
-      showErrorNotification (message) {
-        logging.logError(message)
-        this.showNotification(message, 'pink')
-      },
-      showSuccessNotification (message) {
-        logging.log(message)
-        this.showNotification(message, 'green')
       },
       showNotification: function (message, color) {
         this.snackbarMessage = {
