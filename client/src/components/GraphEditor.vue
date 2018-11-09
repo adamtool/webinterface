@@ -169,6 +169,8 @@
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
 
+  import logging from '../logging'
+
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
 
@@ -281,7 +283,7 @@
       this.updateGravityStrength(this.gravityStrength)
       this.updateSvgDimensions()
       this.$refs.rootElement.addEventListener('keyup', (event) => {
-        console.log(event)
+        logging.logObject(event)
         switch (event.key) {
           case 'Escape':
             this.selectedNodes = []
@@ -297,8 +299,6 @@
         }
       })
       const parent = this.$refs.rootElement.parentElement
-      console.log('graph editor parent:')
-      console.log(parent)
       const updateGraphEditorDimensions = () => {
         const width = parent.clientWidth
         const height = parent.clientHeight
@@ -306,7 +306,7 @@
           width: width,
           height: height
         }
-        console.log(`dimensions: ${width}, ${height}`)
+        // console.log(`Graph editor dimensions: ${width}, ${height}`)
       }
       // eslint-disable-next-line no-new
       new ResizeSensor(parent, updateGraphEditorDimensions)
@@ -566,7 +566,7 @@
             return this.drawTokenFlowHandler.onClick
           default:
             return () => {
-              console.log(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
+              logging.logError(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
             }
         }
       },
@@ -592,7 +592,7 @@
           const src = source ? source.id : 'none'
           const trans = transition ? transition.id : 'none'
           const targetList = Array.from(postset).map(t => t.id).join(', ')
-          console.log(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
+          logging.logVerbose(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
           const sourceTransLink = source !== undefined && transition !== undefined ? [{
             source: source,
             target: transition
@@ -608,7 +608,7 @@
         }
 
         const reset = () => {
-          console.log('Resetting drawTokenFlow')
+          logging.logVerbose('Resetting drawTokenFlow')
           state = 0
           source = undefined
           transition = undefined
@@ -631,7 +631,7 @@
                 postset: Array.from(postset).map(d => d.id)
               })
             } else {
-              console.log('Aborting drawTokenFlow.  A transition and at least one target must be specified.')
+              logging.logVerbose('Aborting drawTokenFlow.  A transition and at least one target must be specified.')
             }
             reset()
           },
@@ -639,11 +639,11 @@
             switch (state) {
               case 0: {
                 if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
-                  console.log('DrawTokenFlow: Creating non-initial token flow.')
+                  logging.logVerbose('DrawTokenFlow: Creating non-initial token flow.')
                   source = d
                   state = 1
                 } else if (d.type === 'TRANSITION') {
-                  console.log('DrawTokenFlow: Creating initial token flow.')
+                  logging.logVerbose('DrawTokenFlow: Creating initial token flow.')
                   transition = d
                   state = 2
                 }
@@ -656,7 +656,7 @@
                   state = 2
                   logCurrentState()
                 } else {
-                  console.log('DrawTokenFlow: Please click on a transition.')
+                  logging.logVerbose('DrawTokenFlow: Please click on a transition.')
                 }
                 break
               }
@@ -669,7 +669,7 @@
                   }
                   logCurrentState()
                 } else {
-                  console.log('DrawTokenFlow: Click on Places to specify a postset and press Enter ' +
+                  logging.logVerbose('DrawTokenFlow: Click on Places to specify a postset and press Enter ' +
                     'to create the token flow.  Press Esc to abort.')
                 }
               }
@@ -697,7 +697,7 @@
             }
           default:
             return () => {
-              console.log(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
+              logging.logError(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
             }
         }
       },
@@ -970,7 +970,7 @@
             break
           }
           default: {
-            console.log('Unknown tool: ' + tool)
+            logging.logError('Unknown tool: ' + tool)
           }
         }
       },
@@ -1019,8 +1019,8 @@
           console.log(response)
           switch (response.data.status) {
             case 'success':
-              console.log('Got model checking net!!! yay')
-              console.log(response.data.result)
+              logging.log('Got model checking net')
+              logging.logObject(response.data.result)
               // TODO Definitely should refactor this so it's not taking place in this component.
               // I would like the SVG element to be its own thing.
               // The buttons for auto-layout and so on; the place to enter the LTL formula and
@@ -1029,13 +1029,13 @@
               this.$emit('gotModelCheckingNet', response.data.result)
               break
             case 'error':
-              console.log('Couldnt get model checking net :( reason: ' + response.data.message)
+              logging.logError(`Couldn't get model checking net. Reason: ` + response.data.message)
               break
             default:
-              console.log('Couldnt get model checking net.  unknown status from server: ' + response.data.status)
+              logging.logError(`Couldn't get model checking net.  Unknown status from server: ` + response.data.status)
           }
         } catch (error) {
-          console.log('Error getting model checking net: ' + error)
+          logging.logError('Error getting model checking net: ' + error)
         }
       },
       checkLtlFormula: debounce(async function () {
@@ -1062,8 +1062,7 @@
               throw new Error('Unknown status from server: ' + result.data.status)
           }
         } catch (error) {
-          // TODO Log the error in the user's log window, not just in the console
-          console.log('Error parsing LTL formula: ' + error)
+          logging.logError('Error parsing LTL formula: ' + error)
           this.ltlParseStatus = 'error'
           this.ltlParseErrors = [error]
         }
@@ -1179,7 +1178,7 @@
         const transform = d3.zoomTransform(this.svg.node())
         const centerX = transform.invertX(this.dimensions.width / 2)
         const centerY = transform.invertY(this.dimensions.height / 2)
-        console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
+        // console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
         // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
         // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
         const centerStrength = 0.01

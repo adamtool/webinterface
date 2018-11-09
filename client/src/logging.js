@@ -35,6 +35,7 @@ function log (message, level) {
 }
 
 function logObject (message) {
+  console.log(message)
   log(message, 0)
 }
 
