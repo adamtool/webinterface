@@ -187,6 +187,8 @@
 
   import Split from 'split.js'
 
+  import logging from './logging'
+
   export default {
     name: 'app',
     props: {
@@ -213,32 +215,33 @@
       try {
         socket = makeWebSocket(this.webSocketUrl)
       } catch (exception) {
-        this.logError('An exception was thrown when opening the websocket connection to the server.  ' +
+        logging.logError('An exception was thrown when opening the websocket connection to the server.  ' +
           'Server log messages may not be displayed.  Exception:')
-        this.logError(exception.message)
+        logging.logError(exception.message)
         return
       }
       socket.$on('message', message => {
         const messageParsed = JSON.parse(message)
-        const logEntry = {
-          source: 'server',
-          level: messageParsed.level,
-          time: new Date(),
-          text: messageParsed.message
-        }
-        this.messageLog.push(logEntry)
+        logging.logServerMessage(messageParsed.message, messageParsed.level)
       })
       socket.$on('error', () => {
-        this.logError('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
+        logging.logError('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
           'be displayed.')
       })
     },
     mounted: function () {
-      console.log(`Configuration: useOtherApproach: ${this.useOtherApproach}
+      console.log(`Adam Web App.vue Configuration:
+      useOtherApproach: ${this.useOtherApproach}
       useModelChecking: ${this.useModelChecking}
       baseurl: ${this.baseUrl}`)
+
+      // Subscribe to logging event bus
+      logging.subscribe(message => {
+        this.messageLog.push(message)
+      })
+
       this.parseAPTToPetriGame(this.apt)
-      this.log('Hello!')
+      logging.log('Hello!')
 
       // Initialize draggable, resizable panes for APT editor and log viewer
       this.horizontalSplit = this.createHorizontalSplit()
@@ -374,7 +377,7 @@
           } else {
             const errorMessage = 'Error constructing the URL to use for our websocket connection.  ' +
               'Couldn\'t recognize the protocol string in window.location: ' + window.location
-            this.logError(errorMessage)
+            logging.logError(errorMessage)
             throw new Error(errorMessage)
           }
           return `${newUri}//${loc.host}/log`
@@ -413,14 +416,14 @@
             const leftPaneWidth = split.getSizes()[0]
             const leftPaneShouldCollapse = leftPaneWidth <= this.leftPaneMinWidth
             if (leftPaneShouldCollapse && this.isLeftPaneVisible) {
-              this.logVerbose('collapsing left pane')
+              logging.logVerbose('collapsing left pane')
               this.isLeftPaneVisible = false
             }
             if (leftPaneShouldCollapse) {
               split.setSizes([0, 100])
             }
             if (!leftPaneShouldCollapse && !this.isLeftPaneVisible) {
-              this.logVerbose('expanding apt editor')
+              logging.logVerbose('expanding apt editor')
               this.isLeftPaneVisible = true
             }
           },
@@ -435,7 +438,7 @@
       },
       // Hide or show APT editor, restoring its size if appropriate
       toggleLeftPane: function () {
-        this.logVerbose('toggleLeftPane()')
+        logging.logVerbose('toggleLeftPane()')
         const restoring = !this.isLeftPaneVisible
         if (restoring) {
           this.horizontalSplit.setSizes(this.horizontalSplitSizes)
@@ -447,13 +450,13 @@
       // Load APT from a text file stored on the user's local filesystem
       // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
       onFileSelected: function (changeEvent) {
-        this.logVerbose('The user selected a file in the file selector')
+        logging.logVerbose('The user selected a file in the file selector')
         const file = changeEvent.target.files[0]
-        this.logObject(file)
+        logging.logObject(file)
         const reader = new FileReader()
         reader.onloadend = () => {
           // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
-          this.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
+          logging.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
           this.onAptExampleSelected(reader.result)
         }
         reader.readAsText(file)
@@ -491,7 +494,7 @@
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAPTToPetriGame: debounce(function (apt) {
-        this.logVerbose('Sending APT source code to backend.')
+        logging.logVerbose('Sending APT source code to backend.')
         axios.post(this.restEndpoints.convertAptToGraph, {
           params: {
             apt: apt
@@ -499,23 +502,23 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              this.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
-              this.logObject(response)
+              logging.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
+              logging.logObject(response)
               this.petriGame = response.data.graph
               this.aptParseStatus = 'success'
               break
             case 'error':
-              this.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
+              logging.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
               this.aptParseStatus = 'error'
               break
             default:
-              this.log('We got an unexpected response from the server when trying to parse the APT:')
-              this.log(response)
+              logging.log('We got an unexpected response from the server when trying to parse the APT:')
+              logging.log(response)
               this.aptParseStatus = 'error'
               break
           }
         }).catch(() => {
-          this.logError('Network error when trying to parse APT')
+          logging.logError('Network error when trying to parse APT')
         })
         this.aptParseStatus = 'running'
       }, 200),
@@ -543,7 +546,7 @@
             }
           })
         }).catch(() => {
-          this.logError('Network error in existsWinningStrategy')
+          logging.logError('Network error in existsWinningStrategy')
         })
       },
       getStrategyBDD: function () {
@@ -560,7 +563,7 @@
             this.switchToStrategyBDDTab()
           })
         }).catch(() => {
-          this.logError('Network error in getStrategyBDD')
+          logging.logError('Network error in getStrategyBDD')
         })
       },
       getGraphStrategyBDD: function () {
@@ -576,7 +579,7 @@
             this.switchToGraphStrategyBDDTab()
           })
         }).catch(() => {
-          this.logError('Network error in getGraphStrategyBDD')
+          logging.logError('Network error in getGraphStrategyBDD')
         })
       },
       getGraphGameBDD: function () {
@@ -592,7 +595,7 @@
             this.switchToGraphGameBDDTab()
           })
         }).catch(() => {
-          this.logError('Network error in getGraphGameBDD')
+          logging.logError('Network error in getGraphGameBDD')
         })
       },
       toggleGraphGameStatePostset: function (stateId) {
@@ -606,7 +609,7 @@
             this.graphGameBDD.uuid = uuid
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       toggleGraphGameStatePreset: function (stateId) {
@@ -620,7 +623,7 @@
             this.graphGameBDD.uuid = uuid
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       onSwitchToAptEditor: function () {
@@ -628,7 +631,7 @@
         if (isAptEditorAlreadySelected) {
           return
         }
-        this.logVerbose('Switching to APT editor')
+        logging.logVerbose('Switching to APT editor')
         this.savePetriGameAsAPT()
       },
       // Return a promise that is fulfilled iff the http request to the server is successfully processed
@@ -647,7 +650,7 @@
           })
         }, reason => {
           // This function gets called if the promise is rejected (i.e. the http request failed)
-          this.logError('savePetriGameAsAPT(): An error occurred. ' + reason)
+          logging.logError('savePetriGameAsAPT(): An error occurred. ' + reason)
           throw new Error(reason)
         })
       },
@@ -662,7 +665,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       createTokenFlow: function ({source, transition, postset}) {
@@ -677,7 +680,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       deleteFlow: function ({sourceId, targetId}) {
@@ -691,7 +694,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       deleteNode: function (nodeId) {
@@ -704,7 +707,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       renameNode: function ({idOld, idNew}) {
@@ -719,7 +722,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       toggleEnvironmentPlace: function (nodeId) {
@@ -732,7 +735,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       toggleIsInitialTokenFlow: function (nodeId) {
@@ -745,7 +748,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       setInitialToken: function ({nodeId, tokens}) {
@@ -759,7 +762,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       setWinningCondition: function (winningCondition) {
@@ -771,7 +774,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       gotModelCheckingNet: function (net) {
@@ -791,12 +794,12 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       onGraphModified: function (graph) {
-        this.logVerbose('App: Received graphModified event from graph editor:')
-        this.logObject(graph)
+        logging.logVerbose('App: Received graphModified event from graph editor:')
+        logging.logObject(graph)
         // TODO: Implement undo/redo.
       },
       onAptExampleSelected: function (apt) {
@@ -823,11 +826,11 @@
         }
       },
       showErrorNotification (message) {
-        this.logError(message)
+        logging.logError(message)
         this.showNotification(message, 'pink')
       },
       showSuccessNotification (message) {
-        this.log(message)
+        logging.log(message)
         this.showNotification(message, 'green')
       },
       showNotification: function (message, color) {
@@ -836,23 +839,6 @@
           color: color,
           text: message
         }
-      },
-      log: function (message, level) {
-        this.messageLog.push({
-          source: 'client',
-          level: level === undefined ? 2 : level, // TODO handle log levels
-          time: new Date(),
-          text: message
-        })
-      },
-      logObject: function (message) {
-        this.log(message, 0)
-      },
-      logVerbose: function (message) {
-        this.log(message, 1)
-      },
-      logError: function (message) {
-        this.log(message, 4)
       }
     }
   }
