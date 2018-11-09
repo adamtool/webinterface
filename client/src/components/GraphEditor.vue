@@ -175,47 +175,6 @@
   export default {
     name: 'graph-editor',
     components: {},
-    mounted: function () {
-      this.nodes = []
-      this.links = []
-      this.importGraph(this.graph)
-      this.initializeD3()
-      this.updateRepulsionStrength(this.repulsionStrength)
-      this.updateLinkStrength(this.linkStrength)
-      this.updateGravityStrength(this.gravityStrength)
-      this.updateSvgDimensions()
-      this.$refs.rootElement.addEventListener('keyup', (event) => {
-        console.log(event)
-        switch (event.key) {
-          case 'Escape':
-            this.selectedNodes = []
-            this.drawTokenFlowHandler.reset()
-            break
-          case 'Delete':
-            this.deleteSelectedNodes()
-            break
-          case 'Enter':
-          case 'Return':
-            this.drawTokenFlowHandler.finish()
-            break
-        }
-      })
-      const parent = this.$refs.rootElement.parentElement
-      console.log('graph editor parent:')
-      console.log(parent)
-      const updateGraphEditorDimensions = () => {
-        const width = parent.clientWidth
-        const height = parent.clientHeight
-        this.dimensions = {
-          width: width,
-          height: height
-        }
-        console.log(`dimensions: ${width}, ${height}`)
-      }
-      // eslint-disable-next-line no-new
-      new ResizeSensor(parent, updateGraphEditorDimensions)
-      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
-    },
     props: {
       graph: {
         type: Object,
@@ -260,6 +219,105 @@
         type: Number,
         default: 100
       }
+    },
+    data () {
+      return {
+        dimensions: {
+          width: 0,
+          height: 0
+        },
+        winningCondition: '',
+        selectedWinningCondition: '',
+        ltlFormula: 'hello', // The LTL formula corresponding to our winning condition
+        ltlParseErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
+        ltlParseStatus: 'success',
+        drawTokenFlowPreviewLinks: [],
+        drawTokenFlowPreviewSource: undefined,
+        drawTokenFlowPreviewTransition: undefined,
+        drawTokenFlowPreviewPostset: [],
+        // TODO consider using a set instead of an array to prevent bugs from happening
+        selectedNodes: [],
+        selectedTool: 'select',
+        backgroundClickMode: 'cancelSelection',
+        backgroundDragDropMode: 'selectNodes',
+        leftClickMode: 'selectNode',
+        dragDropMode: 'moveNode',
+        linkClickMode: 'doNothing',
+        nodeTypeToInsert: 'SYSPLACE',
+        nodeRadius: 27,
+        exportedGraphJson: {},
+        svg: undefined,
+        linkGroup: undefined,
+        linkTextGroup: undefined,
+        nodeGroup: undefined,
+        labelGroup: undefined,
+        contentGroup: undefined,
+        isSpecialElements: undefined,
+        nodeElements: undefined,
+        linkElements: undefined,
+        linkTextElements: undefined,
+        labelElements: undefined,
+        contentElements: undefined,
+        lastUserClick: undefined,
+        simulation: d3.forceSimulation()
+          .force('gravity', d3.forceManyBody().distanceMin(1000))
+          .force('charge', d3.forceManyBody())
+          //          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('link', d3.forceLink()
+            .id(link => link.id))
+          .alphaMin(0.002),
+        repulsionStrength: this.repulsionStrengthDefault,
+        linkStrength: this.linkStrengthDefault,
+        gravityStrength: this.gravityStrengthDefault
+      }
+    },
+    mounted: function () {
+      this.nodes = []
+      this.links = []
+      this.importGraph(this.graph)
+      this.initializeD3()
+      this.updateRepulsionStrength(this.repulsionStrength)
+      this.updateLinkStrength(this.linkStrength)
+      this.updateGravityStrength(this.gravityStrength)
+      this.updateSvgDimensions()
+      this.$refs.rootElement.addEventListener('keyup', (event) => {
+        console.log(event)
+        switch (event.key) {
+          case 'Escape':
+            this.selectedNodes = []
+            this.drawTokenFlowHandler.reset()
+            break
+          case 'Delete':
+            this.deleteSelectedNodes()
+            break
+          case 'Enter':
+          case 'Return':
+            this.drawTokenFlowHandler.finish()
+            break
+        }
+      })
+      const parent = this.$refs.rootElement.parentElement
+      console.log('graph editor parent:')
+      console.log(parent)
+      const updateGraphEditorDimensions = () => {
+        const width = parent.clientWidth
+        const height = parent.clientHeight
+        this.dimensions = {
+          width: width,
+          height: height
+        }
+        console.log(`dimensions: ${width}, ${height}`)
+      }
+      // eslint-disable-next-line no-new
+      new ResizeSensor(parent, updateGraphEditorDimensions)
+      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
+    },
+    beforeDestroy: function () {
+      // When this component is destroyed, we need to stop the D3 forceSimulation from running,
+      // or else it will just keep running in the background and using up cpu cycles.
+      // This is an issue when, for example, the component is reloaded using Hot Reload during
+      // development.
+      this.simulation.stop()
     },
     computed: {
       winningConditions: function () {
@@ -946,57 +1004,6 @@
       },
       dimensions: function () {
         this.updateSvgDimensions()
-      }
-    },
-    data () {
-      return {
-        dimensions: {
-          width: 0,
-          height: 0
-        },
-        winningCondition: '',
-        selectedWinningCondition: '',
-        ltlFormula: 'hello', // The LTL formula corresponding to our winning condition
-        ltlParseErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
-        ltlParseStatus: 'success',
-        drawTokenFlowPreviewLinks: [],
-        drawTokenFlowPreviewSource: undefined,
-        drawTokenFlowPreviewTransition: undefined,
-        drawTokenFlowPreviewPostset: [],
-        // TODO consider using a set instead of an array to prevent bugs from happening
-        selectedNodes: [],
-        selectedTool: 'select',
-        backgroundClickMode: 'cancelSelection',
-        backgroundDragDropMode: 'selectNodes',
-        leftClickMode: 'selectNode',
-        dragDropMode: 'moveNode',
-        linkClickMode: 'doNothing',
-        nodeTypeToInsert: 'SYSPLACE',
-        nodeRadius: 27,
-        exportedGraphJson: {},
-        svg: undefined,
-        linkGroup: undefined,
-        linkTextGroup: undefined,
-        nodeGroup: undefined,
-        labelGroup: undefined,
-        contentGroup: undefined,
-        isSpecialElements: undefined,
-        nodeElements: undefined,
-        linkElements: undefined,
-        linkTextElements: undefined,
-        labelElements: undefined,
-        contentElements: undefined,
-        lastUserClick: undefined,
-        simulation: d3.forceSimulation()
-          .force('gravity', d3.forceManyBody().distanceMin(1000))
-          .force('charge', d3.forceManyBody())
-          //          .force('center', d3.forceCenter(width / 2, height / 2))
-          .force('link', d3.forceLink()
-            .id(link => link.id))
-          .alphaMin(0.002),
-        repulsionStrength: this.repulsionStrengthDefault,
-        linkStrength: this.linkStrengthDefault,
-        gravityStrength: this.gravityStrengthDefault
       }
     },
     methods: {
