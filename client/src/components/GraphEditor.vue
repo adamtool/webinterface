@@ -84,7 +84,7 @@
       </v-container>
     </div>
 
-    <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
+    <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
     </svg>
     <!--Sidebar showing all of the current event handlers' statuses-->
@@ -313,11 +313,14 @@
       Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
     },
     beforeDestroy: function () {
+      console.log('beforeDestroy() hook called for GraphEditor with uid ' + this._uid)
       // When this component is destroyed, we need to stop the D3 forceSimulation from running,
       // or else it will just keep running in the background and using up cpu cycles.
       // This is an issue when, for example, the component is reloaded using Hot Reload during
       // development.
+      console.log('Stopping forceSimulation')
       this.simulation.stop()
+      this.isDestroyed = true
     },
     computed: {
       winningConditions: function () {
@@ -1635,10 +1638,20 @@
           'TRANSITION': this.nodeRadius * 1.6
         }
         this.simulation.nodes(this.nodes).on('tick', () => {
-          // This console.log statement shows that, even if a tab of GraphEditor is hidden, the
-          // physics simulation keeps running.
-          // TODO Disable simulation when this component is not visible
-          // console.log('Running simulation tick in GraphEditor with uid ' + this._uid)
+          // Make sure the D3 forceSimulation is only running if the Graph Editor is visible.
+          const svgElement = this.$refs.svg
+          const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
+          if (!isSvgVisible) {
+            console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible' + this._uid)
+            this.simulation.stop()
+            setTimeout(() => {
+              if (!this.isDestroyed) {
+                console.log('Restarting forceSimulation after 2 seconds')
+                this.simulation.restart()
+              }
+            }, 2000)
+            return
+          }
           this.nodeElements.filter('rect')
             .attr('transform', node =>
               `translate(
