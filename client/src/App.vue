@@ -140,7 +140,14 @@
         </v-tab-item>
       </v-tabs>
     </div>
-    <LogViewer :messages="messageLog"/>
+    <hsc-window-style-metal>
+      <hsc-window resizable
+                  title="Log"
+                  style="z-index: 9999">
+        <LogViewer :messages="messageLog"
+                   style="height: inherit; width: inherit;"/>
+      </hsc-window>
+    </hsc-window-style-metal>
   </v-app>
 </template>
 
@@ -155,15 +162,21 @@
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
   import { debounce } from 'underscore'
-  import * as VueMenu from '@hscmap/vue-menu'
-  import Vuetify from 'vuetify'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
-  Vue.use(Vuetify)
+  import Vuetify from 'vuetify'
   import 'vuetify/dist/vuetify.min.css'
 
+  Vue.use(Vuetify)
+
+  import * as VueMenu from '@hscmap/vue-menu'
+
   Vue.use(VueMenu)
-  import MyVueMenuTheme from '@/menuStyle'
+  import MyVueMenuTheme from './menuStyle'
+
+  import * as VueWindow from '@hscmap/vue-window'
+
+  Vue.use(VueWindow)
 
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
