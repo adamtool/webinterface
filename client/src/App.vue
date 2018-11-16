@@ -142,12 +142,17 @@
     </div>
     <hsc-window-style-metal>
       <hsc-window resizable
+                  closeButton
+                  :isOpen.sync="isLogVisible"
                   title="Log"
                   style="z-index: 9999">
         <LogViewer :messages="messageLog"
                    style="height: inherit; width: inherit;"/>
       </hsc-window>
     </hsc-window-style-metal>
+    <button @click="isLogVisible = true"
+            v-if="!isLogVisible">Show log
+    </button>
   </v-app>
 </template>
 
@@ -274,6 +279,7 @@
         graphGameBDD: null,
         modelCheckingNet: null,
         isLeftPaneVisible: true,
+        isLogVisible: true,
         showPhysicsControls: false,
         showPartitions: false,
         messageLog: [],
