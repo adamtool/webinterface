@@ -143,6 +143,8 @@
     <hsc-window-style-metal>
       <hsc-window resizable
                   closeButton
+                  :minWidth="200"
+                  :minHeight="100"
                   :isOpen.sync="isLogVisible"
                   title="Log"
                   style="z-index: 9999">
