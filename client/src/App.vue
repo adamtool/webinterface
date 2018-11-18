@@ -16,7 +16,7 @@
     <!--<v-spacer/>-->
     <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
     <!--</v-toolbar>-->
-    <my-theme style="z-index: 999; display: flex; flex-direction: row;">
+    <my-theme style="z-index: 999;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
           <!--Have to use click.native so that the popup blocker isn't triggered-->
@@ -53,14 +53,12 @@
           <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
                          @click="showPartitions = !showPartitions"/>
         </hsc-menu-bar-item>
+        <hsc-menu-bar-item @click.native="isLogVisible = !isLogVisible; $refs.menubar.deactivate()"
+                           :label="isLogVisible ? 'Hide log' : 'Show log'"/>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
-      <button @click="isLogVisible = true"
-      v-if="!isLogVisible">
-        Show log
-      </button>
     </my-theme>
 
     <div style="display: flex; flex-direction: row; height: 100vh; width: 100%;"
