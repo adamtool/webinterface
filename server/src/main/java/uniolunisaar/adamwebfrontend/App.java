@@ -19,6 +19,7 @@ import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.ds.winningconditions.WinningCondition.Objective;
 import uniolunisaar.adam.logic.flowltl.IRunFormula;
 import uniolunisaar.adam.logic.flowltl.RunFormula;
+import uniolunisaar.adam.modelchecker.circuits.CounterExample;
 import uniolunisaar.adam.tools.Logger;
 
 import java.lang.reflect.Type;
@@ -424,8 +425,11 @@ public class App {
             RunFormula runFormula = (RunFormula) iRunFormula;
 
             PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
+            System.out.println("Checking flow LTL formula");
              // TODO check the flow ltl formula
-//            AdamModelChecker.checkFlowLTLFormula(petriGame, runFormula, false, "/tmp/");
+            CounterExample counterExample = AdamModelChecker.checkFlowLTLFormula(petriGame, runFormula, false, "/tmp/");
+            System.out.println("Counter example: ");
+            System.out.println(counterExample);
 
             return successResponse(PetriNetD3.of(modelCheckingNet));
 
