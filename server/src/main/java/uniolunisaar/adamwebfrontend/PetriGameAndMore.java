@@ -2,14 +2,13 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.Node;
-import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.io.parser.ParseException;
 import uniol.apt.io.renderer.RenderException;
 import uniolunisaar.adam.Adam;
+import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.exceptions.*;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.util.AdamExtensions;
-import uniolunisaar.adam.logic.exceptions.ParameterMissingException;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
 import java.util.Map;
@@ -90,7 +89,7 @@ public class PetriGameAndMore {
         if (existsWinningStrategy.isPresent()) {
             return existsWinningStrategy.get();
         } else {
-            boolean existsWinningStrategy = Adam.existsWinningStrategyBDD(this.petriGame);
+            boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(this.petriGame);
             this.existsWinningStrategy = Optional.of(existsWinningStrategy);
             return existsWinningStrategy;
         }
@@ -101,7 +100,7 @@ public class PetriGameAndMore {
         if (this.strategyBDD.isPresent()) {
             strategyBDD = this.strategyBDD.get();
         } else {
-            strategyBDD = Adam.getStrategyBDD(this.petriGame);
+            strategyBDD = AdamSynthesizer.getStrategyBDD(this.petriGame);
             removeXAndYCoordinates(strategyBDD);
             this.strategyBDD = Optional.of(strategyBDD);
         }
@@ -114,7 +113,7 @@ public class PetriGameAndMore {
         // TODO It might make sense to use Future to represent the ongoing computation.
         // TODO This also applies to the other calculation methods like calculateStrategyBDD and calculateExistsWinningStrategy.
         if (!this.graphStrategyBDD.isPresent()) {
-            BDDGraph graphStrategyBDD = Adam.getGraphStrategyBDD(this.petriGame);
+            BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(this.petriGame);
             this.graphStrategyBDD = Optional.of(graphStrategyBDD);
         }
         return BDDGraphD3.of(this.graphStrategyBDD.get());
@@ -122,7 +121,7 @@ public class PetriGameAndMore {
 
     public JsonElement calculateGraphGameBDD() throws ParseException, SolvingException, CouldNotFindSuitableWinningConditionException, NoStrategyExistentException {
         if (!this.graphGameBDDExplorer.isPresent()) {
-            BDDGraph graphGameBDD = Adam.getGraphGameBDD(this.petriGame);
+            BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(this.petriGame);
             BDDGraphExplorer graphExplorer = BDDGraphExplorer.of(graphGameBDD);
             this.graphGameBDDExplorer = Optional.of(graphExplorer);
         }

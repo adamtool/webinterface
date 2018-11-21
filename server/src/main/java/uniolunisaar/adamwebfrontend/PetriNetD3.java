@@ -3,9 +3,12 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
+import uniolunisaar.adam.AdamModelChecker;
+import uniolunisaar.adam.ds.exceptions.NotSupportedGameException;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.ds.petrigame.TokenFlow;
+import uniolunisaar.adam.ds.winningconditions.WinningCondition.Objective;
 import uniolunisaar.adam.logic.util.AdamTools;
 import uniolunisaar.adam.tools.Tools;
 
@@ -23,12 +26,14 @@ public class PetriNetD3 {
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
     private final String winningCondition;
+    private final String ltlFormula;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, String winningCondition) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, String winningCondition, String ltlFormula) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
         this.winningCondition = winningCondition;
+        this.ltlFormula = ltlFormula;
     }
 
     /**
@@ -83,9 +88,20 @@ public class PetriNetD3 {
                 ));
 
         boolean hasWinningCondition = PetriGameExtensionHandler.hasWinningConditionAnnotation(net);
-        String winningCondition = hasWinningCondition ? PetriGameExtensionHandler.getWinningConditionAnnotation(net) : "";
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, winningCondition);
-        return new Gson().toJsonTree(petriNetD3);
+        if (hasWinningCondition) {
+            String winningCondition = PetriGameExtensionHandler.getWinningConditionAnnotation(net);
+            Objective objective = Objective.valueOf(winningCondition);
+
+            boolean canConvertToLtl = objective.equals(Objective.A_BUCHI) ||
+                    objective.equals(Objective.A_REACHABILITY) ||
+                    objective.equals(Objective.A_SAFETY);
+            String ltlFormula = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) : "";
+            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, winningCondition, ltlFormula);
+            return new Gson().toJsonTree(petriNetD3);
+        } else {
+            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, "", "");
+            return new Gson().toJsonTree(petriNetD3);
+        }
     }
 
     /**
@@ -93,6 +109,12 @@ public class PetriNetD3 {
      */
     public static JsonElement of(PetriGame game) {
         return of(game, new HashSet<>());
+    }
+
+    public static JsonElement of(PetriNet net) throws NotSupportedGameException {
+        // TODO consider if it is reasonable to do this.
+        PetriGame game = new PetriGame(net);
+        return of(game);
     }
 
 
@@ -133,21 +155,24 @@ public class PetriNetD3 {
         private final long initialToken;
         private final boolean isSpecial;
         private final boolean isInitialTokenFlow;
+        private final int partition;
 
         private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
-                             long initialToken, boolean isSpecial, boolean isInitialTokenFlow) {
+                             long initialToken, boolean isSpecial, boolean isInitialTokenFlow,
+                             int partition) {
             super(id, label, type);
             this.isBad = isBad;
             this.initialToken = initialToken;
             this.isSpecial = isSpecial;
             this.isInitialTokenFlow = isInitialTokenFlow;
+            this.partition = partition;
         }
 
         static PetriNetNode of(Transition t) {
             String id = t.getId();
             String label = t.getLabel();
             // Transitions are never bad or special and have no tokens
-            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false);
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false, -1);
         }
 
         static PetriNetNode of(PetriGame game, Place place) {
@@ -159,7 +184,10 @@ public class PetriNetD3 {
             boolean isSpecial = game.isSpecial(place);
             boolean isInitialTokenFlow = game.isInitialTokenflow(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
-            return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial, isInitialTokenFlow);
+
+            int partition = game.hasPartition(place) ? game.getPartition(place) : -1;
+            return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial, isInitialTokenFlow, partition);
         }
+
     }
 }

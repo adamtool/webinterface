@@ -2,7 +2,7 @@
 .description "A very small APT example to reduce CPU load during development and show all the different ways that nodes in a graph can look"
 .type LPN
 .options
-winningCondition="E_SAFETY"
+winningCondition="LTL"
 
 .places
 E1[itfl="true", yCoord=632.88, bad="true", xCoord=349.64]

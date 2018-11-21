@@ -1,7 +1,6 @@
 <template>
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
-    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <div
       style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
       ref="toolbarContainer">
@@ -22,41 +21,69 @@
                v-model="gravityStrength">
         <div class="forceStrengthNumber">{{gravityStrength}}</div>
       </div>
-      <div class="graph-editor-toolbar">
-        <button v-on:click="drawTokenFlowHandler.finish()">Finish drawing token flow</button>
-        <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
-        <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
-          Zoom to fit all nodes
-        </button>
-        <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
-          Move all nodes to visible area
-        </button>
-        <button style="display: none;" v-on:click="updateD3">Update D3</button>
-        <button v-on:click="freezeAllNodes">Freeze all nodes</button>
-        <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
-        <button class="btn-danger" v-on:click="deleteSelectedNodes"
-                v-if="showEditorTools">Delete selected nodes
-        </button>
-        <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
-      </div>
-      <v-radio-group v-model="selectedTool" v-if="showEditorTools" row>
-        <v-radio label="select" value="select"/>
-        <v-radio label="draw flows" value="drawFlow"/>
-        <v-radio label="draw token flows" value="drawTokenFlow"/>
-        <v-radio label="insert sysplace" value="insertSysPlace"/>
-        <v-radio label="insert envplace" value="insertEnvPlace"/>
-        <v-radio label="insert transition" value="insertTransition"/>
-        <v-radio label="delete node" value="deleteNode"/>
-      </v-radio-group>
+
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
-      <v-select
-        v-if="showEditorTools"
-        v-model="selectedWinningCondition"
-        :items="winningConditions"
-        label="Winning Condition"/>
+      <v-container fluid
+                   style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
+        <v-layout row>
+          <div class="graph-editor-toolbar">
+            <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
+            <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
+              Zoom to fit all nodes
+            </button>
+            <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
+              Move all nodes to visible area
+            </button>
+            <button style="display: none;" v-on:click="updateD3">Update D3</button>
+            <button v-on:click="freezeAllNodes">Freeze all nodes</button>
+            <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+            <button class="btn-danger" v-on:click="deleteSelectedNodes"
+                    v-if="showEditorTools">Delete selected nodes
+            </button>
+            <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
+          </div>
+        </v-layout>
+        <v-layout row>
+          <v-radio-group v-model="selectedTool" v-if="showEditorTools" row>
+            <v-radio label="select" value="select"/>
+            <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
+            <v-radio label="draw flows" value="drawFlow"/>
+            <v-radio label="draw token flows" value="drawTokenFlow"/>
+            <v-radio label="insert sysplace" value="insertSysPlace"/>
+            <v-radio label="insert envplace" value="insertEnvPlace"/>
+            <v-radio label="insert transition" value="insertTransition"/>
+          </v-radio-group>
+        </v-layout>
+        <v-layout row>
+          <template v-if="useModelChecking">
+            <v-select
+              style="flex: 0 0 200px"
+              v-if="showEditorTools"
+              v-model="selectedWinningCondition"
+              :items="winningConditions"
+              label="Winning Condition"/>
+            <v-text-field
+              style="flex: 1 1 0"
+              :disabled="selectedWinningCondition !== 'LTL'"
+              v-if="showEditorTools && useModelChecking"
+              v-model="ltlFormula"
+              :prepend-inner-icon="ltlParseStatusIcon"
+              :error-messages="ltlParseErrors"
+              placeholder="Enter a LTL formula here"
+              label="LTL Formula"/>
+          </template>
+          <template v-else>
+            <v-select
+              v-if="showEditorTools"
+              v-model="selectedWinningCondition"
+              :items="winningConditions"
+              label="Winning Condition"/>
+          </template>
+        </v-layout>
+      </v-container>
     </div>
 
-    <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;">
+    <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
     </svg>
     <!--Sidebar showing all of the current event handlers' statuses-->
@@ -87,6 +114,28 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
+  /* inconsolata-regular - latin */
+  @font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Inconsolata Regular'), local('Inconsolata-Regular'),
+    url('../assets/fonts/inconsolata-v16-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+    url('../assets/fonts/inconsolata-v16-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  }
+
+  /* inconsolata-700 - latin */
+  @font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Inconsolata Bold'), local('Inconsolata-Bold'),
+    url('../assets/fonts/inconsolata-v16-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+    url('../assets/fonts/inconsolata-v16-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  }
+
+
   .graph-editor {
     /*TODO Make the graph editor use up exactly as much space as is given to it.*/
     /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/
@@ -128,16 +177,20 @@
 
 <script>
   import * as d3 from 'd3'
-  import { saveFileAs } from '@/fileutilities'
-  import { layoutNodes } from '@/autoLayout'
-  import { pointOnRect, pointOnCircle } from '@/shapeIntersections'
+  import { saveFileAs } from '../fileutilities'
+  import { layoutNodes } from '../autoLayout'
+  import { noOpImplementation } from '../modelCheckingRoutes'
+  import { pointOnRect, pointOnCircle } from '../shapeIntersections'
   import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import { chain } from 'lodash'
+  import { debounce } from 'underscore'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
+
+  import logging from '../logging'
 
   // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
   require('intersection-observer')
@@ -145,6 +198,102 @@
   export default {
     name: 'graph-editor',
     components: {},
+    props: {
+      graph: {
+        type: Object,
+        required: true
+      },
+      petriGameId: {
+        type: String,
+        required: true
+      },
+      shouldShowPhysicsControls: {
+        type: Boolean,
+        default: false
+      },
+      shouldShowPartitions: {
+        type: Boolean,
+        default: false
+      },
+      showEditorTools: {
+        type: Boolean,
+        default: false
+      },
+      // This indicates whether features related to model checking should be here.
+      // If this is true, then you have to supply modelCheckingRoutes as well.
+      useModelChecking: {
+        type: Boolean,
+        default: false
+      },
+      modelCheckingRoutes: {
+        type: Object,
+        required: false,
+        default: noOpImplementation
+      },
+      repulsionStrengthDefault: {
+        type: Number,
+        default: 120
+      },
+      linkStrengthDefault: {
+        type: Number,
+        default: 0.05
+      },
+      gravityStrengthDefault: {
+        type: Number,
+        default: 100
+      }
+    },
+    data () {
+      return {
+        dimensions: {
+          width: 0,
+          height: 0
+        },
+        winningCondition: '',
+        selectedWinningCondition: '',
+        ltlFormula: 'hello', // The LTL formula corresponding to our winning condition
+        ltlParseErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
+        ltlParseStatus: 'success',
+        drawTokenFlowPreviewLinks: [],
+        drawTokenFlowPreviewSource: undefined,
+        drawTokenFlowPreviewTransition: undefined,
+        drawTokenFlowPreviewPostset: [],
+        // TODO consider using a set instead of an array to prevent bugs from happening
+        selectedNodes: [],
+        selectedTool: 'select',
+        backgroundClickMode: 'cancelSelection',
+        backgroundDragDropMode: 'selectNodes',
+        leftClickMode: 'selectNode',
+        dragDropMode: 'moveNode',
+        linkClickMode: 'doNothing',
+        nodeTypeToInsert: 'SYSPLACE',
+        nodeRadius: 27,
+        exportedGraphJson: {},
+        svg: undefined,
+        linkGroup: undefined,
+        linkTextGroup: undefined,
+        nodeGroup: undefined,
+        labelGroup: undefined,
+        contentGroup: undefined,
+        isSpecialElements: undefined,
+        nodeElements: undefined,
+        linkElements: undefined,
+        linkTextElements: undefined,
+        labelElements: undefined,
+        contentElements: undefined,
+        lastUserClick: undefined,
+        simulation: d3.forceSimulation()
+          .force('gravity', d3.forceManyBody().distanceMin(1000))
+          .force('charge', d3.forceManyBody())
+          //          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('link', d3.forceLink()
+            .id(link => link.id))
+          .alphaMin(0.002),
+        repulsionStrength: this.repulsionStrengthDefault,
+        linkStrength: this.linkStrengthDefault,
+        gravityStrength: this.gravityStrengthDefault
+      }
+    },
     mounted: function () {
       this.nodes = []
       this.links = []
@@ -155,7 +304,7 @@
       this.updateGravityStrength(this.gravityStrength)
       this.updateSvgDimensions()
       this.$refs.rootElement.addEventListener('keyup', (event) => {
-        console.log(event)
+        logging.logObject(event)
         switch (event.key) {
           case 'Escape':
             this.selectedNodes = []
@@ -178,38 +327,57 @@
           width: width,
           height: height
         }
+        // console.log(`Graph editor dimensions: ${width}, ${height}`)
       }
       // eslint-disable-next-line no-new
       new ResizeSensor(parent, updateGraphEditorDimensions)
       Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
     },
-    props: {
-      graph: {
-        type: Object,
-        required: true
-      },
-      shouldShowPhysicsControls: {
-        type: Boolean,
-        default: false
-      },
-      showEditorTools: {
-        type: Boolean,
-        default: false
-      },
-      repulsionStrengthDefault: {
-        type: Number,
-        default: 120
-      },
-      linkStrengthDefault: {
-        type: Number,
-        default: 0.05
-      },
-      gravityStrengthDefault: {
-        type: Number,
-        default: 100
-      }
+    beforeDestroy: function () {
+      console.log('beforeDestroy() hook called for GraphEditor with uid ' + this._uid)
+      // When this component is destroyed, we need to stop the D3 forceSimulation from running,
+      // or else it will just keep running in the background and using up cpu cycles.
+      // This is an issue when, for example, the component is reloaded using Hot Reload during
+      // development.
+      console.log('Stopping forceSimulation')
+      this.simulation.stop()
+      this.isDestroyed = true
     },
     computed: {
+      winningConditions: function () {
+        if (this.useModelChecking) {
+          return [
+            'LTL',
+            'A_REACHABILITY',
+            'A_SAFETY',
+            'A_BUCHI']
+        } else {
+          return [
+            'E_REACHABILITY',
+            'A_REACHABILITY',
+            'E_SAFETY',
+            'A_SAFETY',
+            'E_BUCHI',
+            'A_BUCHI',
+            'E_PARITY',
+            'A_PARITY']
+        }
+      },
+      ltlParseStatusIcon: function () {
+        if (this.winningCondition !== 'LTL') {
+          return 'blank'
+        }
+        switch (this.ltlParseStatus) {
+          case 'success':
+            return 'thumb_up'
+          case 'error':
+            return 'thumb_down'
+          case 'running':
+            return 'hourglass_empty'
+          default:
+            return 'blank'
+        }
+      },
       closeContextMenu: function () {
         return () => {
           contextMenuFactory('close')
@@ -304,6 +472,7 @@
           }
         }
       },
+      // These DOM elements should have unique IDs so that multiple GraphEditors can coexist on one page.
       rootElementId: function () {
         return 'graph-editor-' + this._uid
       },
@@ -313,7 +482,30 @@
       arrowheadId: function () {
         return 'arrowhead-' + this._uid
       },
-      // Given a d3 selection, apply to it all of the event handlers that we want nodes to have.
+      // Given a d3 selection of link elements, apply to it all of the event handlers that we want links to have.
+      // Usage: selection.call(applyNodeEventHandler)
+      applyLinkEventHandler: function () {
+        return selection => {
+          selection.on('click', this.onLinkClick)
+        }
+      },
+      onLinkClick: function () {
+        return (d) => {
+          d3.event.stopPropagation()
+          switch (this.linkClickMode) {
+            case 'deleteFlow':
+              console.log(`onLinkClick: Emitting deleteFlow event: source ${d.source.id}, target ${d.target.id}`)
+              this.$emit('deleteFlow', {
+                sourceId: d.source.id,
+                targetId: d.target.id
+              })
+              break
+            default:
+              console.log(`onLinkClick: linkClickMode === ${this.linkClickMode}; Doing nothing`)
+          }
+        }
+      },
+      // Given a d3 selection of node elements, apply to it all of the event handlers that we want nodes to have.
       // Usage: selection.call(applyNodeEventHandler)
       applyNodeEventHandler: function () {
         return selection => {
@@ -395,7 +587,7 @@
             return this.drawTokenFlowHandler.onClick
           default:
             return () => {
-              console.log(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
+              logging.sendErrorNotification(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
             }
         }
       },
@@ -421,7 +613,7 @@
           const src = source ? source.id : 'none'
           const trans = transition ? transition.id : 'none'
           const targetList = Array.from(postset).map(t => t.id).join(', ')
-          console.log(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
+          logging.logVerbose(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
           const sourceTransLink = source !== undefined && transition !== undefined ? [{
             source: source,
             target: transition
@@ -437,7 +629,7 @@
         }
 
         const reset = () => {
-          console.log('Resetting drawTokenFlow')
+          logging.logVerbose('Resetting drawTokenFlow')
           state = 0
           source = undefined
           transition = undefined
@@ -460,7 +652,7 @@
                 postset: Array.from(postset).map(d => d.id)
               })
             } else {
-              console.log('Aborting drawTokenFlow.  A transition and at least one target must be specified.')
+              logging.logVerbose('Aborting drawTokenFlow.  A transition and at least one target must be specified.')
             }
             reset()
           },
@@ -468,11 +660,11 @@
             switch (state) {
               case 0: {
                 if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
-                  console.log('DrawTokenFlow: Creating non-initial token flow.')
+                  logging.logVerbose('DrawTokenFlow: Creating non-initial token flow.')
                   source = d
                   state = 1
                 } else if (d.type === 'TRANSITION') {
-                  console.log('DrawTokenFlow: Creating initial token flow.')
+                  logging.logVerbose('DrawTokenFlow: Creating initial token flow.')
                   transition = d
                   state = 2
                 }
@@ -485,7 +677,7 @@
                   state = 2
                   logCurrentState()
                 } else {
-                  console.log('DrawTokenFlow: Please click on a transition.')
+                  logging.logVerbose('DrawTokenFlow: Please click on a transition.')
                 }
                 break
               }
@@ -498,7 +690,7 @@
                   }
                   logCurrentState()
                 } else {
-                  console.log('DrawTokenFlow: Click on Places to specify a postset and press Enter ' +
+                  logging.logVerbose('DrawTokenFlow: Click on Places to specify a postset and press Enter ' +
                     'to create the token flow.  Press Esc to abort.')
                 }
               }
@@ -526,7 +718,7 @@
             }
           default:
             return () => {
-              console.log(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
+              logging.sendErrorNotification(`No background click handler found for backgroundClickMode === ${this.backgroundClickMode}`)
             }
         }
       },
@@ -716,6 +908,11 @@
       }
     },
     watch: {
+      ltlFormula: function (formula) {
+        if (this.selectedWinningCondition === 'LTL' && formula !== '') {
+          this.checkLtlFormula()
+        }
+      },
       selectedWinningCondition: function (condition) {
         if (condition !== this.winningCondition) {
           this.$emit('setWinningCondition', condition)
@@ -723,6 +920,8 @@
       },
       winningCondition: function (condition) {
         this.selectedWinningCondition = condition
+        this.ltlParseStatus = ''
+        this.ltlParseErrors = []
       },
       selectedTool: function (tool) {
         // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
@@ -736,6 +935,8 @@
             this.backgroundDragDropMode = 'selectNodes'
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
+            // TODO make it possible to select a set of links
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'drawFlow': {
@@ -743,6 +944,7 @@
             this.backgroundClickMode = 'cancelSelection'
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'drawFlow'
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'drawTokenFlow': {
@@ -750,6 +952,7 @@
             this.backgroundClickMode = 'cancelSelection'
             this.leftClickMode = 'drawTokenFlow'
             this.dragDropMode = 'moveNode'
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'insertSysPlace': {
@@ -758,6 +961,7 @@
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
             this.nodeTypeToInsert = 'SYSPLACE'
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'insertEnvPlace': {
@@ -766,6 +970,7 @@
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
             this.nodeTypeToInsert = 'ENVPLACE'
+            this.linkClickMode = 'doNothing'
             break
           }
           case 'insertTransition': {
@@ -774,17 +979,19 @@
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
             this.nodeTypeToInsert = 'TRANSITION'
+            this.linkClickMode = 'doNothing'
             break
           }
-          case 'deleteNode': {
+          case 'deleteNodesAndFlows': {
             this.backgroundDragDropMode = 'selectNodes'
             this.backgroundClickMode = 'cancelSelection'
             this.leftClickMode = 'deleteNode'
             this.dragDropMode = 'moveNode'
+            this.linkClickMode = 'deleteFlow'
             break
           }
           default: {
-            console.log('Unknown tool: ' + tool)
+            logging.sendErrorNotification('Unknown tool: ' + tool)
           }
         }
       },
@@ -799,6 +1006,9 @@
       },
       gravityStrength: function (strength) {
         this.updateGravityStrength(strength)
+      },
+      shouldShowPartitions: function () {
+        this.updateD3()
       },
       graph: function (graph) {
         console.log('GraphEditor: graph changed:')
@@ -820,64 +1030,64 @@
         this.updateSvgDimensions()
       }
     },
-    data () {
-      return {
-        dimensions: {
-          width: 0,
-          height: 0
-        },
-        winningCondition: '',
-        selectedWinningCondition: '',
-        winningConditions: [
-          'E_REACHABILITY',
-          'A_REACHABILITY',
-          'E_SAFETY',
-          'A_SAFETY',
-          'E_BUCHI',
-          'A_BUCHI',
-          'E_PARITY',
-          'A_PARITY',
-          'LTL'],
-        drawTokenFlowPreviewLinks: [],
-        drawTokenFlowPreviewSource: undefined,
-        drawTokenFlowPreviewTransition: undefined,
-        drawTokenFlowPreviewPostset: [],
-        // TODO consider using a set instead of an array to prevent bugs from happening
-        selectedNodes: [],
-        selectedTool: 'select',
-        backgroundClickMode: 'cancelSelection',
-        backgroundDragDropMode: 'selectNodes',
-        leftClickMode: 'selectNode',
-        dragDropMode: 'moveNode',
-        nodeTypeToInsert: 'SYSPLACE',
-        nodeRadius: 27,
-        exportedGraphJson: {},
-        svg: undefined,
-        linkGroup: undefined,
-        linkTextGroup: undefined,
-        nodeGroup: undefined,
-        labelGroup: undefined,
-        contentGroup: undefined,
-        isSpecialElements: undefined,
-        nodeElements: undefined,
-        linkElements: undefined,
-        linkTextElements: undefined,
-        labelElements: undefined,
-        contentElements: undefined,
-        lastUserClick: undefined,
-        simulation: d3.forceSimulation()
-          .force('gravity', d3.forceManyBody().distanceMin(1000))
-          .force('charge', d3.forceManyBody())
-          //          .force('center', d3.forceCenter(width / 2, height / 2))
-          .force('link', d3.forceLink()
-            .id(link => link.id))
-          .alphaMin(0.002),
-        repulsionStrength: this.repulsionStrengthDefault,
-        linkStrength: this.linkStrengthDefault,
-        gravityStrength: this.gravityStrengthDefault
-      }
-    },
     methods: {
+      // Send request to server to get the model checking net.
+      // TODO: Show a progress indicator.  Show the net in the GUI.
+      // TODO Consider putting this in App instead of in GraphEditor
+      getModelCheckingNet: async function () {
+        try {
+          const response = await this.modelCheckingRoutes.getModelCheckingNet(this.petriGameId, this.ltlFormula)
+          console.log(response)
+          switch (response.data.status) {
+            case 'success':
+              logging.log('Got model checking net')
+              logging.logObject(response.data.result)
+              // TODO Definitely should refactor this so it's not taking place in this component.
+              // I would like the SVG element to be its own thing.
+              // The buttons for auto-layout and so on; the place to enter the LTL formula and
+              // winning condition; the toolbar to select "draw token flows" / "insert sysplace"
+              // etc. should each be their own components, I think.
+              this.$emit('gotModelCheckingNet', response.data.result)
+              break
+            case 'error':
+              logging.sendErrorNotification(`Couldn't get model checking net. Reason: ` + response.data.message)
+              break
+            default:
+              logging.sendErrorNotification(`Couldn't get model checking net.  Unknown status from server: ` + response.data.status)
+          }
+        } catch (error) {
+          logging.sendErrorNotification('Error getting model checking net: ' + error)
+        }
+      },
+      checkLtlFormula: debounce(async function () {
+        console.log('Parsing Ltl Formula')
+        // TODO Show 'running' status somehow in gui to distinguish it from 'success'
+        // TODO Implement a timeout in case the server takes a really long time to respond
+        this.ltlParseStatus = 'running'
+        this.ltlParseErrors = []
+        try {
+          const result = await this.modelCheckingRoutes.checkLtlFormula(this.petriGameId, this.ltlFormula)
+          console.log(result)
+          switch (result.data.status) {
+            case 'success': {
+              this.ltlParseStatus = 'success'
+              this.ltlParseErrors = []
+              break
+            }
+            case 'error': {
+              this.ltlParseStatus = 'error'
+              this.ltlParseErrors = [result.data.message]
+              break
+            }
+            default:
+              throw new Error('Unknown status from server: ' + result.data.status)
+          }
+        } catch (error) {
+          logging.logError('Error parsing LTL formula: ' + error)
+          this.ltlParseStatus = 'error'
+          this.ltlParseErrors = [error]
+        }
+      }, 200),
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
       },
@@ -989,7 +1199,7 @@
         const transform = d3.zoomTransform(this.svg.node())
         const centerX = transform.invertX(this.dimensions.width / 2)
         const centerY = transform.invertY(this.dimensions.height / 2)
-        console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
+        // console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
         // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
         // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
         const centerStrength = 0.01
@@ -1034,7 +1244,7 @@
       },
       unfreezeAllNodes: function () {
         if (confirm('Are you sure you want to unfreeze all nodes?  ' +
-            'The fixed positions you have moved them to will be lost.')) {
+          'The fixed positions you have moved them to will be lost.')) {
           this.nodes.forEach(node => {
             node.fx = null
             node.fy = null
@@ -1342,9 +1552,21 @@
               return 2
             }
           })
+        const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
+
+        function partitionColorForPlace (place) {
+          const hueDegrees = place.partition / (maxPartition + 1) * 360
+          console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
+          const luminosity = place.type === 'SYSPLACE' ? 35 : 90
+          return `HSL(${hueDegrees}, ${luminosity + 20}%, ${luminosity}%`
+        }
+
+        this.nodeElements
           .attr('fill', data => {
             if (this.selectedNodes.includes(data)) {
               return '#5555FF'
+            } else if (this.shouldShowPartitions && data.partition !== -1) {
+              return partitionColorForPlace(data)
             } else if (data.type === 'ENVPLACE') {
               return 'white'
             } else if (data.type === 'SYSPLACE') {
@@ -1372,6 +1594,7 @@
         const linkEnter = newLinkElements
           .enter().append('path')
           .attr('fill', 'none')
+          .call(this.applyLinkEventHandler)
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
           .attr('stroke-width', link => {
@@ -1399,7 +1622,9 @@
         const linkTextEnter = newLinkTextElements
           .enter().append('text')
           .attr('font-size', 25)
+          .call(this.applyLinkEventHandler)
         linkTextEnter.append('textPath')
+          .call(this.applyLinkEventHandler)
         newLinkTextElements.exit().remove()
         this.linkTextElements = linkTextEnter.merge(newLinkTextElements)
         this.linkTextElements
@@ -1414,8 +1639,10 @@
           .attr('xlink:href', link => '#' + this.generateLinkId(link))
           .text(link => {
             if (link.transitionId !== undefined) {
+              // This is for Graph Game BDDs
               return link.transitionId
             } else if (link.tokenFlow !== undefined) {
+              // This is for Petri Games
               return link.tokenFlow
             } else {
               throw new Error('Both transitionId and tokenFlow are both undefined.')
@@ -1431,6 +1658,20 @@
           'TRANSITION': this.nodeRadius * 1.6
         }
         this.simulation.nodes(this.nodes).on('tick', () => {
+          // Make sure the D3 forceSimulation is only running if the Graph Editor is visible.
+          const svgElement = this.$refs.svg
+          const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
+          if (!isSvgVisible) {
+            // console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible: ' + this._uid)
+            this.simulation.stop()
+            setTimeout(() => {
+              if (!this.isDestroyed) {
+                // console.log('Restarting forceSimulation after 2 seconds')
+                this.simulation.restart()
+              }
+            }, 2000)
+            return
+          }
           this.nodeElements.filter('rect')
             .attr('transform', node =>
               `translate(
@@ -1567,6 +1808,7 @@
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
         this.winningCondition = graphJsonCopy.winningCondition
+        this.ltlFormula = graphJsonCopy.ltlFormula
         const newLinks = graphJsonCopy.links
         const newNodes = graphJsonCopy.nodes
         const newNodePositions = graphJsonCopy.nodePositions
