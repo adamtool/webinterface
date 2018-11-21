@@ -16,7 +16,7 @@
     <!--<v-spacer/>-->
     <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
     <!--</v-toolbar>-->
-    <my-theme style="z-index: 999">
+    <my-theme style="z-index: 999;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
           <!--Have to use click.native so that the popup blocker isn't triggered-->
@@ -53,99 +53,107 @@
           <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
                          @click="showPartitions = !showPartitions"/>
         </hsc-menu-bar-item>
+        <hsc-menu-bar-item @click.native="isLogVisible = !isLogVisible; $refs.menubar.deactivate()"
+                           :label="isLogVisible ? 'Hide log' : 'Show log'"/>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
     </my-theme>
 
-    <div style="width: 100%; height: 100vh">
-      <div style="display: flex; flex-direction: row; height: 100%; width: 100%;"
-           ref="horizontalSplitDiv">
-        <div class="flex-column-divider"
-             v-on:click="toggleLeftPane"
-             v-if="shouldShowRightSide">
-          <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
-        </div>
-        <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
-                v-model="selectedTabLeftSide">
-          <v-tab>Petri Game</v-tab>
-          <v-tab @click="onSwitchToAptEditor">APT Editor</v-tab>
-          <v-tab-item>
-            <GraphEditor :graph='petriGame.net'
-                         :petriGameId='petriGame.uuid'
-                         ref='graphEditorPetriGame'
-                         v-on:graphModified='onGraphModified'
-                         v-on:insertNode='insertNode'
-                         v-on:createFlow='createFlow'
-                         v-on:createTokenFlow='createTokenFlow'
-                         v-on:deleteFlow='deleteFlow'
-                         v-on:deleteNode='deleteNode'
-                         v-on:renameNode='renameNode'
-                         v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
-                         v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
-                         v-on:setInitialToken='setInitialToken'
-                         v-on:setWinningCondition='setWinningCondition'
-                         v-on:gotModelCheckingNet='gotModelCheckingNet'
-                         showEditorTools
-                         :useModelChecking="useModelChecking"
-                         :useOtherApproach="useOtherApproach"
-                         :modelCheckingRoutes="modelCheckingRoutes"
-                         :shouldShowPhysicsControls="showPhysicsControls"
-                         :shouldShowPartitions="showPartitions"
-                         :repulsionStrengthDefault="360"
-                         :linkStrengthDefault="0.086"/>
-          </v-tab-item>
-          <v-tab-item>
-            <div :style="aptEditorStyle">
-              <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
-                APT Editor
-              </div>
-              <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
+    <div style="display: flex; flex-direction: row; height: 100vh; width: 100%;"
+         ref="horizontalSplitDiv">
+      <div class="flex-column-divider"
+           v-on:click="toggleLeftPane"
+           v-if="shouldShowRightSide">
+        <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
+      </div>
+      <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
+              v-model="selectedTabLeftSide">
+        <v-tab>Petri Game</v-tab>
+        <v-tab @click="onSwitchToAptEditor">APT Editor</v-tab>
+        <v-tab-item>
+          <GraphEditor :graph='petriGame.net'
+                       :petriGameId='petriGame.uuid'
+                       ref='graphEditorPetriGame'
+                       v-on:graphModified='onGraphModified'
+                       v-on:insertNode='insertNode'
+                       v-on:createFlow='createFlow'
+                       v-on:createTokenFlow='createTokenFlow'
+                       v-on:deleteFlow='deleteFlow'
+                       v-on:deleteNode='deleteNode'
+                       v-on:renameNode='renameNode'
+                       v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                       v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                       v-on:setInitialToken='setInitialToken'
+                       v-on:setWinningCondition='setWinningCondition'
+                       v-on:gotModelCheckingNet='gotModelCheckingNet'
+                       showEditorTools
+                       :useModelChecking="useModelChecking"
+                       :useOtherApproach="useOtherApproach"
+                       :modelCheckingRoutes="modelCheckingRoutes"
+                       :shouldShowPhysicsControls="showPhysicsControls"
+                       :shouldShowPartitions="showPartitions"
+                       :repulsionStrengthDefault="360"
+                       :linkStrengthDefault="0.086"/>
+        </v-tab-item>
+        <v-tab-item>
+          <div :style="aptEditorStyle">
+            <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
+              APT Editor
             </div>
-          </v-tab-item>
-        </v-tabs>
-        <v-tabs class="tabs-component-full-height" id="splitRightSide" :style="splitRightSideStyle">
-          <!--TODO Allow closing these tabs-->
-          <!--TODO Maybe mark the tabs somehow if the Petri Game has been modified since the tabs were opened-->
-          <v-tab v-if="strategyBDD">Strategy BDD</v-tab>
-          <v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>
-          <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
-          <v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>
-          <v-tab-item v-if="strategyBDD">
-            <GraphEditor :graph='strategyBDD'
-                         :petriGameId='petriGame.uuid'
-                         ref='graphEditorStrategyBDD'
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-          </v-tab-item>
-          <v-tab-item v-if="graphStrategyBDD">
-            <GraphEditor :graph='graphStrategyBDD'
-                         :petriGameId='petriGame.uuid'
-                         ref='graphEditorGraphStrategyBDD'
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-          </v-tab-item>
-          <v-tab-item v-if="graphGameBDD">
-            <GraphEditor :graph='graphGameBDD'
-                         :petriGameId='petriGame.uuid'
-                         ref='graphEditorGraphGameBDD'
-                         v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                         v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                         :shouldShowPhysicsControls="showPhysicsControls"
-                         :repulsionStrengthDefault="415"
-                         :linkStrengthDefault="0.04"
-                         :gravityStrengthDefault="300"/>
-          </v-tab-item>
-          <v-tab-item v-if="modelCheckingNet">
-            <GraphEditor :graph="modelCheckingNet"
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-          </v-tab-item>
-        </v-tabs>
-      </div>
-      <!--End first row-->
-      <div ref="messageLogDiv">
-        <LogViewer :messages="messageLog"/>
-      </div>
+            <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
+          </div>
+        </v-tab-item>
+      </v-tabs>
+      <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide">
+        <!--TODO Allow closing these tabs-->
+        <!--TODO Maybe mark the tabs somehow if the Petri Game has been modified since the tabs were opened-->
+        <v-tab v-if="strategyBDD">Strategy BDD</v-tab>
+        <v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>
+        <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
+        <v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>
+        <v-tab-item v-if="strategyBDD">
+          <GraphEditor :graph='strategyBDD'
+                       :petriGameId='petriGame.uuid'
+                       ref='graphEditorStrategyBDD'
+                       :shouldShowPhysicsControls="showPhysicsControls"/>
+        </v-tab-item>
+        <v-tab-item v-if="graphStrategyBDD">
+          <GraphEditor :graph='graphStrategyBDD'
+                       :petriGameId='petriGame.uuid'
+                       ref='graphEditorGraphStrategyBDD'
+                       :shouldShowPhysicsControls="showPhysicsControls"/>
+        </v-tab-item>
+        <v-tab-item v-if="graphGameBDD">
+          <GraphEditor :graph='graphGameBDD'
+                       :petriGameId='petriGame.uuid'
+                       ref='graphEditorGraphGameBDD'
+                       v-on:toggleStatePostset='toggleGraphGameStatePostset'
+                       v-on:toggleStatePreset='toggleGraphGameStatePreset'
+                       :shouldShowPhysicsControls="showPhysicsControls"
+                       :repulsionStrengthDefault="415"
+                       :linkStrengthDefault="0.04"
+                       :gravityStrengthDefault="300"/>
+        </v-tab-item>
+        <v-tab-item v-if="modelCheckingNet">
+          <GraphEditor :graph="modelCheckingNet"
+                       :shouldShowPhysicsControls="showPhysicsControls"/>
+        </v-tab-item>
+      </v-tabs>
     </div>
+    <hsc-window-style-metal>
+      <hsc-window resizable
+                  closeButton
+                  :minWidth="200"
+                  :minHeight="100"
+                  :isOpen.sync="isLogVisible"
+                  title="Log"
+                  style="z-index: 9999">
+        <LogViewer :messages="messageLog"
+                   style="height: inherit; width: inherit;"/>
+      </hsc-window>
+    </hsc-window-style-metal>
   </v-app>
 </template>
 
@@ -160,15 +168,21 @@
   import { Tabs, Tab } from 'vue-tabs-component'
   import './tabs-component.css'
   import { debounce } from 'underscore'
-  import * as VueMenu from '@hscmap/vue-menu'
-  import Vuetify from 'vuetify'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
-  Vue.use(Vuetify)
+  import Vuetify from 'vuetify'
   import 'vuetify/dist/vuetify.min.css'
 
+  Vue.use(Vuetify)
+
+  import * as VueMenu from '@hscmap/vue-menu'
+
   Vue.use(VueMenu)
-  import MyVueMenuTheme from '@/menuStyle'
+  import MyVueMenuTheme from './menuStyle'
+
+  import * as VueWindow from '@hscmap/vue-window'
+
+  Vue.use(VueWindow)
 
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
@@ -247,9 +261,8 @@
       this.parseAPTToPetriGame(this.apt)
       logging.log('Hello!')
 
-      // Initialize draggable, resizable panes for APT editor and log viewer
+      // Initialize draggable, resizable pane
       this.horizontalSplit = this.createHorizontalSplit()
-      this.createVerticalSplit()
     },
     data: function () {
       return {
@@ -267,6 +280,7 @@
         graphGameBDD: null,
         modelCheckingNet: null,
         isLeftPaneVisible: true,
+        isLogVisible: false,
         showPhysicsControls: false,
         showPartitions: false,
         messageLog: [],
@@ -391,16 +405,6 @@
       }
     },
     methods: {
-      createVerticalSplit: function () {
-        const split = Split([this.$refs.horizontalSplitDiv, this.$refs.messageLogDiv], {
-          minSize: 0,
-          gutterSize: 20,
-          direction: 'vertical',
-          snapOffset: 50,
-          sizes: [80, 20]
-        })
-        return split
-      },
       createHorizontalSplit: function () {
         const split = Split(['#splitLeftSide', '#splitRightSide'], {
           sizes: this.horizontalSplitSizes,

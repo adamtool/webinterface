@@ -100,7 +100,6 @@
 
 <style scoped>
   .logViewer {
-    height: 100%;
     overflow: hidden;
   }
 
