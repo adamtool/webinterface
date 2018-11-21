@@ -17,4 +17,5 @@ selenium-debug.log
 
 # Generated files 
 client/node/
+client/src/assets/apt-examples.json
 server/target/

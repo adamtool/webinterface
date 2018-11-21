@@ -12,8 +12,6 @@
       <v-btn flat @click.native="snackbarMessage.display = false">Close</v-btn>
     </v-snackbar>
     <input id="file-picker" type="file" style="display: none;" v-on:change="onFileSelected"/>
-    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'
-          rel="stylesheet">
     <!--<v-toolbar</v-toolbar-items>-->
     <!--<v-spacer/>-->
     <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
@@ -36,14 +34,18 @@
                                     :callback="onAptExampleSelected"/>
           </hsc-menu-item>
         </hsc-menu-bar-item>
-        <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
-        <hsc-menu-bar-item label="Analyze">
-          <hsc-menu-item @click.native="existsWinningStrategy"
-                         label="Exists Winning Strategy?"/>
-          <hsc-menu-item @click.native="getGraphStrategyBDD"
-                         label="Get Graph Strategy BDD"/>
-          <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
-        </hsc-menu-bar-item>
+        <template v-if="useOtherApproach">
+          <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
+          <hsc-menu-bar-item label="Analyze">
+            <hsc-menu-item @click.native="existsWinningStrategy"
+                           label="Exists Winning Strategy?"/>
+            <hsc-menu-item @click.native="getGraphStrategyBDD"
+                           label="Get Graph Strategy BDD"/>
+            <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
+          </hsc-menu-bar-item>
+        </template>
+        <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
+                           v-if="useModelChecking"/>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
             :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
@@ -61,7 +63,8 @@
       <div style="display: flex; flex-direction: row; height: 100%; width: 100%;"
            ref="horizontalSplitDiv">
         <div class="flex-column-divider"
-             v-on:click="toggleLeftPane">
+             v-on:click="toggleLeftPane"
+             v-if="shouldShowRightSide">
           <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
         </div>
         <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
@@ -70,6 +73,7 @@
           <v-tab @click="onSwitchToAptEditor">APT Editor</v-tab>
           <v-tab-item>
             <GraphEditor :graph='petriGame.net'
+                         :petriGameId='petriGame.uuid'
                          ref='graphEditorPetriGame'
                          v-on:graphModified='onGraphModified'
                          v-on:insertNode='insertNode'
@@ -82,7 +86,11 @@
                          v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
                          v-on:setInitialToken='setInitialToken'
                          v-on:setWinningCondition='setWinningCondition'
+                         v-on:gotModelCheckingNet='gotModelCheckingNet'
                          showEditorTools
+                         :useModelChecking="useModelChecking"
+                         :useOtherApproach="useOtherApproach"
+                         :modelCheckingRoutes="modelCheckingRoutes"
                          :shouldShowPhysicsControls="showPhysicsControls"
                          :shouldShowPartitions="showPartitions"
                          :repulsionStrengthDefault="360"
@@ -103,18 +111,22 @@
           <v-tab v-if="strategyBDD">Strategy BDD</v-tab>
           <v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>
           <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
+          <v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>
           <v-tab-item v-if="strategyBDD">
             <GraphEditor :graph='strategyBDD'
+                         :petriGameId='petriGame.uuid'
                          ref='graphEditorStrategyBDD'
                          :shouldShowPhysicsControls="showPhysicsControls"/>
           </v-tab-item>
           <v-tab-item v-if="graphStrategyBDD">
             <GraphEditor :graph='graphStrategyBDD'
+                         :petriGameId='petriGame.uuid'
                          ref='graphEditorGraphStrategyBDD'
                          :shouldShowPhysicsControls="showPhysicsControls"/>
           </v-tab-item>
           <v-tab-item v-if="graphGameBDD">
             <GraphEditor :graph='graphGameBDD'
+                         :petriGameId='petriGame.uuid'
                          ref='graphEditorGraphGameBDD'
                          v-on:toggleStatePostset='toggleGraphGameStatePostset'
                          v-on:toggleStatePreset='toggleGraphGameStatePreset'
@@ -122,6 +134,10 @@
                          :repulsionStrengthDefault="415"
                          :linkStrengthDefault="0.04"
                          :gravityStrengthDefault="300"/>
+          </v-tab-item>
+          <v-tab-item v-if="modelCheckingNet">
+            <GraphEditor :graph="modelCheckingNet"
+                         :shouldShowPhysicsControls="showPhysicsControls"/>
           </v-tab-item>
         </v-tabs>
       </div>
@@ -135,9 +151,9 @@
 
 
 <script>
-  import aptFileTree from '@/aptExamples'
-  import GraphEditor from '@/components/GraphEditor'
-  import LogViewer from '@/components/LogViewer'
+  import aptFileTree from './aptExamples'
+  import GraphEditor from './components/GraphEditor'
+  import LogViewer from './components/LogViewer'
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
@@ -146,6 +162,7 @@
   import { debounce } from 'underscore'
   import * as VueMenu from '@hscmap/vue-menu'
   import Vuetify from 'vuetify'
+  import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   Vue.use(Vuetify)
   import 'vuetify/dist/vuetify.min.css'
@@ -159,7 +176,8 @@
   Vue.use(BootstrapVue)
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
-  import aptExample from './somewhatSmallExample.apt'
+  import aptExampleLtl from './somewhatSmallExampleLtl.apt'
+  import aptExampleOtherApproach from './somewhatSmallExampleNotLtl.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
@@ -167,12 +185,19 @@
 
   import Split from 'split.js'
 
+  import logging from './logging'
+
   export default {
     name: 'app',
     props: {
-      baseUrl: {
-        type: String,
-        default: ''
+      useModelChecking: {
+        type: Boolean,
+        required: true
+      },
+      // TODO Ask Manuel what the other approach should be called that isn't model checking
+      useOtherApproach: {
+        type: Boolean,
+        required: true
       }
     },
     components: {
@@ -188,29 +213,39 @@
       try {
         socket = makeWebSocket(this.webSocketUrl)
       } catch (exception) {
-        this.logError('An exception was thrown when opening the websocket connection to the server.  ' +
+        logging.logError('An exception was thrown when opening the websocket connection to the server.  ' +
           'Server log messages may not be displayed.  Exception:')
-        this.logError(exception.message)
+        logging.logError(exception.message)
         return
       }
       socket.$on('message', message => {
         const messageParsed = JSON.parse(message)
-        const logEntry = {
-          source: 'server',
-          level: messageParsed.level,
-          time: new Date(),
-          text: messageParsed.message
-        }
-        this.messageLog.push(logEntry)
+        logging.logServerMessage(messageParsed.message, messageParsed.level)
       })
       socket.$on('error', () => {
-        this.logError('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
+        logging.logError('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
           'be displayed.')
       })
     },
     mounted: function () {
+      console.log(`Adam Web App.vue Configuration:
+      useOtherApproach: ${this.useOtherApproach}
+      useModelChecking: ${this.useModelChecking}
+      baseurl: ${this.baseUrl}`)
+
+      // Subscribe to logging event bus
+      logging.subscribeLog(message => {
+        this.messageLog.push(message)
+      })
+      logging.subscribeErrorNotification(message => {
+        this.showNotification(message, 'pink')
+      })
+      logging.subscribeSuccessNotification(message => {
+        this.showNotification(message, 'green')
+      })
+
       this.parseAPTToPetriGame(this.apt)
-      this.log('Hello!')
+      logging.log('Hello!')
 
       // Initialize draggable, resizable panes for APT editor and log viewer
       this.horizontalSplit = this.createHorizontalSplit()
@@ -218,7 +253,7 @@
     },
     data: function () {
       return {
-        apt: aptExample,
+        apt: this.useModelChecking ? aptExampleLtl : aptExampleOtherApproach,
         aptParseStatus: 'success',
         petriGame: {
           net: {
@@ -230,6 +265,7 @@
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
+        modelCheckingNet: null,
         isLeftPaneVisible: true,
         showPhysicsControls: false,
         showPartitions: false,
@@ -246,14 +282,16 @@
       }
     },
     watch: {
-      petriGame: function () {
-        this.switchToPetriGameTab()
-      },
       apt: function (apt) {
         this.parseAPTToPetriGame(this.apt)
       }
     },
     computed: {
+      // This is the prefix used for all HTTP requests to the server.  An empty string means that
+      // relative URLs will be used.
+      baseUrl: function () {
+        return process.env.NODE_ENV === 'development' ? 'http://localhost:4567' : ''
+      },
       // TODO figure out why this doesn't work
       petriGameTabStyle: function () {
         switch (this.petriGame.hasWinningStrategy) {
@@ -278,9 +316,11 @@
         const hideStyle = this.isLeftPaneVisible ? '' : 'display: none;'
         return hideStyle + 'flex-grow: 1;'
       },
+      shouldShowRightSide: function () {
+        return this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD || this.modelCheckingNet
+      },
       splitRightSideStyle: function () {
-        const shouldShow = this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD
-        return shouldShow ? '' : 'display: none;'
+        return this.shouldShowRightSide ? '' : 'display: none;'
       },
       aptEditorStyle: function () {
         let color
@@ -295,7 +335,7 @@
             color = 'lightgray'
             break
           default:
-            this.showErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
+            logging.sendErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
         }
         const borderStyle = `border: 3px solid ${color};`
         const layoutStyle = 'display: flex; flex-direction: column; height: 100%;'
@@ -326,6 +366,10 @@
           setWinningCondition: this.baseUrl + '/setWinningCondition'
         }
       },
+      // TODO consider refactoring routes so they are handled more like this and less like the above
+      modelCheckingRoutes: function () {
+        return modelCheckingRoutesFactory.withPathPrefix(this.baseUrl)
+      },
       webSocketUrl: function () {
         if (this.baseUrl === '') { // This means that we are running in production, with relative URLs
           const loc = window.location
@@ -337,7 +381,7 @@
           } else {
             const errorMessage = 'Error constructing the URL to use for our websocket connection.  ' +
               'Couldn\'t recognize the protocol string in window.location: ' + window.location
-            this.logError(errorMessage)
+            logging.logError(errorMessage)
             throw new Error(errorMessage)
           }
           return `${newUri}//${loc.host}/log`
@@ -376,14 +420,14 @@
             const leftPaneWidth = split.getSizes()[0]
             const leftPaneShouldCollapse = leftPaneWidth <= this.leftPaneMinWidth
             if (leftPaneShouldCollapse && this.isLeftPaneVisible) {
-              this.logVerbose('collapsing left pane')
+              logging.logVerbose('collapsing left pane')
               this.isLeftPaneVisible = false
             }
             if (leftPaneShouldCollapse) {
               split.setSizes([0, 100])
             }
             if (!leftPaneShouldCollapse && !this.isLeftPaneVisible) {
-              this.logVerbose('expanding apt editor')
+              logging.logVerbose('expanding apt editor')
               this.isLeftPaneVisible = true
             }
           },
@@ -398,7 +442,7 @@
       },
       // Hide or show APT editor, restoring its size if appropriate
       toggleLeftPane: function () {
-        this.logVerbose('toggleLeftPane()')
+        logging.logVerbose('toggleLeftPane()')
         const restoring = !this.isLeftPaneVisible
         if (restoring) {
           this.horizontalSplit.setSizes(this.horizontalSplitSizes)
@@ -410,13 +454,13 @@
       // Load APT from a text file stored on the user's local filesystem
       // See https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
       onFileSelected: function (changeEvent) {
-        this.logVerbose('The user selected a file in the file selector')
+        logging.logVerbose('The user selected a file in the file selector')
         const file = changeEvent.target.files[0]
-        this.logObject(file)
+        logging.logObject(file)
         const reader = new FileReader()
         reader.onloadend = () => {
           // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
-          this.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
+          logging.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
           this.onAptExampleSelected(reader.result)
         }
         reader.readAsText(file)
@@ -439,23 +483,22 @@
       saveSvgToFileGraphGameBDD: function () {
         this.$refs.graphEditorGraphGameBDD.saveGraph()
       },
-      switchToPetriGameTab: function () {
-        window.location.href = '#petri-game'
-      },
       switchToStrategyBDDTab: function () {
-        window.location.href = '#strategy-bdd'
+        console.log('TODO implement switchToStrategyBDDTab')
+        // TODO: This should be easy, but it's kind of inconvenient because they can only be
+        // identified by number, and the number of tabs is variable.
+        // you do it with e.g. this.selectedTabRightSide = 0 to switch to the 0th tab
       },
       switchToGraphStrategyBDDTab: function () {
-        window.location.href = '#graph-strategy-bdd'
+        console.log('TODO implement switchToGraphStrategyBDDTab')
       },
       switchToGraphGameBDDTab: function () {
-        window.location.href = '#graph-game-bdd'
+        console.log('TODO implement switchToGraphGameBDDTab')
       },
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAPTToPetriGame: debounce(function (apt) {
-        this.switchToPetriGameTab()
-        this.logVerbose('Sending APT source code to backend.')
+        logging.logVerbose('Sending APT source code to backend.')
         axios.post(this.restEndpoints.convertAptToGraph, {
           params: {
             apt: apt
@@ -463,26 +506,30 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              this.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
-              this.logObject(response)
+              logging.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
+              logging.logObject(response)
               this.petriGame = response.data.graph
               this.aptParseStatus = 'success'
               break
             case 'error':
-              this.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
+              logging.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
               this.aptParseStatus = 'error'
               break
             default:
-              this.log('We got an unexpected response from the server when trying to parse the APT:')
-              this.log(response)
+              logging.log('We got an unexpected response from the server when trying to parse the APT:')
+              logging.log(response)
               this.aptParseStatus = 'error'
               break
           }
         }).catch(() => {
-          this.logError('Network error when trying to parse APT')
+          logging.logError('Network error when trying to parse APT')
         })
         this.aptParseStatus = 'running'
       }, 200),
+      getModelCheckingNet: function () {
+        this.$refs.menubar.deactivate()
+        this.$refs.graphEditorPetriGame.getModelCheckingNet()
+      },
       existsWinningStrategy: function () {
         if (this.petriGame.hasWinningStrategy !== undefined) {
           // TODO maintain state, avoid unnecessarily calculating this multiple times
@@ -495,15 +542,15 @@
             this.petriGame.hasWinningStrategy = response.data.result
             // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
             if (response.data.result) {
-              this.showSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
+              logging.sendSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
               // We expect an updated petriGame here because there might have been partition annotations added.
               this.petriGame.net = response.data.petriGame
             } else {
-              this.showErrorNotification('No, there is no winning strategy for this Petri Game.')
+              logging.sendErrorNotification('No, there is no winning strategy for this Petri Game.')
             }
           })
         }).catch(() => {
-          this.logError('Network error in existsWinningStrategy')
+          logging.logError('Network error in existsWinningStrategy')
         })
       },
       getStrategyBDD: function () {
@@ -520,7 +567,7 @@
             this.switchToStrategyBDDTab()
           })
         }).catch(() => {
-          this.logError('Network error in getStrategyBDD')
+          logging.logError('Network error in getStrategyBDD')
         })
       },
       getGraphStrategyBDD: function () {
@@ -536,7 +583,7 @@
             this.switchToGraphStrategyBDDTab()
           })
         }).catch(() => {
-          this.logError('Network error in getGraphStrategyBDD')
+          logging.logError('Network error in getGraphStrategyBDD')
         })
       },
       getGraphGameBDD: function () {
@@ -552,11 +599,11 @@
             this.switchToGraphGameBDDTab()
           })
         }).catch(() => {
-          this.logError('Network error in getGraphGameBDD')
+          logging.logError('Network error in getGraphGameBDD')
         })
       },
       toggleGraphGameStatePostset: function (stateId) {
-        const uuid = this.petriGame.uuid
+        const uuid = this.graphGameBDD.uuid
         axios.post(this.restEndpoints.toggleGraphGameBDDNodePostset, {
           petriGameId: uuid,
           stateId: stateId
@@ -566,11 +613,11 @@
             this.graphGameBDD.uuid = uuid
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       toggleGraphGameStatePreset: function (stateId) {
-        const uuid = this.petriGame.uuid
+        const uuid = this.graphGameBDD.uuid
         axios.post(this.restEndpoints.toggleGraphGameBDDNodePreset, {
           petriGameId: uuid,
           stateId: stateId
@@ -580,7 +627,7 @@
             this.graphGameBDD.uuid = uuid
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       onSwitchToAptEditor: function () {
@@ -588,7 +635,7 @@
         if (isAptEditorAlreadySelected) {
           return
         }
-        this.logVerbose('Switching to APT editor')
+        logging.logVerbose('Switching to APT editor')
         this.savePetriGameAsAPT()
       },
       // Return a promise that is fulfilled iff the http request to the server is successfully processed
@@ -607,7 +654,7 @@
           })
         }, reason => {
           // This function gets called if the promise is rejected (i.e. the http request failed)
-          this.logError('savePetriGameAsAPT(): An error occurred. ' + reason)
+          logging.logError('savePetriGameAsAPT(): An error occurred. ' + reason)
           throw new Error(reason)
         })
       },
@@ -622,7 +669,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       createTokenFlow: function ({source, transition, postset}) {
@@ -637,7 +684,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       deleteFlow: function ({sourceId, targetId}) {
@@ -651,7 +698,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       deleteNode: function (nodeId) {
@@ -664,7 +711,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       renameNode: function ({idOld, idNew}) {
@@ -679,7 +726,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       toggleEnvironmentPlace: function (nodeId) {
@@ -692,7 +739,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       toggleIsInitialTokenFlow: function (nodeId) {
@@ -705,7 +752,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       setInitialToken: function ({nodeId, tokens}) {
@@ -719,7 +766,7 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       setWinningCondition: function (winningCondition) {
@@ -731,8 +778,13 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
+      },
+      gotModelCheckingNet: function (net) {
+        console.log('App: Got model checking net')
+        console.log(net)
+        this.modelCheckingNet = net
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
@@ -746,12 +798,12 @@
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
-          this.logError('Network error')
+          logging.logError('Network error')
         })
       },
       onGraphModified: function (graph) {
-        this.logVerbose('App: Received graphModified event from graph editor:')
-        this.logObject(graph)
+        logging.logVerbose('App: Received graphModified event from graph editor:')
+        logging.logObject(graph)
         // TODO: Implement undo/redo.
       },
       onAptExampleSelected: function (apt) {
@@ -771,19 +823,11 @@
             onSuccessCallback(response)
             break
           case 'error':
-            this.showErrorNotification(response.data.message)
+            logging.sendErrorNotification(response.data.message)
             break
           default:
-            this.showErrorNotification(`Received a malformed response from the server: ${response.data}`)
+            logging.sendErrorNotification(`Received a malformed response from the server: ${response.data}`)
         }
-      },
-      showErrorNotification (message) {
-        this.logError(message)
-        this.showNotification(message, 'pink')
-      },
-      showSuccessNotification (message) {
-        this.log(message)
-        this.showNotification(message, 'green')
       },
       showNotification: function (message, color) {
         this.snackbarMessage = {
@@ -791,31 +835,58 @@
           color: color,
           text: message
         }
-      },
-      log: function (message, level) {
-        this.messageLog.push({
-          source: 'client',
-          level: level === undefined ? 2 : level, // TODO handle log levels
-          time: new Date(),
-          text: message
-        })
-      },
-      logObject: function (message) {
-        this.log(message, 0)
-      },
-      logVerbose: function (message) {
-        this.log(message, 1)
-      },
-      logError: function (message) {
-        this.log(message, 4)
       }
     }
   }
 </script>
 
 <style>
+  @font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Material Icons'), local('MaterialIcons-Regular'),
+    url('./assets/fonts/MaterialIcons-Regular.woff2') format('woff2'),
+    url('./assets/fonts/MaterialIcons-Regular.woff') format('woff');
+  }
+
+  .material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px; /* Preferred icon size */
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Support for IE. */
+    font-feature-settings: 'liga';
+  }
+
+  /* roboto-regular - latin */
+  @font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Roboto'), local('Roboto-Regular'),
+    url('./assets/fonts/roboto-v18-latin-regular.woff2') format('woff2'),
+      /* Chrome 26+, Opera 23+, Firefox 39+ */ url('./assets/fonts/roboto-v18-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  }
+
   #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    font-family: 'Roboto', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
@@ -832,7 +903,8 @@
   }
 
   .tabs-component-full-height,
-  .tabs-component-full-height > .v-tabs__items > .v-tabs__content {
+  .tabs-component-full-height > .v-window > .v-window__container,
+  .tabs-component-full-height > .v-window > .v-window__container > .v-window-item {
     height: 100%;
   }
 
@@ -847,7 +919,7 @@
     flex-basis: auto;
   }
 
-  .tabs-component-full-height > .v-tabs__items {
+  .tabs-component-full-height > .v-window {
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: available;
