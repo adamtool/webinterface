@@ -424,6 +424,8 @@ public class App {
             RunFormula runFormula = (RunFormula) iRunFormula;
 
             PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
+             // TODO check the flow ltl formula
+//            AdamModelChecker.checkFlowLTLFormula(petriGame, runFormula, false, "/tmp/");
 
             return successResponse(PetriNetD3.of(modelCheckingNet));
 
