@@ -43,17 +43,15 @@
             <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
           </div>
         </v-layout>
-        <v-layout row>
-          <v-radio-group v-model="selectedTool" v-if="showEditorTools" row>
-            <v-radio label="select" value="select"/>
-            <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
-            <v-radio label="draw flows" value="drawFlow"/>
-            <v-radio label="draw token flows" value="drawTokenFlow"/>
-            <v-radio label="insert sysplace" value="insertSysPlace"/>
-            <v-radio label="insert envplace" value="insertEnvPlace"/>
-            <v-radio label="insert transition" value="insertTransition"/>
-          </v-radio-group>
-        </v-layout>
+        <v-radio-group v-model="selectedTool" v-if="showEditorTools" row height="10px">
+          <v-radio label="select" value="select"/>
+          <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
+          <v-radio label="draw flows" value="drawFlow"/>
+          <v-radio label="draw token flows" value="drawTokenFlow"/>
+          <v-radio label="insert sysplace" value="insertSysPlace"/>
+          <v-radio label="insert envplace" value="insertEnvPlace"/>
+          <v-radio label="insert transition" value="insertTransition"/>
+        </v-radio-group>
         <v-layout row>
           <template v-if="useModelChecking">
             <v-select
@@ -121,8 +119,7 @@
     font-style: normal;
     font-weight: 400;
     src: local('Inconsolata Regular'), local('Inconsolata-Regular'),
-    url('../assets/fonts/inconsolata-v16-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-    url('../assets/fonts/inconsolata-v16-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+    url('../assets/fonts/inconsolata-v16-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */ url('../assets/fonts/inconsolata-v16-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
   }
 
   /* inconsolata-700 - latin */
@@ -131,8 +128,7 @@
     font-style: normal;
     font-weight: 700;
     src: local('Inconsolata Bold'), local('Inconsolata-Bold'),
-    url('../assets/fonts/inconsolata-v16-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-    url('../assets/fonts/inconsolata-v16-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+    url('../assets/fonts/inconsolata-v16-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */ url('../assets/fonts/inconsolata-v16-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
   }
 
 
