@@ -172,7 +172,7 @@
         <dependency>
             <groupId>uniolunisaar.adam</groupId>
             <artifactId>adam-core</artifactId>
-            <version>1.22</version>
+            <version>1.23</version>
         </dependency>
         <dependency>
             <groupId>com.sparkjava</groupId>

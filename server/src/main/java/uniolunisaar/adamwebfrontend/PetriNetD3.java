@@ -4,13 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.AdamModelChecker;
-import uniolunisaar.adam.ds.exceptions.NotSupportedGameException;
+import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
-import uniolunisaar.adam.ds.petrigame.TokenFlow;
-import uniolunisaar.adam.ds.winningconditions.WinningCondition.Objective;
-import uniolunisaar.adam.logic.util.AdamTools;
+import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
 import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.PNWTTools;
 
 import java.util.*;
 import java.util.function.Function;
@@ -66,7 +65,7 @@ public class PetriNetD3 {
         }
 
 
-        Map<Flow, String> flowRelationFromTransitions = AdamTools.getFlowRelationFromTransitions(net);
+        Map<Flow, String> flowRelationFromTransitions = PNWTTools.getTransitRelationFromTransitions(net);
         for (Flow flow : net.getEdges()) {
 
             String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
@@ -88,13 +87,14 @@ public class PetriNetD3 {
                 ));
 
         boolean hasWinningCondition = PetriGameExtensionHandler.hasWinningConditionAnnotation(net);
+
         if (hasWinningCondition) {
             String winningCondition = PetriGameExtensionHandler.getWinningConditionAnnotation(net);
-            Objective objective = Objective.valueOf(winningCondition);
+            Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
 
-            boolean canConvertToLtl = objective.equals(Objective.A_BUCHI) ||
-                    objective.equals(Objective.A_REACHABILITY) ||
-                    objective.equals(Objective.A_SAFETY);
+            boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
+                    objective.equals(Condition.Objective.A_REACHABILITY) ||
+                    objective.equals(Condition.Objective.A_SAFETY);
             String ltlFormula = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) : "";
             PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, winningCondition, ltlFormula);
             return new Gson().toJsonTree(petriNetD3);
@@ -182,7 +182,7 @@ public class PetriNetD3 {
             boolean isBad = game.isBad(place);
             long initialToken = place.getInitialToken().getValue();
             boolean isSpecial = game.isSpecial(place);
-            boolean isInitialTokenFlow = game.isInitialTokenflow(place);
+            boolean isInitialTokenFlow = game.isInitialTransit(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
 
             int partition = game.hasPartition(place) ? game.getPartition(place) : -1;

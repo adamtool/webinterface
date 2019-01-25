@@ -6,10 +6,12 @@ import uniol.apt.io.parser.ParseException;
 import uniol.apt.io.renderer.RenderException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamSynthesizer;
-import uniolunisaar.adam.ds.exceptions.*;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.ds.util.AdamExtensions;
+import uniolunisaar.adam.exceptions.pg.NoStrategyExistentException;
+import uniolunisaar.adam.exceptions.pg.SolvingException;
+import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
+import uniolunisaar.adam.util.AdamExtensions;
 
 import java.util.Map;
 import java.util.Optional;
@@ -85,7 +87,7 @@ public class PetriGameAndMore {
         return Adam.getAPT(petriGame);
     }
 
-    public boolean calculateExistsWinningStrategy() throws SolvingException, CouldNotFindSuitableWinningConditionException, ParseException {
+    public boolean calculateExistsWinningStrategy() throws SolvingException, ParseException, CouldNotFindSuitableConditionException {
         if (existsWinningStrategy.isPresent()) {
             return existsWinningStrategy.get();
         } else {
@@ -95,7 +97,7 @@ public class PetriGameAndMore {
         }
     }
 
-    public JsonElement calculateStrategyBDD() throws ParseException, SolvingException, CouldNotFindSuitableWinningConditionException, NoStrategyExistentException {
+    public JsonElement calculateStrategyBDD() throws ParseException, SolvingException, NoStrategyExistentException, CouldNotFindSuitableConditionException {
         PetriGame strategyBDD;
         if (this.strategyBDD.isPresent()) {
             strategyBDD = this.strategyBDD.get();
@@ -107,7 +109,7 @@ public class PetriGameAndMore {
         return PetriNetD3.of(strategyBDD);
     }
 
-    public JsonElement calculateGraphStrategyBDD() throws ParseException, SolvingException, CouldNotFindSuitableWinningConditionException, NoStrategyExistentException {
+    public JsonElement calculateGraphStrategyBDD() throws ParseException, SolvingException, NoStrategyExistentException, CouldNotFindSuitableConditionException {
         // TODO It's still possible to crash the server by calling this method many times in succession.
         // TODO Introduce some kind of thread safety and make sure that the calculation only happens once.
         // TODO It might make sense to use Future to represent the ongoing computation.
@@ -119,7 +121,7 @@ public class PetriGameAndMore {
         return BDDGraphD3.of(this.graphStrategyBDD.get());
     }
 
-    public JsonElement calculateGraphGameBDD() throws ParseException, SolvingException, CouldNotFindSuitableWinningConditionException, NoStrategyExistentException {
+    public JsonElement calculateGraphGameBDD() throws ParseException, SolvingException, NoStrategyExistentException, CouldNotFindSuitableConditionException {
         if (!this.graphGameBDDExplorer.isPresent()) {
             BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(this.petriGame);
             BDDGraphExplorer graphExplorer = BDDGraphExplorer.of(graphGameBDD);

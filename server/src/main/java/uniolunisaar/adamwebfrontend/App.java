@@ -14,13 +14,14 @@ import uniol.apt.adt.pn.Transition;
 import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
+import uniolunisaar.adam.ds.logics.ltl.flowltl.IRunFormula;
+import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
+import uniolunisaar.adam.ds.modelchecking.CounterExample;
+import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
-import uniolunisaar.adam.ds.winningconditions.WinningCondition.Objective;
-import uniolunisaar.adam.logic.flowltl.IRunFormula;
-import uniolunisaar.adam.logic.flowltl.RunFormula;
-import uniolunisaar.adam.modelchecker.circuits.CounterExample;
 import uniolunisaar.adam.tools.Logger;
+import uniolunisaar.adam.util.PNWTTools;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -316,8 +317,8 @@ public class App {
 
             PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
-            Objective objective = Objective.valueOf(winningCondition);
-            PetriGameExtensionHandler.setWinningConditionAnnotation(petriGame, objective);
+            Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
+            PNWTTools.setConditionAnnotation(petriGame, objective);
 
             JsonElement petriGameClient = PetriNetD3.of(petriGame);
             return successResponse(petriGameClient);
