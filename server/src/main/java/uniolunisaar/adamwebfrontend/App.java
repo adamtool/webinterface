@@ -17,9 +17,11 @@ import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.IRunFormula;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.CounterExample;
+import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
+import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adam.util.PNWTTools;
 
@@ -284,7 +286,7 @@ public class App {
             PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
             PetriGame petriGame = petriGameAndMore.getPetriGame();
             Place place = petriGame.getPlace(nodeId);
-            boolean isInitialTokenFlow = petriGame.isInitialTokenflow(place);
+            boolean isInitialTokenFlow = petriGame.isInitialTransit(place);
             if (isInitialTokenFlow) {
                 petriGame.removeInitialTokenflow(place);
             } else {
@@ -385,9 +387,9 @@ public class App {
             // Create a token flow.  It is an initial token flow if if has no source Place.
             String[] postsetArray = postsetIds.toArray(new String[postsetIds.size()]);
             if (sourceId.isPresent()) {
-                petriGame.createTokenFlow(sourceId.get(), transitionId, postsetArray);
+                petriGame.createTransit(sourceId.get(), transitionId, postsetArray);
             } else {
-                petriGame.createInitialTokenFlow(transitionId, postsetArray);
+                petriGame.createInitialTransit(transitionId, postsetArray);
             }
 
             JsonElement petriGameClient = PetriNetD3.of(petriGame);
@@ -428,9 +430,10 @@ public class App {
             PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
             System.out.println("Checking flow LTL formula");
              // TODO check the flow ltl formula
-            CounterExample counterExample = AdamModelChecker.checkFlowLTLFormula(petriGame, runFormula, false, "/tmp/");
-            System.out.println("Counter example: ");
-            System.out.println(counterExample);
+            ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
+            ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
+            System.out.println("result:");
+            System.out.println(result);
 
             return successResponse(PetriNetD3.of(modelCheckingNet));
 

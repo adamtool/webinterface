@@ -6,9 +6,10 @@ import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
+import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
 import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
 import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.AdamExtensions;
 import uniolunisaar.adam.util.PNWTTools;
 
 import java.util.*;
@@ -86,17 +87,20 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        boolean hasWinningCondition = PetriGameExtensionHandler.hasWinningConditionAnnotation(net);
+        boolean hasCondition = net.hasExtension(AdamExtensions.condition.name());
+        boolean hasWinningCondition = net.hasExtension(AdamExtensions.winningCondition.name());
 
-        if (hasWinningCondition) {
-            String winningCondition = PetriGameExtensionHandler.getWinningConditionAnnotation(net);
-            Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
+        if (hasCondition || hasWinningCondition) {
+            String condition = hasCondition ?
+                    (String) net.getExtension(AdamExtensions.condition.name()) :
+                    (String) net.getExtension(AdamExtensions.winningCondition.name());
+            Condition.Objective objective = Condition.Objective.valueOf(condition);
 
             boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
                     objective.equals(Condition.Objective.A_REACHABILITY) ||
                     objective.equals(Condition.Objective.A_SAFETY);
             String ltlFormula = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) : "";
-            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, winningCondition, ltlFormula);
+            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, condition, ltlFormula);
             return new Gson().toJsonTree(petriNetD3);
         } else {
             PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, "", "");
@@ -136,9 +140,9 @@ public class PetriNetD3 {
             if (!arcLabel.equals("")) {
                 // Give a unique color to each of the token flows associated with a transition.
                 if (!arcLabel.contains(",")) { // Flows with multiple tokens are black.
-                    TokenFlow init = net.getInitialTokenFlows(flow.getTransition());
+                    Transit init = net.getInitialTransit(flow.getTransition());
                     int max =
-                            net.getTokenFlows(flow.getTransition()).size() + ((init == null) ? 0 :
+                            net.getTransits(flow.getTransition()).size() + ((init == null) ? 0 :
                                     init.getPostset().size() - 1);
                     int id = Tools.calcStringIDSmallPrecedenceReverse(arcLabel);
                     tokenFlowHue = ((id + 1) * 1.f) / (max * 1.f);
