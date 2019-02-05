@@ -187,6 +187,13 @@
             <version>4.0.2</version>
         </dependency>
         <dependency>
+            <groupId>javabdd</groupId>
+            <artifactId>javabdd</artifactId>
+            <version>1.0b2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/javabdd-1.0b2.jar</systemPath>
+        </dependency>
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
