@@ -138,7 +138,7 @@
         </v-tab-item>
       </v-tabs>
     </div>
-    <div>{{ notificationMessage }}</div>
+    <div :style="`color: ${this.notificationColor}`">{{ notificationMessage }}</div>
     <hsc-window-style-metal>
       <hsc-window resizable
                   closeButton
@@ -252,10 +252,10 @@
         this.messageLog.push(message)
       })
       logging.subscribeErrorNotification(message => {
-        this.showNotification(message, 'pink')
+        this.showNotification(message, '#cc0000')
       })
       logging.subscribeSuccessNotification(message => {
-        this.showNotification(message, 'green')
+        this.showNotification(message, '#009900')
       })
 
       this.parseAPTToPetriGame(this.apt)
@@ -271,6 +271,7 @@
         aptParseError: '',
         // This shows temporary notifications after events happen, e.g. if an error happens when trying to solve a net
         notificationMessage: '',
+        notificationColor: '',
         petriGame: {
           net: {
             links: [],
