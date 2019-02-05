@@ -3,7 +3,7 @@
   <!--baseUrl="http://localhost:4567"-->
   <App baseUrl="http://localhost:4567"
        :useModelChecking="false"
-       useOtherApproach/>
+       useDistributedSynthesis/>
 </template>
 
 <script>

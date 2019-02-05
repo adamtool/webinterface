@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import AppModelChecking from '../AppModelChecking'
-import AppOtherApproach from '../AppOtherApproach'
+import AppDistributedSynthesis from '../AppDistributedSynthesis'
 import HomePage from '../HomePage'
 
 Vue.use(Router)
@@ -19,9 +19,9 @@ export default new Router({
       component: HomePage
     },
     {
-      path: '/otherApproach',
-      name: 'ADAM Web (not for model checking)', // TODO rename
-      component: AppOtherApproach
+      path: '/distributedSynthesis',
+      name: 'ADAM Web for Distributed Synthesis',
+      component: AppDistributedSynthesis
     }
   ]
 })

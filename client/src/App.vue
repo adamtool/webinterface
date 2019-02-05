@@ -34,7 +34,7 @@
                                     :callback="onAptExampleSelected"/>
           </hsc-menu-item>
         </hsc-menu-bar-item>
-        <template v-if="useOtherApproach">
+        <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
           <hsc-menu-bar-item label="Analyze">
             <hsc-menu-item @click.native="existsWinningStrategy"
@@ -90,7 +90,7 @@
                        v-on:gotModelCheckingNet='gotModelCheckingNet'
                        showEditorTools
                        :useModelChecking="useModelChecking"
-                       :useOtherApproach="useOtherApproach"
+                       :useDistributedSynthesis="useDistributedSynthesis"
                        :modelCheckingRoutes="modelCheckingRoutes"
                        :shouldShowPhysicsControls="showPhysicsControls"
                        :shouldShowPartitions="showPartitions"
@@ -187,7 +187,7 @@
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
   import aptExampleLtl from './somewhatSmallExampleLtl.apt'
-  import aptExampleOtherApproach from './somewhatSmallExampleNotLtl.apt'
+  import aptExampleDistributedSynthesis from './somewhatSmallExampleNotLtl.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
@@ -205,8 +205,7 @@
         type: Boolean,
         required: true
       },
-      // TODO Ask Manuel what the other approach should be called that isn't model checking
-      useOtherApproach: {
+      useDistributedSynthesis: {
         type: Boolean,
         required: true
       }
@@ -241,7 +240,7 @@
     },
     mounted: function () {
       console.log(`Adam Web App.vue Configuration:
-      useOtherApproach: ${this.useOtherApproach}
+      useDistributedSynthesis: ${this.useDistributedSynthesis}
       useModelChecking: ${this.useModelChecking}
       baseurl: ${this.baseUrl}`)
 
@@ -264,7 +263,7 @@
     },
     data: function () {
       return {
-        apt: this.useModelChecking ? aptExampleLtl : aptExampleOtherApproach,
+        apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
         petriGame: {

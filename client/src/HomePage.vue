@@ -5,7 +5,7 @@
       <router-link to="/modelChecking">ADAM Web for Model Checking</router-link>
     </div>
     <div>
-      <router-link to="/otherApproach">ADAM Web for other approach</router-link>
+      <router-link to="/distributedSynthesis">ADAM Web for Distributed Synthesis</router-link>
     </div>
   </div>
 </template>
