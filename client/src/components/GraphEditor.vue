@@ -1804,7 +1804,11 @@
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
         this.winningCondition = graphJsonCopy.winningCondition
-        this.ltlFormula = graphJsonCopy.ltlFormula
+        // There is only a ltlFormula sent from server to client iff winningCondition != LTL.
+        // (Other winning conditions get translated to LTL formulas using  e.g. AdamModelChecker.toFlowLTLFormula.)
+        if (graphJsonCopy.ltlFormula !== '') {
+          this.ltlFormula = graphJsonCopy.ltlFormula
+        }
         const newLinks = graphJsonCopy.links
         const newNodes = graphJsonCopy.nodes
         const newNodePositions = graphJsonCopy.nodePositions
