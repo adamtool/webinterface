@@ -98,7 +98,8 @@
                        :linkStrengthDefault="0.086"/>
         </v-tab-item>
         <v-tab-item>
-          <AptEditor :aptFromAdamParser='apt' :aptParseStatus='aptParseStatus' @input='onAptEditorInput'/>
+          <AptEditor :aptFromAdamParser='apt' :aptParseStatus='aptParseStatus' :aptParseError='aptParseError'
+                     @input='onAptEditorInput'/>
         </v-tab-item>
       </v-tabs>
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide">
@@ -265,6 +266,7 @@
       return {
         apt: this.useModelChecking ? aptExampleLtl : aptExampleOtherApproach,
         aptParseStatus: 'success',
+        aptParseError: '',
         petriGame: {
           net: {
             links: [],
@@ -500,14 +502,17 @@
               logging.logObject(response)
               this.petriGame = response.data.graph
               this.aptParseStatus = 'success'
+              this.aptParseError = ''
               break
             case 'error':
+              this.aptParseError = response.data.message
               logging.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
               this.aptParseStatus = 'error'
               break
             default:
               logging.log('We got an unexpected response from the server when trying to parse the APT:')
               logging.log(response)
+              this.aptParseError = 'Unexpected response from server: ' + JSON.stringify(response, null, 2)
               this.aptParseStatus = 'error'
               break
           }

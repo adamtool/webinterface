@@ -4,6 +4,7 @@
       APT Editor
     </div>
     <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='aptInTextField' @input="emitAptChanged"/>
+    <div>{{ aptParseError }}</div>
   </div>
 </template>
 
@@ -28,6 +29,10 @@
           // The value must match one of these strings
           return ['success', 'error', 'running'].indexOf(value) !== -1
         }
+      },
+      aptParseError: {
+        type: String,
+        required: true
       }
     },
     methods: {
