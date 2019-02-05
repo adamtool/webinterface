@@ -138,6 +138,7 @@
         </v-tab-item>
       </v-tabs>
     </div>
+    <div>{{ notificationMessage }}</div>
     <hsc-window-style-metal>
       <hsc-window resizable
                   closeButton
@@ -266,6 +267,8 @@
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
+        // This shows temporary notifications after events happen, e.g. if an error happens when trying to solve a net
+        notificationMessage: '',
         petriGame: {
           net: {
             links: [],
@@ -827,6 +830,9 @@
         }
       },
       showNotification: function (message, color) {
+        const time = new Date()
+        const timeStamp = time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds()
+        this.notificationMessage = timeStamp + ' ' + message
         this.snackbarMessage = {
           display: true,
           color: color,
