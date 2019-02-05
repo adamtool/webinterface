@@ -199,6 +199,8 @@
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
+  const moment = require('moment')
+
   export default {
     name: 'app',
     props: {
@@ -830,14 +832,9 @@
         }
       },
       showNotification: function (message, color) {
-        const time = new Date()
-        const timeStamp = time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds()
+        const timeStamp = moment().format('LTS') // HH:MM:SS.  Also adds PM / AM if appropriate based on browser locale
         this.notificationMessage = timeStamp + ' ' + message
-        this.snackbarMessage = {
-          display: true,
-          color: color,
-          text: message
-        }
+        this.notificationColor = color
       }
     }
   }
