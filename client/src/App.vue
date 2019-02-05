@@ -16,7 +16,7 @@
     <!--<v-spacer/>-->
     <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
     <!--</v-toolbar>-->
-    <my-theme style="z-index: 999;">
+    <my-theme style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
           <!--Have to use click.native so that the popup blocker isn't triggered-->
@@ -59,6 +59,14 @@
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
+      <hsc-menu-context-menu>
+        <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">ADAM Web</div>
+        <template slot="contextmenu">
+          <hsc-menu-item
+            :label="useModelChecking ? 'Switch to Distributed Synthesis' : 'Switch to Model Checking'"
+            @click="useModelChecking = !useModelChecking; useDistributedSynthesis = !useDistributedSynthesis"/>
+        </template>
+      </hsc-menu-context-menu>
     </my-theme>
 
     <div style="display: flex; flex-direction: row; height: 100vh; width: 100%;"
