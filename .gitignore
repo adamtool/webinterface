@@ -19,3 +19,6 @@ selenium-debug.log
 client/node/
 client/src/assets/apt-examples.json
 server/target/
+
+# Source files of ADAM (normally kept in a tar.gz until needed)
+adam_src/
