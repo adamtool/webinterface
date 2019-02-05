@@ -295,6 +295,11 @@
     watch: {
       apt: function (apt) {
         this.parseAPTToPetriGame(this.apt)
+      },
+      aptParseStatus: function (status) {
+        if (status === 'error') {
+          this.switchToAptEditor()
+        }
       }
     },
     computed: {
@@ -464,6 +469,9 @@
       },
       saveSvgToFileGraphGameBDD: function () {
         this.$refs.graphEditorGraphGameBDD.saveGraph()
+      },
+      switchToAptEditor: function () {
+        this.selectedTabLeftSide = 1
       },
       switchToStrategyBDDTab: function () {
         console.log('TODO implement switchToStrategyBDDTab')
