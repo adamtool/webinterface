@@ -98,12 +98,7 @@
                        :linkStrengthDefault="0.086"/>
         </v-tab-item>
         <v-tab-item>
-          <div :style="aptEditorStyle">
-            <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
-              APT Editor
-            </div>
-            <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='apt'/>
-          </div>
+          <AptEditor :aptFromAdamParser='apt' :aptParseStatus='aptParseStatus' @input='onAptEditorInput'/>
         </v-tab-item>
       </v-tabs>
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide">
@@ -200,6 +195,7 @@
   import Split from 'split.js'
 
   import logging from './logging'
+  import AptEditor from './components/AptEditor'
 
   export default {
     name: 'app',
@@ -218,7 +214,8 @@
       HscMenuBarDirectory, // TODO decide on import style
       'GraphEditor': GraphEditor,
       'my-theme': MyVueMenuTheme,
-      'LogViewer': LogViewer
+      'LogViewer': LogViewer,
+      AptEditor
     },
     created: function () {
       // Connect to the server and subscribe to ADAM's log output
@@ -335,25 +332,6 @@
       },
       splitRightSideStyle: function () {
         return this.shouldShowRightSide ? '' : 'display: none;'
-      },
-      aptEditorStyle: function () {
-        let color
-        switch (this.aptParseStatus) {
-          case 'success':
-            color = '#5959ed'
-            break
-          case 'error':
-            color = 'red'
-            break
-          case 'running':
-            color = 'lightgray'
-            break
-          default:
-            logging.sendErrorNotification('Got an invalid value for aptParseStatus: ' + this.aptParseStatus)
-        }
-        const borderStyle = `border: 3px solid ${color};`
-        const layoutStyle = 'display: flex; flex-direction: column; height: 100%;'
-        return layoutStyle + borderStyle
       },
       // Depending on whether we are in development mode or in production, the URLs used for server
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
@@ -633,6 +611,9 @@
         }).catch(() => {
           logging.logError('Network error')
         })
+      },
+      onAptEditorInput: function (apt) {
+        this.apt = apt
       },
       onSwitchToAptEditor: function () {
         const isAptEditorAlreadySelected = this.selectedTabLeftSide === 1
