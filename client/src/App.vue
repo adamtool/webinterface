@@ -41,6 +41,7 @@
           <hsc-menu-item label="Load calculated Graph Game BDD"
                          v-if="useDistributedSynthesis">
             <hsc-menu-item v-for="canonicalApt in availableBDDGraphs"
+                           :key="canonicalApt"
                            :label="canonicalApt.split('\n')[0]"
                            @click="apt = canonicalApt; loadGraphGameBdd(canonicalApt)"/>
           </hsc-menu-item>
@@ -302,6 +303,9 @@
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
+        // This is a key in a map used on the server to store the Graph Game BDDs.  It is the "canonical" APT
+        // representation of the Petri Game that the GraphBDD belongs to.
+        graphGameCanonicalApt: '',
         modelCheckingNet: null,
         isLeftPaneVisible: true,
         isLogVisible: false,
@@ -618,9 +622,10 @@
         // TODO Use relative URL for non-development
         // TODO (Refactor this.restEndpoints to be less annoying to work with / more DRY)
         axios.post('http://localhost:4567/getBDDGraph', {
-          petriGameApt: canonicalApt
+          canonicalApt: canonicalApt
         }).then(response => {
           this.graphGameBDD = response.data.bddGraph
+          this.graphGameCanonicalApt = canonicalApt
           this.switchToGraphGameBDDTab()
         })
       },
@@ -641,28 +646,24 @@
         })
       },
       toggleGraphGameStatePostset: function (stateId) {
-        const uuid = this.graphGameBDD.uuid
         axios.post(this.restEndpoints.toggleGraphGameBDDNodePostset, {
-          petriGameId: uuid,
+          canonicalApt: this.graphGameCanonicalApt,
           stateId: stateId
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.graphGameBDD = response.data.graphGameBDD
-            this.graphGameBDD.uuid = uuid
           })
         }).catch(() => {
           logging.logError('Network error')
         })
       },
       toggleGraphGameStatePreset: function (stateId) {
-        const uuid = this.graphGameBDD.uuid
         axios.post(this.restEndpoints.toggleGraphGameBDDNodePreset, {
-          petriGameId: uuid,
+          canonicalApt: this.graphGameCanonicalApt,
           stateId: stateId
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.graphGameBDD = response.data.graphGameBDD
-            this.graphGameBDD.uuid = uuid
           })
         }).catch(() => {
           logging.logError('Network error')

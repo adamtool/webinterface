@@ -187,13 +187,13 @@ public class App {
         post("/getBDDGraph", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
-            String petriGameApt = body.getAsJsonObject().get("petriGameApt").getAsString();
+            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
 
-            if (!this.bddGraphsOfApts.containsKey(petriGameApt)) {
+            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
                 return errorResponse("No BDDGraph has been calculated yet for the Petri " +
-                        "Game with the given APT representation: \n" + petriGameApt);
+                        "Game with the given APT representation: \n" + canonicalApt);
             }
-            BDDGraphExplorer bddGraphExplorer = this.bddGraphsOfApts.get(petriGameApt);
+            BDDGraphExplorer bddGraphExplorer = this.bddGraphsOfApts.get(canonicalApt);
 
             JsonElement bddGraph = bddGraphExplorer.getVisibleGraph();
             JsonObject responseJson = new JsonObject();
@@ -205,33 +205,36 @@ public class App {
         post("/toggleGraphGameBDDNodePostset", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
             int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-            // TODO Instead of using Map.get() directly, write a helper method that will throw
-            // TODO an informative exception in case the petri game ID is not found in the map.
-            // TODO e.g. PetriGameNotFound
-            PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
-            JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNodePostset(stateId);
+            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+                return errorResponse("There is no Graph Game BDD yet for that APT input");
+            }
+            BDDGraphExplorer bddGraphExplorer = this.bddGraphsOfApts.get(canonicalApt);
+            bddGraphExplorer.toggleStatePostset(stateId);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.add("graphGameBDD", graphGameBdd);
+            responseJson.add("graphGameBDD", bddGraphExplorer.getVisibleGraph());
             return responseJson.toString();
         });
 
         post("/toggleGraphGameBDDNodePreset", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
             int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-            PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
-            JsonElement graphGameBdd = petriGameAndMore.toggleGraphGameBDDNodePreset(stateId);
+            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+                return errorResponse("There is no Graph Game BDD yet for that APT input");
+            }
+            BDDGraphExplorer bddGraphExplorer = this.bddGraphsOfApts.get(canonicalApt);
+            bddGraphExplorer.toggleStatePreset(stateId);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.add("graphGameBDD", graphGameBdd);
+            responseJson.add("graphGameBDD", bddGraphExplorer.getVisibleGraph());
             return responseJson.toString();
         });
 
