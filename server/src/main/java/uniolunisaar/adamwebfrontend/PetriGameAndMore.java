@@ -162,8 +162,10 @@ public class PetriGameAndMore {
         }
     }
 
-    // TODO Reconsider the way this is done.  It seems like a bad smell to have this method here.
     public PetriGame getPetriGame() {
         return petriGame;
+    }
+    public Optional<BDDGraphExplorer> getBddGraphExplorer() {
+        return this.graphGameBDDExplorer;
     }
 }

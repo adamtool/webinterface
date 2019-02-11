@@ -32,6 +32,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class App {
     // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
     private final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
+
+    // When we calculate a graph game BDD from a petri game, we convert the petri game to APT, then
+    // put the (APT, BDDGraphExplorer) pair in here
+    // TODO Consider whether to use this APT as a key, or if there is a better key to use
+    // TODO Remove the BDDGraphExplorer from PetriGameAndMore.  Just store the BDDGraphs here.
+    private final Map<String, BDDGraphExplorer> bddGraphsOfApts = new ConcurrentHashMap<>();
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
 
@@ -133,13 +139,66 @@ public class App {
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
             PetriGameAndMore petriGame = getPetriGame(petriGameId);
-            System.out.println("Getting graph game BDD for PetriGame id#" + petriGameId);
+
+            // Just in case the petri game gets modified after the computation starts, we will
+            // save its apt right here already
+            String petriGameApt = Adam.getAPT(petriGame.getPetriGame());
+            // TODO Track the state of this computation somewhere
+            // TODO What happens if you modify the petri game while this calculation is ongoing?
+            // TODO Do I need to do something to stop that from happening?  -Ann
+
+            System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
             JsonElement graphGame = petriGame.calculateGraphGameBDD();
+
+            // At this point the BDD graph has been calculated and saved in the PetriGameAndMore
+            // object.  We will also save it in this map so
+            // we can get at it later.  This is especially useful if you lost your network
+            // connection and want to check the result of your computation at a later point.
+            // TODO Consider not putting PetriGame and everything together inside of
+            //   PetriGameAndMore
+            assert (petriGame.getBddGraphExplorer().isPresent());
+            BDDGraphExplorer bddGraphExplorer = petriGame.getBddGraphExplorer().get();
+            this.bddGraphsOfApts.put(petriGameApt, bddGraphExplorer);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.add("graphGameBDD", graphGame);
             responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            return responseJson.toString();
+        });
+
+        post("/getListOfAvailableBDDGraphs", (req, res) -> {
+            // Return a list containing the canonical APT representation of each PetriGame for
+            // which a BDDGraph has been calculated.
+            // These APT strings can be used as keys to access the BDDGraphs using getBDDGraph.
+            JsonArray result = new JsonArray();
+            for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
+                result.add(aptOfPetriGame);
+            }
+
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("apts", result);
+            return responseJson.toString();
+        });
+
+        // Given the canonical APT representation of a Petri Game, return the current view
+        // of the BDDGraph that has been calculated for it, if one is present.
+        post("/getBDDGraph", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String petriGameApt = body.getAsJsonObject().get("petriGameApt").getAsString();
+
+            if (!this.bddGraphsOfApts.containsKey(petriGameApt)) {
+                return errorResponse("No BDDGraph has been calculated yet for the Petri " +
+                        "Game with the given APT representation: \n" + petriGameApt);
+            }
+            BDDGraphExplorer bddGraphExplorer = this.bddGraphsOfApts.get(petriGameApt);
+
+            JsonElement bddGraph = bddGraphExplorer.getVisibleGraph();
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("bddGraph", bddGraph);
             return responseJson.toString();
         });
 
@@ -429,7 +488,7 @@ public class App {
 
             PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
             System.out.println("Checking flow LTL formula");
-             // TODO check the flow ltl formula
+            // TODO check the flow ltl formula
             ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
             ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
             System.out.println("result:");

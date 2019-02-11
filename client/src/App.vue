@@ -33,6 +33,17 @@
             <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
                                     :callback="onAptExampleSelected"/>
           </hsc-menu-item>
+
+          <!--TODO Automatically load the list of calculated BDDGraphs instead of having to click this button-->
+          <hsc-menu-item label="Get Calculated BDDGraphs"
+                         @click="getCalculatedBDDGraphs"
+                         v-if="useDistributedSynthesis"/>
+          <hsc-menu-item label="Load calculated Graph Game BDD"
+                         v-if="useDistributedSynthesis">
+            <hsc-menu-item v-for="canonicalApt in availableBDDGraphs"
+                           :label="canonicalApt.split('\n')[0]"
+                           @click="apt = canonicalApt; loadGraphGameBdd(canonicalApt)"/>
+          </hsc-menu-item>
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
@@ -170,9 +181,9 @@
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
-  import { Tabs, Tab } from 'vue-tabs-component'
+  import {Tabs, Tab} from 'vue-tabs-component'
   import './tabs-component.css'
-  import { debounce } from 'underscore'
+  import {debounce} from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   import Vuetify from 'vuetify'
@@ -200,7 +211,7 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
-  import { saveFileAs } from './fileutilities'
+  import {saveFileAs} from './fileutilities'
 
   import Split from 'split.js'
 
@@ -274,6 +285,7 @@
     },
     data: function () {
       return {
+        availableBDDGraphs: [], // Canonical APT strings of petri games for which a "Graph Game BDD" has been calculated
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
@@ -362,6 +374,7 @@
           getStrategyBDD: this.baseUrl + '/getStrategyBDD',
           getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
           getGraphGameBDD: this.baseUrl + '/getGraphGameBDD',
+          getCalculatedBDDGraphs: this.baseUrl + '/getListOfAvailableBDDGraphs',
           toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
@@ -592,6 +605,23 @@
           })
         }).catch(() => {
           logging.logError('Network error in getGraphStrategyBDD')
+        })
+      },
+      getCalculatedBDDGraphs: function () {
+        axios.post(this.restEndpoints.getCalculatedBDDGraphs)
+          .then(response => {
+            this.availableBDDGraphs = response.data.apts
+          })
+      },
+      // Load the Graph Game BDD corresponding to the given canonical APT string
+      loadGraphGameBdd: function (canonicalApt) {
+        // TODO Use relative URL for non-development
+        // TODO (Refactor this.restEndpoints to be less annoying to work with / more DRY)
+        axios.post('http://localhost:4567/getBDDGraph', {
+          petriGameApt: canonicalApt
+        }).then(response => {
+          this.graphGameBDD = response.data.bddGraph
+          this.switchToGraphGameBDDTab()
         })
       },
       getGraphGameBDD: function () {
