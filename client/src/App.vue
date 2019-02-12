@@ -636,7 +636,7 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.graphGameBDD = response.data.graphGameBDD
-            this.graphGameBDD.uuid = uuid
+            this.graphGameCanonicalApt = response.data.canonicalApt
             // We expect an updated petriGame here because there might have been partition annotations added.
             this.petriGame.net = response.data.petriGame
             this.switchToGraphGameBDDTab()

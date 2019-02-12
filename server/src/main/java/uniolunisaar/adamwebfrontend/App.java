@@ -14,6 +14,7 @@ import uniol.apt.adt.pn.Transition;
 import uniol.apt.io.parser.ParseException;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
+import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.IRunFormula;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.CounterExample;
@@ -22,6 +23,7 @@ import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
+import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adam.util.PNWTTools;
 
@@ -138,32 +140,35 @@ public class App {
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
+            // TODO Consider not putting PetriGame and everything together inside of
+            //   PetriGameAndMore
             PetriGameAndMore petriGame = getPetriGame(petriGameId);
 
             // Just in case the petri game gets modified after the computation starts, we will
             // save its apt right here already
-            String petriGameApt = Adam.getAPT(petriGame.getPetriGame());
-            // TODO Track the state of this computation somewhere
-            // TODO What happens if you modify the petri game while this calculation is ongoing?
-            // TODO Do I need to do something to stop that from happening?  -Ann
+            String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+            BDDGraphExplorer bddGraphExplorer;
+            if (this.bddGraphsOfApts.containsKey(canonicalApt)) {
+                // We don't have to compute it, we already have the GraphBDD!  :)
+                bddGraphExplorer = this.bddGraphsOfApts.get(canonicalApt);
+            } else {
+                // Calculate the Graph Game BDD
+                // TODO Track the state of this computation somewhere
+                // TODO What happens if you modify the petri game while this calculation is ongoing?
+                // TODO Do I need to do something to stop that from happening?  -Ann
+                System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
+                BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame.getPetriGame());
+                bddGraphExplorer = BDDGraphExplorer.of(graphGameBDD);
+            }
+            JsonElement graphGame = bddGraphExplorer.getVisibleGraph();
 
-            System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
-            JsonElement graphGame = petriGame.calculateGraphGameBDD();
-
-            // At this point the BDD graph has been calculated and saved in the PetriGameAndMore
-            // object.  We will also save it in this map so
-            // we can get at it later.  This is especially useful if you lost your network
-            // connection and want to check the result of your computation at a later point.
-            // TODO Consider not putting PetriGame and everything together inside of
-            //   PetriGameAndMore
-            assert (petriGame.getBddGraphExplorer().isPresent());
-            BDDGraphExplorer bddGraphExplorer = petriGame.getBddGraphExplorer().get();
-            this.bddGraphsOfApts.put(petriGameApt, bddGraphExplorer);
+            this.bddGraphsOfApts.put(canonicalApt, bddGraphExplorer);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.add("graphGameBDD", graphGame);
             responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            responseJson.addProperty("canonicalApt", canonicalApt);
             return responseJson.toString();
         });
 

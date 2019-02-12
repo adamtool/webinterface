@@ -19,17 +19,18 @@ import java.util.Set;
 
 /**
  * Represents a Petri Game, plus all of the artifacts related to it that we might want to produce.
- * E.g. Strategy BDD, Graph Strategy BDD, Graph Game BDD.
+ * E.g. Strategy BDD, Graph Strategy BDD
  * If the PetriGame gets modified, then these calculated artifacts should be deleted.
  * This lets us guarantee that the strategy BDD, etc. will always correspond to the current state
  * of the Petri Game that is encapsulated in an instance of this class.
+ * TODO This ended up not being a very suitable abstraction.  I'm gradually getting rid of this
+ *   class. -Ann
  */
 public class PetriGameAndMore {
     private final PetriGame petriGame;
     private Optional<Boolean> existsWinningStrategy = Optional.empty();
     private Optional<PetriGame> strategyBDD = Optional.empty();
     private Optional<BDDGraph> graphStrategyBDD = Optional.empty();
-    private Optional<BDDGraphExplorer> graphGameBDDExplorer = Optional.empty();
 
     private PetriGameAndMore(PetriGame petriGame) {
         this.petriGame = petriGame;
@@ -121,51 +122,11 @@ public class PetriGameAndMore {
         return BDDGraphD3.of(this.graphStrategyBDD.get());
     }
 
-    public JsonElement calculateGraphGameBDD() throws ParseException, SolvingException, NoStrategyExistentException, CouldNotFindSuitableConditionException {
-        if (!this.graphGameBDDExplorer.isPresent()) {
-            BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(this.petriGame);
-            BDDGraphExplorer graphExplorer = BDDGraphExplorer.of(graphGameBDD);
-            this.graphGameBDDExplorer = Optional.of(graphExplorer);
-        }
-        return this.graphGameBDDExplorer.get().getVisibleGraph();
-    }
-
     public JsonElement getPetriGameClient() {
         return PetriNetD3.of(this.petriGame);
     }
 
-    public JsonElement toggleGraphGameBDDNodePostset(int nodeId) throws GraphGameBDDNotYetCalculated {
-        if (this.graphGameBDDExplorer.isPresent()) {
-            BDDGraphExplorer bddGraphExplorer = this.graphGameBDDExplorer.get();
-            bddGraphExplorer.toggleStatePostset(nodeId);
-            return bddGraphExplorer.getVisibleGraph();
-        } else {
-            throw new GraphGameBDDNotYetCalculated("The graph game BDD for this Petri Game has not " +
-                    "yet been calculated.");
-        }
-    }
-
-    public JsonElement toggleGraphGameBDDNodePreset(int nodeId) throws GraphGameBDDNotYetCalculated {
-        if (this.graphGameBDDExplorer.isPresent()) {
-            BDDGraphExplorer bddGraphExplorer = this.graphGameBDDExplorer.get();
-            bddGraphExplorer.toggleStatePreset(nodeId);
-            return bddGraphExplorer.getVisibleGraph();
-        } else {
-            throw new GraphGameBDDNotYetCalculated("The graph game BDD for this Petri Game has not " +
-                    "yet been calculated.");
-        }
-    }
-
-    private class GraphGameBDDNotYetCalculated extends Exception {
-        public GraphGameBDDNotYetCalculated(String s) {
-            super(s);
-        }
-    }
-
     public PetriGame getPetriGame() {
         return petriGame;
-    }
-    public Optional<BDDGraphExplorer> getBddGraphExplorer() {
-        return this.graphGameBDDExplorer;
     }
 }
