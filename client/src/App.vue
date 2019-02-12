@@ -279,6 +279,7 @@
       })
 
       this.parseAPTToPetriGame(this.apt)
+      this.getCalculatedBDDGraphs()
       logging.log('Hello!')
 
       // Initialize draggable, resizable pane
