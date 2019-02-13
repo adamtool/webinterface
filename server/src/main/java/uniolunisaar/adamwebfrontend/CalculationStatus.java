@@ -1,5 +1,5 @@
 package uniolunisaar.adamwebfrontend;
 
 public enum CalculationStatus {
-    NOT_STARTED, RUNNING, COMPLETED, CANCELED
+    NOT_STARTED, QUEUED, RUNNING, COMPLETED, CANCELED
 }

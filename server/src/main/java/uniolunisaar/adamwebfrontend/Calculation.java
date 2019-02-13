@@ -13,17 +13,21 @@ import static uniolunisaar.adamwebfrontend.CalculationStatus.*;
  */
 public class Calculation<T> {
     private final Callable<T> callable;
-    private Future<T> future;
+    private Future<T> future = null;
+    private boolean isStarted = false;
 
     public Calculation(Callable<T> v) {
         this.callable = v;
     }
 
-    public void start(ExecutorService executorService) {
+    public void queue(ExecutorService executorService) {
         if (this.future != null) {
             return;
         }
-        this.future = executorService.submit(callable);
+        this.future = executorService.submit(() -> {
+            isStarted = true;
+            return callable.call();
+        });
     }
 
     public void cancel() {
@@ -48,7 +52,10 @@ public class Calculation<T> {
         if (future.isDone()) {
             return COMPLETED;
         }
-        return RUNNING; // TODO Differentiate between "queued" and "running".
+        if (isStarted) {
+            return RUNNING;
+        }
+        return QUEUED;
     }
 
 }
