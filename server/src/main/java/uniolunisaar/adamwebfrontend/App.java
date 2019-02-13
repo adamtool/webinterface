@@ -37,8 +37,6 @@ public class App {
 
     // When we calculate a graph game BDD from a petri game, we convert the petri game to APT, then
     // put the (APT, BDDGraphExplorer) pair in here
-    // TODO Consider whether to use this APT as a key, or if there is a better key to use
-    // TODO Remove the BDDGraphExplorer from PetriGameAndMore.  Just store the BDDGraphs here.
     private final Map<String, BDDGraphExplorer> bddGraphsOfApts = new ConcurrentHashMap<>();
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
