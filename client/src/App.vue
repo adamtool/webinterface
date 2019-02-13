@@ -40,10 +40,10 @@
                          v-if="useDistributedSynthesis"/>
           <hsc-menu-item label="Load calculated Graph Game BDD"
                          v-if="useDistributedSynthesis">
-            <hsc-menu-item v-for="canonicalApt in availableBDDGraphs"
-                           :key="canonicalApt"
-                           :label="canonicalApt.split('\n')[0]"
-                           @click="apt = canonicalApt; loadGraphGameBdd(canonicalApt)"/>
+            <hsc-menu-item v-for="listing in availableBDDGraphListings"
+                           :key="listing.canonicalApt"
+                           :label="`${listing.calculationStatus} | ${listing.canonicalApt.split('\n')[0]}`"
+                           @click="loadGraphGameBdd(listing.canonicalApt)"/>
           </hsc-menu-item>
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
@@ -53,7 +53,7 @@
                            label="Exists Winning Strategy?"/>
             <hsc-menu-item @click.native="getGraphStrategyBDD"
                            label="Get Graph Strategy BDD"/>
-            <hsc-menu-item @click.native="getGraphGameBDD" label="Get Graph Game BDD"/>
+            <hsc-menu-item @click.native="calculateGraphGameBDD" label="Calculate Graph Game BDD"/>
           </hsc-menu-bar-item>
         </template>
         <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
@@ -287,7 +287,7 @@
     },
     data: function () {
       return {
-        availableBDDGraphs: [], // Canonical APT strings of petri games for which a "Graph Game BDD" has been calculated
+        availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
@@ -378,7 +378,7 @@
           existsWinningStrategy: this.baseUrl + '/existsWinningStrategy',
           getStrategyBDD: this.baseUrl + '/getStrategyBDD',
           getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
-          getGraphGameBDD: this.baseUrl + '/getGraphGameBDD',
+          calculateGraphGameBDD: this.baseUrl + '/calculateGraphGameBDD',
           getCalculatedBDDGraphs: this.baseUrl + '/getListOfAvailableBDDGraphs',
           toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
@@ -615,7 +615,7 @@
       getCalculatedBDDGraphs: function () {
         axios.post(this.restEndpoints.getCalculatedBDDGraphs)
           .then(response => {
-            this.availableBDDGraphs = response.data.apts
+            this.availableBDDGraphListings = response.data.listings
           })
       },
       // Load the Graph Game BDD corresponding to the given canonical APT string
@@ -625,25 +625,35 @@
         axios.post('http://localhost:4567/getBDDGraph', {
           canonicalApt: canonicalApt
         }).then(response => {
-          this.graphGameBDD = response.data.bddGraph
-          this.graphGameCanonicalApt = canonicalApt
-          this.switchToGraphGameBDDTab()
+          switch (response.data.status) {
+            case 'error':
+              logging.sendErrorNotification(response.data.message)
+              break
+            case 'success':
+              this.apt = canonicalApt
+              this.graphGameBDD = response.data.bddGraph
+              this.graphGameCanonicalApt = canonicalApt
+              this.switchToGraphGameBDDTab()
+          }
         })
       },
-      getGraphGameBDD: function () {
+      calculateGraphGameBDD: function () {
         const uuid = this.petriGame.uuid
-        axios.post(this.restEndpoints.getGraphGameBDD, {
+        axios.post(this.restEndpoints.calculateGraphGameBDD, {
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.graphGameBDD = response.data.graphGameBDD
-            this.graphGameCanonicalApt = response.data.canonicalApt
+            // TODO Handle this appropriately -Ann
+            logging.sendSuccessNotification(response.data.message)
+
+            // this.graphGameBDD = response.data.graphGameBDD
+            // this.graphGameCanonicalApt = response.data.canonicalApt
             // We expect an updated petriGame here because there might have been partition annotations added.
-            this.petriGame.net = response.data.petriGame
-            this.switchToGraphGameBDDTab()
+            // this.petriGame.net = response.data.petriGame
+            // this.switchToGraphGameBDDTab()
           })
         }).catch(() => {
-          logging.logError('Network error in getGraphGameBDD')
+          logging.logError('Network error in calculateGraphGameBDD')
         })
       },
       toggleGraphGameStatePostset: function (stateId) {

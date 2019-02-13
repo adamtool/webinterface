@@ -30,6 +30,8 @@ import uniolunisaar.adam.util.PNWTTools;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class App {
     // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
@@ -37,9 +39,10 @@ public class App {
 
     // When we calculate a graph game BDD from a petri game, we convert the petri game to APT, then
     // put the (APT, BDDGraphExplorer) pair in here
-    private final Map<String, BDDGraphExplorer> bddGraphsOfApts = new ConcurrentHashMap<>();
+    private final Map<String, Calculation<BDDGraphExplorer>> bddGraphsOfApts = new ConcurrentHashMap<>();
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public static void main(String[] args) {
         new App().startServer();
@@ -133,7 +136,7 @@ public class App {
             return responseJson.toString();
         });
 
-        post("/getGraphGameBDD", (req, res) -> {
+        post("/calculateGraphGameBDD", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -145,43 +148,48 @@ public class App {
             // Just in case the petri game gets modified after the computation starts, we will
             // save its apt right here already
             String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
-            BDDGraphExplorer bddGraphExplorer;
             if (this.bddGraphsOfApts.containsKey(canonicalApt)) {
-                // We don't have to compute it, we already have the GraphBDD!  :)
-                bddGraphExplorer = this.bddGraphsOfApts.get(canonicalApt);
-            } else {
-                // Calculate the Graph Game BDD
-                // TODO Track the state of this computation somewhere
-                // TODO What happens if you modify the petri game while this calculation is ongoing?
-                // TODO Do I need to do something to stop that from happening?  -Ann
-                System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
-                BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame.getPetriGame());
-                bddGraphExplorer = BDDGraphExplorer.of(graphGameBDD);
+                return errorResponse("There is already a Calculation queued up to find the " +
+                        "Graph Game BDD of the Petri Game with the given APT.  Its status: " +
+                        this.bddGraphsOfApts.get(canonicalApt).getStatus());
             }
-            JsonElement graphGame = bddGraphExplorer.getVisibleGraph();
 
-            this.bddGraphsOfApts.put(canonicalApt, bddGraphExplorer);
+            // Calculate the Graph Game BDD
+            // TODO What happens if you modify the petri game while this calculation is ongoing?
+            // TODO Do I need to do something to stop that from happening?  -Ann
+            System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
+            Calculation<BDDGraphExplorer> calculation = new Calculation<>(() -> {
+                BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame.getPetriGame());
+                return BDDGraphExplorer.of(graphGameBDD);
+            });
+            this.bddGraphsOfApts.put(canonicalApt, calculation);
+            calculation.queue(executorService);
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.add("graphGameBDD", graphGame);
-            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            responseJson.addProperty("message", "The calculation of the graph game " +
+                    "BDD has been enqueued.");
             responseJson.addProperty("canonicalApt", canonicalApt);
             return responseJson.toString();
         });
 
         post("/getListOfAvailableBDDGraphs", (req, res) -> {
-            // Return a list containing the canonical APT representation of each PetriGame for
-            // which a BDDGraph has been calculated.
-            // These APT strings can be used as keys to access the BDDGraphs using getBDDGraph.
+            // Return a list containing an entry for each pending/completed Graph Game BDD
+            // calculation.
             JsonArray result = new JsonArray();
             for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
-                result.add(aptOfPetriGame);
+                Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(aptOfPetriGame);
+                JsonObject entry = new JsonObject();
+                // This canonicalApt String can be used as a key to access the BDDGraph via
+                // /getBDDGraph if the calculation is finished.
+                entry.addProperty("canonicalApt", aptOfPetriGame);
+                entry.addProperty("calculationStatus", calculation.getStatus().toString());
+                result.add(entry);
             }
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.add("apts", result);
+            responseJson.add("listings", result);
             return responseJson.toString();
         });
 
@@ -196,7 +204,12 @@ public class App {
                 return errorResponse("No BDDGraph has been calculated yet for the Petri " +
                         "Game with the given APT representation: \n" + canonicalApt);
             }
-            BDDGraphExplorer bddGraphExplorer = this.bddGraphsOfApts.get(canonicalApt);
+            Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(canonicalApt);
+            if (!calculation.isFinished()) {
+                return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
+                        ".  Its status: " + calculation.getStatus());
+            }
+            BDDGraphExplorer bddGraphExplorer = calculation.getResult();
 
             JsonElement bddGraph = bddGraphExplorer.getVisibleGraph();
             JsonObject responseJson = new JsonObject();
@@ -214,7 +227,13 @@ public class App {
             if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
                 return errorResponse("There is no Graph Game BDD yet for that APT input");
             }
-            BDDGraphExplorer bddGraphExplorer = this.bddGraphsOfApts.get(canonicalApt);
+
+            Calculation<BDDGraphExplorer> calculation = bddGraphsOfApts.get(canonicalApt);
+            if (!calculation.isFinished()) {
+                return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
+                        ".  Its status: " + calculation.getStatus());
+            }
+            BDDGraphExplorer bddGraphExplorer = calculation.getResult();
             bddGraphExplorer.toggleStatePostset(stateId);
 
             JsonObject responseJson = new JsonObject();
@@ -232,7 +251,12 @@ public class App {
             if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
                 return errorResponse("There is no Graph Game BDD yet for that APT input");
             }
-            BDDGraphExplorer bddGraphExplorer = this.bddGraphsOfApts.get(canonicalApt);
+            Calculation<BDDGraphExplorer> calculation = bddGraphsOfApts.get(canonicalApt);
+            if (!calculation.isFinished()) {
+                return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
+                        ".  Its status: " + calculation.getStatus());
+            }
+            BDDGraphExplorer bddGraphExplorer = calculation.getResult();
             bddGraphExplorer.toggleStatePreset(stateId);
 
             JsonObject responseJson = new JsonObject();
