@@ -50,8 +50,10 @@ public class CalculationTest {
     public void testInterruption() throws InterruptedException, ExecutionException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+        AtomicBoolean didCalculationStart = new AtomicBoolean(false);
         AtomicBoolean didCalculationfinish = new AtomicBoolean(false);
         Calculation<String> stringCalculation = new Calculation<>(() -> {
+            didCalculationStart.set(true);
             Thread.sleep(1000);
 
             didCalculationfinish.set(true);
@@ -71,6 +73,8 @@ public class CalculationTest {
             }
         }
 
+        assertTrue("The calculation thread should have been started, and this flag should have " +
+                "been set", didCalculationStart.get());
         assertFalse("The calculation thread should have been interrupted, so this flag should not" +
                 " have been set to true", didCalculationfinish.get());
         assertEquals("The calculation's status should be 'canceled'",
