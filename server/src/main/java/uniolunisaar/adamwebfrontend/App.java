@@ -12,6 +12,7 @@ import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.adt.pn.Place;
 import uniol.apt.adt.pn.Transition;
 import uniol.apt.io.parser.ParseException;
+import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.IRunFormula;
@@ -23,6 +24,7 @@ import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Logger;
+import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
 
 import java.lang.reflect.Type;
@@ -60,8 +62,18 @@ public class App {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
             String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
-
-            PetriGame petriGame = Adam.getPetriGame(apt);
+            PetriGame petriGame;
+            try {
+                petriGame = Adam.getPetriGame(apt);
+            } catch (ParseException e) {
+                Pair<Integer, Integer> errorLocation = Tools.getErrorLocation(e);
+                JsonObject errorResponse = errorResponseObject(
+                        "ParseException at line " + errorLocation.getFirst() +
+                                ", column " + errorLocation.getSecond());
+                errorResponse.addProperty("lineNumber", errorLocation.getFirst());
+                errorResponse.addProperty("columnNumber", errorLocation.getSecond());
+                return errorResponse;
+            }
 
             String petriGameUUID = UUID.randomUUID().toString();
             PetriGameAndMore petriGameAndMore = PetriGameAndMore.of(petriGame);
@@ -430,7 +442,7 @@ public class App {
 
             PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
             System.out.println("Checking flow LTL formula");
-             // TODO check the flow ltl formula
+            // TODO check the flow ltl formula
             ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
             ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
             System.out.println("result:");
@@ -487,11 +499,14 @@ public class App {
         return responseJson.toString();
     }
 
-
     private static String errorResponse(String reason) {
+        return errorResponseObject(reason).toString();
+    }
+
+    private static JsonObject errorResponseObject(String reason) {
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "error");
         responseJson.addProperty("message", reason);
-        return responseJson.toString();
+        return responseJson;
     }
 }
