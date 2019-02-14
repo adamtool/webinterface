@@ -4,7 +4,7 @@
       APT Editor
     </div>
     <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='aptInTextField' @input="emitAptChanged"/>
-    <div>{{ aptParseError }}</div>
+    <div style="color: red;">{{ aptParseError }}</div>
   </div>
 </template>
 
