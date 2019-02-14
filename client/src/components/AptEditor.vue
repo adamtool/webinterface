@@ -78,5 +78,12 @@
 </script>
 
 <style scoped>
-
+  .apt-text-area {
+    background: white;
+    box-sizing: border-box;
+    width: 100%;
+    padding-left: 10px;
+    resize: none;
+    font-size: 18px;
+  }
 </style>

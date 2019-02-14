@@ -914,15 +914,6 @@
     height: 100vh;
   }
 
-  .apt-text-area {
-    background: white;
-    box-sizing: border-box;
-    width: 100%;
-    padding-left: 10px;
-    resize: none;
-    font-size: 18px;
-  }
-
   .tabs-component-full-height,
   .tabs-component-full-height > .v-window > .v-window__container,
   .tabs-component-full-height > .v-window > .v-window__container > .v-window-item {
