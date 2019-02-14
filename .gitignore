@@ -14,6 +14,7 @@ selenium-debug.log
 *.ntvs*
 *.njsproj
 *.sln
+*.iml
 
 # Generated files 
 client/node/
