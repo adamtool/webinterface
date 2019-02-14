@@ -30,6 +30,7 @@ import uniolunisaar.adam.util.PNWTTools;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -209,7 +210,15 @@ public class App {
                 return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
                         ".  Its status: " + calculation.getStatus());
             }
-            BDDGraphExplorer bddGraphExplorer = calculation.getResult();
+            BDDGraphExplorer bddGraphExplorer;
+            try {
+                bddGraphExplorer = calculation.getResult();
+            } catch (InterruptedException e) {
+                return errorResponse("The calculation for that Graph Game BDD got canceled.");
+            } catch (ExecutionException e) {
+                return errorResponse("The calculation for that Graph Game BDD failed with the " +
+                        "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+            }
 
             JsonElement bddGraph = bddGraphExplorer.getVisibleGraph();
             JsonObject responseJson = new JsonObject();

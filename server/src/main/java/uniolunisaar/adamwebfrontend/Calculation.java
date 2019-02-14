@@ -50,6 +50,13 @@ public class Calculation<T> {
             return CANCELED;
         }
         if (future.isDone()) {
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                return CANCELED;
+            } catch (ExecutionException e) {
+                return FAILED;
+            }
             return COMPLETED;
         }
         if (isStarted) {
