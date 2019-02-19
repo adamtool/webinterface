@@ -45,6 +45,12 @@
                            :label="`${listing.calculationStatus} | ${listing.canonicalApt.split('\n')[0]}`"
                            @click="loadGraphGameBdd(listing.canonicalApt)"/>
           </hsc-menu-item>
+          <v-dialog>
+            <hsc-menu-item slot="activator"
+                           label="Show calculation list"/>
+            <CalculationList :calculationListings="availableBDDGraphListings"
+                             @loadGraphGameBdd="loadGraphGameBdd"/>
+          </v-dialog>
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
@@ -179,6 +185,7 @@
   import aptFileTree from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import LogViewer from './components/LogViewer'
+  import CalculationList from './components/CalculationList'
   import Vue from 'vue'
   import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
@@ -238,7 +245,8 @@
       'GraphEditor': GraphEditor,
       'my-theme': MyVueMenuTheme,
       'LogViewer': LogViewer,
-      AptEditor
+      AptEditor,
+      CalculationList
     },
     created: function () {
       // Connect to the server and subscribe to ADAM's log output
