@@ -647,19 +647,25 @@
       },
       calculateGraphGameBDD: function () {
         const uuid = this.petriGame.uuid
+        logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
         axios.post(this.restEndpoints.calculateGraphGameBDD, {
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO Handle this appropriately -Ann
-            // TODO Load the graph game BDD if it is finished within 5-10 seconds.
-            // TODO Reload the petri game in case there are partition annotations that have been added
-            logging.sendSuccessNotification(response.data.message)
-            // this.graphGameBDD = response.data.graphGameBDD
-            // this.graphGameCanonicalApt = response.data.canonicalApt
-            // We expect an updated petriGame here because there might have been partition annotations added.
-            // this.petriGame.net = response.data.petriGame
-            // this.switchToGraphGameBDDTab()
+            // Load the graph game BDD if it is finished within 5-10 seconds.  Otherwise just show a message
+            if (response.data.calculationComplete) {
+              this.apt = response.data.canonicalApt
+              this.graphGameBDD = response.data.bddGraph
+              this.graphGameCanonicalApt = response.data.canonicalApt
+              // TODO Get Petri Game from server in caes partition annotations have been added
+              // this.petriGame.net = response.data.petriGame
+              this.switchToGraphGameBDDTab()
+              logging.sendSuccessNotification(response.data.message)
+            } else {
+              // The message from server will explain that the calculation has been enqueued.
+              // TODO Provide a notification after it is finished
+              logging.sendSuccessNotification(response.data.message)
+            }
           })
         }).catch(() => {
           logging.logError('Network error in calculateGraphGameBDD')

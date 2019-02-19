@@ -42,6 +42,11 @@ public class Calculation<T> {
         return future.get();
     }
 
+    public T getResult(long timeout, TimeUnit unit) throws ExecutionException, InterruptedException,
+            TimeoutException {
+        return future.get(timeout, unit);
+    }
+
     public CalculationStatus getStatus() {
         if (future == null) {
             return NOT_STARTED;

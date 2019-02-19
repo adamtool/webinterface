@@ -29,10 +29,7 @@ import uniolunisaar.adam.util.PNWTTools;
 
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class App {
     // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
@@ -166,12 +163,27 @@ public class App {
             this.bddGraphsOfApts.put(canonicalApt, calculation);
             calculation.queue(executorService);
 
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of the graph game " +
-                    "BDD has been enqueued.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            return responseJson.toString();
+            try {
+                // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
+                //  error handling from /getGraphBDD))
+                BDDGraphExplorer result = calculation.getResult(5, TimeUnit.SECONDS);
+                JsonObject responseJson = new JsonObject();
+                responseJson.addProperty("status", "success");
+                responseJson.addProperty("message", "The calculation of the graph game " +
+                        "BDD is finished.");
+                responseJson.addProperty("canonicalApt", canonicalApt);
+                responseJson.addProperty("calculationComplete", true);
+                responseJson.add("bddGraph", result.getVisibleGraph());
+                return responseJson.toString();
+            } catch (TimeoutException e) {
+                JsonObject responseJson = new JsonObject();
+                responseJson.addProperty("status", "success");
+                responseJson.addProperty("message", "The calculation of the graph game " +
+                        "BDD is taking more than five seconds.  It will run in the background.");
+                responseJson.addProperty("canonicalApt", canonicalApt);
+                responseJson.addProperty("calculationComplete", false);
+                return responseJson.toString();
+            }
         });
 
         post("/getListOfAvailableBDDGraphs", (req, res) -> {
