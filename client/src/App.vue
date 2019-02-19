@@ -652,8 +652,9 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             // TODO Handle this appropriately -Ann
+            // TODO Load the graph game BDD if it is finished within 5-10 seconds.
+            // TODO Reload the petri game in case there are partition annotations that have been added
             logging.sendSuccessNotification(response.data.message)
-
             // this.graphGameBDD = response.data.graphGameBDD
             // this.graphGameCanonicalApt = response.data.canonicalApt
             // We expect an updated petriGame here because there might have been partition annotations added.

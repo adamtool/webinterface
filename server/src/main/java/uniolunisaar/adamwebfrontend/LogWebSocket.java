@@ -105,4 +105,12 @@ public class LogWebSocket {
         System.out.println("Got: " + message);   // Print message
         session.getRemote().sendString(message); // and send it back
     }
+
+    // Send a message to all connected clients
+    public static void broadcastMessage(String message) throws IOException {
+        for (Session session : sessions) {
+            session.getRemote().sendString(message);
+        }
+
+    }
 }
