@@ -241,6 +241,20 @@ public class App {
             return responseJson.toString();
         });
 
+        post("/cancelBDDGraph", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+
+            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+                return errorResponse("No BDDGraph has been calculated yet for the Petri " +
+                        "Game with the given APT representation: \n" + canonicalApt);
+            }
+            Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(canonicalApt);
+            calculation.cancel();
+            return successResponse(new JsonPrimitive(true));
+        });
+
         post("/toggleGraphGameBDDNodePostset", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
