@@ -255,17 +255,21 @@ public class App {
         });
 
         post("/cancelBDDGraph", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+            return errorResponse("Cancelling calculations is not yet implemented");
+//            JsonElement body = parser.parse(req.body());
+//            System.out.println("body: " + body.toString());
+//            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+//
+//            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+//                return errorResponse("No BDDGraph has been calculated yet for the Petri " +
+//                        "Game with the given APT representation: \n" + canonicalApt);
+//            }
+//            Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(canonicalApt);
+            // TODO Get ID of net
+            //   Have to think about best way to do this.  -Ann
+//            ProcessPool.getInstance().destroyProcessesOfNet();
 
-            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
-                return errorResponse("No BDDGraph has been calculated yet for the Petri " +
-                        "Game with the given APT representation: \n" + canonicalApt);
-            }
-            Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(canonicalApt);
-            calculation.cancel();
-            return successResponse(new JsonPrimitive(true));
+//            return successResponse(new JsonPrimitive(true));
         });
 
         post("/toggleGraphGameBDDNodePostset", (req, res) -> {
