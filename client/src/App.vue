@@ -45,7 +45,9 @@
                            :label="`${listing.calculationStatus} | ${listing.canonicalApt.split('\n')[0]}`"
                            @click="loadGraphGameBdd(listing.canonicalApt)"/>
           </hsc-menu-item>
-          <v-dialog>
+          <v-dialog v-model="showCalculationList"
+                    :hide-overlay="false"
+                    :persistent="false">
             <hsc-menu-item slot="activator"
                            label="Show calculation list"/>
             <CalculationList :calculationListings="availableBDDGraphListings"
@@ -295,6 +297,7 @@
     },
     data: function () {
       return {
+        showCalculationList: true, // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
@@ -333,6 +336,12 @@
       }
     },
     watch: {
+      // When we open the modal dialog, we should reload the list of calculations
+      showCalculationList: function () {
+        if (this.showCalculationList) {
+          this.getCalculatedBDDGraphs()
+        }
+      },
       apt: function (apt) {
         this.parseAPTToPetriGame(this.apt)
       },
