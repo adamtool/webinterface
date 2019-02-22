@@ -22,7 +22,7 @@
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.calculationStatus)">
         <button>Cancel</button>
       </td>
-      <td v-else>n/a</td>
+      <td v-else>-</td>
     </tr>
   </table>
 </template>
