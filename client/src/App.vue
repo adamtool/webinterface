@@ -651,6 +651,7 @@
               this.graphGameBDD = response.data.bddGraph
               this.graphGameCanonicalApt = canonicalApt
               this.switchToGraphGameBDDTab()
+              logging.sendSuccessNotification('Loaded Graph Game BDD')
           }
         })
       },
