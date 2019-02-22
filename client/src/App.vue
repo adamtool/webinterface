@@ -1,5 +1,12 @@
 <template>
   <v-app absolute id='app'>
+    <v-dialog v-model="showCalculationList"
+              :hide-overlay="false"
+              :persistent="false">
+      <CalculationList :calculationListings="availableBDDGraphListings"
+                       style="background-color: white;"
+                       @loadGraphGameBdd="loadGraphGameBdd"/>
+    </v-dialog>
     <v-snackbar
       :timeout="6000"
       top
@@ -45,14 +52,6 @@
                            :label="`${listing.calculationStatus} | ${listing.canonicalApt.split('\n')[0]}`"
                            @click="loadGraphGameBdd(listing.canonicalApt)"/>
           </hsc-menu-item>
-          <v-dialog v-model="showCalculationList"
-                    :hide-overlay="false"
-                    :persistent="false">
-            <hsc-menu-item slot="activator"
-                           label="Show calculation list"/>
-            <CalculationList :calculationListings="availableBDDGraphListings"
-                             @loadGraphGameBdd="loadGraphGameBdd"/>
-          </v-dialog>
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
@@ -79,6 +78,7 @@
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
+      <button @click="showCalculationList = true"> Show calculation list</button>
       <hsc-menu-context-menu>
         <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">ADAM Web</div>
         <template slot="contextmenu">
