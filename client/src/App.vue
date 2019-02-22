@@ -40,18 +40,6 @@
             <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
                                     :callback="onAptExampleSelected"/>
           </hsc-menu-item>
-
-          <!--TODO Automatically load the list of calculated BDDGraphs instead of having to click this button-->
-          <hsc-menu-item label="Get Calculated BDDGraphs"
-                         @click="getCalculatedBDDGraphs"
-                         v-if="useDistributedSynthesis"/>
-          <hsc-menu-item label="Load calculated Graph Game BDD"
-                         v-if="useDistributedSynthesis">
-            <hsc-menu-item v-for="listing in availableBDDGraphListings"
-                           :key="listing.canonicalApt"
-                           :label="`${listing.calculationStatus} | ${listing.canonicalApt.split('\n')[0]}`"
-                           @click="loadGraphGameBdd(listing.canonicalApt)"/>
-          </hsc-menu-item>
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
@@ -78,7 +66,7 @@
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
-      <button @click="showCalculationList = true"> Show calculation list</button>
+      <button @click="showCalculationList = true">View jobs running on server</button>
       <hsc-menu-context-menu>
         <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">ADAM Web</div>
         <template slot="contextmenu">
