@@ -197,6 +197,8 @@ public class App {
                 // /getBDDGraph if the calculation is finished.
                 entry.addProperty("canonicalApt", aptOfPetriGame);
                 entry.addProperty("calculationStatus", calculation.getStatus().toString());
+                entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
+                entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
                 result.add(entry);
             }
 

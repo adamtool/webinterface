@@ -1,5 +1,7 @@
 package uniolunisaar.adamwebfrontend;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.concurrent.*;
 
 import static uniolunisaar.adamwebfrontend.CalculationStatus.*;
@@ -15,6 +17,8 @@ public class Calculation<T> {
     private final Callable<T> callable;
     private Future<T> future = null;
     private boolean isStarted = false;
+    private Instant timeStarted = Instant.EPOCH;
+    private Instant timeFinished = Instant.EPOCH;
 
     public Calculation(Callable<T> v) {
         this.callable = v;
@@ -26,7 +30,15 @@ public class Calculation<T> {
         }
         this.future = executorService.submit(() -> {
             isStarted = true;
-            return callable.call();
+            timeStarted = Instant.now();
+            try {
+                T result = callable.call();
+                timeFinished = Instant.now();
+                return result;
+            } catch (Throwable e) {
+                timeFinished = Instant.now();
+                throw e;
+            }
         });
     }
 
@@ -68,6 +80,14 @@ public class Calculation<T> {
             return RUNNING;
         }
         return QUEUED;
+    }
+
+    public Instant getTimeStarted() {
+        return timeStarted;
+    }
+
+    public Instant getTimeFinished() {
+        return timeFinished;
     }
 
 }
