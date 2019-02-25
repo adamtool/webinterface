@@ -15,7 +15,21 @@
       <td>Graph Game BDD</td>
       <td>{{ formatDate(listing.timeStarted) }}</td>
       <td>{{ formatDate(listing.timeFinished) }}</td>
-      <td>{{ listing.calculationStatus }}</td>
+
+      <template v-if="listing.calculationStatus === 'FAILED'">
+        <v-tooltip bottom>
+          <template #activator="data">
+            <td v-on="data.on">
+              {{ listing.calculationStatus }}
+            </td>
+          </template>
+          <span>{{ listing.failureReason }}</span>
+        </v-tooltip>
+      </template>
+      <template v-else>
+        <td>{{ listing.calculationStatus }}</td>
+      </template>
+
       <td v-if="listing.calculationStatus === 'COMPLETED'">
         <button @click="$emit('loadGraphGameBdd', listing.canonicalApt)">Load</button>
       </td>

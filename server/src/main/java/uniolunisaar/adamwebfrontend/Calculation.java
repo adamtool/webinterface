@@ -82,6 +82,17 @@ public class Calculation<T> {
         return QUEUED;
     }
 
+    public String getFailedReason() {
+        if (getStatus() == FAILED) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return e.getMessage();
+            }
+        }
+        return "";
+    }
+
     public Instant getTimeStarted() {
         return timeStarted;
     }

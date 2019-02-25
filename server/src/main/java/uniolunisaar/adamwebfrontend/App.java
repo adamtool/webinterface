@@ -4,6 +4,7 @@ package uniolunisaar.adamwebfrontend;
  */
 
 import static spark.Spark.*;
+import static uniolunisaar.adamwebfrontend.CalculationStatus.FAILED;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -212,6 +213,9 @@ public class App {
                 entry.addProperty("calculationStatus", calculation.getStatus().toString());
                 entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
                 entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
+                if (calculation.getStatus() == FAILED) {
+                    entry.addProperty("failureReason", calculation.getFailedReason());
+                }
                 result.add(entry);
             }
 
