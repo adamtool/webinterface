@@ -40,6 +40,9 @@
     methods: {
       moment,
       formatDate (secondsSinceUnixEpoch) {
+        if (secondsSinceUnixEpoch === 0) {
+          return '-'
+        }
         return moment.unix(secondsSinceUnixEpoch).format('LTS') // You can add 'MMM Do' to get month and day
       }
     }
