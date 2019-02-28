@@ -24,12 +24,16 @@ import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
+import uniolunisaar.adam.exceptions.pg.CouldNotCalculateException;
+import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
+import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
@@ -73,13 +77,15 @@ public class App {
             PetriGame petriGame;
             try {
                 petriGame = Adam.getPetriGame(apt);
-            } catch (ParseException e) {
-                Pair<Integer, Integer> errorLocation = Tools.getErrorLocation(e);
-                JsonObject errorResponse = errorResponseObject(
-                        "ParseException at line " + errorLocation.getFirst() +
-                                ", column " + errorLocation.getSecond());
-                errorResponse.addProperty("lineNumber", errorLocation.getFirst());
-                errorResponse.addProperty("columnNumber", errorLocation.getSecond());
+            } catch (ParseException | NotSupportedGameException | IOException | CouldNotFindSuitableConditionException | CouldNotCalculateException e) {
+                JsonObject errorResponse =
+                        errorResponseObject(e.getClass().getSimpleName() + ": " + e.getMessage());
+                if (e instanceof ParseException) {
+                    Pair<Integer, Integer> errorLocation =
+                            Tools.getErrorLocation((ParseException) e);
+                    errorResponse.addProperty("lineNumber", errorLocation.getFirst());
+                    errorResponse.addProperty("columnNumber", errorLocation.getSecond());
+                }
                 return errorResponse;
             }
 
