@@ -4,12 +4,14 @@
       APT Editor
     </div>
     <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='aptInTextField' @input="emitAptChanged"/>
-    <div style="color: red;">{{ aptParseError }} line {{ aptParseErrorLineNumber }} column {{ aptParseErrorColumnNumber }}</div>
+    <div style="color: red;">{{ aptParseError }} {{ lineAndColumnText }}
+    </div>
   </div>
 </template>
 
 <script>
   import logging from '../logging'
+
   export default {
     name: 'AptEditor',
     data: function () {
@@ -54,6 +56,12 @@
       }
     },
     computed: {
+      lineAndColumnText: function () {
+        if (this.aptParseErrorLineNumber === -1 && this.aptParseErrorColumnNumber === -1) {
+          return ''
+        }
+        return `(line ${this.aptParseErrorLineNumber}, column ${this.aptParseErrorColumnNumber})`
+      },
       aptEditorStyle: function () {
         let color
         switch (this.aptParseStatus) {
