@@ -57,7 +57,9 @@
     },
     computed: {
       lineAndColumnText: function () {
-        if (this.aptParseErrorLineNumber === -1 && this.aptParseErrorColumnNumber === -1) {
+        const isLineNumberValid = this.aptParseErrorLineNumber !== -1 && this.aptParseErrorLineNumber !== undefined
+        const isColumnNumberValid = this.aptParseErrorColumnNumber !== -1 && this.aptParseErrorColumnNumber !== undefined
+        if (!isLineNumberValid && !isColumnNumberValid) {
           return ''
         }
         return `(line ${this.aptParseErrorLineNumber}, column ${this.aptParseErrorColumnNumber})`
