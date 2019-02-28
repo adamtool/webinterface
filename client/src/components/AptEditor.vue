@@ -4,7 +4,7 @@
       APT Editor
     </div>
     <textarea class='apt-text-area' style="flex: 1 1 100%" v-model='aptInTextField' @input="emitAptChanged"/>
-    <div style="color: red;">{{ aptParseError }}</div>
+    <div style="color: red;">{{ aptParseError }} line {{ aptParseErrorLineNumber }} column {{ aptParseErrorColumnNumber }}</div>
   </div>
 </template>
 
@@ -32,6 +32,14 @@
       },
       aptParseError: {
         type: String,
+        required: true
+      },
+      aptParseErrorLineNumber: {
+        type: Number,
+        required: true
+      },
+      aptParseErrorColumnNumber: {
+        type: Number,
         required: true
       }
     },
@@ -70,5 +78,12 @@
 </script>
 
 <style scoped>
-
+  .apt-text-area {
+    background: white;
+    box-sizing: border-box;
+    width: 100%;
+    padding-left: 10px;
+    resize: none;
+    font-size: 18px;
+  }
 </style>

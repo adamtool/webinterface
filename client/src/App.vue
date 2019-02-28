@@ -114,7 +114,11 @@
                        :linkStrengthDefault="0.086"/>
         </v-tab-item>
         <v-tab-item>
-          <AptEditor :aptFromAdamParser='apt' :aptParseStatus='aptParseStatus' :aptParseError='aptParseError'
+          <AptEditor :aptFromAdamParser='apt'
+                     :aptParseStatus='aptParseStatus'
+                     :aptParseError='aptParseError'
+                     :aptParseErrorLineNumber = 'aptParseErrorLineNumber'
+                     :aptParseErrorColumnNumber = 'aptParseErrorColumnNumber'
                      @input='onAptEditorInput'/>
         </v-tab-item>
       </v-tabs>
@@ -290,6 +294,8 @@
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
+        aptParseErrorLineNumber: -1,
+        aptParseErrorColumnNumber: -1,
         // This shows temporary notifications after events happen, e.g. if an error happens when trying to solve a net
         notificationMessage: '',
         notificationColor: '',
@@ -539,17 +545,23 @@
               this.petriGame = response.data.graph
               this.aptParseStatus = 'success'
               this.aptParseError = ''
+              this.aptParseErrorLineNumber = -1
+              this.aptParseErrorColumnNumber = -1
               break
             case 'error':
-              this.aptParseError = response.data.message
-              logging.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
               this.aptParseStatus = 'error'
+              this.aptParseError = response.data.message
+              this.aptParseErrorLineNumber = response.data.lineNumber
+              this.aptParseErrorColumnNumber = response.data.columnNumber
+              logging.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
               break
             default:
               logging.log('We got an unexpected response from the server when trying to parse the APT:')
               logging.log(response)
-              this.aptParseError = 'Unexpected response from server: ' + JSON.stringify(response, null, 2)
               this.aptParseStatus = 'error'
+              this.aptParseError = 'Unexpected response from server: ' + JSON.stringify(response, null, 2)
+              this.aptParseErrorLineNumber = -1
+              this.aptParseErrorColumnNumber = -1
               break
           }
         }).catch(() => {
@@ -955,15 +967,6 @@
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
     height: 100vh;
-  }
-
-  .apt-text-area {
-    background: white;
-    box-sizing: border-box;
-    width: 100%;
-    padding-left: 10px;
-    resize: none;
-    font-size: 18px;
   }
 
   .tabs-component-full-height,
