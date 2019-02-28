@@ -388,7 +388,7 @@
           toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
-          convertAptToGraph: this.baseUrl + '/convertAptToGraph',
+          parseApt: this.baseUrl + '/parseApt',
           insertNode: this.baseUrl + '/insertPlace',
           createFlow: this.baseUrl + '/createFlow',
           createTokenFlow: this.baseUrl + '/createTokenFlow',
@@ -527,7 +527,7 @@
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAPTToPetriGame: debounce(function (apt) {
         logging.logVerbose('Sending APT source code to backend.')
-        axios.post(this.restEndpoints.convertAptToGraph, {
+        axios.post(this.restEndpoints.parseApt, {
           params: {
             apt: apt
           }

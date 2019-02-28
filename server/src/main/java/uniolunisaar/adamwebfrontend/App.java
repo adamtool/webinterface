@@ -66,7 +66,7 @@ public class App {
 
         get("/hello", (req, res) -> "Hello World");
 
-        post("/convertAptToGraph", (req, res) -> {
+        post("/parseApt", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
             String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
