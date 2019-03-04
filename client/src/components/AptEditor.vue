@@ -6,7 +6,7 @@
     <div class='apt-text-area'
          contenteditable
          style="flex: 1 1 0; white-space: pre-wrap; overflow: scroll; min-height: 0;"
-         @input="emitAptChanged"
+         @input="onAptInput"
          ref="theTextArea"/>
     <div style="color: red;">{{ aptParseError }}
     </div>
@@ -59,7 +59,7 @@
       })
     },
     methods: {
-      emitAptChanged: function () {
+      onAptInput: function () {
         this.apt = this.getPureAptFromTextArea()
         this.$emit('input', this.getPureAptFromTextArea())
       },
