@@ -5,7 +5,7 @@
     </div>
     <div class='apt-text-area'
          contenteditable
-         style="flex: 1 1 100%; white-space: pre-wrap;"
+         style="flex: 1 1 0; white-space: pre-wrap; overflow: scroll; min-height: 0;"
          @input="emitAptChanged"
          ref="theTextArea"/>
     <div style="color: red;">{{ aptParseError }}
