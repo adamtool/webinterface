@@ -77,7 +77,7 @@
       </hsc-menu-context-menu>
     </my-theme>
 
-    <div style="display: flex; flex-direction: row; height: 100vh; width: 100%;"
+    <div style="display: flex; flex-direction: row; height: calc(100vh - 34.333px); width: 100%;"
          ref="horizontalSplitDiv">
       <div class="flex-column-divider"
            v-on:click="toggleLeftPane"
