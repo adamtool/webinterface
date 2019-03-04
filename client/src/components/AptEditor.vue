@@ -53,6 +53,9 @@
     mounted: function () {
       // Insert only newlines rather than <br> or <div> elements when pressing enter
       this.$refs.theInputField.addEventListener('keydown', (event) => {
+        if (typeof event.which === 'number' && event.which > 0 && !event.ctrlKey) {
+          this.aptHistory.push([this.apt, this.saveCaretPosition(this.$refs.theInputField)])
+        }
         if (event.key === 'Return' || event.key === 'Enter') {
           document.execCommand('insertHTML', false, '\n')
           event.preventDefault()
@@ -77,7 +80,6 @@
         restoreCaret()
       },
       onAptInput: function () {
-        this.aptHistory.push([this.apt, this.saveCaretPosition(this.$refs.theInputField)])
         this.apt = this.getPureAptFromInputField()
         this.$emit('input', this.getPureAptFromInputField())
       },
