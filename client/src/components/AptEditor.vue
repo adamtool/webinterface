@@ -90,11 +90,15 @@
           `<span style='color: red;'>${aptLines[this.aptParseErrorLineNumber - 1]}</span>`
         return aptLines.join('\n')
       },
+      // Save the position of the cursor (caret) in the text field so it can later be restored
+      // We have to do this because we edit the innerHTML in order to provide highlighting,
+      // and that loses the caret position.
       // See https://stackoverflow.com/a/38479462
       saveCaretPosition: function (context) {
         var selection = window.getSelection()
-        if (!selection) {
-          return function restore () {} // There is no caret position to restore
+        if (!selection || selection.rangeCount === 0) {
+          return function restore () {
+          } // There is no caret position to restore
         }
         var range = selection.getRangeAt(0)
         range.setStart(context, 0)
@@ -130,10 +134,6 @@
     watch: {
       aptFromAdamParser: function () {
         this.apt = this.aptFromAdamParser
-        // const restore = this.saveCaretPosition(this.$refs.theTextArea)
-        // this.$refs.theTextArea.innerHTML =
-        //   this.formatAptWithHighlightedError(this.aptFromAdamParser)
-        // restore()
       },
       apt: function () {
       },
