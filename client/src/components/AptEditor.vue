@@ -20,6 +20,7 @@
     name: 'AptEditor',
     data: function () {
       return {
+        apt: ''
       }
     },
     props: {
@@ -50,22 +51,37 @@
     },
     methods: {
       emitAptChanged: function () {
-        this.$emit('input', this.$refs.theTextArea.innerHTML)
+        this.$emit('input', this.getPureAptFromTextArea())
+      },
+      getPureAptFromTextArea: function () {
+        return this.htmlDecode(this.$refs.theTextArea.innerHTML) // TODO Clean up highlighting info
+      },
+      // Un-escape innerHTML strings so that e.g. proper angle brackets ('<') get sent to server
+      // rather than escape strings like &lt;
+      htmlDecode: function (input) {
+        const doc = new DOMParser().parseFromString(input, 'text/html')
+        return doc.documentElement.textContent
       }
     },
     watch: {
       aptFromAdamParser: function () {
-        this.$refs.theTextArea.innerHTML = this.aptFromAdamParser
+        this.apt = this.aptFromAdamParser
+      },
+      apt: function () {
+        this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
         if (status === 'error' && this.isParseErrorHighlightingInfoPresent) {
-          // TODO Implement
-          // this.selectTextAreaLine(this.$refs.theTextArea, this.aptParseErrorLineNumber)
+          this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError
         }
       }
     },
     computed: {
+      // Return a innerHTML for the apt editor that has the appropriate line/column highlighted
+      formatAptWithHighlightedError: function () {
+        return this.apt
+      },
       isParseErrorHighlightingInfoPresent: function () {
         const isLineNumberValid = this.aptParseErrorLineNumber !== -1 && this.aptParseErrorLineNumber !== undefined
         const isColumnNumberValid = this.aptParseErrorColumnNumber !== -1 && this.aptParseErrorColumnNumber !== undefined
