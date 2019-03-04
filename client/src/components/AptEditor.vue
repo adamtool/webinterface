@@ -22,9 +22,8 @@
       return {
         apt: '',
         // Stack of previous states.  [[aptA, restoreCaretA()], [aptB, restoreCaretB()], ...]
-        aptHistory: [],
-        // How far back we have "undone".
-        aptHistoryPointer: 1
+        undoHistory: [],
+        redoHistory: []
       }
     },
     props: {
@@ -56,11 +55,8 @@
     mounted: function () {
       this.$refs.theInputField.addEventListener('keydown', (event) => {
         if (typeof event.which === 'number' && event.which > 0 && !event.ctrlKey) {
-          if (this.aptHistoryPointer !== 1) {
-            this.aptHistory = []
-          }
-          this.aptHistory.push([this.apt, this.saveCaretPosition(this.$refs.theInputField)])
-          this.aptHistoryPointer = 1
+          this.undoHistory.push(this.currentHistoryPoint())
+          this.redoHistory = []
         }
         if (event.key === 'Return' || event.key === 'Enter') {
           // Insert only newlines rather than <br> or <div> elements when pressing enter
@@ -79,31 +75,33 @@
     },
     methods: {
       onUndo: function () {
-        const aptHistoryIndex = this.aptHistory.length - this.aptHistoryPointer
-        if (aptHistoryIndex < 0) {
+        if (this.undoHistory.length === 0) {
           console.log('undo stack empty')
           return
         }
         console.log('undo')
-        this.restoreHistoryPoint(aptHistoryIndex)
-        this.aptHistoryPointer += 1
+        this.redoHistory.push(this.currentHistoryPoint())
+        const historyPoint = this.undoHistory.pop()
+        this.restoreHistoryPoint(historyPoint)
       },
       onRedo: function () {
-        const aptHistoryIndex = this.aptHistory.length - this.aptHistoryPointer + 1
-        if (aptHistoryIndex < 0 || aptHistoryIndex > this.aptHistory.length - 1) {
-          console.log('No more redos to redo')
+        if (this.redoHistory.length === 0) {
+          console.log('redo stack empty')
           return
         }
         console.log('redo')
-        this.restoreHistoryPoint(aptHistoryIndex)
-        this.aptHistoryPointer -= 1
+        this.undoHistory.push(this.currentHistoryPoint())
+        const historyPoint = this.redoHistory.pop()
+        this.restoreHistoryPoint(historyPoint)
       },
-      restoreHistoryPoint: function (historyIndex) {
-        const [apt, restoreCaret] = this.aptHistory[historyIndex]
+      restoreHistoryPoint: function ([apt, restoreCaret]) {
         this.apt = apt
         this.$refs.theInputField.innerHTML = this.formatAptWithHighlightedError(this.apt)
         this.$emit('input', this.getPureAptFromInputField())
         restoreCaret()
+      },
+      currentHistoryPoint: function () {
+        return [this.apt, this.saveCaretPosition(this.$refs.theInputField)]
       },
       onAptInput: function () {
         this.apt = this.getPureAptFromInputField()
@@ -174,22 +172,18 @@
       }
     },
     watch: {
-      aptHistory: function () {
-        console.log(`History pointer: ${this.aptHistoryPointer}`)
-        console.log(`History depth: ${this.aptHistory.length}`)
+      undoHistory: function () {
+        console.log(`Undo history depth: ${this.undoHistory.length}`)
+        console.log(`Redo history depth: ${this.redoHistory.length}`)
       },
-      aptHistoryPointer: function () {
-        console.log(`History pointer: ${this.aptHistoryPointer}`)
-        console.log(`History depth: ${this.aptHistory.length}`)
+      redoHistory: function () {
+        console.log(`Undo history depth: ${this.undoHistory.length}`)
+        console.log(`Redo history depth: ${this.redoHistory.length}`)
       },
       aptFromAdamParser: function (newApt) {
         if (newApt !== this.apt) {
-          if (this.aptHistoryPointer !== 1) {
-            this.aptHistory =
-              this.aptHistory.slice(0, this.aptHistory.length - this.aptHistoryPointer)
-          }
-          this.aptHistory.push([this.apt, this.saveCaretPosition(this.$refs.theInputField)])
-          this.aptHistoryPointer = 1
+          this.undoHistory.push(this.currentHistoryPoint())
+          this.redoHistory = []
           this.apt = newApt
         }
       },
