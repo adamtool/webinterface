@@ -3,11 +3,11 @@
     <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
       APT Editor
     </div>
-    <div class='apt-text-area'
+    <div class='apt-input-field'
          contenteditable
          style="flex: 1 1 0; white-space: pre-wrap; overflow: scroll; min-height: 0;"
          @input="onAptInput"
-         ref="theTextArea"/>
+         ref="theInputField"/>
     <div style="color: red;">{{ aptParseError }}
     </div>
   </div>
@@ -51,7 +51,7 @@
     },
     mounted: function () {
       // Insert only newlines rather than <br> or <div> elements when pressing enter
-      this.$refs.theTextArea.addEventListener('keydown', function (event) {
+      this.$refs.theInputField.addEventListener('keydown', function (event) {
         if (event.keyCode === 13) {
           document.execCommand('insertHTML', false, '\n')
           event.preventDefault()
@@ -60,13 +60,13 @@
     },
     methods: {
       onAptInput: function () {
-        this.apt = this.getPureAptFromTextArea()
-        this.$emit('input', this.getPureAptFromTextArea())
+        this.apt = this.getPureAptFromInputField()
+        this.$emit('input', this.getPureAptFromInputField())
       },
       // Our editor is full of HTML, and we want to clean it up and just get the plain text inside.
-      getPureAptFromTextArea: function () {
+      getPureAptFromInputField: function () {
         // Decode escaped strings
-        const unescapedText = this.htmlDecode(this.$refs.theTextArea.innerHTML)
+        const unescapedText = this.htmlDecode(this.$refs.theInputField.innerHTML)
         // Clean up highlighting annotations
         const textWithoutHighlights = unescapedText.replace(`<span style='color: red;'>`, '')
         const textWithoutHighlights2 = textWithoutHighlights.replace(`</span>`, '')
@@ -133,8 +133,8 @@
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
-        const restore = this.saveCaretPosition(this.$refs.theTextArea)
-        this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError(this.apt)
+        const restore = this.saveCaretPosition(this.$refs.theInputField)
+        this.$refs.theInputField.innerHTML = this.formatAptWithHighlightedError(this.apt)
         restore()
       }
     },
@@ -174,7 +174,7 @@
 </script>
 
 <style scoped>
-  .apt-text-area {
+  .apt-input-field {
     background: white;
     box-sizing: border-box;
     width: 100%;
