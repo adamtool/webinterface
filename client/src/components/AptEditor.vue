@@ -20,7 +20,8 @@
     name: 'AptEditor',
     data: function () {
       return {
-        apt: ''
+        apt: '',
+        aptHistory: [] // Stack of previous states
       }
     },
     props: {
@@ -64,9 +65,19 @@
     },
     methods: {
       onUndo: function () {
+        if (this.aptHistory.length === 0) {
+          console.log('undo stack empty')
+          return
+        }
         console.log('undo')
+        const [apt, restoreCaret] = this.aptHistory.pop()
+        this.apt = apt
+        this.$refs.theInputField.innerHTML = this.formatAptWithHighlightedError(this.apt)
+        this.$emit('input', this.getPureAptFromInputField())
+        restoreCaret()
       },
       onAptInput: function () {
+        this.aptHistory.push([this.apt, this.saveCaretPosition(this.$refs.theInputField)])
         this.apt = this.getPureAptFromInputField()
         this.$emit('input', this.getPureAptFromInputField())
       },
@@ -135,8 +146,14 @@
       }
     },
     watch: {
-      aptFromAdamParser: function () {
-        this.apt = this.aptFromAdamParser
+      aptHistory: function () {
+        console.log(`History depth: ${this.aptHistory.length}`)
+      },
+      aptFromAdamParser: function (newApt) {
+        if (newApt !== this.apt) {
+          this.aptHistory.push([this.apt, this.saveCaretPosition(this.$refs.theInputField)])
+          this.apt = newApt
+        }
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
