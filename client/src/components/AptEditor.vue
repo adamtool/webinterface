@@ -117,7 +117,7 @@
           return function restore () {
           } // There is no caret position to restore
         }
-        var range = selection.getRangeAt(0)
+        var range = selection.getRangeAt(0).cloneRange()
         range.setStart(context, 0)
         var len = range.toString().length
 
