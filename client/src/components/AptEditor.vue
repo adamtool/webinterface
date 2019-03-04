@@ -79,7 +79,7 @@
           console.log('undo stack empty')
           return
         }
-        console.log('undo')
+        logging.logVerbose('undo')
         this.redoHistory.push(this.currentHistoryPoint())
         const historyPoint = this.undoHistory.pop()
         this.restoreHistoryPoint(historyPoint)
@@ -89,7 +89,7 @@
           console.log('redo stack empty')
           return
         }
-        console.log('redo')
+        logging.logVerbose('redo')
         this.undoHistory.push(this.currentHistoryPoint())
         const historyPoint = this.redoHistory.pop()
         this.restoreHistoryPoint(historyPoint)
@@ -172,14 +172,14 @@
       }
     },
     watch: {
-      undoHistory: function () {
-        console.log(`Undo history depth: ${this.undoHistory.length}`)
-        console.log(`Redo history depth: ${this.redoHistory.length}`)
-      },
-      redoHistory: function () {
-        console.log(`Undo history depth: ${this.undoHistory.length}`)
-        console.log(`Redo history depth: ${this.redoHistory.length}`)
-      },
+      // undoHistory: function () {
+      //   console.log(`Undo history depth: ${this.undoHistory.length}`)
+      //   console.log(`Redo history depth: ${this.redoHistory.length}`)
+      // },
+      // redoHistory: function () {
+      //   console.log(`Undo history depth: ${this.undoHistory.length}`)
+      //   console.log(`Redo history depth: ${this.redoHistory.length}`)
+      // },
       aptFromAdamParser: function (newApt) {
         if (newApt !== this.apt) {
           this.undoHistory.push(this.currentHistoryPoint())
