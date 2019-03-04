@@ -51,14 +51,21 @@
     },
     mounted: function () {
       // Insert only newlines rather than <br> or <div> elements when pressing enter
-      this.$refs.theInputField.addEventListener('keydown', function (event) {
-        if (event.keyCode === 13) {
+      this.$refs.theInputField.addEventListener('keydown', (event) => {
+        if (event.key === 'Return' || event.key === 'Enter') {
           document.execCommand('insertHTML', false, '\n')
+          event.preventDefault()
+        }
+        if (event.ctrlKey && event.key === 'z') {
+          this.onUndo()
           event.preventDefault()
         }
       })
     },
     methods: {
+      onUndo: function () {
+        console.log('undo')
+      },
       onAptInput: function () {
         this.apt = this.getPureAptFromInputField()
         this.$emit('input', this.getPureAptFromInputField())
