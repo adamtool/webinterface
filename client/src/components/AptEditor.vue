@@ -58,6 +58,7 @@
       },
       // Un-escape innerHTML strings so that e.g. proper angle brackets ('<') get sent to server
       // rather than escape strings like &lt;
+      // See https://stackoverflow.com/a/34064434
       htmlDecode: function (input) {
         const doc = new DOMParser().parseFromString(input, 'text/html')
         return doc.documentElement.textContent
