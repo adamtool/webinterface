@@ -61,7 +61,6 @@
     methods: {
       emitAptChanged: function () {
         this.apt = this.getPureAptFromTextArea()
-        console.log(this.apt)
         this.$emit('input', this.getPureAptFromTextArea())
       },
       getPureAptFromTextArea: function () {
