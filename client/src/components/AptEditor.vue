@@ -63,6 +63,7 @@
         this.apt = this.getPureAptFromTextArea()
         this.$emit('input', this.getPureAptFromTextArea())
       },
+      // Our editor is full of HTML, and we want to clean it up and just get the plain text inside.
       getPureAptFromTextArea: function () {
         // Decode escaped strings
         const unescapedText = this.htmlDecode(this.$refs.theTextArea.innerHTML)
@@ -71,14 +72,14 @@
         const textWithoutHighlights2 = textWithoutHighlights.replace(`</span>`, '')
         return textWithoutHighlights2
       },
-      // Un-escape innerHTML strings so that e.g. proper angle brackets ('<') get sent to server
-      // rather than escape strings like &lt;
+      // Un-escape innerHTML strings so that escape strings get converted to the actual
+      // characters they represent (e.g. '&lt;' gets converted to '<') to be sent to the server.
       // See https://stackoverflow.com/a/34064434
       htmlDecode: function (input) {
         const doc = new DOMParser().parseFromString(input, 'text/html')
         return doc.documentElement.textContent
       },
-      // Return a innerHTML for the apt editor that has the appropriate line/column highlighted
+      // Return an innerHTML for the apt editor that has the appropriate line/column highlighted
       formatAptWithHighlightedError: function (aptString) {
         if (this.aptParseStatus !== 'error' || !this.isParseErrorHighlightingInfoPresent) {
           return aptString
