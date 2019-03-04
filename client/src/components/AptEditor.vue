@@ -65,9 +65,7 @@
       },
       getPureAptFromTextArea: function () {
         // Decode escaped strings
-        const a = this.$refs.theTextArea.innerHTML
-        const b = a.replace('<br>', '\n')
-        const unescapedText = this.htmlDecode(b)
+        const unescapedText = this.htmlDecode(this.$refs.theTextArea.innerHTML)
         // Clean up highlighting annotations
         const textWithoutHighlights = unescapedText.replace(`<span style='color: red;'>`, '')
         const textWithoutHighlights2 = textWithoutHighlights.replace(`</span>`, '')
@@ -113,12 +111,9 @@
         }
 
         function getTextNodeAtPosition (root, index) {
-          // var lastNode = null
-
           var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, function next (elem) {
             if (index >= elem.textContent.length) {
               index -= elem.textContent.length
-              // lastNode = elem
               return NodeFilter.FILTER_REJECT
             }
             return NodeFilter.FILTER_ACCEPT
@@ -134,8 +129,6 @@
     watch: {
       aptFromAdamParser: function () {
         this.apt = this.aptFromAdamParser
-      },
-      apt: function () {
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
