@@ -72,15 +72,19 @@
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
-        if (status === 'error' && this.isParseErrorHighlightingInfoPresent) {
-          this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError
-        }
+        this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError
       }
     },
     computed: {
       // Return a innerHTML for the apt editor that has the appropriate line/column highlighted
       formatAptWithHighlightedError: function () {
-        return this.apt
+        if (this.aptParseStatus !== 'error' || !this.isParseErrorHighlightingInfoPresent) {
+          return this.apt
+        }
+        const aptLines = this.apt.split('\n')
+        aptLines[this.aptParseErrorLineNumber - 1] =
+          `<span style='color: red;'>${aptLines[this.aptParseErrorLineNumber - 1]}</span>`
+        return aptLines.join('\n')
       },
       isParseErrorHighlightingInfoPresent: function () {
         const isLineNumberValid = this.aptParseErrorLineNumber !== -1 && this.aptParseErrorLineNumber !== undefined
