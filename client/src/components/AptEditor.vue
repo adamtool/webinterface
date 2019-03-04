@@ -62,6 +62,42 @@
       htmlDecode: function (input) {
         const doc = new DOMParser().parseFromString(input, 'text/html')
         return doc.documentElement.textContent
+      },
+      // See https://stackoverflow.com/a/38479462
+      saveCaretPosition: function (context) {
+        var selection = window.getSelection()
+        if (!selection) {
+          return function restore () {} // There is no caret position to restore
+        }
+        var range = selection.getRangeAt(0)
+        range.setStart(context, 0)
+        var len = range.toString().length
+
+        return function restore () {
+          var pos = getTextNodeAtPosition(context, len)
+          selection.removeAllRanges()
+          var range = new Range()
+          range.setStart(pos.node, pos.position)
+          selection.addRange(range)
+        }
+
+        function getTextNodeAtPosition (root, index) {
+          // var lastNode = null
+
+          var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, function next (elem) {
+            if (index >= elem.textContent.length) {
+              index -= elem.textContent.length
+              // lastNode = elem
+              return NodeFilter.FILTER_REJECT
+            }
+            return NodeFilter.FILTER_ACCEPT
+          })
+          var c = treeWalker.nextNode()
+          return {
+            node: c ? c : root,
+            position: c ? index : 0
+          }
+        }
       }
     },
     watch: {
@@ -69,11 +105,15 @@
         this.apt = this.aptFromAdamParser
       },
       apt: function () {
+        const restore = this.saveCaretPosition(this.$refs.theTextArea)
         this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError
+        restore()
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
+        const restore = this.saveCaretPosition(this.$refs.theTextArea)
         this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError
+        restore()
       }
     },
     computed: {
