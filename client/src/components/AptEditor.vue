@@ -49,12 +49,30 @@
         required: true
       }
     },
+    mounted: function () {
+      // Insert only newlines rather than <br> or <div> elements when pressing enter
+      this.$refs.theTextArea.addEventListener('keydown', function (event) {
+        if (event.keyCode === 13) {
+          document.execCommand('insertHTML', false, '\n')
+          event.preventDefault()
+        }
+      })
+    },
     methods: {
       emitAptChanged: function () {
+        this.apt = this.getPureAptFromTextArea()
+        console.log(this.apt)
         this.$emit('input', this.getPureAptFromTextArea())
       },
       getPureAptFromTextArea: function () {
-        return this.htmlDecode(this.$refs.theTextArea.innerHTML) // TODO Clean up highlighting info
+        // Decode escaped strings
+        const a = this.$refs.theTextArea.innerHTML
+        const b = a.replace('<br>', '\n')
+        const unescapedText = this.htmlDecode(b)
+        // Clean up highlighting annotations
+        const textWithoutHighlights = unescapedText.replace(`<span style='color: red;'>`, '')
+        const textWithoutHighlights2 = textWithoutHighlights.replace(`</span>`, '')
+        return textWithoutHighlights2
       },
       // Un-escape innerHTML strings so that e.g. proper angle brackets ('<') get sent to server
       // rather than escape strings like &lt;
@@ -62,6 +80,16 @@
       htmlDecode: function (input) {
         const doc = new DOMParser().parseFromString(input, 'text/html')
         return doc.documentElement.textContent
+      },
+      // Return a innerHTML for the apt editor that has the appropriate line/column highlighted
+      formatAptWithHighlightedError: function (aptString) {
+        if (this.aptParseStatus !== 'error' || !this.isParseErrorHighlightingInfoPresent) {
+          return aptString
+        }
+        const aptLines = aptString.split('\n')
+        aptLines[this.aptParseErrorLineNumber - 1] =
+          `<span style='color: red;'>${aptLines[this.aptParseErrorLineNumber - 1]}</span>`
+        return aptLines.join('\n')
       },
       // See https://stackoverflow.com/a/38479462
       saveCaretPosition: function (context) {
@@ -103,30 +131,21 @@
     watch: {
       aptFromAdamParser: function () {
         this.apt = this.aptFromAdamParser
+        // const restore = this.saveCaretPosition(this.$refs.theTextArea)
+        // this.$refs.theTextArea.innerHTML =
+        //   this.formatAptWithHighlightedError(this.aptFromAdamParser)
+        // restore()
       },
       apt: function () {
-        const restore = this.saveCaretPosition(this.$refs.theTextArea)
-        this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError
-        restore()
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
         const restore = this.saveCaretPosition(this.$refs.theTextArea)
-        this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError
+        this.$refs.theTextArea.innerHTML = this.formatAptWithHighlightedError(this.apt)
         restore()
       }
     },
     computed: {
-      // Return a innerHTML for the apt editor that has the appropriate line/column highlighted
-      formatAptWithHighlightedError: function () {
-        if (this.aptParseStatus !== 'error' || !this.isParseErrorHighlightingInfoPresent) {
-          return this.apt
-        }
-        const aptLines = this.apt.split('\n')
-        aptLines[this.aptParseErrorLineNumber - 1] =
-          `<span style='color: red;'>${aptLines[this.aptParseErrorLineNumber - 1]}</span>`
-        return aptLines.join('\n')
-      },
       isParseErrorHighlightingInfoPresent: function () {
         const isLineNumberValid = this.aptParseErrorLineNumber !== -1 && this.aptParseErrorLineNumber !== undefined
         const isColumnNumberValid = this.aptParseErrorColumnNumber !== -1 && this.aptParseErrorColumnNumber !== undefined
