@@ -168,6 +168,10 @@
             <id>adam-core</id>
             <url>file://${basedir}/adam-core</url>
         </repository>
+        <repository>
+            <id>javabdd</id>
+            <url>file://${basedir}/javabdd</url>
+        </repository>
     </repositories>
     <dependencies>
         <dependency>
@@ -187,11 +191,9 @@
             <version>4.0.2</version>
         </dependency>
         <dependency>
-            <groupId>javabdd</groupId>
+            <groupId>net.sf.javabdd</groupId>
             <artifactId>javabdd</artifactId>
             <version>1.0b2</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/javabdd-1.0b2.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

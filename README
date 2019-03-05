@@ -14,6 +14,11 @@ In server/pom.xml, we pull adam_core.jar as a dependency into our Maven project 
 mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file -Dfile=adam_core.jar -DgroupId=uniolunisaar.adam -DartifactId=adam-core -Dversion=<Version> -Dpackaging=jar -DlocalRepositoryPath=server/adam-core
 This is the best practice, according to Pascal Thivent in his answer on StackOverflow: https://stackoverflow.com/questions/2229757/maven-add-a-dependency-to-a-jar-by-relative-path
 
+
+We also import javabdd the same way
+e.g.
+mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file -Dfile=server/src/main/resources/javabdd-1.0b2.jar -DgroupId=net.sf.javabdd -DartifactId=javabdd -Dversion=1.0b2 -Dpackaging=jar -DlocalRepositoryPath=server/javabdd
+
 Build configuration; relative vs. absolute URLs
 For HTTP requests to our server, we use relative URLs in production
 and hard-coded URLs in development mode ('npm run dev').
