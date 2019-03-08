@@ -17,11 +17,9 @@ import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.IRunFormula;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
-import uniolunisaar.adam.ds.modelchecking.CounterExample;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.ds.petrigame.PetriGameExtensionHandler;
 import uniolunisaar.adam.exceptions.pg.CouldNotCalculateException;
 import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
@@ -194,7 +192,7 @@ public class App {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-            boolean shouldSolveIncrementally =
+            boolean shouldSolveStepwise =
                     body.getAsJsonObject().get("incremental").getAsBoolean();
 
             // TODO Consider not putting PetriGame and everything together inside of
@@ -220,19 +218,11 @@ public class App {
                 return errorResponse("No winning condition is present for the given Petri Game.");
             }
             Calculation<BDDGraphExplorer> calculation = new Calculation<>(() -> {
-                if (shouldSolveIncrementally) {
-                    BDDSolver<? extends Condition> solver = AdamSynthesizer.getBDDSolver(
-                            game,
-                            PetriNetD3.getObjectiveOfPetriNet(game).get(),
-                            new BDDSolverOptions());
-                    BDDGraph graph = new BDDGraph("My Graph");
-                    BDDState initialState = AdamSynthesizer.getInitialGraphGameState(graph, solver);
-                    AdamSynthesizer.getSuccessors(initialState, graph, solver);
-//                    return BDDGraphExplorerStepwise.of(game);
-                    return null;
+                if (shouldSolveStepwise) {
+                    return new BDDGraphExplorerStepwise(game);
                 } else {
                     BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(game);
-                    return BDDGraphExplorer.of(graphGameBDD);
+                    return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
                 }
             });
             this.bddGraphsOfApts.put(canonicalApt, calculation);
