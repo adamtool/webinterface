@@ -11,8 +11,8 @@
     </tr>
     <tr v-for="listing in calculationListings"
         :key="listing.canonicalApt">
-      <td> {{ listing.canonicalApt.split('\n')[0] }}</td>
-      <td>Graph Game BDD</td>
+      <td>{{ listing.canonicalApt.split('\n')[0] }}</td>
+      <td>{{ listing.type }}</td>
       <td>{{ formatDate(listing.timeStarted) }}</td>
       <td>{{ formatDate(listing.timeFinished) }}</td>
 
@@ -26,11 +26,17 @@
           <span>{{ listing.failureReason }}</span>
         </v-tooltip>
       </template>
+      <template
+        v-else-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'existsWinningStrategy'">
+        <td :style="`color: ${listing.result ? 'blue' : 'red'}`">
+          {{ listing.result ? '(There is a strategy)' : '(There is no strategy)'}}
+        </td>
+      </template>
       <template v-else>
         <td>{{ listing.calculationStatus }}</td>
       </template>
 
-      <td v-if="listing.calculationStatus === 'COMPLETED'">
+      <td v-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Graph Game BDD'">
         <button @click="$emit('loadGraphGameBdd', listing.canonicalApt)">Load</button>
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.calculationStatus)">

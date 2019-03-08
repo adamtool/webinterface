@@ -23,7 +23,8 @@
     <!--<v-spacer/>-->
     <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
     <!--</v-toolbar>-->
-    <my-theme style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
+    <my-theme
+      style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
           <!--Have to use click.native so that the popup blocker isn't triggered-->
@@ -117,8 +118,8 @@
           <AptEditor :aptFromAdamParser='apt'
                      :aptParseStatus='aptParseStatus'
                      :aptParseError='aptParseError'
-                     :aptParseErrorLineNumber = 'aptParseErrorLineNumber'
-                     :aptParseErrorColumnNumber = 'aptParseErrorColumnNumber'
+                     :aptParseErrorLineNumber='aptParseErrorLineNumber'
+                     :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
                      @input='onAptEditorInput'/>
         </v-tab-item>
       </v-tabs>
@@ -281,7 +282,7 @@
       })
 
       this.parseAPTToPetriGame(this.apt)
-      this.getCalculatedBDDGraphs()
+      this.getListOfCalculations()
       logging.log('Hello!')
 
       // Initialize draggable, resizable pane
@@ -334,7 +335,7 @@
       // When we open the modal dialog, we should reload the list of calculations
       showCalculationList: function () {
         if (this.showCalculationList) {
-          this.getCalculatedBDDGraphs()
+          this.getListOfCalculations()
         }
       },
       apt: function (apt) {
@@ -391,7 +392,7 @@
           getStrategyBDD: this.baseUrl + '/getStrategyBDD',
           getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
           calculateGraphGameBDD: this.baseUrl + '/calculateGraphGameBDD',
-          getCalculatedBDDGraphs: this.baseUrl + '/getListOfAvailableBDDGraphs',
+          getListOfCalculations: this.baseUrl + '/getListOfCalculations',
           toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
@@ -575,22 +576,26 @@
         this.$refs.graphEditorPetriGame.getModelCheckingNet()
       },
       existsWinningStrategy: function () {
-        if (this.petriGame.hasWinningStrategy !== undefined) {
-          // TODO maintain state, avoid unnecessarily calculating this multiple times
-          // throw new Error('Winning strategy has already been calculated for this Petri Game')
-        }
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.hasWinningStrategy = response.data.result
-            // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
-            if (response.data.result) {
-              logging.sendSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
-              // We expect an updated petriGame here because there might have been partition annotations added.
-              this.petriGame.net = response.data.petriGame
+            // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
+            if (response.data.calculationComplete) {
+              this.apt = response.data.canonicalApt
+              this.petriGame.hasWinningStrategy = response.data.result
+              if (this.petriGame.hasWinningStrategy) {
+                // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
+                logging.sendSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
+                // We expect an updated petriGame here because there might have been partition annotations added.
+                // this.petriGame.net = response.data.petriGame
+              } else {
+                logging.sendErrorNotification('No, there is no winning strategy for this Petri Game.')
+              }
             } else {
-              logging.sendErrorNotification('No, there is no winning strategy for this Petri Game.')
+              // The message from server will explain that the calculation has been enqueued.
+              // TODO Provide a notification after it is finished
+              logging.sendSuccessNotification(response.data.message)
             }
           })
         }).catch(() => {
@@ -630,8 +635,8 @@
           logging.logError('Network error in getGraphStrategyBDD')
         })
       },
-      getCalculatedBDDGraphs: function () {
-        axios.post(this.restEndpoints.getCalculatedBDDGraphs)
+      getListOfCalculations: function () {
+        axios.post(this.restEndpoints.getListOfCalculations)
           .then(response => {
             this.availableBDDGraphListings = response.data.listings
           })

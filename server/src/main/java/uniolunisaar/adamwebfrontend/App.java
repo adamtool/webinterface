@@ -4,6 +4,7 @@ package uniolunisaar.adamwebfrontend;
  */
 
 import static spark.Spark.*;
+import static uniolunisaar.adamwebfrontend.CalculationStatus.COMPLETED;
 import static uniolunisaar.adamwebfrontend.CalculationStatus.FAILED;
 
 import com.google.gson.*;
@@ -45,6 +46,9 @@ public class App {
     // When we calculate a graph game BDD from a petri game, we convert the petri game to APT, then
     // put the (APT, BDDGraphExplorer) pair in here
     private final Map<String, Calculation<BDDGraphExplorer>> bddGraphsOfApts = new ConcurrentHashMap<>();
+    // Store the results of "existsWinningStrategy"
+    private final Map<String, Calculation<Boolean>> existsWinningStrategyOfApts =
+            new ConcurrentHashMap<>();
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -111,13 +115,45 @@ public class App {
             PetriGameAndMore petriGame = getPetriGame(petriGameId);
 
             System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
-            boolean existsWinningStrategy = petriGame.calculateExistsWinningStrategy();
 
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("result", existsWinningStrategy);
-            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
-            return responseJson.toString();
+            String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+            if (this.existsWinningStrategyOfApts.containsKey(canonicalApt)) {
+                return errorResponse("There is already a Calculation queued up to find the " +
+                        "Exists Winning Condition of the Petri Game with the given APT.  Its " +
+                        "status: " +
+                        this.existsWinningStrategyOfApts.get(canonicalApt).getStatus());
+            }
+
+            System.out.println("Calculating Exists Winning Strategy for PetriGame id#" + petriGameId);
+            Calculation<Boolean> calculation = new Calculation<>(() -> {
+                boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame.getPetriGame());
+                return existsWinningStrategy;
+            });
+            this.existsWinningStrategyOfApts.put(canonicalApt, calculation);
+            calculation.queue(executorService);
+
+            try {
+                boolean result = calculation.getResult(5, TimeUnit.SECONDS);
+                JsonObject responseJson = new JsonObject();
+                responseJson.addProperty("status", "success");
+                responseJson.addProperty("message", "The calculation of Exists Winning Strategy " +
+                        "is finished.");
+                responseJson.addProperty("canonicalApt", canonicalApt);
+                responseJson.addProperty("calculationComplete", true);
+                // Annotations might have been added to the petri game, and the client should
+                // know about them.
+                responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+                responseJson.addProperty("result", result);
+                return responseJson.toString();
+            } catch (TimeoutException e) {
+                JsonObject responseJson = new JsonObject();
+                responseJson.addProperty("status", "success");
+                responseJson.addProperty("message", "The calculation of Exists Winning Strategy " +
+                        "is taking more than five seconds.  It will run in the background.");
+                responseJson.addProperty("canonicalApt", canonicalApt);
+                responseJson.addProperty("calculationComplete", false);
+                return responseJson.toString();
+            }
         });
 
         post("/getStrategyBDD", (req, res) -> {
@@ -206,15 +242,16 @@ public class App {
             }
         });
 
-        post("/getListOfAvailableBDDGraphs", (req, res) -> {
-            // Return a list containing an entry for each pending/completed Graph Game BDD
-            // calculation.
+        post("/getListOfCalculations", (req, res) -> {
+            // Return a list containing an entry for each pending/completed calculation
+            // (e.g. Graph Game BDD, Get Winning Condition) on the server.
             JsonArray result = new JsonArray();
             for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
                 Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(aptOfPetriGame);
                 JsonObject entry = new JsonObject();
-                // This canonicalApt String can be used as a key to access the BDDGraph via
-                // /getBDDGraph if the calculation is finished.
+                // This canonicalApt String can be used as a key to access the result of the
+                // calculation (e.g. via /getBDDGraph) if the calculation is finished.
+                entry.addProperty("type", "Graph Game BDD");
                 entry.addProperty("canonicalApt", aptOfPetriGame);
                 entry.addProperty("calculationStatus", calculation.getStatus().toString());
                 entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
@@ -224,6 +261,26 @@ public class App {
                 }
                 result.add(entry);
             }
+
+            for (String canonicalApt : this.existsWinningStrategyOfApts.keySet()) {
+                Calculation<Boolean> calculation = this.existsWinningStrategyOfApts.get(canonicalApt);
+                JsonObject entry = new JsonObject();
+                // This canonicalApt String can be used as a key to access the result of the
+                // calculation (e.g. via /getBDDGraph) if the calculation is finished.
+                entry.addProperty("type", "existsWinningStrategy");
+                entry.addProperty("canonicalApt", canonicalApt);
+                entry.addProperty("calculationStatus", calculation.getStatus().toString());
+                entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
+                entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
+                if (calculation.getStatus() == FAILED) {
+                    entry.addProperty("failureReason", calculation.getFailedReason());
+                }
+                if (calculation.getStatus() == COMPLETED) {
+                    entry.addProperty("result", calculation.getResult());
+                }
+                result.add(entry);
+            }
+
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");

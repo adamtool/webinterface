@@ -29,7 +29,6 @@ import java.util.Set;
  */
 public class PetriGameAndMore {
     private final PetriGame petriGame;
-    private Optional<Boolean> existsWinningStrategy = Optional.empty();
     private Optional<PetriGame> strategyBDD = Optional.empty();
     private Optional<BDDGraph> graphStrategyBDD = Optional.empty();
 
@@ -87,16 +86,6 @@ public class PetriGameAndMore {
             }
         }
         return Adam.getAPT(petriGame);
-    }
-
-    public boolean calculateExistsWinningStrategy() throws SolvingException, ParseException, CouldNotFindSuitableConditionException, CalculationInterruptedException {
-        if (existsWinningStrategy.isPresent()) {
-            return existsWinningStrategy.get();
-        } else {
-            boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(this.petriGame);
-            this.existsWinningStrategy = Optional.of(existsWinningStrategy);
-            return existsWinningStrategy;
-        }
     }
 
     public JsonElement calculateStrategyBDD() throws ParseException, SolvingException, NoStrategyExistentException, CouldNotFindSuitableConditionException, CalculationInterruptedException {
