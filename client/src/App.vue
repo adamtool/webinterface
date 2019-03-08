@@ -102,6 +102,7 @@
                        v-on:renameNode='renameNode'
                        v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
                        v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                       v-on:fireTransition='fireTransition'
                        v-on:setInitialToken='setInitialToken'
                        v-on:setWinningCondition='setWinningCondition'
                        v-on:gotModelCheckingNet='gotModelCheckingNet'
@@ -405,6 +406,7 @@
           renameNode: this.baseUrl + '/renameNode',
           toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace',
           toggleIsInitialTokenFlow: this.baseUrl + '/toggleIsInitialTokenFlow',
+          fireTransition: this.baseUrl + '/fireTransition',
           setInitialToken: this.baseUrl + '/setInitialToken',
           setWinningCondition: this.baseUrl + '/setWinningCondition'
         }
@@ -833,6 +835,20 @@
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          logging.logError('Network error')
+        })
+      },
+      fireTransition: function (transitionId) {
+        console.log('firing transition with ID ' + transitionId)
+        axios.post(this.restEndpoints.fireTransition, {
+          petriGameId: this.petriGame.uuid,
+          transitionId: transitionId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            logging.sendSuccessNotification('Fired transition ' + transitionId)
             this.petriGame.net = response.data.result
           })
         }).catch(() => {

@@ -9,10 +9,7 @@ import static uniolunisaar.adamwebfrontend.CalculationStatus.FAILED;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import uniol.apt.adt.pn.Node;
-import uniol.apt.adt.pn.PetriNet;
-import uniol.apt.adt.pn.Place;
-import uniol.apt.adt.pn.Transition;
+import uniol.apt.adt.pn.*;
 import uniol.apt.io.parser.ParseException;
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
@@ -647,6 +644,20 @@ public class App {
 
             return successResponse(PetriNetD3.of(modelCheckingNet));
 
+        });
+
+        post("/fireTransition", (req, res) -> {
+            JsonObject body = parser.parse(req.body()).getAsJsonObject();
+            String gameId = body.get("petriGameId").getAsString();
+            String transitionId = body.get("transitionId").getAsString();
+
+            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+            PetriGame petriGame = petriGameAndMore.getPetriGame();
+            Transition transition = petriGame.getTransition(transitionId);
+            Marking initialMarking = petriGame.getInitialMarking();
+            Marking newInitialMarking = transition.fire(initialMarking);
+            petriGame.setInitialMarking(newInitialMarking);
+            return successResponse(petriGameAndMore.getPetriGameClient());
         });
 
         exception(Exception.class, (exception, request, response) -> {

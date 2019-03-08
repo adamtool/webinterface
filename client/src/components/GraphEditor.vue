@@ -173,15 +173,15 @@
 
 <script>
   import * as d3 from 'd3'
-  import { saveFileAs } from '../fileutilities'
-  import { layoutNodes } from '../autoLayout'
-  import { noOpImplementation } from '../modelCheckingRoutes'
-  import { pointOnRect, pointOnCircle } from '../shapeIntersections'
-  import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
+  import {saveFileAs} from '../fileutilities'
+  import {layoutNodes} from '../autoLayout'
+  import {noOpImplementation} from '../modelCheckingRoutes'
+  import {pointOnRect, pointOnCircle} from '../shapeIntersections'
+  import {rectanglePath, arcPath, loopPath, containingBorder} from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
-  import { chain } from 'lodash'
-  import { debounce } from 'underscore'
+  import {chain} from 'lodash'
+  import {debounce} from 'underscore'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
@@ -387,7 +387,7 @@
           if (this.selectedNodes.length > 1) {
             return this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
-            return this.contextMenuItemsNormal
+            return this.contextMenuItemsNormal.concat(this.contextMenuItemsTransition)
           } else {
             return this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
           }
@@ -418,6 +418,12 @@
             disabled: true // TODO implement this
           }
         ]
+      },
+      contextMenuItemsTransition: function () {
+        return [{
+          title: 'Fire transition',
+          action: this.fireTransition
+        }]
       },
       contextMenuItemsSelection: function () {
         return [
@@ -1084,6 +1090,9 @@
           this.ltlParseErrors = [error]
         }
       }, 200),
+      fireTransition: function (d) {
+        this.$emit('fireTransition', d.id)
+      },
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
       },
