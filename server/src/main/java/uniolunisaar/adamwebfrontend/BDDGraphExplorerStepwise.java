@@ -23,6 +23,8 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
     private final Set<BDDState> postsetExpandedStates;
     // States whose preset (parents) should be visible
     private final Set<BDDState> presetExpandedStates;
+    // States that we called getSuccessors() on already
+    private final Set<BDDState> expandedStates;
 
     public BDDGraphExplorerStepwise(PetriGame game) throws SolvingException {
         solver = AdamSynthesizer.getBDDSolver(
@@ -34,6 +36,7 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
         BDDState initialState = AdamSynthesizer.getInitialGraphGameState(bddGraph, solver);
         postsetExpandedStates = new HashSet<>();
         presetExpandedStates = new HashSet<>();
+        expandedStates = new HashSet<>();
     }
 
     private Set<BDDState> visibleStates() {
@@ -123,8 +126,11 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
             if (isStateExpanded) {
                 postsetExpandedStates.remove(state);
             } else {
-                getSuccessors(state);
                 postsetExpandedStates.add(state);
+                if (!expandedStates.contains(state)) {
+                    expandedStates.add(state);
+                    Pair<List<Flow>, List<BDDState>> successors = getSuccessors(state);
+                }
             }
         }
     }
