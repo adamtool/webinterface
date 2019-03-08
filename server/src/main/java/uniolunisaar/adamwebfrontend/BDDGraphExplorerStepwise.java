@@ -30,6 +30,7 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                 PetriNetD3.getObjectiveOfPetriNet(game).get(),
                 new BDDSolverOptions());
         bddGraph = new BDDGraph("My Graph");
+        solver.initialize();
         BDDState initialState = AdamSynthesizer.getInitialGraphGameState(bddGraph, solver);
         postsetExpandedStates = new HashSet<>();
         presetExpandedStates = new HashSet<>();
