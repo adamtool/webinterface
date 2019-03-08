@@ -289,7 +289,8 @@
     },
     data: function () {
       return {
-        showCalculationList: true, // True iff the modal dialog with the list of calculations is visible
+        showCalculationList: false,
+        // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
