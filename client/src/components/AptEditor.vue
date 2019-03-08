@@ -149,6 +149,21 @@
 
         return function restore () {
           var pos = getTextNodeAtPosition(context, len)
+          // TODO handle insertion of text at the start of the text field (edge case)
+          if (pos.endOfInputField) {
+            // Set cursor to the end of the text input field.  (edge case)
+            // Code borrowed from https://stackoverflow.com/a/3866442/7359454
+            range = document.createRange()
+            // Create a range (a range is a like the selection but invisible)
+            range.selectNodeContents(context)
+            // Select the entire contents of the element with the range
+            range.collapse(false) // collapse the range to the end point. false means collapse to end rather than the start
+            selection = window.getSelection() // get the selection object (allows you to change selection)
+            selection.removeAllRanges() // remove any selections already made
+            selection.addRange(range) // make the range you have just created the visible selection
+            return
+          }
+          // The caret will not be at the end of the input field
           selection.removeAllRanges()
           var range = new Range()
           range.setStart(pos.node, pos.position)
@@ -156,7 +171,9 @@
         }
 
         function getTextNodeAtPosition (root, index) {
+          let lastNode = null
           var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, function next (elem) {
+            lastNode = elem
             if (index >= elem.textContent.length) {
               index -= elem.textContent.length
               return NodeFilter.FILTER_REJECT
@@ -166,7 +183,8 @@
           var c = treeWalker.nextNode()
           return {
             node: c ? c : root,
-            position: c ? index : 0
+            position: c ? index : 0,
+            endOfInputField: c ? false : true
           }
         }
       }
