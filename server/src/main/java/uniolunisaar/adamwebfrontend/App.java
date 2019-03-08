@@ -27,6 +27,9 @@ import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
+import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
+import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolver;
+import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolverOptions;
 import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
@@ -191,6 +194,8 @@ public class App {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            boolean shouldSolveIncrementally =
+                    body.getAsJsonObject().get("incremental").getAsBoolean();
 
             // TODO Consider not putting PetriGame and everything together inside of
             //   PetriGameAndMore
@@ -209,9 +214,26 @@ public class App {
             // TODO What happens if you modify the petri game while this calculation is ongoing?
             // TODO Do I need to do something to stop that from happening?  -Ann
             System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
+            PetriGame game = petriGame.getPetriGame();
+            Optional<Condition.Objective> objective = PetriNetD3.getObjectiveOfPetriNet(game);
+            if (!objective.isPresent()) {
+                return errorResponse("No winning condition is present for the given Petri Game.");
+            }
             Calculation<BDDGraphExplorer> calculation = new Calculation<>(() -> {
-                BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame.getPetriGame());
-                return BDDGraphExplorer.of(graphGameBDD);
+                if (shouldSolveIncrementally) {
+                    BDDSolver<? extends Condition> solver = AdamSynthesizer.getBDDSolver(
+                            game,
+                            PetriNetD3.getObjectiveOfPetriNet(game).get(),
+                            new BDDSolverOptions());
+                    BDDGraph graph = new BDDGraph("My Graph");
+                    BDDState initialState = AdamSynthesizer.getInitialGraphGameState(graph, solver);
+                    AdamSynthesizer.getSuccessors(initialState, graph, solver);
+//                    return BDDGraphExplorerStepwise.of(game);
+                    return null;
+                } else {
+                    BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(game);
+                    return BDDGraphExplorer.of(graphGameBDD);
+                }
             });
             this.bddGraphsOfApts.put(canonicalApt, calculation);
             calculation.queue(executorService);
