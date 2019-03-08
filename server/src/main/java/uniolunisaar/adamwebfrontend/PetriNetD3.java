@@ -87,26 +87,39 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        boolean hasCondition = net.hasExtension(AdamExtensions.condition.name());
-        boolean hasWinningCondition = net.hasExtension(AdamExtensions.winningCondition.name());
-
-        if (hasCondition || hasWinningCondition) {
-            String condition = hasCondition ?
-                    (String) net.getExtension(AdamExtensions.condition.name()) :
-                    (String) net.getExtension(AdamExtensions.winningCondition.name());
-            Condition.Objective objective = Condition.Objective.valueOf(condition);
-
+        Optional<Condition.Objective> objectiveOfPetriNet = getObjectiveOfPetriNet(net);
+        if (objectiveOfPetriNet.isPresent()) {
+            Condition.Objective objective = objectiveOfPetriNet.get();
             boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
                     objective.equals(Condition.Objective.A_REACHABILITY) ||
                     objective.equals(Condition.Objective.A_SAFETY);
             String ltlFormula = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) : "";
-            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, condition, ltlFormula);
+            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objective.toString(),
+                    ltlFormula);
             return new Gson().toJsonTree(petriNetD3);
         } else {
             PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, "", "");
             return new Gson().toJsonTree(petriNetD3);
         }
     }
+
+    public static Optional<Condition.Objective> getObjectiveOfPetriNet(PetriNet net) {
+        Optional<String> winningCondition = getWinningConditionOfPetriNet(net);
+        return winningCondition.map(Condition.Objective::valueOf);
+    }
+
+    public static Optional<String> getWinningConditionOfPetriNet(PetriNet net) {
+        boolean hasCondition = net.hasExtension(AdamExtensions.condition.name());
+        boolean hasWinningCondition = net.hasExtension(AdamExtensions.winningCondition.name());
+         if (hasCondition || hasWinningCondition) {
+             String condition = hasCondition ?
+                     (String) net.getExtension(AdamExtensions.condition.name()) :
+                     (String) net.getExtension(AdamExtensions.winningCondition.name());
+             return Optional.of(condition);
+         }
+         return Optional.empty();
+    }
+
 
     /**
      * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
