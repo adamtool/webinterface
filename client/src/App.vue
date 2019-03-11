@@ -30,11 +30,14 @@
           <!--Have to use click.native so that the popup blocker isn't triggered-->
           <hsc-menu-item label="Load APT from file" @click.native="loadAptFromFile"/>
           <v-dialog
+            style="display: block;"
             v-model="showSaveAptModal"
-            width="500">
+            width="400">
             <template v-slot:activator="{ on }">
-              <!--TODO Why can't I use click.stop here?  Need to update Vue?-->
-              <hsc-menu-item label="Save APT to file" @click="showSaveAptModal = true"/>
+              <!--There is a delay here so that the click event doesn't immediately close the
+              modal after it is opened.-->
+              <hsc-menu-item label="Save APT to file"
+                             @click="this.setTimeout(() => showSaveAptModal = true, 50)"/>
             </template>
             <v-card>
               <v-card-title
@@ -46,7 +49,7 @@
                   v-model="aptFilename"
                   label="Filename">
                 </v-text-field>
-                <v-btn @click="saveAptToFile">
+                <v-btn @click="saveAptToFile(); showSaveAptModal = false">
                   Save APT
                 </v-btn>
               </v-card-text>
@@ -314,7 +317,7 @@
     data: function () {
       return {
         aptFilename: 'apt.txt',
-        showSaveAptModal: true,
+        showSaveAptModal: false,
         showCalculationList: false,
         // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
