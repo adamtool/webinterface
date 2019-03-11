@@ -29,7 +29,28 @@
         <hsc-menu-bar-item label="File">
           <!--Have to use click.native so that the popup blocker isn't triggered-->
           <hsc-menu-item label="Load APT from file" @click.native="loadAptFromFile"/>
-          <hsc-menu-item label="Save APT to file" @click="saveAptToFile"/>
+          <v-dialog
+            v-model="showSaveAptModal"
+            width="500">
+            <template v-slot:activator="{ on }">
+              <hsc-menu-item label="Save APT to file" @click="showSaveAptModal = true"/>
+            </template>
+            <v-card>
+              <v-card-title
+                primary-title>
+                Save APT
+              </v-card-title>
+              <v-card-text>
+                <v-text-field
+                  v-model="aptFilename"
+                  label="Filename">
+                </v-text-field>
+                <v-btn @click="saveAptToFile">
+                  Save APT
+                </v-btn>
+              </v-card-text>
+            </v-card>
+          </v-dialog>
           <hsc-menu-item label="Save Petri Game SVG to file" @click="saveSvgToFilePetriGame"/>
           <hsc-menu-item label="Save Strategy BDD SVG to file" @click="saveSvgToFileStrategyBDD"
                          v-if="strategyBDD"/>
@@ -291,6 +312,8 @@
     },
     data: function () {
       return {
+        aptFilename: 'apt.txt',
+        showSaveAptModal: true,
         showCalculationList: false,
         // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
@@ -504,7 +527,7 @@
         document.getElementById('file-picker').click()
       },
       saveAptToFile: function () {
-        this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, 'apt.txt'))
+        this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
       },
       saveSvgToFilePetriGame: function () {
         this.$refs.graphEditorPetriGame.saveGraph()
