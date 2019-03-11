@@ -33,6 +33,7 @@
             v-model="showSaveAptModal"
             width="500">
             <template v-slot:activator="{ on }">
+              <!--TODO Why can't I use click.stop here?  Need to update Vue?-->
               <hsc-menu-item label="Save APT to file" @click="showSaveAptModal = true"/>
             </template>
             <v-card>
