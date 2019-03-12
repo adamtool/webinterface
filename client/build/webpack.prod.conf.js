@@ -7,14 +7,14 @@ var baseWebpackConfig = require('./webpack.base.conf')
 var CopyWebpackPlugin = require('copy-webpack-plugin')
 var HtmlWebpackPlugin = require('html-webpack-plugin')
 var OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
+var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 var env = process.env.NODE_ENV === 'testing'
   ? require('../config/test.env')
   : config.build.env
 
 var webpackConfig = merge(baseWebpackConfig, {
-  module: {
-  },
+  module: {},
   devtool: config.build.productionSourceMap ? '#source-map' : false,
   mode: 'production',
   output: {
@@ -52,6 +52,12 @@ var webpackConfig = merge(baseWebpackConfig, {
       },
       // necessary to consistently work with multiple chunks via CommonsChunkPlugin
       chunksSortMode: 'dependency'
+    }),
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      reportFilename: 'webpackBundleAnalyzerPluginReport.html',
+      openAnalyzer: false,
+      logLevel: 'warn'
     }),
     // copy custom static assets
     new CopyWebpackPlugin([
