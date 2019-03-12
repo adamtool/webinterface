@@ -44,11 +44,15 @@
         required: true
       },
       aptParseErrorLineNumber: {
-        type: Number,
+        validator: function (value) {
+          return typeof value === 'number' || value === undefined
+        },
         required: true
       },
       aptParseErrorColumnNumber: {
-        type: Number,
+        validator: function (value) {
+          return typeof value === 'number' || value === undefined
+        },
         required: true
       }
     },
