@@ -607,6 +607,7 @@
         this.$refs.graphEditorPetriGame.getModelCheckingNet()
       },
       existsWinningStrategy: function () {
+        logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')
         axios.post(this.restEndpoints.existsWinningStrategy, {
           petriGameId: this.petriGame.uuid
         }).then(response => {
