@@ -5,9 +5,7 @@ ADAM Web exposes functionalities provided by the library ADAM (Analyzer of Distr
 Models) by Bernd Finkbeiner, Manuel Gieseking and Ernst-Rüdinger Olderog.  https://uol.de/csd/adam/
 
 ADAM Web uses open source components.  You can find the source code of their open source projects
-along with license information below.  We acknowledge and are grateful to these developers for their
-contributions to open source.
+along with license information below.
 
-Vue-Menu
-Vue-Window
-
+TODO Use npm-license-crawler to generate this automatically
+https://www.npmjs.com/package/npm-license-crawler
