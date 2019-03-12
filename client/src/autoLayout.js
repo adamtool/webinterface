@@ -1,7 +1,5 @@
 // Use Cytoscape's cose layout to lay out nodes in an aesthetically pleasing way
-import coseBilkent from 'cytoscape-cose-bilkent'
 const cytoscape = require('cytoscape')
-cytoscape.use(coseBilkent)
 
 export {
   layoutNodes

@@ -21,7 +21,6 @@
     "bootstrap-vue": "^0.18.0",
     "css-element-queries": "^1.0.2",
     "cytoscape": "^3.2.9",
-    "cytoscape-cose-bilkent": "^4.0.0",
     "d3": "^4.10.0",
     "d3-context-menu": "^1.0.2",
     "date-fns": "^1.29.0",
