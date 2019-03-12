@@ -208,7 +208,6 @@
   import LogViewer from './components/LogViewer'
   import CalculationList from './components/CalculationList'
   import Vue from 'vue'
-  import BootstrapVue from 'bootstrap-vue'
   import * as axios from 'axios'
   import {Tabs, Tab} from 'vue-tabs-component'
   import './tabs-component.css'
@@ -232,9 +231,6 @@
   Vue.component('tabs', Tabs)
   Vue.component('tab', Tab)
 
-  Vue.use(BootstrapVue)
-  import 'bootstrap/dist/css/bootstrap.css'
-  import 'bootstrap-vue/dist/bootstrap-vue.css'
   import aptExampleLtl from './somewhatSmallExampleLtl.apt'
   import aptExampleDistributedSynthesis from './somewhatSmallExampleNotLtl.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
