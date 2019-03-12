@@ -188,9 +188,6 @@
 
   import logging from '../logging'
 
-  // Polyfill for IntersectionObserver API.  Used to detect whether graph is visible or not.
-  require('intersection-observer')
-
   export default {
     name: 'graph-editor',
     components: {},
