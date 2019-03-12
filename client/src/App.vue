@@ -180,6 +180,7 @@
         </v-tab-item>
         <v-tab-item v-if="modelCheckingNet">
           <GraphEditor :graph="modelCheckingNet"
+                       :petriGameId='petriGame.uuid'
                        :shouldShowPhysicsControls="showPhysicsControls"/>
         </v-tab-item>
       </v-tabs>
