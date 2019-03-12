@@ -180,7 +180,6 @@
   import {rectanglePath, arcPath, loopPath, containingBorder} from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
-  import {chain} from 'lodash'
   import {debounce} from 'underscore'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
@@ -748,14 +747,14 @@
         return {
           'start': node => {
             isSelectionDrag = this.selectedNodes.includes(node)
+            // Save the place where we started and the start position of each node.
+            // We will use this later to implement a multi-drag-drop that works in all browsers.
             dragStartX = d3.event.x
             dragStartY = d3.event.y
-            // Clever way to turn an array into a map.
-            // See https://codereview.stackexchange.com/questions/57614/convert-object-array-to-hash-map-using-lodash#answer-84028
-            nodeStartPositions = chain(this.selectedNodes)
-              .keyBy('id')
-              .mapValues(node => ({x: node.x, y: node.y}))
-              .value()
+            nodeStartPositions = {}
+            this.selectedNodes.forEach(selectedNode => {
+              nodeStartPositions[selectedNode.id] = { x: selectedNode.x, y: selectedNode.y }
+            })
 
             // Freeze the node that is being dragged.
             node.fx = node.x
