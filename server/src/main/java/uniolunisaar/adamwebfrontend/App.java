@@ -47,6 +47,9 @@ public class App {
     // Store the results of "existsWinningStrategy"
     private final Map<String, Calculation<Boolean>> existsWinningStrategyOfApts =
             new ConcurrentHashMap<>();
+    // Store the results of "getStrategyBdd"
+    private final Map<String, Calculation<PetriGame>> strategyBddsOfApts =
+            new ConcurrentHashMap<>();
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -105,6 +108,7 @@ public class App {
             return responseJson.toString();
         });
 
+
         post("/existsWinningStrategy", (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
@@ -160,14 +164,45 @@ public class App {
             String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
             PetriGameAndMore petriGame = getPetriGame(petriGameId);
-            System.out.println("Calculating strategy BDD for PetriGame id#" + petriGameId);
-            JsonElement strategyBDDJson = petriGame.calculateStrategyBDD();
 
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("strategyBDD", strategyBDDJson);
-            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
-            return responseJson.toString();
+            String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+            if (this.strategyBddsOfApts.containsKey(canonicalApt)) {
+                return errorResponse("There is already a Calculation queued up to find the " +
+                        "winning strategy of the Petri Game with the given APT.  Its status: " +
+                        this.strategyBddsOfApts.get(canonicalApt).getStatus());
+            }
+            PetriGame game = petriGame.getPetriGame();
+            Calculation<PetriGame> calculation = new Calculation<>(() -> {
+                PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(game);
+                PetriGameAndMore.removeXAndYCoordinates(strategyBDD);
+                return strategyBDD;
+            });
+            this.strategyBddsOfApts.put(canonicalApt, calculation);
+            calculation.queue(executorService);
+
+            try {
+                // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
+                //  error handling from /getGraphBDD))
+                PetriGame result = calculation.getResult(5, TimeUnit.SECONDS);
+                JsonObject responseJson = new JsonObject();
+                responseJson.addProperty("status", "success");
+                responseJson.addProperty("message", "The calculation of the " +
+                        "winning strategy is finished.");
+                responseJson.addProperty("canonicalApt", canonicalApt);
+                responseJson.addProperty("calculationComplete", true);
+                responseJson.add("strategyBDD", PetriNetD3.of(result));
+                responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+                return responseJson.toString();
+            } catch (TimeoutException e) {
+                JsonObject responseJson = new JsonObject();
+                responseJson.addProperty("status", "success");
+                responseJson.addProperty("message", "The calculation of the winning " +
+                        "strategy is taking more than five seconds.  It will run in the " +
+                        "background.");
+                responseJson.addProperty("canonicalApt", canonicalApt);
+                responseJson.addProperty("calculationComplete", false);
+                return responseJson.toString();
+            }
         });
 
         // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.

@@ -55,7 +55,7 @@ public class PetriGameAndMore {
      * X/Y coordinate annotations from a Strategy BDD before sending it to the client.
      * @param strategyBDD
      */
-    private static void removeXAndYCoordinates(PetriGame strategyBDD) {
+    public static void removeXAndYCoordinates(PetriGame strategyBDD) {
         Set<Node> nodes = strategyBDD.getNodes();
         for (Node node : nodes) {
             if (strategyBDD.hasXCoord(node)) {
@@ -86,18 +86,6 @@ public class PetriGameAndMore {
             }
         }
         return Adam.getAPT(petriGame);
-    }
-
-    public JsonElement calculateStrategyBDD() throws ParseException, SolvingException, NoStrategyExistentException, CouldNotFindSuitableConditionException, CalculationInterruptedException {
-        PetriGame strategyBDD;
-        if (this.strategyBDD.isPresent()) {
-            strategyBDD = this.strategyBDD.get();
-        } else {
-            strategyBDD = AdamSynthesizer.getStrategyBDD(this.petriGame);
-            removeXAndYCoordinates(strategyBDD);
-            this.strategyBDD = Optional.of(strategyBDD);
-        }
-        return PetriNetD3.of(strategyBDD);
     }
 
     public JsonElement calculateGraphStrategyBDD() throws ParseException, SolvingException, NoStrategyExistentException, CouldNotFindSuitableConditionException, CalculationInterruptedException {

@@ -634,15 +634,25 @@
       getStrategyBDD: function () {
         this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
+        logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
         axios.post(this.restEndpoints.getStrategyBDD, {
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.strategyBDD = response.data.strategyBDD
-            this.strategyBDD.uuid = uuid
-            // We expect an updated petriGame here because there might have been partition annotations added.
-            this.petriGame.net = response.data.petriGame
-            this.switchToStrategyBDDTab()
+            // Load the strategy BDD if it is finished within 5-10 seconds.  Otherwise just show a message
+            if (response.data.calculationComplete) {
+              this.strategyBDD = response.data.strategyBDD
+              this.strategyBDD.uuid = uuid
+              // We expect an updated petriGame here because there might have been partition annotations added.
+              this.petriGame.net = response.data.petriGame
+              this.switchToStrategyBDDTab()
+              this.apt = response.data.canonicalApt
+              logging.sendSuccessNotification(response.data.message)
+            } else {
+              // The message from server will explain that the calculation has been enqueued.
+              // TODO Provide a notification after it is finished
+              logging.sendSuccessNotification(response.data.message)
+            }
           })
         }).catch(() => {
           logging.logError('Network error in getStrategyBDD')
