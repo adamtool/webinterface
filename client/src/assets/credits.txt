@@ -1,0 +1,13 @@
+ADAM Web was developed by Ann Yanich under the supervision of Manuel Gieseking in the department
+Entwicklung korrekter Systeme [Correct System Design] at the Universität Oldenburg.
+
+ADAM Web exposes functionalities provided by the library ADAM (Analyzer of Distributed Asynchronous
+Models) by Bernd Finkbeiner, Manuel Gieseking and Ernst-Rüdinger Olderog.  https://uol.de/csd/adam/
+
+ADAM Web uses open source components.  You can find the source code of their open source projects
+along with license information below.  We acknowledge and are grateful to these developers for their
+contributions to open source.
+
+Vue-Menu
+Vue-Window
+
