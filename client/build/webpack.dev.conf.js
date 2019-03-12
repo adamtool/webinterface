@@ -4,6 +4,7 @@ var config = require('../config')
 var merge = require('webpack-merge')
 var baseWebpackConfig = require('./webpack.base.conf')
 var HtmlWebpackPlugin = require('html-webpack-plugin')
+var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 var FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
 var devConfig = merge(baseWebpackConfig, {
@@ -25,7 +26,8 @@ var devConfig = merge(baseWebpackConfig, {
       template: 'index.html',
       inject: true
     }),
-    new FriendlyErrorsPlugin()
+    new FriendlyErrorsPlugin(),
+    new BundleAnalyzerPlugin()
   ]
 })
 

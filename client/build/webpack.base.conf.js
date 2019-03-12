@@ -2,7 +2,6 @@ var path = require('path')
 var utils = require('./utils')
 var config = require('../config')
 var DirectoryTreePlugin = require('directory-tree-webpack-plugin')
-var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 var VueLoaderPlugin = require('vue-loader/lib/plugin')
 var MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
@@ -34,7 +33,6 @@ module.exports = {
       path: './src/assets/apt-examples.json',
       extensions: /\.apt/
     }),
-    new BundleAnalyzerPlugin(),
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: 'style.css'
