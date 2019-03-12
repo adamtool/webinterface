@@ -8,7 +8,6 @@ var FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
 var devConfig = merge(baseWebpackConfig, {
   module: {
-    rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap })
   },
   // cheap-module-eval-source-map is faster for development
   devtool: '#eval-source-map',
