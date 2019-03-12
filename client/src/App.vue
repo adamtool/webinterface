@@ -209,8 +209,6 @@
   import CalculationList from './components/CalculationList'
   import Vue from 'vue'
   import * as axios from 'axios'
-  import {Tabs, Tab} from 'vue-tabs-component'
-  import './tabs-component.css'
   import {debounce} from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
@@ -227,9 +225,6 @@
   import * as VueWindow from '@hscmap/vue-window'
 
   Vue.use(VueWindow)
-
-  Vue.component('tabs', Tabs)
-  Vue.component('tab', Tab)
 
   import aptExampleLtl from './somewhatSmallExampleLtl.apt'
   import aptExampleDistributedSynthesis from './somewhatSmallExampleNotLtl.apt'
