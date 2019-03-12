@@ -10,7 +10,7 @@
       <th>Action</th>
     </tr>
     <tr v-for="listing in calculationListings"
-        :key="listing.canonicalApt">
+        :key="`${listing.canonicalApt}%${listing.type}`">
       <td>{{ listing.canonicalApt.split('\n')[0] }}</td>
       <td>{{ listing.type }}</td>
       <td>{{ formatDate(listing.timeStarted) }}</td>
