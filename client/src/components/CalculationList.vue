@@ -16,6 +16,7 @@
       <td>{{ formatDate(listing.timeStarted) }}</td>
       <td>{{ formatDate(listing.timeFinished) }}</td>
 
+      <!--Status column-->
       <template v-if="listing.calculationStatus === 'FAILED'">
         <v-tooltip bottom>
           <template #activator="data">
@@ -36,8 +37,13 @@
         <td>{{ listing.calculationStatus }}</td>
       </template>
 
+      <!--Button to load the result of a calculation or cancel a pending calculation-->
       <td v-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Graph Game BDD'">
         <button @click="$emit('loadGraphGameBdd', listing.canonicalApt)">Load</button>
+      </td>
+      <td
+        v-else-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Winning Strategy'">
+        <button @click="$emit('loadWinningStrategy', listing.canonicalApt)">Load</button>
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.calculationStatus)">
         <button>Cancel</button>

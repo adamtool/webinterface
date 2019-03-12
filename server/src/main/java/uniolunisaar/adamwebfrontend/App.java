@@ -325,6 +325,22 @@ public class App {
                 result.add(entry);
             }
 
+            for (String canonicalApt : this.strategyBddsOfApts.keySet()) {
+                Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
+                JsonObject entry = new JsonObject();
+                // This canonicalApt String can be used as a key to access the result of the
+                // calculation (e.g. via /getBDDGraph) if the calculation is finished.
+                entry.addProperty("type", "Winning Strategy");
+                entry.addProperty("canonicalApt", canonicalApt);
+                entry.addProperty("calculationStatus", calculation.getStatus().toString());
+                entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
+                entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
+                if (calculation.getStatus() == FAILED) {
+                    entry.addProperty("failureReason", calculation.getFailedReason());
+                }
+                result.add(entry);
+            }
+
 
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
@@ -363,6 +379,39 @@ public class App {
             responseJson.addProperty("status", "success");
             responseJson.add("bddGraph", bddGraph);
             return responseJson.toString();
+        });
+
+        // Load the winning strategy (strategy BDD) of a Petri Game that has been calculated
+        post("/loadWinningStrategy", (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+
+            if (!this.strategyBddsOfApts.containsKey(canonicalApt)) {
+                return errorResponse("No winning strategy has been calculated yet for the Petri " +
+                        "Game with the given APT representation: \n" + canonicalApt);
+            }
+            Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
+            if (!calculation.isFinished()) {
+                return errorResponse("The calculation of that winning strategy is not yet " +
+                        "finished.  Its status: " + calculation.getStatus());
+            }
+            PetriGame strategyBdd;
+            try {
+                strategyBdd = calculation.getResult();
+            } catch (InterruptedException e) {
+                return errorResponse("The calculation for that winning strategy got canceled.");
+            } catch (ExecutionException e) {
+                return errorResponse("The calculation for that winning strategy failed with the " +
+                        "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+            }
+
+            JsonElement strategyBddJson = PetriNetD3.of(strategyBdd);
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("strategyBDD", strategyBddJson);
+            return responseJson.toString();
+
         });
 
         post("/cancelBDDGraph", (req, res) -> {

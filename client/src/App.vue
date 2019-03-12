@@ -5,7 +5,8 @@
               :persistent="false">
       <CalculationList :calculationListings="availableBDDGraphListings"
                        style="background-color: white;"
-                       @loadGraphGameBdd="loadGraphGameBdd"/>
+                       @loadGraphGameBdd="loadGraphGameBdd"
+                       @loadWinningStrategy="loadWinningStrategy"/>
     </v-dialog>
     <v-snackbar
       :timeout="6000"
@@ -418,6 +419,7 @@
         return {
           existsWinningStrategy: this.baseUrl + '/existsWinningStrategy',
           getStrategyBDD: this.baseUrl + '/getStrategyBDD',
+          loadWinningStrategy: this.baseUrl + '/loadWinningStrategy',
           getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
           calculateGraphGameBDD: this.baseUrl + '/calculateGraphGameBDD',
           getListOfCalculations: this.baseUrl + '/getListOfCalculations',
@@ -697,6 +699,22 @@
               this.graphGameCanonicalApt = canonicalApt
               this.switchToGraphGameBDDTab()
               logging.sendSuccessNotification('Loaded Graph Game BDD')
+          }
+        })
+      },
+      loadWinningStrategy: function (canonicalApt) {
+        axios.post(this.restEndpoints.loadWinningStrategy, {
+          canonicalApt: canonicalApt
+        }).then(response => {
+          switch (response.data.status) {
+            case 'error':
+              logging.sendErrorNotification(response.data.message)
+              break
+            case 'success':
+              this.apt = canonicalApt
+              this.strategyBDD = response.data.strategyBDD
+              this.switchToStrategyBDDTab()
+              logging.sendSuccessNotification('Loaded Winning Strategy')
           }
         })
       },
