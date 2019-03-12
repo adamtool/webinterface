@@ -4,6 +4,7 @@ var config = require('../config')
 var vueLoaderConfig = require('./vue-loader.conf')
 var DirectoryTreePlugin = require('directory-tree-webpack-plugin')
 var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+var VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -33,7 +34,8 @@ module.exports = {
       path: './src/assets/apt-examples.json',
       extensions: /\.apt/
     }),
-    new BundleAnalyzerPlugin()
+    new BundleAnalyzerPlugin(),
+    new VueLoaderPlugin()
   ],
   module: {
     rules: [
@@ -48,8 +50,9 @@ module.exports = {
       },
       {
         test: /\.vue$/,
-        loader: 'vue-loader',
-        options: vueLoaderConfig
+        loader: 'vue-loader'
+        // ,
+        // options: vueLoaderConfig
       },
       {
         test: /\.js$/,

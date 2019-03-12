@@ -12,5 +12,5 @@ new Vue({
   router,
   // Use relative URLs for server requests
   template: '<MainRouterView/>',
-  components: {MainRouterView}
+  components: { MainRouterView }
 })
