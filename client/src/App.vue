@@ -35,10 +35,8 @@
             v-model="showSaveAptModal"
             width="400">
             <template v-slot:activator="{ on }">
-              <!--There is a delay here so that the click event doesn't immediately close the
-              modal after it is opened.-->
               <hsc-menu-item label="Save APT to file"
-                             @click="this.setTimeout(() => showSaveAptModal = true, 50)"/>
+                             @click="onClickSaveApt"/>
             </template>
             <v-card>
               <v-card-title
@@ -465,6 +463,11 @@
       }
     },
     methods: {
+      onClickSaveApt: function () {
+        // There is a delay here so that the click event doesn't immediately close the
+        // modal after it is opened.
+        setTimeout(() => this.showSaveAptModal = true, 50)
+      },
       createHorizontalSplit: function () {
         const split = Split(['#splitLeftSide', '#splitRightSide'], {
           sizes: this.horizontalSplitSizes,
