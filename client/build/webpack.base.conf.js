@@ -3,6 +3,7 @@ var utils = require('./utils')
 var config = require('../config')
 var vueLoaderConfig = require('./vue-loader.conf')
 var DirectoryTreePlugin = require('directory-tree-webpack-plugin')
+var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -31,7 +32,8 @@ module.exports = {
       dir: './src/assets/apt-examples',
       path: './src/assets/apt-examples.json',
       extensions: /\.apt/
-    })
+    }),
+    new BundleAnalyzerPlugin()
   ],
   module: {
     rules: [
