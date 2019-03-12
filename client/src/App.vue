@@ -247,7 +247,7 @@
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  const moment = require('moment')
+  import { format } from 'date-fns'
 
   export default {
     name: 'app',
@@ -991,7 +991,7 @@
         }
       },
       showNotification: function (message, color) {
-        const timeStamp = moment().format('LTS') // HH:MM:SS.  Also adds PM / AM if appropriate based on browser locale
+        const timeStamp = format(new Date(), 'HH:mm:ss')
         this.notificationMessage = timeStamp + ' ' + message
         this.notificationColor = color
       }

@@ -54,7 +54,7 @@
 </template>
 
 <script>
-  const moment = require('moment')
+  import { format } from 'date-fns'
   export default {
     name: 'CalculationList',
     props: {
@@ -64,12 +64,12 @@
       }
     },
     methods: {
-      moment,
       formatDate (secondsSinceUnixEpoch) {
         if (secondsSinceUnixEpoch === 0) {
           return '-'
         }
-        return moment.unix(secondsSinceUnixEpoch).format('LTS') // You can add 'MMM Do' to get month and day
+        return format(secondsSinceUnixEpoch * 1000, 'HH:mm:ss')
+        // You can add 'MMM Do' to get month and day
       }
     }
   }
