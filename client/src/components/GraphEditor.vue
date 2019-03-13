@@ -243,7 +243,7 @@
         },
         winningCondition: '',
         selectedWinningCondition: '',
-        ltlFormula: 'hello', // The LTL formula corresponding to our winning condition
+        ltlFormula: '', // The LTL formula corresponding to our winning condition
         ltlParseErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
         ltlParseStatus: 'success',
         drawTokenFlowPreviewLinks: [],
