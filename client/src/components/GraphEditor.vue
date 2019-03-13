@@ -1811,7 +1811,7 @@
         this.winningCondition = graphJsonCopy.winningCondition
         // There is only a ltlFormula sent from server to client iff winningCondition != LTL.
         // (Other winning conditions get translated to LTL formulas using  e.g. AdamModelChecker.toFlowLTLFormula.)
-        if (graphJsonCopy.ltlFormula !== '') {
+        if (typeof graphJsonCopy.ltlFormula === 'string' && graphJsonCopy.ltlFormula !== '') {
           this.ltlFormula = graphJsonCopy.ltlFormula
         }
         const newLinks = graphJsonCopy.links
