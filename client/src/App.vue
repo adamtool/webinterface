@@ -2,7 +2,8 @@
   <v-app absolute id='app'>
     <v-dialog v-model="showCalculationList"
               :hide-overlay="false"
-              :persistent="false">
+              :persistent="false"
+              @keydown.esc="showCalculationList = false">
       <CalculationList :calculationListings="availableBDDGraphListings"
                        style="background-color: white;"
                        @loadGraphGameBdd="loadGraphGameBdd"
@@ -33,7 +34,8 @@
           <v-dialog
             style="display: block;"
             v-model="showSaveAptModal"
-            width="400">
+            width="400"
+            @keydown.esc="showSaveAptModal = false">
             <template v-slot:activator="{ on }">
               <hsc-menu-item label="Save APT to file"
                              @click="onClickSaveApt"/>
@@ -238,7 +240,7 @@
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
 
   export default {
     name: 'app',
