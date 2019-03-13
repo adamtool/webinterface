@@ -5,7 +5,15 @@
               :persistent="false"
               @keydown.esc="showCalculationList = false">
       <v-card>
-        <v-card-title>Calculations run/running/queued on the server</v-card-title>
+        <v-card-title
+          primary-title
+          style="justify-content: space-between;">
+          <span>Calculations run/running/queued on the server</span>
+          <v-icon standard right
+                  @click="showCalculationList = false">
+            close
+          </v-icon>
+        </v-card-title>
         <v-card-text>
           <CalculationList :calculationListings="availableBDDGraphListings"
                            style="background-color: white;"
@@ -1154,5 +1162,9 @@
     margin-top: 5px;
     margin-bottom: 5px;
     cursor: ns-resize;
+  }
+
+  .v-card__title {
+    font-size: 18px;
   }
 </style>
