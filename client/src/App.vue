@@ -320,7 +320,7 @@
     data: function () {
       return {
         aptFilename: 'apt.txt',
-        showSaveAptModal: true,
+        showSaveAptModal: false,
         showCalculationList: false,
         // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
