@@ -2,11 +2,17 @@
   <v-app absolute id='app'>
     <v-dialog v-model="showCalculationList"
               :hide-overlay="false"
-              :persistent="false">
-      <CalculationList :calculationListings="availableBDDGraphListings"
-                       style="background-color: white;"
-                       @loadGraphGameBdd="loadGraphGameBdd"
-                       @loadWinningStrategy="loadWinningStrategy"/>
+              :persistent="false"
+              @keydown.esc="showCalculationList = false">
+      <v-card>
+        <v-card-title>Calculations run/running/queued on the server</v-card-title>
+        <v-card-text>
+          <CalculationList :calculationListings="availableBDDGraphListings"
+                           style="background-color: white;"
+                           @loadGraphGameBdd="loadGraphGameBdd"
+                           @loadWinningStrategy="loadWinningStrategy"/>
+        </v-card-text>
+      </v-card>
     </v-dialog>
     <v-snackbar
       :timeout="6000"
@@ -33,15 +39,21 @@
           <v-dialog
             style="display: block;"
             v-model="showSaveAptModal"
-            width="400">
+            width="400"
+            @keydown.esc="showSaveAptModal = false">
             <template v-slot:activator="{ on }">
               <hsc-menu-item label="Save APT to file"
                              @click="onClickSaveApt"/>
             </template>
             <v-card>
               <v-card-title
-                primary-title>
-                Save APT
+                primary-title
+                style="justify-content: space-between;">
+                <span>Save APT</span>
+                <v-icon standard right
+                        @click="showSaveAptModal = false">
+                  close
+                </v-icon>
               </v-card-title>
               <v-card-text>
                 <v-text-field
@@ -238,7 +250,7 @@
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
 
   export default {
     name: 'app',
@@ -308,7 +320,7 @@
     data: function () {
       return {
         aptFilename: 'apt.txt',
-        showSaveAptModal: false,
+        showSaveAptModal: true,
         showCalculationList: false,
         // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
