@@ -42,8 +42,13 @@
             </template>
             <v-card>
               <v-card-title
-                primary-title>
-                Save APT
+                primary-title
+                style="justify-content: space-between;">
+                <span>Save APT</span>
+                <v-icon standard right
+                        @click="showSaveAptModal = false">
+                  close
+                </v-icon>
               </v-card-title>
               <v-card-text>
                 <v-text-field
@@ -310,7 +315,7 @@
     data: function () {
       return {
         aptFilename: 'apt.txt',
-        showSaveAptModal: false,
+        showSaveAptModal: true,
         showCalculationList: false,
         // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
