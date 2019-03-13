@@ -36,8 +36,8 @@
             </button>
             <button style="display: none;" v-on:click="updateD3">Update D3</button>
             <button v-on:click="freezeAllNodes">Freeze all nodes</button>
-            <button class="btn-danger" v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
-            <button class="btn-danger" v-on:click="deleteSelectedNodes"
+            <button v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
+            <button v-on:click="deleteSelectedNodes"
                     v-if="showEditorTools">Delete selected nodes
             </button>
             <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
