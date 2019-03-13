@@ -254,7 +254,8 @@ public class App {
             }
             Calculation<BDDGraphExplorer> calculation = new Calculation<>(() -> {
                 if (shouldSolveStepwise) {
-                    return new BDDGraphExplorerStepwise(game);
+                    BDDGraphExplorerStepwise bddGraphExplorerStepwise = new BDDGraphExplorerStepwise(game);
+                    return bddGraphExplorerStepwise;
                 } else {
                     BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(game);
                     return BDDGraphExplorerCompleteGraph.of(graphGameBDD);

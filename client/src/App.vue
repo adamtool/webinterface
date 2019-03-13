@@ -718,7 +718,7 @@
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
         axios.post(this.restEndpoints.calculateGraphGameBDD, {
           petriGameId: uuid,
-          incremental: false
+          incremental: true
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Load the graph game BDD if it is finished within 5-10 seconds.  Otherwise just show a message
