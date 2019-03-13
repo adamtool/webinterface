@@ -4,10 +4,15 @@
               :hide-overlay="false"
               :persistent="false"
               @keydown.esc="showCalculationList = false">
-      <CalculationList :calculationListings="availableBDDGraphListings"
-                       style="background-color: white;"
-                       @loadGraphGameBdd="loadGraphGameBdd"
-                       @loadWinningStrategy="loadWinningStrategy"/>
+      <v-card>
+        <v-card-title>Calculations run/running/queued on the server</v-card-title>
+        <v-card-text>
+          <CalculationList :calculationListings="availableBDDGraphListings"
+                           style="background-color: white;"
+                           @loadGraphGameBdd="loadGraphGameBdd"
+                           @loadWinningStrategy="loadWinningStrategy"/>
+        </v-card-text>
+      </v-card>
     </v-dialog>
     <v-snackbar
       :timeout="6000"
