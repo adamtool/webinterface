@@ -413,6 +413,7 @@
           getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
           calculateGraphGameBDD: this.baseUrl + '/calculateGraphGameBDD',
           getListOfCalculations: this.baseUrl + '/getListOfCalculations',
+          getBDDGraph: this.baseUrl + '/getBDDGraph',
           toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
           toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
           savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
@@ -680,9 +681,7 @@
       },
       // Load the Graph Game BDD corresponding to the given canonical APT string
       loadGraphGameBdd: function (canonicalApt) {
-        // TODO Use relative URL for non-development
-        // TODO (Refactor this.restEndpoints to be less annoying to work with / more DRY)
-        axios.post('http://localhost:4567/getBDDGraph', {
+        axios.post(this.restEndpoints.getBDDGraph, {
           canonicalApt: canonicalApt
         }).then(response => {
           switch (response.data.status) {
