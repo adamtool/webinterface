@@ -1,0 +1,86 @@
+{
+    "@babel/runtime@7.3.4": {
+        "licenses": "MIT",
+        "repository": "https://github.com/babel/babel/tree/master/packages/babel-runtime",
+        "licenseUrl": "https://github.com/babel/babel/tree/master/packages/babel-runtime/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "@hscmap/vue-menu@1.5.0": {
+        "licenses": "MIT",
+        "repository": "https://github.com/michitaro/vue-menu",
+        "licenseUrl": "https://github.com/michitaro/vue-menu/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "@hscmap/vue-window@2.4.1": {
+        "licenses": "MIT",
+        "repository": "https://github.com/michitaro/vue-window",
+        "licenseUrl": "https://github.com/michitaro/vue-window/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "axios@0.16.2": {
+        "licenses": "MIT",
+        "repository": "https://github.com/mzabriskie/axios",
+        "licenseUrl": "https://github.com/mzabriskie/axios/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "css-element-queries@1.1.1": {
+        "licenses": "MIT",
+        "repository": "https://github.com/marcj/css-element-queries",
+        "licenseUrl": "https://github.com/marcj/css-element-queries/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "cytoscape@3.5.0": {
+        "licenses": "MIT",
+        "repository": "https://github.com/cytoscape/cytoscape.js",
+        "licenseUrl": "https://github.com/cytoscape/cytoscape.js/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "d3-context-menu@1.1.0": {
+        "licenses": "MIT",
+        "repository": "https://github.com/patorjk/d3-context-menu",
+        "licenseUrl": "https://github.com/patorjk/d3-context-menu/raw/master/LICENSE.txt",
+        "parents": "adamfe-vue"
+    },
+    "d3@4.13.0": {
+        "licenses": "BSD-3-Clause",
+        "repository": "https://github.com/d3/d3",
+        "licenseUrl": "https://github.com/d3/d3/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "date-fns@1.30.1": {
+        "licenses": "MIT",
+        "repository": "https://github.com/date-fns/date-fns",
+        "licenseUrl": "https://github.com/date-fns/date-fns/raw/master/LICENSE.md",
+        "parents": "adamfe-vue"
+    },
+    "split.js@1.5.10": {
+        "licenses": "MIT",
+        "repository": "https://github.com/nathancahill/split",
+        "licenseUrl": "https://github.com/nathancahill/split/raw/master/LICENSE.txt",
+        "parents": "adamfe-vue"
+    },
+    "underscore@1.9.1": {
+        "licenses": "MIT",
+        "repository": "https://github.com/jashkenas/underscore",
+        "licenseUrl": "https://github.com/jashkenas/underscore/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "vue-router@2.8.1": {
+        "licenses": "MIT",
+        "repository": "https://github.com/vuejs/vue-router",
+        "licenseUrl": "https://github.com/vuejs/vue-router/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "vue@2.6.8": {
+        "licenses": "MIT",
+        "repository": "https://github.com/vuejs/vue",
+        "licenseUrl": "https://github.com/vuejs/vue/raw/master/LICENSE",
+        "parents": "adamfe-vue"
+    },
+    "vuetify@1.5.5": {
+        "licenses": "MIT",
+        "repository": "https://github.com/vuetifyjs/vuetify",
+        "licenseUrl": "https://github.com/vuetifyjs/vuetify/raw/master/LICENSE.md",
+        "parents": "adamfe-vue"
+    }
+}
