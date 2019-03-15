@@ -134,7 +134,7 @@
             </v-icon>
           </v-card-title>
           <v-card-text>
-            TODO AboutAdamWeb Component
+            <AboutAdamWeb/>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -251,6 +251,7 @@
 <script>
   import aptFileTree from './aptExamples'
   import GraphEditor from './components/GraphEditor'
+  import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import CalculationList from './components/CalculationList'
   import Vue from 'vue'
@@ -304,7 +305,8 @@
       'my-theme': MyVueMenuTheme,
       'LogViewer': LogViewer,
       AptEditor,
-      CalculationList
+      CalculationList,
+      AboutAdamWeb
     },
     created: function () {
       // Connect to the server and subscribe to ADAM's log output
