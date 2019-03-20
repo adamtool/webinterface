@@ -775,7 +775,9 @@
               logging.sendErrorNotification(response.data.message)
               break
             case 'success':
-              logging.sendSuccessNotification('Cancelled the calculation')
+              logging.sendSuccessNotification('Cancelled the calculation.  Note: It might take a ' +
+                'little while for the calculation to actually finish.  This feature is still under ' +
+                'development.')
           }
         })
       },
