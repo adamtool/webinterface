@@ -25,9 +25,6 @@ import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
-import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolver;
-import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolverOptions;
 import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
@@ -130,7 +127,7 @@ public class App {
             Calculation<Boolean> calculation = new Calculation<>(() -> {
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame.getPetriGame());
                 return existsWinningStrategy;
-            });
+            }, petriGame.getPetriGame().getName());
             this.existsWinningStrategyOfApts.put(canonicalApt, calculation);
             calculation.queue(executorService);
 
@@ -176,7 +173,7 @@ public class App {
                 PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(game);
                 PetriGameAndMore.removeXAndYCoordinates(strategyBDD);
                 return strategyBDD;
-            });
+            }, game.getName());
             this.strategyBddsOfApts.put(canonicalApt, calculation);
             calculation.queue(executorService);
 
@@ -260,7 +257,7 @@ public class App {
                     BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(game);
                     return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
                 }
-            });
+            }, game.getName());
             this.bddGraphsOfApts.put(canonicalApt, calculation);
             calculation.queue(executorService);
 
@@ -440,11 +437,6 @@ public class App {
             }
             Calculation calculation = calculationMap.get(canonicalApt);
             calculation.cancel();
-            // TODO Destroy processes of net corresponding to the calculation
-            // TODO Get ID of net
-            //   Have to think about best way to do this.  -Ann
-//            ProcessPool.getInstance().destroyProcessesOfNet();
-
             return successResponse(new JsonPrimitive(true));
         });
 

@@ -25,7 +25,7 @@ public class CalculationTest {
 
             Thread.sleep(1000);
             return "This String was calculated in another thread";
-        });
+        }, "Fake ID");
 
         // We queue up the calculation, and it should immediately start to run in a separate thread.
         stringCalculation.queue(executorService);
@@ -58,7 +58,7 @@ public class CalculationTest {
 
             didCalculationfinish.set(true);
             return "This String was calculated in another thread";
-        });
+        }, "Fake ID");
 
         stringCalculation.queue(executorService);
         int timeWaited = 0;
@@ -96,11 +96,11 @@ public class CalculationTest {
         Calculation<String> calculation1 = new Calculation<>(() -> {
             Thread.sleep(1000);
             return "First calculation result";
-        });
+        }, "Fake ID");
         Calculation<String> calculation2 = new Calculation<>(() -> {
             Thread.sleep(1000);
             return "Second calculation result";
-        });
+        }, "Fake ID");
 
         // Queue up these two calculations.  Using a singleThreadExecutor, only one of them
         // should be running at a time, so at first, the first calcluation should be running, but

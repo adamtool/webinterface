@@ -1,5 +1,7 @@
 package uniolunisaar.adamwebfrontend;
 
+import uniolunisaar.adam.tools.ProcessPool;
+
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.*;
@@ -15,13 +17,20 @@ import static uniolunisaar.adamwebfrontend.CalculationStatus.*;
  */
 public class Calculation<T> {
     private final Callable<T> callable;
+    private final String netId;
     private Future<T> future = null;
     private boolean isStarted = false;
     private Instant timeStarted = Instant.EPOCH;
     private Instant timeFinished = Instant.EPOCH;
 
-    public Calculation(Callable<T> v) {
+    /**
+     * @param v     a lambda that will return a value you want to have be computed
+     * @param netId the ID of the Petri Net that is underlying this calculation.
+     *              It will get used to kill the processes in case the calculation gets canceled.
+     */
+    public Calculation(Callable<T> v, String netId) {
         this.callable = v;
+        this.netId = netId;
     }
 
     public void queue(ExecutorService executorService) {
@@ -43,7 +52,12 @@ public class Calculation<T> {
     }
 
     public void cancel() {
+        if (this.getStatus() != RUNNING) {
+            throw new UnsupportedOperationException(
+                    "This Calculation is not running, so you can't cancel it.");
+        }
         this.future.cancel(true);
+        ProcessPool.getInstance().destroyProcessesOfNet(netId);
     }
 
     public boolean isFinished() {
