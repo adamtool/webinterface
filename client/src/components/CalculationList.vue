@@ -1,6 +1,6 @@
 <!--This component is here to show the list of pending/finished calculations in a table.-->
 <template>
-  <table style="width: 100%;">
+  <table class="calculation-list-table" style="width: 100%;">
     <tr>
       <th>APT</th>
       <th>Calculation type</th>
@@ -18,13 +18,16 @@
 
       <!--Status column-->
       <template v-if="listing.calculationStatus === 'FAILED'">
-        <v-tooltip bottom>
+        <!--Not sure why, but v-tooltip seems to insert an empty span element that messes up the layout
+        of the table, and by putting display: none; here we can fix that. -->
+        <v-tooltip bottom style="display: none;">
           <template #activator="data">
-            <td v-on="data.on">
+            <td v-on="data.on"
+                class="highlightable">
               {{ listing.calculationStatus }}
             </td>
           </template>
-          <span>{{ listing.failureReason }}</span>
+          <div>{{ listing.failureReason }}</div>
         </v-tooltip>
       </template>
       <template
@@ -38,14 +41,17 @@
       </template>
 
       <!--Button to load the result of a calculation or cancel a pending calculation-->
-      <td v-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Graph Game BDD'">
+      <td v-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Graph Game BDD'"
+          class="highlightable">
         <button @click="$emit('loadGraphGameBdd', listing.canonicalApt)">Load</button>
       </td>
       <td
-        v-else-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Winning Strategy'">
+        v-else-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Winning Strategy'"
+        class="highlightable">
         <button @click="$emit('loadWinningStrategy', listing.canonicalApt)">Load</button>
       </td>
-      <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.calculationStatus)">
+      <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.calculationStatus)"
+          class="highlightable">
         <button>Cancel</button>
       </td>
       <td v-else>-</td>
@@ -55,6 +61,7 @@
 
 <script>
   import { format } from 'date-fns'
+
   export default {
     name: 'CalculationList',
     props: {
@@ -76,5 +83,12 @@
 </script>
 
 <style scoped>
+  .calculation-list-table {
+    text-align: left;
+  }
+
+  .highlightable:hover {
+    background-color: #6db8c1;
+  }
 
 </style>
