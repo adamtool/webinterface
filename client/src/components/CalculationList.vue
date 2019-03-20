@@ -90,5 +90,8 @@
   .highlightable:hover {
     background-color: #6db8c1;
   }
+  .highlightable {
+    background-color: #d9fbff;
+  }
 
 </style>
