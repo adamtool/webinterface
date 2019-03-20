@@ -24,7 +24,8 @@
           <template #activator="data">
             <td v-on="data.on"
                 class="highlightable">
-              {{ listing.calculationStatus }} <v-icon>more</v-icon>
+              {{ listing.calculationStatus }}
+              <v-icon>more</v-icon>
             </td>
           </template>
           <div>{{ listing.failureReason }}</div>
@@ -52,7 +53,10 @@
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.calculationStatus)"
           class="highlightable">
-        <button>Cancel</button>
+        <button @click="$emit('cancelCalculation',
+        { canonicalApt: listing.canonicalApt, type: listing.type})">
+          Cancel
+        </button>
       </td>
       <td v-else>-</td>
     </tr>
@@ -90,6 +94,7 @@
   .highlightable:hover {
     background-color: #6db8c1;
   }
+
   .highlightable {
     background-color: #d9fbff;
   }

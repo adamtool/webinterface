@@ -18,7 +18,8 @@
           <CalculationList :calculationListings="availableBDDGraphListings"
                            style="background-color: white;"
                            @loadGraphGameBdd="loadGraphGameBdd"
-                           @loadWinningStrategy="loadWinningStrategy"/>
+                           @loadWinningStrategy="loadWinningStrategy"
+                           @cancelCalculation="cancelCalculation"/>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -459,6 +460,7 @@
           existsWinningStrategy: this.baseUrl + '/existsWinningStrategy',
           getStrategyBDD: this.baseUrl + '/getStrategyBDD',
           loadWinningStrategy: this.baseUrl + '/loadWinningStrategy',
+          cancelCalculation: this.baseUrl + '/cancelCalculation',
           getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
           calculateGraphGameBDD: this.baseUrl + '/calculateGraphGameBDD',
           getListOfCalculations: this.baseUrl + '/getListOfCalculations',
@@ -760,6 +762,16 @@
               this.switchToStrategyBDDTab()
               logging.sendSuccessNotification('Loaded Winning Strategy')
           }
+        })
+      },
+      cancelCalculation: function ({canonicalApt, type}) {
+        logging.sendSuccessNotification('Sent request to cancel calculation of ' + type)
+        axios.post(this.restEndpoints.cancelCalculation, {
+          canonicalApt,
+          type
+        }).then(response => {
+          console.log(`cancelCalculation response:`)
+          console.log(response)
         })
       },
       calculateGraphGameBDD: function () {
