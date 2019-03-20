@@ -776,7 +776,7 @@
               break
             case 'success':
               logging.sendSuccessNotification('Cancelled the calculation.  Note: It might take a ' +
-                'little while for the calculation to actually finish.  This feature is still under ' +
+                'little while for the calculation to actually stop.  This feature is still under ' +
                 'development.')
           }
         })
