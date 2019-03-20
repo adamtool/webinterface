@@ -152,6 +152,8 @@ public class App {
                 responseJson.addProperty("canonicalApt", canonicalApt);
                 responseJson.addProperty("calculationComplete", false);
                 return responseJson.toString();
+            } catch (CancellationException e) {
+                return errorResponse("The calculation was canceled.");
             }
         });
 
@@ -199,6 +201,8 @@ public class App {
                 responseJson.addProperty("canonicalApt", canonicalApt);
                 responseJson.addProperty("calculationComplete", false);
                 return responseJson.toString();
+            } catch (CancellationException e) {
+                return errorResponse("The calculation was canceled.");
             }
         });
 
@@ -281,6 +285,8 @@ public class App {
                 responseJson.addProperty("canonicalApt", canonicalApt);
                 responseJson.addProperty("calculationComplete", false);
                 return responseJson.toString();
+            } catch (CancellationException e) {
+                return errorResponse("The calculation was canceled.");
             }
         });
 
@@ -413,9 +419,9 @@ public class App {
         });
 
         post("/cancelCalculation", (req, res) -> {
-            if (true) {
-                return errorResponse("Cancelling calculations is not yet implemented");
-            }
+//            if (true) {
+//                return errorResponse("Cancelling calculations is not yet implemented");
+//            }
             JsonElement body = parser.parse(req.body());
 //            System.out.println("body: " + body.toString());
             String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
