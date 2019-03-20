@@ -415,22 +415,37 @@ public class App {
 
         });
 
-        post("/cancelBDDGraph", (req, res) -> {
-            return errorResponse("Cancelling calculations is not yet implemented");
-//            JsonElement body = parser.parse(req.body());
+        post("/cancelCalculation", (req, res) -> {
+            if (true) {
+                return errorResponse("Cancelling calculations is not yet implemented");
+            }
+            JsonElement body = parser.parse(req.body());
 //            System.out.println("body: " + body.toString());
-//            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
-//
-//            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
-//                return errorResponse("No BDDGraph has been calculated yet for the Petri " +
-//                        "Game with the given APT representation: \n" + canonicalApt);
-//            }
-//            Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(canonicalApt);
+            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+            String type = body.getAsJsonObject().get("type").getAsString();
+            Map<String, ? extends Calculation> calculationMap;
+            // Not super happy about this code, but I think it is the most straightforward solution
+            // TODO maybe consider using an enum instead
+            if (type.equals("Graph Game BDD")) {
+                calculationMap = this.bddGraphsOfApts;
+            } else if (type.equals("Winning Strategy")) {
+                calculationMap = this.strategyBddsOfApts;
+            } else if (type.equals("existsWinningStrategy")) {
+                calculationMap = this.existsWinningStrategyOfApts;
+            } else {
+                return errorResponse("Calculation type not recognized: " + type);
+            }
+            if (!calculationMap.containsKey(canonicalApt)) {
+                return errorResponse("No calculation of " + type + " for the given APT was found.");
+            }
+            Calculation calculation = calculationMap.get(canonicalApt);
+            calculation.cancel();
+            // TODO Destroy processes of net corresponding to the calculation
             // TODO Get ID of net
             //   Have to think about best way to do this.  -Ann
 //            ProcessPool.getInstance().destroyProcessesOfNet();
 
-//            return successResponse(new JsonPrimitive(true));
+            return successResponse(new JsonPrimitive(true));
         });
 
         post("/toggleGraphGameBDDNodePostset", (req, res) -> {
