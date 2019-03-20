@@ -419,16 +419,11 @@ public class App {
         });
 
         post("/cancelCalculation", (req, res) -> {
-//            if (true) {
-//                return errorResponse("Cancelling calculations is not yet implemented");
-//            }
             JsonElement body = parser.parse(req.body());
-//            System.out.println("body: " + body.toString());
             String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
             String type = body.getAsJsonObject().get("type").getAsString();
             Map<String, ? extends Calculation> calculationMap;
-            // Not super happy about this code, but I think it is the most straightforward solution
-            // TODO maybe consider using an enum instead
+            // TODO maybe consider using an enum instead of these strings
             if (type.equals("Graph Game BDD")) {
                 calculationMap = this.bddGraphsOfApts;
             } else if (type.equals("Winning Strategy")) {
