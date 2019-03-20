@@ -770,8 +770,13 @@
           canonicalApt,
           type
         }).then(response => {
-          console.log(`cancelCalculation response:`)
-          console.log(response)
+          switch (response.data.status) {
+            case 'error':
+              logging.sendErrorNotification(response.data.message)
+              break
+            case 'success':
+              logging.sendSuccessNotification('Cancelled the calculation')
+          }
         })
       },
       calculateGraphGameBDD: function () {
