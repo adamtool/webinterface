@@ -358,7 +358,7 @@
         aptFilename: 'apt.txt',
         showSaveAptModal: false,
         showCalculationList: false,
-        showAboutModal: true,
+        showAboutModal: false,
         // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
