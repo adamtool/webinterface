@@ -2,11 +2,25 @@
   <v-app absolute id='app'>
     <v-dialog v-model="showCalculationList"
               :hide-overlay="false"
-              :persistent="false">
-      <CalculationList :calculationListings="availableBDDGraphListings"
-                       style="background-color: white;"
-                       @loadGraphGameBdd="loadGraphGameBdd"
-                       @loadWinningStrategy="loadWinningStrategy"/>
+              :persistent="false"
+              @keydown.esc="showCalculationList = false">
+      <v-card>
+        <v-card-title
+          primary-title
+          style="justify-content: space-between;">
+          <span>Calculations run/running/queued on the server</span>
+          <v-icon standard right
+                  @click="showCalculationList = false">
+            close
+          </v-icon>
+        </v-card-title>
+        <v-card-text>
+          <CalculationList :calculationListings="availableBDDGraphListings"
+                           style="background-color: white;"
+                           @loadGraphGameBdd="loadGraphGameBdd"
+                           @loadWinningStrategy="loadWinningStrategy"/>
+        </v-card-text>
+      </v-card>
     </v-dialog>
     <v-snackbar
       :timeout="6000"
@@ -33,15 +47,21 @@
           <v-dialog
             style="display: block;"
             v-model="showSaveAptModal"
-            width="400">
+            width="400"
+            @keydown.esc="showSaveAptModal = false">
             <template v-slot:activator="{ on }">
               <hsc-menu-item label="Save APT to file"
-                             @click="onClickSaveApt"/>
+                             @click="onClickSaveAptMenuItem"/>
             </template>
             <v-card>
               <v-card-title
-                primary-title>
-                Save APT
+                primary-title
+                style="justify-content: space-between;">
+                <span>Save APT</span>
+                <v-icon standard right
+                        @click="showSaveAptModal = false">
+                  close
+                </v-icon>
               </v-card-title>
               <v-card-text>
                 <v-text-field
@@ -91,7 +111,33 @@
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
-      <button @click="showCalculationList = true">View jobs running on server</button>
+      <button @click="showCalculationList = true"
+              style="margin-left: 40px;">View jobs running on server
+      </button>
+      <v-dialog
+        style="display: block;"
+        v-model="showAboutModal"
+        @keydown.esc="showAboutModal = false">
+        <template v-slot:activator="{ on }">
+          <button style="margin-left: auto; padding-right: 10px; font-size: 18px;"
+                  @click="showAboutModal = true">About
+          </button>
+        </template>
+        <v-card>
+          <v-card-title
+            primary-title
+            style="justify-content: space-between;">
+            <span>About ADAM Web</span>
+            <v-icon standard right
+                    @click="showAboutModal = false">
+              close
+            </v-icon>
+          </v-card-title>
+          <v-card-text>
+            <AboutAdamWeb/>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
       <hsc-menu-context-menu>
         <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">ADAM Web</div>
         <template slot="contextmenu">
@@ -205,6 +251,7 @@
 <script>
   import aptFileTree from './aptExamples'
   import GraphEditor from './components/GraphEditor'
+  import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import CalculationList from './components/CalculationList'
   import Vue from 'vue'
@@ -238,7 +285,7 @@
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
 
   export default {
     name: 'app',
@@ -258,7 +305,8 @@
       'my-theme': MyVueMenuTheme,
       'LogViewer': LogViewer,
       AptEditor,
-      CalculationList
+      CalculationList,
+      AboutAdamWeb
     },
     created: function () {
       // Connect to the server and subscribe to ADAM's log output
@@ -310,6 +358,7 @@
         aptFilename: 'apt.txt',
         showSaveAptModal: false,
         showCalculationList: false,
+        showAboutModal: false,
         // True iff the modal dialog with the list of calculations is visible
         availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
@@ -456,7 +505,7 @@
       }
     },
     methods: {
-      onClickSaveApt: function () {
+      onClickSaveAptMenuItem: function () {
         // There is a delay here so that the click event doesn't immediately close the
         // modal after it is opened.
         setTimeout(() => this.showSaveAptModal = true, 50)
@@ -1142,5 +1191,9 @@
     margin-top: 5px;
     margin-bottom: 5px;
     cursor: ns-resize;
+  }
+
+  .v-card__title {
+    font-size: 18px;
   }
 </style>

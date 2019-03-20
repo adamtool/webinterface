@@ -41,3 +41,22 @@ is likely to have our java web server running at localhost:4567.
 In this case, a relative URL would be wrong; the HTTP requests would go
 to e.g. localhost:8080/existsWinningStrategy and return a 404
 instead of localhost:4567/existsWinningStrategy.
+
+Generating license information for the frontend
+Install the program 'npm-license-crawler' in your global scope:
+
+npm i npm-license-crawler -g
+
+Then run it to generate a json file that holds information about all 
+the external dependencies we have:
+
+npm-license-crawler --onlyDirectDependencies --json client/src/assets/licenses-json.json
+
+This file gets parsed and used in our "About" screen to show the license info
+and attribution stuff that we have to include for all of our 3rd party libraries.
+
+This process is arguably a little bit unwieldy, since you have to run it every
+time you add or remove a dependency. 
+TODO: Install npm-license-crawler as a devDependency and run it automatically 
+during the build process
+
