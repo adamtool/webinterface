@@ -105,10 +105,13 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                     return isInvisibleStateAParent;
                 })).collect(Collectors.toSet());
         Set<BDDState> statesWithInvisibleChildren = visibleStates.stream()
-                .filter(s -> bddGraph.getPostset(s.getId()).stream().anyMatch(child -> {
-                    boolean isChildInvisible = !visibleStates.contains(child);
-                    return isChildInvisible;
-                })).collect(Collectors.toSet());
+                .filter(s -> {
+                    return !expandedStates.contains(s) ||
+                            bddGraph.getPostset(s.getId()).stream().anyMatch(child -> {
+                                boolean isChildInvisible = !visibleStates.contains(child);
+                                return isChildInvisible;
+                            });
+                }).collect(Collectors.toSet());
         return BDDGraphD3.of(
                 visibleStates,
                 this.visibleFlows(),

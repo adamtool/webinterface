@@ -39,8 +39,8 @@ public class BDDGraphD3 {
      * @param flows                       a set of flows in a BDDGraph
      * @param postSetExpandedStates       Set of states whose postsets have been expanded in the UI
      * @param presetExpandedStates        Set of states whose presets have been expanded in the UI
-     * @param statesWithInvisibleParents  Set of states that have one or more parents not shown
-     * @param statesWithInvisibleChildren Set of states that have one or more children not shown
+     * @param statesWithInvisibleParents  Set of states that may have one or more parents not shown
+     * @param statesWithInvisibleChildren Set of states that may have one or more children not shown
      * @return JSON representing a subset of a BDDGraph.
      * States that have been clicked on by the user to display their preset/postset are annotated
      * so that the user knows if they clicked on them yet or not.
