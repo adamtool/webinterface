@@ -24,7 +24,7 @@
           <template #activator="data">
             <td v-on="data.on"
                 class="highlightable">
-              {{ listing.calculationStatus }}
+              {{ listing.calculationStatus }} <v-icon>more</v-icon>
             </td>
           </template>
           <div>{{ listing.failureReason }}</div>
