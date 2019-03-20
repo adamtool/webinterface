@@ -52,9 +52,9 @@ public class Calculation<T> {
     }
 
     public void cancel() {
-        if (this.getStatus() != RUNNING) {
+        if (this.getStatus() != RUNNING && this.getStatus() != QUEUED) {
             throw new UnsupportedOperationException(
-                    "This Calculation is not running, so you can't cancel it.");
+                    "This Calculation is not running/queued, so you can't cancel it.");
         }
         this.future.cancel(true);
         ProcessPool.getInstance().destroyProcessesOfNet(netId);
