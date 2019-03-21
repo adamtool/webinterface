@@ -464,31 +464,41 @@
       // requests are different.  Production uses relative urls, while dev mode uses hard-coded
       // "localhost:4567/..."
       restEndpoints: function () {
-        return {
-          existsWinningStrategy: this.baseUrl + '/existsWinningStrategy',
-          getStrategyBDD: this.baseUrl + '/getStrategyBDD',
-          loadWinningStrategy: this.baseUrl + '/loadWinningStrategy',
-          cancelCalculation: this.baseUrl + '/cancelCalculation',
-          getGraphStrategyBDD: this.baseUrl + '/getGraphStrategyBDD',
-          calculateGraphGameBDD: this.baseUrl + '/calculateGraphGameBDD',
-          getListOfCalculations: this.baseUrl + '/getListOfCalculations',
-          getBDDGraph: this.baseUrl + '/getBDDGraph',
-          toggleGraphGameBDDNodePostset: this.baseUrl + '/toggleGraphGameBDDNodePostset',
-          toggleGraphGameBDDNodePreset: this.baseUrl + '/toggleGraphGameBDDNodePreset',
-          savePetriGameAsAPT: this.baseUrl + '/savePetriGameAsAPT',
-          parseApt: this.baseUrl + '/parseApt',
-          insertNode: this.baseUrl + '/insertPlace',
-          createFlow: this.baseUrl + '/createFlow',
-          createTokenFlow: this.baseUrl + '/createTokenFlow',
-          deleteFlow: this.baseUrl + '/deleteFlow',
-          deleteNode: this.baseUrl + '/deleteNode',
-          renameNode: this.baseUrl + '/renameNode',
-          toggleEnvironmentPlace: this.baseUrl + '/toggleEnvironmentPlace',
-          toggleIsInitialTokenFlow: this.baseUrl + '/toggleIsInitialTokenFlow',
-          fireTransition: this.baseUrl + '/fireTransition',
-          setInitialToken: this.baseUrl + '/setInitialToken',
-          setWinningCondition: this.baseUrl + '/setWinningCondition'
-        }
+        const endpoints = [
+          'existsWinningStrategy',
+          'getStrategyBDD',
+          'loadWinningStrategy',
+          'cancelCalculation',
+          'getGraphStrategyBDD',
+          'calculateGraphGameBDD',
+          'getListOfCalculations',
+          'getBDDGraph',
+          'toggleGraphGameBDDNodePostset',
+          'toggleGraphGameBDDNodePreset',
+          'savePetriGameAsAPT',
+          'parseApt',
+          'insertPlace',
+          'createFlow',
+          'createTokenFlow',
+          'deleteFlow',
+          'deleteNode',
+          'renameNode',
+          'toggleEnvironmentPlace',
+          'toggleIsInitialTokenFlow',
+          'fireTransition',
+          'setInitialToken',
+          'setWinningCondition'
+        ]
+        const funs = {}
+        endpoints.forEach(endpointName => {
+          funs[endpointName] = (options) => {
+            return axios.post(this.baseUrl + '/' + endpointName, {
+              ...options,
+              browserUuid: this.browserUuid
+            })
+          }
+        })
+        return funs
       },
       // TODO consider refactoring routes so they are handled more like this and less like the above
       modelCheckingRoutes: function () {
@@ -621,7 +631,7 @@
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAPTToPetriGame: debounce(function (apt) {
         logging.logVerbose('Sending APT source code to backend.')
-        axios.post(this.restEndpoints.parseApt, {
+        this.restEndpoints.parseApt({
           params: {
             apt: apt
           }
@@ -663,7 +673,7 @@
       },
       existsWinningStrategy: function () {
         logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')
-        axios.post(this.restEndpoints.existsWinningStrategy, {
+        this.restEndpoints.existsWinningStrategy({
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -693,7 +703,7 @@
         this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
-        axios.post(this.restEndpoints.getStrategyBDD, {
+        this.restEndpoints.getStrategyBDD({
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -718,7 +728,7 @@
       },
       getGraphStrategyBDD: function () {
         const uuid = this.petriGame.uuid
-        axios.post(this.restEndpoints.getGraphStrategyBDD, {
+        this.restEndpoints.getGraphStrategyBDD({
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -733,14 +743,14 @@
         })
       },
       getListOfCalculations: function () {
-        axios.post(this.restEndpoints.getListOfCalculations)
+        this.restEndpoints.getListOfCalculations()
           .then(response => {
             this.availableBDDGraphListings = response.data.listings
           })
       },
       // Load the Graph Game BDD corresponding to the given canonical APT string
       loadGraphGameBdd: function (canonicalApt) {
-        axios.post(this.restEndpoints.getBDDGraph, {
+        this.restEndpoints.getBDDGraph({
           canonicalApt: canonicalApt
         }).then(response => {
           switch (response.data.status) {
@@ -757,7 +767,7 @@
         })
       },
       loadWinningStrategy: function (canonicalApt) {
-        axios.post(this.restEndpoints.loadWinningStrategy, {
+        this.restEndpoints.loadWinningStrategy({
           canonicalApt: canonicalApt
         }).then(response => {
           switch (response.data.status) {
@@ -774,7 +784,7 @@
       },
       cancelCalculation: function ({canonicalApt, type}) {
         logging.sendSuccessNotification('Sent request to cancel calculation of ' + type)
-        axios.post(this.restEndpoints.cancelCalculation, {
+        this.restEndpoints.cancelCalculation({
           canonicalApt,
           type
         }).then(response => {
@@ -792,7 +802,7 @@
       calculateGraphGameBDD: function () {
         const uuid = this.petriGame.uuid
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
-        axios.post(this.restEndpoints.calculateGraphGameBDD, {
+        this.restEndpoints.calculateGraphGameBDD({
           petriGameId: uuid,
           incremental: false
         }).then(response => {
@@ -817,7 +827,7 @@
         })
       },
       toggleGraphGameStatePostset: function (stateId) {
-        axios.post(this.restEndpoints.toggleGraphGameBDDNodePostset, {
+        this.restEndpoints.toggleGraphGameBDDNodePostset({
           canonicalApt: this.graphGameCanonicalApt,
           stateId: stateId
         }).then(response => {
@@ -829,7 +839,7 @@
         })
       },
       toggleGraphGameStatePreset: function (stateId) {
-        axios.post(this.restEndpoints.toggleGraphGameBDDNodePreset, {
+        this.restEndpoints.toggleGraphGameBDDNodePreset({
           canonicalApt: this.graphGameCanonicalApt,
           stateId: stateId
         }).then(response => {
@@ -858,7 +868,7 @@
         // into the PetriGame object.
         // Then, the server converts the PetriGame into APT format and gives that to us.
         const nodePositions = this.$refs.graphEditorPetriGame.getNodeXYCoordinates()
-        return axios.post(this.restEndpoints.savePetriGameAsAPT, {
+        return this.restEndpoints.savePetriGameAsAPT({
           petriGameId: this.petriGame.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
@@ -873,7 +883,7 @@
       },
       createFlow: function (flowSpec) {
         console.log('processing createFlow event')
-        axios.post(this.restEndpoints.createFlow, {
+        this.restEndpoints.createFlow({
           petriGameId: this.petriGame.uuid,
           source: flowSpec.source,
           destination: flowSpec.destination
@@ -887,7 +897,7 @@
       },
       createTokenFlow: function ({source, transition, postset}) {
         console.log('processing createTokenFlow event')
-        axios.post(this.restEndpoints.createTokenFlow, {
+        this.restEndpoints.createTokenFlow({
           petriGameId: this.petriGame.uuid,
           source,
           transition,
@@ -902,7 +912,7 @@
       },
       deleteFlow: function ({sourceId, targetId}) {
         console.log('processing deleteFlow event')
-        axios.post(this.restEndpoints.deleteFlow, {
+        this.restEndpoints.deleteFlow({
           petriGameId: this.petriGame.uuid,
           sourceId,
           targetId
@@ -916,7 +926,7 @@
       },
       deleteNode: function (nodeId) {
         console.log('processing deleteNode event for node id ' + nodeId)
-        axios.post(this.restEndpoints.deleteNode, {
+        this.restEndpoints.deleteNode({
           petriGameId: this.petriGame.uuid,
           nodeId: nodeId
         }).then(response => {
@@ -930,7 +940,7 @@
       renameNode: function ({idOld, idNew}) {
         console.log('processing renameNode event')
         console.log(`renaming node '${idOld}' to '${idNew}'`)
-        axios.post(this.restEndpoints.renameNode, {
+        this.restEndpoints.renameNode({
           petriGameId: this.petriGame.uuid,
           nodeIdOld: idOld,
           nodeIdNew: idNew
@@ -944,7 +954,7 @@
       },
       toggleEnvironmentPlace: function (nodeId) {
         console.log('processing toggleEnvironmentPlace event')
-        axios.post(this.restEndpoints.toggleEnvironmentPlace, {
+        this.restEndpoints.toggleEnvironmentPlace({
           petriGameId: this.petriGame.uuid,
           nodeId: nodeId
         }).then(response => {
@@ -957,7 +967,7 @@
       },
       toggleIsInitialTokenFlow: function (nodeId) {
         console.log('processing toggleIsInitialTokenFlow event')
-        axios.post(this.restEndpoints.toggleIsInitialTokenFlow, {
+        this.restEndpoints.toggleIsInitialTokenFlow({
           petriGameId: this.petriGame.uuid,
           nodeId: nodeId
         }).then(response => {
@@ -970,7 +980,7 @@
       },
       fireTransition: function (transitionId) {
         console.log('firing transition with ID ' + transitionId)
-        axios.post(this.restEndpoints.fireTransition, {
+        this.restEndpoints.fireTransition({
           petriGameId: this.petriGame.uuid,
           transitionId: transitionId
         }).then(response => {
@@ -984,7 +994,7 @@
       },
       setInitialToken: function ({nodeId, tokens}) {
         console.log('processing setInitialToken event')
-        axios.post(this.restEndpoints.setInitialToken, {
+        this.restEndpoints.setInitialToken({
           petriGameId: this.petriGame.uuid,
           nodeId: nodeId,
           tokens: tokens
@@ -997,7 +1007,7 @@
         })
       },
       setWinningCondition: function (winningCondition) {
-        axios.post(this.restEndpoints.setWinningCondition, {
+        this.restEndpoints.setWinningCondition({
           petriGameId: this.petriGame.uuid,
           winningCondition: winningCondition
         }).then(response => {
@@ -1015,7 +1025,7 @@
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
-        axios.post(this.restEndpoints.insertNode, {
+        this.restEndpoints.insertNode({
           petriGameId: this.petriGame.uuid,
           nodeType: nodeSpec.type,
           x: nodeSpec.x,
