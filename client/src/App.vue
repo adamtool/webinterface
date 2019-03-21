@@ -288,6 +288,8 @@
 
   import {format} from 'date-fns'
 
+  const uuidv4 = require('uuid/v4')
+
   export default {
     name: 'app',
     props: {
@@ -353,6 +355,12 @@
 
       // Initialize draggable, resizable pane
       this.horizontalSplit = this.createHorizontalSplit()
+
+      // Save a uuid to identify this browser in the future (e.g. to only show Calculations belonging to this user)
+      if (window.localStorage.getItem('browserUuid') === null) {
+        window.localStorage.setItem('browserUuid', uuidv4())
+      }
+      console.log(`browserUuid: ${window.localStorage.getItem('browserUuid')}`)
     },
     data: function () {
       return {
