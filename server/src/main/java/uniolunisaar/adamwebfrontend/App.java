@@ -24,6 +24,9 @@ import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.exceptions.ExternalToolException;
+import uniolunisaar.adam.exceptions.ProcessNotStartedException;
+import uniolunisaar.adam.exceptions.logics.NotConvertableException;
 import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
@@ -94,329 +97,36 @@ public class App {
 
         post("/cancelCalculation", this::handleCancelCalculation);
 
-        post("/toggleGraphGameBDDNodePostset", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
-            int stateId = body.getAsJsonObject().get("stateId").getAsInt();
+        post("/toggleGraphGameBDDNodePostset", this::handleToggleGraphGameBDDNodePostset);
 
-            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
-                return errorResponse("There is no Graph Game BDD yet for that APT input");
-            }
+        post("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
-            Calculation<BDDGraphExplorer> calculation = bddGraphsOfApts.get(canonicalApt);
-            if (!calculation.isFinished()) {
-                return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
-                        ".  Its status: " + calculation.getStatus());
-            }
-            BDDGraphExplorer bddGraphExplorer = calculation.getResult();
-            bddGraphExplorer.toggleStatePostset(stateId);
+        post("/savePetriGameAsAPT", this::handleSavePetriGameAsAPT);
 
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("graphGameBDD", bddGraphExplorer.getVisibleGraph());
-            return responseJson.toString();
-        });
+        post("/insertPlace", this::handleInsertPlace);
 
-        post("/toggleGraphGameBDDNodePreset", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
-            int stateId = body.getAsJsonObject().get("stateId").getAsInt();
+        post("/deleteNode", this::handleDeleteNode);
 
-            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
-                return errorResponse("There is no Graph Game BDD yet for that APT input");
-            }
-            Calculation<BDDGraphExplorer> calculation = bddGraphsOfApts.get(canonicalApt);
-            if (!calculation.isFinished()) {
-                return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
-                        ".  Its status: " + calculation.getStatus());
-            }
-            BDDGraphExplorer bddGraphExplorer = calculation.getResult();
-            bddGraphExplorer.toggleStatePreset(stateId);
+        post("/renameNode", this::handleRenameNode);
 
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("graphGameBDD", bddGraphExplorer.getVisibleGraph());
-            return responseJson.toString();
-        });
+        post("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
 
-        post("/savePetriGameAsAPT", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-            JsonObject nodesXYCoordinatesJson = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
-            Type type = new TypeToken<Map<String, NodePosition>>() {
-            }.getType();
-            Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
+        post("/toggleIsInitialTokenFlow", this::handleToggleIsInitialTokenFlow);
 
-            PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
-            String apt = petriGameAndMore.savePetriGameWithXYCoordinates(nodePositions);
-            JsonElement aptJson = new JsonPrimitive(apt);
+        post("/setInitialToken", this::handleSetInitialToken);
 
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("apt", aptJson);
-            return responseJson.toString();
-        });
+        post("/setWinningCondition", this::handleSetWinningCondition);
+        post("/createFlow", this::handleCreateFlow);
 
-        post("/insertPlace", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            double x = body.get("x").getAsDouble();
-            double y = body.get("y").getAsDouble();
-            String nodeType = body.get("nodeType").getAsString();
-            GraphNodeType graphNodeType = GraphNodeType.valueOf(nodeType);
+        post("/deleteFlow", this::handleDeleteFlow);
 
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
+        post("/createTokenFlow", this::handleCreateTokenFlow);
 
-            Node node = null;
-            switch (graphNodeType) {
-                case SYSPLACE:
-                    node = petriGame.createPlace();
-                    break;
-                case ENVPLACE:
-                    Place place = petriGame.createPlace();
-                    petriGame.setEnvironment(place);
-                    node = place;
-                    break;
-                case TRANSITION:
-                    node = petriGame.createTransition();
-                    break;
-                case GRAPH_STRATEGY_BDD_STATE:
-                    return errorResponse("You can't insert a GRAPH_STRATEGY_BDD_STATE into a Petri Game.");
-            }
-            petriGame.setXCoord(node, x);
-            petriGame.setYCoord(node, y);
+        post("/checkLtlFormula", this::handleCheckLtlFormula);
 
-            JsonElement petriGameClient = PetriNetD3.of(petriGame, new HashSet<>(Collections.singletonList(node)));
+        post("/getModelCheckingNet", this::handleGetModelCheckingNet);
 
-            return successResponse(petriGameClient);
-        });
-
-        post("/deleteNode", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String nodeId = body.get("nodeId").getAsString();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-
-            petriGame.removeNode(nodeId);
-
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-            return successResponse(petriGameClient);
-        });
-
-        post("/renameNode", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String nodeIdOld = body.get("nodeIdOld").getAsString();
-            String nodeIdNew = body.get("nodeIdNew").getAsString();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-            Node oldNode = petriGame.getNode(nodeIdOld);
-            petriGame.rename(oldNode, nodeIdNew);
-
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-            return successResponse(petriGameClient);
-        });
-
-        post("/toggleEnvironmentPlace", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String nodeId = body.get("nodeId").getAsString();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-            Place place = petriGame.getPlace(nodeId);
-            boolean environment = petriGame.isEnvironment(place);
-            if (environment) {
-                petriGame.setSystem(place);
-            } else {
-                petriGame.setEnvironment(place);
-            }
-
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-            return successResponse(petriGameClient);
-        });
-
-        post("/toggleIsInitialTokenFlow", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String nodeId = body.get("nodeId").getAsString();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-            Place place = petriGame.getPlace(nodeId);
-            boolean isInitialTokenFlow = petriGame.isInitialTransit(place);
-            if (isInitialTokenFlow) {
-                petriGame.removeInitialTokenflow(place);
-            } else {
-                petriGame.setInitialTokenflow(place);
-            }
-
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-            return successResponse(petriGameClient);
-        });
-
-        post("/setInitialToken", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String nodeId = body.get("nodeId").getAsString();
-            int tokens = body.get("tokens").getAsInt();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-            Place place = petriGame.getPlace(nodeId);
-            place.setInitialToken(tokens);
-
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-            return successResponse(petriGameClient);
-        });
-
-        post("/setWinningCondition", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String winningCondition = body.get("winningCondition").getAsString();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-            Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
-            PNWTTools.setConditionAnnotation(petriGame, objective);
-
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-            return successResponse(petriGameClient);
-        });
-        post("/createFlow", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String source = body.get("source").getAsString();
-            String destination = body.get("destination").getAsString();
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-
-            petriGame.createFlow(source, destination);
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-
-            return successResponse(petriGameClient);
-        });
-
-        post("/deleteFlow", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String source = body.get("sourceId").getAsString();
-            String target = body.get("targetId").getAsString();
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-
-            petriGame.removeFlow(source, target);
-
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-            return successResponse(petriGameClient);
-        });
-
-        post("/createTokenFlow", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            Optional<String> sourceId = body.has("source") ?
-                    Optional.of(body.get("source").getAsString()) :
-                    Optional.empty();
-            String transitionId = body.get("transition").getAsString();
-            JsonArray postsetJson = body.get("postset").getAsJsonArray();
-            List<String> postsetIds = new ArrayList<>();
-            postsetJson.forEach(jsonElement -> {
-                postsetIds.add(jsonElement.getAsString());
-            });
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-
-            // Create flows if they don't already exist
-            Transition transition = petriGame.getTransition(transitionId);
-            sourceId.ifPresent(id -> {
-                Place source = petriGame.getPlace(id);
-                if (!transition.getPreset().contains(source)) {
-                    petriGame.createFlow(source, transition);
-                }
-            });
-            for (String postsetId : postsetIds) {
-                Place postPlace = petriGame.getPlace(postsetId);
-                if (!transition.getPostset().contains(postPlace)) {
-                    petriGame.createFlow(transition, postPlace);
-                }
-            }
-
-            // Create a token flow.  It is an initial token flow if if has no source Place.
-            String[] postsetArray = postsetIds.toArray(new String[postsetIds.size()]);
-            if (sourceId.isPresent()) {
-                petriGame.createTransit(sourceId.get(), transitionId, postsetArray);
-            } else {
-                petriGame.createInitialTransit(transitionId, postsetArray);
-            }
-
-            JsonElement petriGameClient = PetriNetD3.of(petriGame);
-
-            return successResponse(petriGameClient);
-        });
-
-        post("/checkLtlFormula", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String formula = body.get("formula").getAsString();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-
-            try {
-                IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-                return successResponse(new JsonPrimitive(true));
-            } catch (ParseException e) {
-                Throwable cause = e.getCause();
-                System.out.println(cause.getMessage());
-                return errorResponse(e.getMessage() + "\n" + cause.getMessage());
-            }
-        });
-
-        post("/getModelCheckingNet", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String formula = body.get("formula").getAsString();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-
-            IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-            // TODO ask Manuel if this cast is OK / normal / expected
-            RunFormula runFormula = (RunFormula) iRunFormula;
-
-            PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
-            System.out.println("Checking flow LTL formula");
-            // TODO check the flow ltl formula
-            ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
-            ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
-            System.out.println("result:");
-            System.out.println(result);
-
-            return successResponse(PetriNetD3.of(modelCheckingNet));
-
-        });
-
-        post("/fireTransition", (req, res) -> {
-            JsonObject body = parser.parse(req.body()).getAsJsonObject();
-            String gameId = body.get("petriGameId").getAsString();
-            String transitionId = body.get("transitionId").getAsString();
-
-            PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-            PetriGame petriGame = petriGameAndMore.getPetriGame();
-            Transition transition = petriGame.getTransition(transitionId);
-            Marking initialMarking = petriGame.getInitialMarking();
-            Marking newInitialMarking = transition.fire(initialMarking);
-            petriGame.setInitialMarking(newInitialMarking);
-            return successResponse(petriGameAndMore.getPetriGameClient());
-        });
+        post("/fireTransition", this::handleFireTransition);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -828,5 +538,329 @@ public class App {
         Calculation calculation = calculationMap.get(canonicalApt);
         calculation.cancel();
         return successResponse(new JsonPrimitive(true));
+    }
+
+    private Object handleToggleGraphGameBDDNodePostset(Request req, Response res) throws ExecutionException, InterruptedException {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+        int stateId = body.getAsJsonObject().get("stateId").getAsInt();
+
+        if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+            return errorResponse("There is no Graph Game BDD yet for that APT input");
+        }
+
+        Calculation<BDDGraphExplorer> calculation = bddGraphsOfApts.get(canonicalApt);
+        if (!calculation.isFinished()) {
+            return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
+                    ".  Its status: " + calculation.getStatus());
+        }
+        BDDGraphExplorer bddGraphExplorer = calculation.getResult();
+        bddGraphExplorer.toggleStatePostset(stateId);
+
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("graphGameBDD", bddGraphExplorer.getVisibleGraph());
+        return responseJson.toString();
+    }
+
+    private Object handleToggleGraphGameBDDNodePreset(Request req, Response res) throws ExecutionException, InterruptedException {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+        int stateId = body.getAsJsonObject().get("stateId").getAsInt();
+
+        if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+            return errorResponse("There is no Graph Game BDD yet for that APT input");
+        }
+        Calculation<BDDGraphExplorer> calculation = bddGraphsOfApts.get(canonicalApt);
+        if (!calculation.isFinished()) {
+            return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
+                    ".  Its status: " + calculation.getStatus());
+        }
+        BDDGraphExplorer bddGraphExplorer = calculation.getResult();
+        bddGraphExplorer.toggleStatePreset(stateId);
+
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("graphGameBDD", bddGraphExplorer.getVisibleGraph());
+        return responseJson.toString();
+    }
+
+    private Object handleSavePetriGameAsAPT(Request req, Response res) throws RenderException {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+        JsonObject nodesXYCoordinatesJson = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        Type type = new TypeToken<Map<String, NodePosition>>() {
+        }.getType();
+        Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
+        String apt = petriGameAndMore.savePetriGameWithXYCoordinates(nodePositions);
+        JsonElement aptJson = new JsonPrimitive(apt);
+
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("apt", aptJson);
+        return responseJson.toString();
+    }
+
+    private Object handleInsertPlace(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        double x = body.get("x").getAsDouble();
+        double y = body.get("y").getAsDouble();
+        String nodeType = body.get("nodeType").getAsString();
+        GraphNodeType graphNodeType = GraphNodeType.valueOf(nodeType);
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+        Node node = null;
+        switch (graphNodeType) {
+            case SYSPLACE:
+                node = petriGame.createPlace();
+                break;
+            case ENVPLACE:
+                Place place = petriGame.createPlace();
+                petriGame.setEnvironment(place);
+                node = place;
+                break;
+            case TRANSITION:
+                node = petriGame.createTransition();
+                break;
+            case GRAPH_STRATEGY_BDD_STATE:
+                return errorResponse("You can't insert a GRAPH_STRATEGY_BDD_STATE into a Petri Game.");
+        }
+        petriGame.setXCoord(node, x);
+        petriGame.setYCoord(node, y);
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame, new HashSet<>(Collections.singletonList(node)));
+
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleDeleteNode(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String nodeId = body.get("nodeId").getAsString();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+        petriGame.removeNode(nodeId);
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleRenameNode(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String nodeIdOld = body.get("nodeIdOld").getAsString();
+        String nodeIdNew = body.get("nodeIdNew").getAsString();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+        Node oldNode = petriGame.getNode(nodeIdOld);
+        petriGame.rename(oldNode, nodeIdNew);
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleToggleEnvironmentPlace(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String nodeId = body.get("nodeId").getAsString();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+        Place place = petriGame.getPlace(nodeId);
+        boolean environment = petriGame.isEnvironment(place);
+        if (environment) {
+            petriGame.setSystem(place);
+        } else {
+            petriGame.setEnvironment(place);
+        }
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleToggleIsInitialTokenFlow(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String nodeId = body.get("nodeId").getAsString();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+        Place place = petriGame.getPlace(nodeId);
+        boolean isInitialTokenFlow = petriGame.isInitialTransit(place);
+        if (isInitialTokenFlow) {
+            petriGame.removeInitialTokenflow(place);
+        } else {
+            petriGame.setInitialTokenflow(place);
+        }
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleSetInitialToken(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String nodeId = body.get("nodeId").getAsString();
+        int tokens = body.get("tokens").getAsInt();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+        Place place = petriGame.getPlace(nodeId);
+        place.setInitialToken(tokens);
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleSetWinningCondition(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String winningCondition = body.get("winningCondition").getAsString();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+        Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
+        PNWTTools.setConditionAnnotation(petriGame, objective);
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleCreateFlow(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String source = body.get("source").getAsString();
+        String destination = body.get("destination").getAsString();
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+        petriGame.createFlow(source, destination);
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleDeleteFlow(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String source = body.get("sourceId").getAsString();
+        String target = body.get("targetId").getAsString();
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+        petriGame.removeFlow(source, target);
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleCreateTokenFlow(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        Optional<String> sourceId = body.has("source") ?
+                Optional.of(body.get("source").getAsString()) :
+                Optional.empty();
+        String transitionId = body.get("transition").getAsString();
+        JsonArray postsetJson = body.get("postset").getAsJsonArray();
+        List<String> postsetIds = new ArrayList<>();
+        postsetJson.forEach(jsonElement -> {
+            postsetIds.add(jsonElement.getAsString());
+        });
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+        // Create flows if they don't already exist
+        Transition transition = petriGame.getTransition(transitionId);
+        sourceId.ifPresent(id -> {
+            Place source = petriGame.getPlace(id);
+            if (!transition.getPreset().contains(source)) {
+                petriGame.createFlow(source, transition);
+            }
+        });
+        for (String postsetId : postsetIds) {
+            Place postPlace = petriGame.getPlace(postsetId);
+            if (!transition.getPostset().contains(postPlace)) {
+                petriGame.createFlow(transition, postPlace);
+            }
+        }
+
+        // Create a token flow.  It is an initial token flow if if has no source Place.
+        String[] postsetArray = postsetIds.toArray(new String[postsetIds.size()]);
+        if (sourceId.isPresent()) {
+            petriGame.createTransit(sourceId.get(), transitionId, postsetArray);
+        } else {
+            petriGame.createInitialTransit(transitionId, postsetArray);
+        }
+
+        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleCheckLtlFormula(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String formula = body.get("formula").getAsString();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+        try {
+            IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+            return successResponse(new JsonPrimitive(true));
+        } catch (ParseException e) {
+            Throwable cause = e.getCause();
+            System.out.println(cause.getMessage());
+            return errorResponse(e.getMessage() + "\n" + cause.getMessage());
+        }
+    }
+
+    private Object handleGetModelCheckingNet(Request req, Response res) throws NotSupportedGameException, InterruptedException, ParseException, IOException, ExternalToolException, NotConvertableException, ProcessNotStartedException {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String formula = body.get("formula").getAsString();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+
+        IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+        // TODO ask Manuel if this cast is OK / normal / expected
+        RunFormula runFormula = (RunFormula) iRunFormula;
+
+        PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
+        System.out.println("Checking flow LTL formula");
+        // TODO check the flow ltl formula
+        ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
+        ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
+        System.out.println("result:");
+        System.out.println(result);
+
+        return successResponse(PetriNetD3.of(modelCheckingNet));
+    }
+
+    private Object handleFireTransition(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String gameId = body.get("petriGameId").getAsString();
+        String transitionId = body.get("transitionId").getAsString();
+
+        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
+        PetriGame petriGame = petriGameAndMore.getPetriGame();
+        Transition transition = petriGame.getTransition(transitionId);
+        Marking initialMarking = petriGame.getInitialMarking();
+        Marking newInitialMarking = transition.fire(initialMarking);
+        petriGame.setInitialMarking(newInitialMarking);
+        return successResponse(petriGameAndMore.getPetriGameClient());
     }
 }
