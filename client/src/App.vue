@@ -36,6 +36,14 @@
           <div>That's because you can only see jobs that correspond to the randomly generated
             unique ID that is stored in your local storage.</div>
           <div>Your unique ID is {{ browserUuid }}</div>
+          <v-text-field
+            v-model="browserUuidEntry"
+            :rules="[validateBrowserUuid]"
+            label="New Browser UUID"/>
+          <v-btn
+            @click="saveBrowserUuid">
+            Use entered UUID
+          </v-btn>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -381,7 +389,18 @@
     },
     data: function () {
       return {
-        browserUuid: 'browser uuid not yet loaded.  (Should have been initialized in mounted hook)',
+        validateBrowserUuid: uuidString => {
+          const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          if (pattern.test(uuidString)) {
+            return true
+          } else {
+            return 'The given string does not represent a valid UUID of the form ' +
+              "'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx', where y is a hexadecimal digit between " +
+              "8 and b."
+          }
+        },
+        browserUuid: 'browser uuid not yet loaded. (Should have been initialized in mounted hook)',
+        browserUuidEntry: '00000000-0000-4000-8000-000000000000',
         aptFilename: 'apt.txt',
         showSaveAptModal: false,
         showCalculationList: false,
@@ -427,6 +446,10 @@
       }
     },
     watch: {
+      // When the browser UUID is changed, we should reload the list of calculations
+      browserUuid: function () {
+        this.getListOfCalculations()
+      },
       // When we open the modal dialog, we should reload the list of calculations
       showCalculationList: function () {
         if (this.showCalculationList) {
@@ -543,6 +566,12 @@
       }
     },
     methods: {
+      saveBrowserUuid: function () {
+        if (this.validateBrowserUuid(this.browserUuidEntry) === true) {
+          this.browserUuid = this.browserUuidEntry
+          window.localStorage.setItem('browserUuid', this.browserUuid)
+        }
+      },
       onClickSaveAptMenuItem: function () {
         // There is a delay here so that the click event doesn't immediately close the
         // modal after it is opened.
