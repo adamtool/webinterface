@@ -807,17 +807,20 @@ public class App {
     private Object handleCancelCalculation(Request req, Response res) {
         JsonElement body = parser.parse(req.body());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
-        String type = body.getAsJsonObject().get("type").getAsString();
-        Map<String, ? extends Calculation> calculationMap;
-        // TODO maybe consider using an enum instead of these strings
-        if (type.equals("Graph Game BDD")) {
-            calculationMap = this.bddGraphsOfApts;
-        } else if (type.equals("Winning Strategy")) {
-            calculationMap = this.strategyBddsOfApts;
-        } else if (type.equals("existsWinningStrategy")) {
-            calculationMap = this.existsWinningStrategyOfApts;
-        } else {
-            return errorResponse("Calculation type not recognized: " + type);
+        String typeString = body.getAsJsonObject().get("type").getAsString();
+        CalculationType type = CalculationType.valueOf(typeString);
+        Map<String, ? extends Calculation> calculationMap = null;
+        // TODO Consider putting the "calculationMaps" into a Map<CalculationType, Map<...>>
+        switch (type) {
+            case EXISTS_WINNING_STRATEGY:
+                calculationMap = this.existsWinningStrategyOfApts;
+                break;
+            case WINNING_STRATEGY:
+                calculationMap = this.strategyBddsOfApts;
+                break;
+            case GRAPH_GAME_BDD:
+                calculationMap = this.bddGraphsOfApts;
+                break;
         }
         if (!calculationMap.containsKey(canonicalApt)) {
             return errorResponse("No calculation of " + type + " for the given APT was found.");
