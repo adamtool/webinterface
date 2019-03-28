@@ -8,18 +8,29 @@
         <v-card-title
           primary-title
           style="justify-content: space-between;">
-          <span>Calculations run/running/queued on the server</span>
+          <span>Your jobs run/running/queued on the server</span>
           <v-icon standard right
                   @click="showCalculationList = false">
             close
           </v-icon>
         </v-card-title>
         <v-card-text>
-          <CalculationList :calculationListings="availableBDDGraphListings"
-                           style="background-color: white;"
-                           @loadGraphGameBdd="loadGraphGameBdd"
-                           @loadWinningStrategy="loadWinningStrategy"
-                           @cancelCalculation="cancelCalculation"/>
+          <CalculationList
+            v-if="availableBDDGraphListings.length > 0"
+            :calculationListings="availableBDDGraphListings"
+            style="background-color: white;"
+            @loadGraphGameBdd="loadGraphGameBdd"
+            @loadWinningStrategy="loadWinningStrategy"
+            @cancelCalculation="cancelCalculation"/>
+          <div
+            v-else
+            style="text-align: center; padding-bottom: 15px;">
+            (No jobs found)
+          </div>
+          <span>The jobs listed here are stored in-memory on the server and will disappear if the
+            server is restarted.  You will also lose access to them if you clear the "local
+            storage" of your browser.
+          </span>
         </v-card-text>
       </v-card>
     </v-dialog>
