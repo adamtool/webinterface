@@ -12,7 +12,7 @@
     <tr v-for="listing in calculationListings"
         :key="`${listing.canonicalApt}%${listing.type}`">
       <td>{{ listing.canonicalApt.split('\n')[0] }}</td>
-      <td>{{ listing.type }}</td>
+      <td>{{ formatCalculationType(listing.type) }}</td>
       <td>{{ formatDate(listing.timeStarted) }}</td>
       <td>{{ formatDate(listing.timeFinished) }}</td>
 
@@ -32,7 +32,8 @@
         </v-tooltip>
       </template>
       <template
-        v-else-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'existsWinningStrategy'">
+        v-else-if="listing.calculationStatus === 'COMPLETED'
+                        && listing.type === 'EXISTS_WINNING_STRATEGY'">
         <td :style="`color: ${listing.result ? 'blue' : 'red'}`">
           {{ listing.result ? '(There is a strategy)' : '(There is no strategy)'}}
         </td>
@@ -42,12 +43,12 @@
       </template>
 
       <!--Button to load the result of a calculation or cancel a pending calculation-->
-      <td v-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Graph Game BDD'"
+      <td v-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'GRAPH_GAME_BDD'"
           class="highlightable">
         <button @click="$emit('loadGraphGameBdd', listing.canonicalApt)">Load</button>
       </td>
       <td
-        v-else-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'Winning Strategy'"
+        v-else-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'WINNING_STRATEGY'"
         class="highlightable">
         <button @click="$emit('loadWinningStrategy', listing.canonicalApt)">Load</button>
       </td>
@@ -64,7 +65,7 @@
 </template>
 
 <script>
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
 
   export default {
     name: 'CalculationList',
@@ -81,6 +82,17 @@
         }
         return format(secondsSinceUnixEpoch * 1000, 'HH:mm:ss')
         // You can add 'MMM Do' to get month and day
+      },
+      formatCalculationType (calculationType) {
+        switch (calculationType) {
+          case 'GRAPH_GAME_BDD':
+            return 'Graph Game BDD'
+          case 'EXISTS_WINNING_STRATEGY':
+            return 'Exists winning strategy?'
+          case 'WINNING_STRATEGY':
+            return 'Winning Strategy'
+        }
+        return calculationType
       }
     }
   }

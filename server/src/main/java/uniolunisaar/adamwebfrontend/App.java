@@ -6,6 +6,7 @@ package uniolunisaar.adamwebfrontend;
 import static spark.Spark.*;
 import static uniolunisaar.adamwebfrontend.CalculationStatus.COMPLETED;
 import static uniolunisaar.adamwebfrontend.CalculationStatus.FAILED;
+import static uniolunisaar.adamwebfrontend.CalculationType.*;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -773,13 +774,13 @@ public class App {
         JsonArray result = new JsonArray();
         for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
             Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(aptOfPetriGame);
-            JsonObject entry = calculationListEntry(calculation, aptOfPetriGame, "Graph Game BDD");
+            JsonObject entry = calculationListEntry(calculation, aptOfPetriGame, GRAPH_GAME_BDD);
             result.add(entry);
         }
         for (String canonicalApt : this.existsWinningStrategyOfApts.keySet()) {
             Calculation<Boolean> calculation = this.existsWinningStrategyOfApts.get(canonicalApt);
             JsonObject entry = calculationListEntry(
-                    calculation, canonicalApt, "existsWinningStrategy");
+                    calculation, canonicalApt, EXISTS_WINNING_STRATEGY);
             if (calculation.getStatus() == COMPLETED) {
                 entry.addProperty("result", calculation.getResult());
             }
@@ -788,7 +789,7 @@ public class App {
         for (String canonicalApt : this.strategyBddsOfApts.keySet()) {
             Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
             JsonObject entry = calculationListEntry(
-                    calculation, canonicalApt, "Winning Strategy");
+                    calculation, canonicalApt, WINNING_STRATEGY);
             result.add(entry);
         }
         JsonObject responseJson = new JsonObject();
@@ -799,9 +800,9 @@ public class App {
 
     private JsonObject calculationListEntry(Calculation calculation,
                                             String canonicalApt,
-                                            String calculationType) {
+                                            CalculationType calculationType) {
         JsonObject entry = new JsonObject();
-        entry.addProperty("type", calculationType);
+        entry.addProperty("type", calculationType.toString());
         entry.addProperty("canonicalApt", canonicalApt);
         entry.addProperty("calculationStatus", calculation.getStatus().toString());
         entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
