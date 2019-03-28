@@ -47,16 +47,16 @@
                     </div>
                     <div>Your unique ID is {{ browserUuid }}.</div>
                     <div>
-                      You can enter the unique ID from another browser here in order to share your
-                      list of jobs.  Just enter it below and click "Use this UUID."
+                      If you use multiple browsers, you can share one unique ID between them in
+                      order to have the same list of jobs appear in all of your browsers.
                     </div>
                     <v-text-field
                       v-model="browserUuidEntry"
                       :rules="[validateBrowserUuid]"
-                      label="New Browser UUID"/>
+                      label="Other Browser UUID"/>
                     <v-btn
                       @click="saveBrowserUuid">
-                      Use this UUID
+                      Use other UUID
                     </v-btn>
                   </v-card-text>
                 </v-card>
@@ -588,9 +588,18 @@
     },
     methods: {
       saveBrowserUuid: function () {
+        if (this.browserUuidEntry === this.browserUuid) {
+          return
+        }
         if (this.validateBrowserUuid(this.browserUuidEntry) === true) {
-          this.browserUuid = this.browserUuidEntry
-          window.localStorage.setItem('browserUuid', this.browserUuid)
+          const noJobsAreListed = this.availableBDDGraphListings.length === 0
+          if (noJobsAreListed || confirm(
+            'Changing your browser\'s UUID will cause your current list of jobs to disappear.  ' +
+            'The only way to get them back is to re-enter your current UUID (' + this.browserUuid +
+            ').  Are you sure?')) {
+            this.browserUuid = this.browserUuidEntry
+            window.localStorage.setItem('browserUuid', this.browserUuid)
+          }
         }
       },
       onClickSaveAptMenuItem: function () {
