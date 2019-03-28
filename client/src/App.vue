@@ -494,7 +494,7 @@
           funs[endpointName] = (options) => {
             return axios.post(this.baseUrl + '/' + endpointName, {
               ...options,
-              browserUuid: this.browserUuid
+              browserUuid: window.localStorage.getItem('browserUuid')
             })
           }
         })
