@@ -41,21 +41,10 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class App {
-    // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
-    private final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
-
-    // When we calculate a graph game BDD from a petri game, we convert the petri game to APT, then
-    // put the (APT, BDDGraphExplorer) pair in here
-    private final Map<String, Calculation<BDDGraphExplorer>> bddGraphsOfApts = new ConcurrentHashMap<>();
-    // Store the results of "existsWinningStrategy"
-    private final Map<String, Calculation<Boolean>> existsWinningStrategyOfApts =
-            new ConcurrentHashMap<>();
-    // Store the results of "getStrategyBdd"
-    private final Map<String, Calculation<PetriGame>> strategyBddsOfApts =
-            new ConcurrentHashMap<>();
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         new App().startServer();
@@ -189,47 +178,15 @@ public class App {
      * @return a list containing an entry for each pending/completed calculation
      * (e.g. Graph Game BDD, Get Winning Condition) on the server.
      */
-    private Object handleGetListOfCalculations(Request req, Response res) throws ExecutionException, InterruptedException {
-        JsonArray result = new JsonArray();
-        for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
-            Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(aptOfPetriGame);
-            JsonObject entry = calculationListEntry(calculation, aptOfPetriGame, GRAPH_GAME_BDD);
-            result.add(entry);
-        }
-        for (String canonicalApt : this.existsWinningStrategyOfApts.keySet()) {
-            Calculation<Boolean> calculation = this.existsWinningStrategyOfApts.get(canonicalApt);
-            JsonObject entry = calculationListEntry(
-                    calculation, canonicalApt, EXISTS_WINNING_STRATEGY);
-            if (calculation.getStatus() == COMPLETED) {
-                entry.addProperty("result", calculation.getResult());
-            }
-            result.add(entry);
-        }
-        for (String canonicalApt : this.strategyBddsOfApts.keySet()) {
-            Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
-            JsonObject entry = calculationListEntry(
-                    calculation, canonicalApt, WINNING_STRATEGY);
-            result.add(entry);
-        }
+    private Object handleGetListOfCalculations(Request req, Response res) {
+        JsonElement body = parser.parse(req.body());
+        UUID browserUuid = UUID.fromString(body.getAsJsonObject().get("browserUuid").getAsString());
+        UserContext uc = userContextMap.get(browserUuid);
+        JsonArray result = uc.getCalculationList();
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("listings", result);
         return responseJson.toString();
-    }
-
-    private JsonObject calculationListEntry(Calculation calculation,
-                                            String canonicalApt,
-                                            CalculationType calculationType) {
-        JsonObject entry = new JsonObject();
-        entry.addProperty("type", calculationType.toString());
-        entry.addProperty("canonicalApt", canonicalApt);
-        entry.addProperty("calculationStatus", calculation.getStatus().toString());
-        entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
-        entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
-        if (calculation.getStatus() == FAILED) {
-            entry.addProperty("failureReason", calculation.getFailedReason());
-        }
-        return entry;
     }
 
     private Object handleParseApt(Request req, Response res) {
