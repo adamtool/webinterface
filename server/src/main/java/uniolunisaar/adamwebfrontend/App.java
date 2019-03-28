@@ -14,6 +14,7 @@ import spark.Request;
 import spark.Response;
 import uniol.apt.adt.pn.*;
 import uniol.apt.io.parser.ParseException;
+import uniol.apt.io.renderer.RenderException;
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
@@ -23,8 +24,7 @@ import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.exceptions.pg.CouldNotCalculateException;
-import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
+import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
@@ -75,314 +75,24 @@ public class App {
 
         get("/hello", (req, res) -> "Hello World");
 
-        post("/parseApt", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
-            PetriGame petriGame;
-            try {
-                petriGame = Adam.getPetriGame(apt);
-            } catch (ParseException | NotSupportedGameException | IOException | CouldNotFindSuitableConditionException | CouldNotCalculateException e) {
-                JsonObject errorResponse =
-                        errorResponseObject(e.getClass().getSimpleName() + ": " + e.getMessage());
-                if (e instanceof ParseException) {
-                    Pair<Integer, Integer> errorLocation =
-                            Tools.getErrorLocation((ParseException) e);
-                    errorResponse.addProperty("lineNumber", errorLocation.getFirst());
-                    errorResponse.addProperty("columnNumber", errorLocation.getSecond());
-                }
-                return errorResponse;
-            }
-
-            String petriGameUUID = UUID.randomUUID().toString();
-            PetriGameAndMore petriGameAndMore = PetriGameAndMore.of(petriGame);
-            petriGamesReadFromApt.put(petriGameUUID, petriGameAndMore);
-            System.out.println("Generated petri game with ID " + petriGameUUID);
-
-            JsonElement petriNetD3Json = PetriNetD3.of(petriGame, petriGame.getNodes());
-            JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
-
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("graph", petriGameClient);
-            return responseJson.toString();
-        });
+        post("/handleParseApt", this::handleParseApt);
 
 
-        post("/existsWinningStrategy", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+        post("/existsWinningStrategy", this::handleExistsWinningStrategy);
 
-            PetriGameAndMore petriGame = getPetriGame(petriGameId);
+        post("/getStrategyBDD", this::handleGetStrategyBDD);
 
-            System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
+        post("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
 
-            String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
-            if (this.existsWinningStrategyOfApts.containsKey(canonicalApt)) {
-                return errorResponse("There is already a Calculation queued up to find the " +
-                        "Exists Winning Condition of the Petri Game with the given APT.  Its " +
-                        "status: " +
-                        this.existsWinningStrategyOfApts.get(canonicalApt).getStatus());
-            }
-
-            System.out.println("Calculating Exists Winning Strategy for PetriGame id#" + petriGameId);
-            Calculation<Boolean> calculation = new Calculation<>(() -> {
-                boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame.getPetriGame());
-                return existsWinningStrategy;
-            }, petriGame.getPetriGame().getName());
-            this.existsWinningStrategyOfApts.put(canonicalApt, calculation);
-            calculation.queue(executorService);
-
-            try {
-                boolean result = calculation.getResult(5, TimeUnit.SECONDS);
-                JsonObject responseJson = new JsonObject();
-                responseJson.addProperty("status", "success");
-                responseJson.addProperty("message", "The calculation of Exists Winning Strategy " +
-                        "is finished.");
-                responseJson.addProperty("canonicalApt", canonicalApt);
-                responseJson.addProperty("calculationComplete", true);
-                // Annotations might have been added to the petri game, and the client should
-                // know about them.
-                responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
-                responseJson.addProperty("result", result);
-                return responseJson.toString();
-            } catch (TimeoutException e) {
-                JsonObject responseJson = new JsonObject();
-                responseJson.addProperty("status", "success");
-                responseJson.addProperty("message", "The calculation of Exists Winning Strategy " +
-                        "is taking more than five seconds.  It will run in the background.");
-                responseJson.addProperty("canonicalApt", canonicalApt);
-                responseJson.addProperty("calculationComplete", false);
-                return responseJson.toString();
-            } catch (CancellationException e) {
-                return errorResponse("The calculation was canceled.");
-            }
-        });
-
-        post("/getStrategyBDD", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-
-            PetriGameAndMore petriGame = getPetriGame(petriGameId);
-
-            String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
-            if (this.strategyBddsOfApts.containsKey(canonicalApt)) {
-                return errorResponse("There is already a Calculation queued up to find the " +
-                        "winning strategy of the Petri Game with the given APT.  Its status: " +
-                        this.strategyBddsOfApts.get(canonicalApt).getStatus());
-            }
-            PetriGame game = petriGame.getPetriGame();
-            Calculation<PetriGame> calculation = new Calculation<>(() -> {
-                PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(game);
-                PetriGameAndMore.removeXAndYCoordinates(strategyBDD);
-                return strategyBDD;
-            }, game.getName());
-            this.strategyBddsOfApts.put(canonicalApt, calculation);
-            calculation.queue(executorService);
-
-            try {
-                // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
-                //  error handling from /getGraphBDD))
-                PetriGame result = calculation.getResult(5, TimeUnit.SECONDS);
-                JsonObject responseJson = new JsonObject();
-                responseJson.addProperty("status", "success");
-                responseJson.addProperty("message", "The calculation of the " +
-                        "winning strategy is finished.");
-                responseJson.addProperty("canonicalApt", canonicalApt);
-                responseJson.addProperty("calculationComplete", true);
-                responseJson.add("strategyBDD", PetriNetD3.of(result));
-                responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
-                return responseJson.toString();
-            } catch (TimeoutException e) {
-                JsonObject responseJson = new JsonObject();
-                responseJson.addProperty("status", "success");
-                responseJson.addProperty("message", "The calculation of the winning " +
-                        "strategy is taking more than five seconds.  It will run in the " +
-                        "background.");
-                responseJson.addProperty("canonicalApt", canonicalApt);
-                responseJson.addProperty("calculationComplete", false);
-                return responseJson.toString();
-            } catch (CancellationException e) {
-                return errorResponse("The calculation was canceled.");
-            }
-        });
-
-        // TODO change this so it doesn't calculate the same bdd a bunch of times just because you click the button more than once.
-        // Right now you can crash the server just by sending a bunch of requests to this endpoint
-        post("/getGraphStrategyBDD", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-
-            PetriGameAndMore petriGame = getPetriGame(petriGameId);
-            System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
-            JsonElement bddGraph = petriGame.calculateGraphStrategyBDD();
-
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("graphStrategyBDD", bddGraph);
-            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
-            return responseJson.toString();
-        });
-
-        post("/calculateGraphGameBDD", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-            boolean shouldSolveStepwise =
-                    body.getAsJsonObject().get("incremental").getAsBoolean();
-
-            // TODO Consider not putting PetriGame and everything together inside of
-            //   PetriGameAndMore
-            PetriGameAndMore petriGame = getPetriGame(petriGameId);
-
-            // Just in case the petri game gets modified after the computation starts, we will
-            // save its apt right here already
-            String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
-            if (this.bddGraphsOfApts.containsKey(canonicalApt)) {
-                return errorResponse("There is already a Calculation queued up to find the " +
-                        "Graph Game BDD of the Petri Game with the given APT.  Its status: " +
-                        this.bddGraphsOfApts.get(canonicalApt).getStatus());
-            }
-
-            // Calculate the Graph Game BDD
-            // TODO What happens if you modify the petri game while this calculation is ongoing?
-            // TODO Do I need to do something to stop that from happening?  -Ann
-            System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
-            PetriGame game = petriGame.getPetriGame();
-            Optional<Condition.Objective> objective = PetriNetD3.getObjectiveOfPetriNet(game);
-            if (!objective.isPresent()) {
-                return errorResponse("No winning condition is present for the given Petri Game.");
-            }
-            Calculation<BDDGraphExplorer> calculation = new Calculation<>(() -> {
-                if (shouldSolveStepwise) {
-                    BDDGraphExplorerStepwise bddGraphExplorerStepwise = new BDDGraphExplorerStepwise(game);
-                    return bddGraphExplorerStepwise;
-                } else {
-                    BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(game);
-                    return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
-                }
-            }, game.getName());
-            this.bddGraphsOfApts.put(canonicalApt, calculation);
-            calculation.queue(executorService);
-
-            try {
-                // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
-                //  error handling from /getGraphBDD))
-                BDDGraphExplorer result = calculation.getResult(5, TimeUnit.SECONDS);
-                JsonObject responseJson = new JsonObject();
-                responseJson.addProperty("status", "success");
-                responseJson.addProperty("message", "The calculation of the graph game " +
-                        "BDD is finished.");
-                responseJson.addProperty("canonicalApt", canonicalApt);
-                responseJson.addProperty("calculationComplete", true);
-                responseJson.add("bddGraph", result.getVisibleGraph());
-                return responseJson.toString();
-            } catch (TimeoutException e) {
-                JsonObject responseJson = new JsonObject();
-                responseJson.addProperty("status", "success");
-                responseJson.addProperty("message", "The calculation of the graph game " +
-                        "BDD is taking more than five seconds.  It will run in the background.");
-                responseJson.addProperty("canonicalApt", canonicalApt);
-                responseJson.addProperty("calculationComplete", false);
-                return responseJson.toString();
-            } catch (CancellationException e) {
-                return errorResponse("The calculation was canceled.");
-            }
-        });
+        post("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
 
         post("/getListOfCalculations", this::getListOfCalculations);
 
-        // Given the canonical APT representation of a Petri Game, return the current view
-        // of the BDDGraph that has been calculated for it, if one is present.
-        post("/getBDDGraph", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+        post("/getBDDGraph", this::handleGetBDDGraph);
 
-            if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
-                return errorResponse("No BDDGraph has been calculated yet for the Petri " +
-                        "Game with the given APT representation: \n" + canonicalApt);
-            }
-            Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(canonicalApt);
-            if (!calculation.isFinished()) {
-                return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
-                        ".  Its status: " + calculation.getStatus());
-            }
-            BDDGraphExplorer bddGraphExplorer;
-            try {
-                bddGraphExplorer = calculation.getResult();
-            } catch (InterruptedException e) {
-                return errorResponse("The calculation for that Graph Game BDD got canceled.");
-            } catch (ExecutionException e) {
-                return errorResponse("The calculation for that Graph Game BDD failed with the " +
-                        "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
-            }
+        post("/loadWinningStrategy", this::handleLoadWinningStrategy);
 
-            JsonElement bddGraph = bddGraphExplorer.getVisibleGraph();
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("bddGraph", bddGraph);
-            return responseJson.toString();
-        });
-
-        // Load the winning strategy (strategy BDD) of a Petri Game that has been calculated
-        post("/loadWinningStrategy", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
-
-            if (!this.strategyBddsOfApts.containsKey(canonicalApt)) {
-                return errorResponse("No winning strategy has been calculated yet for the Petri " +
-                        "Game with the given APT representation: \n" + canonicalApt);
-            }
-            Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
-            if (!calculation.isFinished()) {
-                return errorResponse("The calculation of that winning strategy is not yet " +
-                        "finished.  Its status: " + calculation.getStatus());
-            }
-            PetriGame strategyBdd;
-            try {
-                strategyBdd = calculation.getResult();
-            } catch (InterruptedException e) {
-                return errorResponse("The calculation for that winning strategy got canceled.");
-            } catch (ExecutionException e) {
-                return errorResponse("The calculation for that winning strategy failed with the " +
-                        "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
-            }
-
-            JsonElement strategyBddJson = PetriNetD3.of(strategyBdd);
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("strategyBDD", strategyBddJson);
-            return responseJson.toString();
-
-        });
-
-        post("/cancelCalculation", (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
-            String type = body.getAsJsonObject().get("type").getAsString();
-            Map<String, ? extends Calculation> calculationMap;
-            // TODO maybe consider using an enum instead of these strings
-            if (type.equals("Graph Game BDD")) {
-                calculationMap = this.bddGraphsOfApts;
-            } else if (type.equals("Winning Strategy")) {
-                calculationMap = this.strategyBddsOfApts;
-            } else if (type.equals("existsWinningStrategy")) {
-                calculationMap = this.existsWinningStrategyOfApts;
-            } else {
-                return errorResponse("Calculation type not recognized: " + type);
-            }
-            if (!calculationMap.containsKey(canonicalApt)) {
-                return errorResponse("No calculation of " + type + " for the given APT was found.");
-            }
-            Calculation calculation = calculationMap.get(canonicalApt);
-            calculation.cancel();
-            return successResponse(new JsonPrimitive(true));
-        });
+        post("/cancelCalculation", this::handleCancelCalculation);
 
         post("/toggleGraphGameBDDNodePostset", (req, res) -> {
             JsonElement body = parser.parse(req.body());
@@ -811,5 +521,309 @@ public class App {
             entry.addProperty("failureReason", calculation.getFailedReason());
         }
         return entry;
+    }
+
+    private Object handleParseApt(Request req, Response res) {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
+        PetriGame petriGame;
+        try {
+            petriGame = Adam.getPetriGame(apt);
+        } catch (ParseException | NotSupportedGameException | IOException | CouldNotFindSuitableConditionException | CouldNotCalculateException e) {
+            JsonObject errorResponse =
+                    errorResponseObject(e.getClass().getSimpleName() + ": " + e.getMessage());
+            if (e instanceof ParseException) {
+                Pair<Integer, Integer> errorLocation =
+                        Tools.getErrorLocation((ParseException) e);
+                errorResponse.addProperty("lineNumber", errorLocation.getFirst());
+                errorResponse.addProperty("columnNumber", errorLocation.getSecond());
+            }
+            return errorResponse;
+        }
+
+        String petriGameUUID = UUID.randomUUID().toString();
+        PetriGameAndMore petriGameAndMore = PetriGameAndMore.of(petriGame);
+        petriGamesReadFromApt.put(petriGameUUID, petriGameAndMore);
+        System.out.println("Generated petri game with ID " + petriGameUUID);
+
+        JsonElement petriNetD3Json = PetriNetD3.of(petriGame, petriGame.getNodes());
+        JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
+
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("graph", petriGameClient);
+        return responseJson.toString();
+    }
+
+    private Object handleExistsWinningStrategy(Request req, Response res) throws ExecutionException, InterruptedException, RenderException {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+
+        PetriGameAndMore petriGame = getPetriGame(petriGameId);
+
+        System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
+
+        String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+        if (this.existsWinningStrategyOfApts.containsKey(canonicalApt)) {
+            return errorResponse("There is already a Calculation queued up to find the " +
+                    "Exists Winning Condition of the Petri Game with the given APT.  Its " +
+                    "status: " +
+                    this.existsWinningStrategyOfApts.get(canonicalApt).getStatus());
+        }
+
+        System.out.println("Calculating Exists Winning Strategy for PetriGame id#" + petriGameId);
+        Calculation<Boolean> calculation = new Calculation<>(() -> {
+            boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame.getPetriGame());
+            return existsWinningStrategy;
+        }, petriGame.getPetriGame().getName());
+        this.existsWinningStrategyOfApts.put(canonicalApt, calculation);
+        calculation.queue(executorService);
+
+        try {
+            boolean result = calculation.getResult(5, TimeUnit.SECONDS);
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation of Exists Winning Strategy " +
+                    "is finished.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", true);
+            // Annotations might have been added to the petri game, and the client should
+            // know about them.
+            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            responseJson.addProperty("result", result);
+            return responseJson.toString();
+        } catch (TimeoutException e) {
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation of Exists Winning Strategy " +
+                    "is taking more than five seconds.  It will run in the background.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", false);
+            return responseJson.toString();
+        } catch (CancellationException e) {
+            return errorResponse("The calculation was canceled.");
+        }
+    }
+
+    private Object handleGetStrategyBDD(Request req, Response res) throws ExecutionException, InterruptedException, RenderException {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+
+        PetriGameAndMore petriGame = getPetriGame(petriGameId);
+
+        String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+        if (this.strategyBddsOfApts.containsKey(canonicalApt)) {
+            return errorResponse("There is already a Calculation queued up to find the " +
+                    "winning strategy of the Petri Game with the given APT.  Its status: " +
+                    this.strategyBddsOfApts.get(canonicalApt).getStatus());
+        }
+        PetriGame game = petriGame.getPetriGame();
+        Calculation<PetriGame> calculation = new Calculation<>(() -> {
+            PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(game);
+            PetriGameAndMore.removeXAndYCoordinates(strategyBDD);
+            return strategyBDD;
+        }, game.getName());
+        this.strategyBddsOfApts.put(canonicalApt, calculation);
+        calculation.queue(executorService);
+
+        try {
+            // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
+            //  error handling from /getGraphBDD))
+            PetriGame result = calculation.getResult(5, TimeUnit.SECONDS);
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation of the " +
+                    "winning strategy is finished.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", true);
+            responseJson.add("strategyBDD", PetriNetD3.of(result));
+            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            return responseJson.toString();
+        } catch (TimeoutException e) {
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation of the winning " +
+                    "strategy is taking more than five seconds.  It will run in the " +
+                    "background.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", false);
+            return responseJson.toString();
+        } catch (CancellationException e) {
+            return errorResponse("The calculation was canceled.");
+        }
+    }
+
+    // TODO Prevent DDOS by throttling this endpoint somehow
+    private Object handleGetGraphStrategyBDD(Request req, Response res) throws NoStrategyExistentException, CouldNotFindSuitableConditionException, CalculationInterruptedException, ParseException, SolvingException {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+
+        PetriGameAndMore petriGame = getPetriGame(petriGameId);
+        System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
+        JsonElement bddGraph = petriGame.calculateGraphStrategyBDD();
+
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("graphStrategyBDD", bddGraph);
+        responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+        return responseJson.toString();
+    }
+
+    private Object handleCalculateGraphGameBDD(Request req, Response res) throws RenderException, ExecutionException, InterruptedException {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
+        boolean shouldSolveStepwise =
+                body.getAsJsonObject().get("incremental").getAsBoolean();
+
+        // TODO Consider not putting PetriGame and everything together inside of
+        //   PetriGameAndMore
+        PetriGameAndMore petriGame = getPetriGame(petriGameId);
+
+        // Just in case the petri game gets modified after the computation starts, we will
+        // save its apt right here already
+        String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+        if (this.bddGraphsOfApts.containsKey(canonicalApt)) {
+            return errorResponse("There is already a Calculation queued up to find the " +
+                    "Graph Game BDD of the Petri Game with the given APT.  Its status: " +
+                    this.bddGraphsOfApts.get(canonicalApt).getStatus());
+        }
+
+        // Calculate the Graph Game BDD
+        // TODO What happens if you modify the petri game while this calculation is ongoing?
+        // TODO Do I need to do something to stop that from happening?  -Ann
+        System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
+        PetriGame game = petriGame.getPetriGame();
+        Optional<Condition.Objective> objective = PetriNetD3.getObjectiveOfPetriNet(game);
+        if (!objective.isPresent()) {
+            return errorResponse("No winning condition is present for the given Petri Game.");
+        }
+        Calculation<BDDGraphExplorer> calculation = new Calculation<>(() -> {
+            if (shouldSolveStepwise) {
+                BDDGraphExplorerStepwise bddGraphExplorerStepwise = new BDDGraphExplorerStepwise(game);
+                return bddGraphExplorerStepwise;
+            } else {
+                BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(game);
+                return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
+            }
+        }, game.getName());
+        this.bddGraphsOfApts.put(canonicalApt, calculation);
+        calculation.queue(executorService);
+
+        try {
+            // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
+            //  error handling from /getGraphBDD))
+            BDDGraphExplorer result = calculation.getResult(5, TimeUnit.SECONDS);
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation of the graph game " +
+                    "BDD is finished.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", true);
+            responseJson.add("bddGraph", result.getVisibleGraph());
+            return responseJson.toString();
+        } catch (TimeoutException e) {
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation of the graph game " +
+                    "BDD is taking more than five seconds.  It will run in the background.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", false);
+            return responseJson.toString();
+        } catch (CancellationException e) {
+            return errorResponse("The calculation was canceled.");
+        }
+    }
+
+    // Given the canonical APT representation of a Petri Game, return the current view
+    // of the BDDGraph that has been calculated for it, if one is present.
+    private Object handleGetBDDGraph(Request req, Response res) {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+
+        if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+            return errorResponse("No BDDGraph has been calculated yet for the Petri " +
+                    "Game with the given APT representation: \n" + canonicalApt);
+        }
+        Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(canonicalApt);
+        if (!calculation.isFinished()) {
+            return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
+                    ".  Its status: " + calculation.getStatus());
+        }
+        BDDGraphExplorer bddGraphExplorer;
+        try {
+            bddGraphExplorer = calculation.getResult();
+        } catch (InterruptedException e) {
+            return errorResponse("The calculation for that Graph Game BDD got canceled.");
+        } catch (ExecutionException e) {
+            return errorResponse("The calculation for that Graph Game BDD failed with the " +
+                    "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+        }
+
+        JsonElement bddGraph = bddGraphExplorer.getVisibleGraph();
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("bddGraph", bddGraph);
+        return responseJson.toString();
+    }
+
+    // Load the winning strategy (strategy BDD) of a Petri Game that has been calculated
+    private Object handleLoadWinningStrategy(Request req, Response res) {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+
+        if (!this.strategyBddsOfApts.containsKey(canonicalApt)) {
+            return errorResponse("No winning strategy has been calculated yet for the Petri " +
+                    "Game with the given APT representation: \n" + canonicalApt);
+        }
+        Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
+        if (!calculation.isFinished()) {
+            return errorResponse("The calculation of that winning strategy is not yet " +
+                    "finished.  Its status: " + calculation.getStatus());
+        }
+        PetriGame strategyBdd;
+        try {
+            strategyBdd = calculation.getResult();
+        } catch (InterruptedException e) {
+            return errorResponse("The calculation for that winning strategy got canceled.");
+        } catch (ExecutionException e) {
+            return errorResponse("The calculation for that winning strategy failed with the " +
+                    "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+        }
+
+        JsonElement strategyBddJson = PetriNetD3.of(strategyBdd);
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("strategyBDD", strategyBddJson);
+        return responseJson.toString();
+    }
+
+    private Object handleCancelCalculation(Request req, Response res) {
+        JsonElement body = parser.parse(req.body());
+        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+        String type = body.getAsJsonObject().get("type").getAsString();
+        Map<String, ? extends Calculation> calculationMap;
+        // TODO maybe consider using an enum instead of these strings
+        if (type.equals("Graph Game BDD")) {
+            calculationMap = this.bddGraphsOfApts;
+        } else if (type.equals("Winning Strategy")) {
+            calculationMap = this.strategyBddsOfApts;
+        } else if (type.equals("existsWinningStrategy")) {
+            calculationMap = this.existsWinningStrategyOfApts;
+        } else {
+            return errorResponse("Calculation type not recognized: " + type);
+        }
+        if (!calculationMap.containsKey(canonicalApt)) {
+            return errorResponse("No calculation of " + type + " for the given APT was found.");
+        }
+        Calculation calculation = calculationMap.get(canonicalApt);
+        calculation.cancel();
+        return successResponse(new JsonPrimitive(true));
     }
 }
