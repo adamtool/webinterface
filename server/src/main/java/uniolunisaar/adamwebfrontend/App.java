@@ -62,8 +62,6 @@ public class App {
 
         staticFiles.location("/static");
         enableCORS();
-        createUserContextUponFirstConnection();
-
 
         get("/hello", (req, res) -> "Hello World");
 
@@ -77,7 +75,7 @@ public class App {
 
         postWithUserContext("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
 
-        post("/getListOfCalculations", this::handleGetListOfCalculations);
+        postWithUserContext("/getListOfCalculations", this::handleGetListOfCalculations);
 
         postWithUserContext("/getBDDGraph", this::handleGetBDDGraph);
 
@@ -127,7 +125,7 @@ public class App {
 
     /**
      * Register a route where the browserUuid is automatically extracted from each request body
-     * and the corresponding UserContext is supplied to our route handler.
+     * and the corresponding UserContext is retrieved.
      * This way, the handler function does not have to handle this frequently repeated operation.
      */
     private void postWithUserContext(String path, RouteWithUserContext handler) {
@@ -135,6 +133,9 @@ public class App {
             JsonElement body = parser.parse(req.body());
             String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
+            if (!userContextMap.containsKey(browserUuid)) {
+                userContextMap.put(browserUuid, new UserContext());
+            }
             UserContext uc = userContextMap.get(browserUuid);
             Object answer = handler.handle(req, res, uc);
             return answer;
@@ -172,21 +173,6 @@ public class App {
         before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
     }
 
-    /**
-     * When a browser connects for the first time with a never before seen uuid, an entry for it
-     * should be created in the userContextMap.
-     */
-    private void createUserContextUponFirstConnection() {
-        before(((request, response) -> {
-            JsonElement body = parser.parse(request.body());
-            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
-            UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext());
-            }
-        }));
-    }
-
     private static String successResponse(JsonElement result) {
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
@@ -209,10 +195,7 @@ public class App {
      * @return a list containing an entry for each pending/completed calculation
      * (e.g. Graph Game BDD, Get Winning Condition) on the server.
      */
-    private Object handleGetListOfCalculations(Request req, Response res) {
-        JsonElement body = parser.parse(req.body());
-        UUID browserUuid = UUID.fromString(body.getAsJsonObject().get("browserUuid").getAsString());
-        UserContext uc = userContextMap.get(browserUuid);
+    private Object handleGetListOfCalculations(Request req, Response res, UserContext uc) {
         JsonArray result = uc.getCalculationList();
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
