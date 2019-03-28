@@ -16,8 +16,6 @@ import static uniolunisaar.adamwebfrontend.CalculationType.*;
  * Stores data related to a single user session
  */
 public class UserContext {
-    // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
-    private final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
     // When we calculate a graph game BDD from a petri game, we convert the petri game to APT, then
     // put the (APT, BDDGraphExplorer) pair in here
     private final Map<String, Calculation<BDDGraphExplorer>> bddGraphsOfApts = new ConcurrentHashMap<>();

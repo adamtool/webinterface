@@ -45,6 +45,8 @@ public class App {
     private final JsonParser parser = new JsonParser();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
+    // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
+    private final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         new App().startServer();
