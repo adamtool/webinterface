@@ -773,59 +773,42 @@ public class App {
         JsonArray result = new JsonArray();
         for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
             Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(aptOfPetriGame);
-            JsonObject entry = new JsonObject();
-            // This canonicalApt String can be used as a key to access the result of the
-            // calculation (e.g. via /getBDDGraph) if the calculation is finished.
-            entry.addProperty("type", "Graph Game BDD");
-            entry.addProperty("canonicalApt", aptOfPetriGame);
-            entry.addProperty("calculationStatus", calculation.getStatus().toString());
-            entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
-            entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
-            if (calculation.getStatus() == FAILED) {
-                entry.addProperty("failureReason", calculation.getFailedReason());
-            }
+            JsonObject entry = calculationListEntry(calculation, aptOfPetriGame, "Graph Game BDD");
             result.add(entry);
         }
-
         for (String canonicalApt : this.existsWinningStrategyOfApts.keySet()) {
             Calculation<Boolean> calculation = this.existsWinningStrategyOfApts.get(canonicalApt);
-            JsonObject entry = new JsonObject();
-            // This canonicalApt String can be used as a key to access the result of the
-            // calculation (e.g. via /getBDDGraph) if the calculation is finished.
-            entry.addProperty("type", "existsWinningStrategy");
-            entry.addProperty("canonicalApt", canonicalApt);
-            entry.addProperty("calculationStatus", calculation.getStatus().toString());
-            entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
-            entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
-            if (calculation.getStatus() == FAILED) {
-                entry.addProperty("failureReason", calculation.getFailedReason());
-            }
+            JsonObject entry = calculationListEntry(
+                    calculation, canonicalApt, "existsWinningStrategy");
             if (calculation.getStatus() == COMPLETED) {
                 entry.addProperty("result", calculation.getResult());
             }
             result.add(entry);
         }
-
         for (String canonicalApt : this.strategyBddsOfApts.keySet()) {
             Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
-            JsonObject entry = new JsonObject();
-            // This canonicalApt String can be used as a key to access the result of the
-            // calculation (e.g. via /getBDDGraph) if the calculation is finished.
-            entry.addProperty("type", "Winning Strategy");
-            entry.addProperty("canonicalApt", canonicalApt);
-            entry.addProperty("calculationStatus", calculation.getStatus().toString());
-            entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
-            entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
-            if (calculation.getStatus() == FAILED) {
-                entry.addProperty("failureReason", calculation.getFailedReason());
-            }
+            JsonObject entry = calculationListEntry(
+                    calculation, canonicalApt, "Winning Strategy");
             result.add(entry);
         }
-
-
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("listings", result);
         return responseJson.toString();
+    }
+
+    private JsonObject calculationListEntry(Calculation calculation,
+                                            String canonicalApt,
+                                            String calculationType) {
+        JsonObject entry = new JsonObject();
+        entry.addProperty("type", calculationType);
+        entry.addProperty("canonicalApt", canonicalApt);
+        entry.addProperty("calculationStatus", calculation.getStatus().toString());
+        entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
+        entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
+        if (calculation.getStatus() == FAILED) {
+            entry.addProperty("failureReason", calculation.getFailedReason());
+        }
+        return entry;
     }
 }
