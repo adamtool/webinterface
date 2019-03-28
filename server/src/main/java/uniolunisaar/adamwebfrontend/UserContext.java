@@ -18,12 +18,13 @@ import static uniolunisaar.adamwebfrontend.CalculationType.*;
 public class UserContext {
     // When we calculate a graph game BDD from a petri game, we convert the petri game to APT, then
     // put the (APT, BDDGraphExplorer) pair in here
-    private final Map<String, Calculation<BDDGraphExplorer>> bddGraphsOfApts = new ConcurrentHashMap<>();
+    public final Map<String, Calculation<BDDGraphExplorer>> bddGraphsOfApts =
+            new ConcurrentHashMap<>();
     // Store the results of "existsWinningStrategy"
-    private final Map<String, Calculation<Boolean>> existsWinningStrategyOfApts =
+    public final Map<String, Calculation<Boolean>> existsWinningStrategyOfApts =
             new ConcurrentHashMap<>();
     // Store the results of "getStrategyBdd"
-    private final Map<String, Calculation<PetriGame>> strategyBddsOfApts =
+    public final Map<String, Calculation<PetriGame>> strategyBddsOfApts =
             new ConcurrentHashMap<>();
 
     public JsonArray getCalculationList() {

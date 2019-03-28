@@ -4,9 +4,6 @@ package uniolunisaar.adamwebfrontend;
  */
 
 import static spark.Spark.*;
-import static uniolunisaar.adamwebfrontend.CalculationStatus.COMPLETED;
-import static uniolunisaar.adamwebfrontend.CalculationStatus.FAILED;
-import static uniolunisaar.adamwebfrontend.CalculationType.*;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -65,31 +62,32 @@ public class App {
 
         staticFiles.location("/static");
         enableCORS();
+        createUserContextUponFirstConnection();
 
 
         get("/hello", (req, res) -> "Hello World");
 
         post("/parseApt", this::handleParseApt);
 
-        post("/existsWinningStrategy", this::handleExistsWinningStrategy);
+        postWithUserContext("/existsWinningStrategy", this::handleExistsWinningStrategy);
 
-        post("/getStrategyBDD", this::handleGetStrategyBDD);
+        postWithUserContext("/getStrategyBDD", this::handleGetStrategyBDD);
 
         post("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
 
-        post("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
+        postWithUserContext("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
 
         post("/getListOfCalculations", this::handleGetListOfCalculations);
 
-        post("/getBDDGraph", this::handleGetBDDGraph);
+        postWithUserContext("/getBDDGraph", this::handleGetBDDGraph);
 
-        post("/loadWinningStrategy", this::handleLoadWinningStrategy);
+        postWithUserContext("/loadWinningStrategy", this::handleLoadWinningStrategy);
 
-        post("/cancelCalculation", this::handleCancelCalculation);
+        postWithUserContext("/cancelCalculation", this::handleCancelCalculation);
 
-        post("/toggleGraphGameBDDNodePostset", this::handleToggleGraphGameBDDNodePostset);
+        postWithUserContext("/toggleGraphGameBDDNodePostset", this::handleToggleGraphGameBDDNodePostset);
 
-        post("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
+        postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
         post("/savePetriGameAsAPT", this::handleSavePetriGameAsAPT);
 
@@ -127,6 +125,22 @@ public class App {
         });
     }
 
+    /**
+     * Register a route where the browserUuid is automatically extracted from each request body
+     * and the corresponding UserContext is supplied to our route handler.
+     * This way, the handler function does not have to handle this frequently repeated operation.
+     */
+    private void postWithUserContext(String path, RouteWithUserContext handler) {
+        post(path, (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
+            UUID browserUuid = UUID.fromString(browserUuidString);
+            UserContext uc = userContextMap.get(browserUuid);
+            Object answer = handler.handle(req, res, uc);
+            return answer;
+        });
+    }
+
     private PetriGameAndMore getPetriGame(String uuid) {
         if (!petriGamesReadFromApt.containsKey(uuid)) {
             throw new IllegalArgumentException("We have no PetriGame with the given UUID.  " +
@@ -156,6 +170,21 @@ public class App {
                 });
 
         before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
+    }
+
+    /**
+     * When a browser connects for the first time with a never before seen uuid, an entry for it
+     * should be created in the userContextMap.
+     */
+    private void createUserContextUponFirstConnection() {
+        before(((request, response) -> {
+            JsonElement body = parser.parse(request.body());
+            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
+            UUID browserUuid = UUID.fromString(browserUuidString);
+            if (!userContextMap.containsKey(browserUuid)) {
+                userContextMap.put(browserUuid, new UserContext());
+            }
+        }));
     }
 
     private static String successResponse(JsonElement result) {
@@ -224,7 +253,7 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleExistsWinningStrategy(Request req, Response res) throws ExecutionException, InterruptedException, RenderException {
+    private Object handleExistsWinningStrategy(Request req, Response res, UserContext uc) throws ExecutionException, InterruptedException, RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -233,12 +262,13 @@ public class App {
 
         System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
 
+
         String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
-        if (this.existsWinningStrategyOfApts.containsKey(canonicalApt)) {
+        if (uc.existsWinningStrategyOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is already a Calculation queued up to find the " +
                     "Exists Winning Condition of the Petri Game with the given APT.  Its " +
                     "status: " +
-                    this.existsWinningStrategyOfApts.get(canonicalApt).getStatus());
+                    uc.existsWinningStrategyOfApts.get(canonicalApt).getStatus());
         }
 
         System.out.println("Calculating Exists Winning Strategy for PetriGame id#" + petriGameId);
@@ -246,7 +276,7 @@ public class App {
             boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame.getPetriGame());
             return existsWinningStrategy;
         }, petriGame.getPetriGame().getName());
-        this.existsWinningStrategyOfApts.put(canonicalApt, calculation);
+        uc.existsWinningStrategyOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
         try {
@@ -275,7 +305,7 @@ public class App {
         }
     }
 
-    private Object handleGetStrategyBDD(Request req, Response res) throws ExecutionException, InterruptedException, RenderException {
+    private Object handleGetStrategyBDD(Request req, Response res, UserContext uc) throws ExecutionException, InterruptedException, RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -283,10 +313,10 @@ public class App {
         PetriGameAndMore petriGame = getPetriGame(petriGameId);
 
         String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
-        if (this.strategyBddsOfApts.containsKey(canonicalApt)) {
+        if (uc.strategyBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is already a Calculation queued up to find the " +
                     "winning strategy of the Petri Game with the given APT.  Its status: " +
-                    this.strategyBddsOfApts.get(canonicalApt).getStatus());
+                    uc.strategyBddsOfApts.get(canonicalApt).getStatus());
         }
         PetriGame game = petriGame.getPetriGame();
         Calculation<PetriGame> calculation = new Calculation<>(() -> {
@@ -294,7 +324,7 @@ public class App {
             PetriGameAndMore.removeXAndYCoordinates(strategyBDD);
             return strategyBDD;
         }, game.getName());
-        this.strategyBddsOfApts.put(canonicalApt, calculation);
+        uc.strategyBddsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
         try {
@@ -341,7 +371,8 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleCalculateGraphGameBDD(Request req, Response res) throws RenderException, ExecutionException, InterruptedException {
+    private Object handleCalculateGraphGameBDD(Request req, Response res, UserContext uc)
+            throws RenderException, ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -355,10 +386,10 @@ public class App {
         // Just in case the petri game gets modified after the computation starts, we will
         // save its apt right here already
         String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
-        if (this.bddGraphsOfApts.containsKey(canonicalApt)) {
+        if (uc.bddGraphsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is already a Calculation queued up to find the " +
                     "Graph Game BDD of the Petri Game with the given APT.  Its status: " +
-                    this.bddGraphsOfApts.get(canonicalApt).getStatus());
+                    uc.bddGraphsOfApts.get(canonicalApt).getStatus());
         }
 
         // Calculate the Graph Game BDD
@@ -379,7 +410,7 @@ public class App {
                 return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
             }
         }, game.getName());
-        this.bddGraphsOfApts.put(canonicalApt, calculation);
+        uc.bddGraphsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
         try {
@@ -409,16 +440,16 @@ public class App {
 
     // Given the canonical APT representation of a Petri Game, return the current view
     // of the BDDGraph that has been calculated for it, if one is present.
-    private Object handleGetBDDGraph(Request req, Response res) {
+    private Object handleGetBDDGraph(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
 
-        if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+        if (!uc.bddGraphsOfApts.containsKey(canonicalApt)) {
             return errorResponse("No BDDGraph has been calculated yet for the Petri " +
                     "Game with the given APT representation: \n" + canonicalApt);
         }
-        Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(canonicalApt);
+        Calculation<BDDGraphExplorer> calculation = uc.bddGraphsOfApts.get(canonicalApt);
         if (!calculation.isFinished()) {
             return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + calculation.getStatus());
@@ -441,16 +472,16 @@ public class App {
     }
 
     // Load the winning strategy (strategy BDD) of a Petri Game that has been calculated
-    private Object handleLoadWinningStrategy(Request req, Response res) {
+    private Object handleLoadWinningStrategy(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
 
-        if (!this.strategyBddsOfApts.containsKey(canonicalApt)) {
+        if (!uc.strategyBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("No winning strategy has been calculated yet for the Petri " +
                     "Game with the given APT representation: \n" + canonicalApt);
         }
-        Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
+        Calculation<PetriGame> calculation = uc.strategyBddsOfApts.get(canonicalApt);
         if (!calculation.isFinished()) {
             return errorResponse("The calculation of that winning strategy is not yet " +
                     "finished.  Its status: " + calculation.getStatus());
@@ -472,7 +503,7 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleCancelCalculation(Request req, Response res) {
+    private Object handleCancelCalculation(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         String typeString = body.getAsJsonObject().get("type").getAsString();
@@ -481,13 +512,13 @@ public class App {
         // TODO Consider putting the "calculationMaps" into a Map<CalculationType, Map<...>>
         switch (type) {
             case EXISTS_WINNING_STRATEGY:
-                calculationMap = this.existsWinningStrategyOfApts;
+                calculationMap = uc.existsWinningStrategyOfApts;
                 break;
             case WINNING_STRATEGY:
-                calculationMap = this.strategyBddsOfApts;
+                calculationMap = uc.strategyBddsOfApts;
                 break;
             case GRAPH_GAME_BDD:
-                calculationMap = this.bddGraphsOfApts;
+                calculationMap = uc.bddGraphsOfApts;
                 break;
         }
         if (!calculationMap.containsKey(canonicalApt)) {
@@ -498,17 +529,18 @@ public class App {
         return successResponse(new JsonPrimitive(true));
     }
 
-    private Object handleToggleGraphGameBDDNodePostset(Request req, Response res) throws ExecutionException, InterruptedException {
+    private Object handleToggleGraphGameBDDNodePostset(Request req, Response res, UserContext uc)
+            throws ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-        if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+        if (!uc.bddGraphsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is no Graph Game BDD yet for that APT input");
         }
 
-        Calculation<BDDGraphExplorer> calculation = bddGraphsOfApts.get(canonicalApt);
+        Calculation<BDDGraphExplorer> calculation = uc.bddGraphsOfApts.get(canonicalApt);
         if (!calculation.isFinished()) {
             return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + calculation.getStatus());
@@ -522,16 +554,17 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleToggleGraphGameBDDNodePreset(Request req, Response res) throws ExecutionException, InterruptedException {
+    private Object handleToggleGraphGameBDDNodePreset(Request req, Response res, UserContext uc)
+            throws ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-        if (!this.bddGraphsOfApts.containsKey(canonicalApt)) {
+        if (!uc.bddGraphsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is no Graph Game BDD yet for that APT input");
         }
-        Calculation<BDDGraphExplorer> calculation = bddGraphsOfApts.get(canonicalApt);
+        Calculation<BDDGraphExplorer> calculation = uc.bddGraphsOfApts.get(canonicalApt);
         if (!calculation.isFinished()) {
             return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + calculation.getStatus());
