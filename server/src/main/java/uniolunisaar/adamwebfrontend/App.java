@@ -78,8 +78,7 @@ public class App {
 
         get("/hello", (req, res) -> "Hello World");
 
-        post("/handleParseApt", this::handleParseApt);
-
+        post("/parseApt", this::handleParseApt);
 
         post("/existsWinningStrategy", this::handleExistsWinningStrategy);
 
@@ -89,7 +88,7 @@ public class App {
 
         post("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
 
-        post("/getListOfCalculations", this::getListOfCalculations);
+        post("/getListOfCalculations", this::handleGetListOfCalculations);
 
         post("/getBDDGraph", this::handleGetBDDGraph);
 
@@ -190,7 +189,7 @@ public class App {
      * @return a list containing an entry for each pending/completed calculation
      * (e.g. Graph Game BDD, Get Winning Condition) on the server.
      */
-    private Object getListOfCalculations(Request req, Response res) throws ExecutionException, InterruptedException {
+    private Object handleGetListOfCalculations(Request req, Response res) throws ExecutionException, InterruptedException {
         JsonArray result = new JsonArray();
         for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
             Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(aptOfPetriGame);
