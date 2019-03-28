@@ -41,8 +41,10 @@ public class App {
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    // Map from clientside-generated browserUuid to browser-specific list of running calculations
     private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
-    // Whenever we load a PetriGame from APT, we put it into this hashmap.  The client refers to it via a uuid.
+    // Whenever we load a PetriGame from APT, we put it into this hashmap with a
+    // server-generated UUID as a key.
     private final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
