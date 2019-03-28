@@ -24,13 +24,18 @@
             @cancelCalculation="cancelCalculation"/>
           <div
             v-else
-            style="text-align: center; padding-bottom: 15px;">
+            style="text-align: center;">
             (No jobs found)
           </div>
-          <span>The jobs listed here are stored in-memory on the server and will disappear if the
+          <div
+          style="padding-top: 15px;">
+            The jobs listed here are stored in-memory on the server and will disappear if the
             server is restarted.  You will also lose access to them if you clear the "local
             storage" of your browser.
-          </span>
+          </div>
+          <div>That's because you can only see jobs that correspond to the randomly generated
+            unique ID that is stored in your local storage.</div>
+          <div>Your unique ID is {{ browserUuid }}</div>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -353,7 +358,8 @@
       if (window.localStorage.getItem('browserUuid') === null) {
         window.localStorage.setItem('browserUuid', uuidv4())
       }
-      console.log(`browserUuid: ${window.localStorage.getItem('browserUuid')}`)
+      this.browserUuid = window.localStorage.getItem('browserUuid')
+      console.log(`browserUuid: ${this.browserUuid}`)
 
       // Subscribe to logging event bus
       logging.subscribeLog(message => {
@@ -375,6 +381,7 @@
     },
     data: function () {
       return {
+        browserUuid: 'browser uuid not yet loaded.  (Should have been initialized in mounted hook)',
         aptFilename: 'apt.txt',
         showSaveAptModal: false,
         showCalculationList: false,
@@ -505,7 +512,7 @@
           funs[endpointName] = (options) => {
             return axios.post(this.baseUrl + '/' + endpointName, {
               ...options,
-              browserUuid: window.localStorage.getItem('browserUuid')
+              browserUuid: this.browserUuid
             })
           }
         })
@@ -794,7 +801,7 @@
         })
       },
       cancelCalculation: function ({canonicalApt, type}) {
-        logging.sendSuccessNotification('Sent request to cancel calculation of ' + type)
+        logging.sendSuccessNotification('Sent request to cancel the job of ' + type)
         this.restEndpoints.cancelCalculation({
           canonicalApt,
           type
@@ -804,9 +811,9 @@
               logging.sendErrorNotification(response.data.message)
               break
             case 'success':
-              logging.sendSuccessNotification('Cancelled the calculation.  Note: It might take a ' +
-                'little while for the calculation to actually stop.  This feature is still under ' +
-                'development.')
+              logging.sendSuccessNotification('Cancelled the job.  Note: It might take a ' +
+                'little while for the job to actually stop.  This is a limitation of the libraries' +
+                'used by ADAM.')
           }
         })
       },
