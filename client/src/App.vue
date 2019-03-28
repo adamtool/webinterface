@@ -28,22 +28,41 @@
             (No jobs found)
           </div>
           <div
-          style="padding-top: 15px;">
-            The jobs listed here are stored in-memory on the server and will disappear if the
-            server is restarted.  You will also lose access to them if you clear the "local
-            storage" of your browser.
+            style="padding-top: 15px;">
+            <v-expansion-panel>
+              <v-expansion-panel-content>
+                <template v-slot:header>
+                  <div>More info</div>
+                </template>
+                <v-card>
+                  <v-card-text>
+                    <div>
+                      The jobs listed here are stored in-memory on the server and will disappear if
+                      the server is restarted.
+                    </div>
+                    <div>
+                      You will also lose access to them if you clear the "local
+                      storage" of your browser. That's because you can only see jobs that correspond
+                      to a randomly generated unique ID that is stored in your local storage.
+                    </div>
+                    <div>Your unique ID is {{ browserUuid }}.</div>
+                    <div>
+                      You can enter the unique ID from another browser here in order to share your
+                      list of jobs.  Just enter it below and click "Use this UUID."
+                    </div>
+                    <v-text-field
+                      v-model="browserUuidEntry"
+                      :rules="[validateBrowserUuid]"
+                      label="New Browser UUID"/>
+                    <v-btn
+                      @click="saveBrowserUuid">
+                      Use this UUID
+                    </v-btn>
+                  </v-card-text>
+                </v-card>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
           </div>
-          <div>That's because you can only see jobs that correspond to the randomly generated
-            unique ID that is stored in your local storage.</div>
-          <div>Your unique ID is {{ browserUuid }}</div>
-          <v-text-field
-            v-model="browserUuidEntry"
-            :rules="[validateBrowserUuid]"
-            label="New Browser UUID"/>
-          <v-btn
-            @click="saveBrowserUuid">
-            Use entered UUID
-          </v-btn>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -389,18 +408,20 @@
     },
     data: function () {
       return {
+        // Validate whether the given string represents a uuidv4.
         validateBrowserUuid: uuidString => {
-          const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          const pattern =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
           if (pattern.test(uuidString)) {
             return true
           } else {
             return 'The given string does not represent a valid UUID of the form ' +
-              "'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx', where y is a hexadecimal digit between " +
-              "8 and b."
+              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
+              '8 and b.'
           }
         },
         browserUuid: 'browser uuid not yet loaded. (Should have been initialized in mounted hook)',
-        browserUuidEntry: '00000000-0000-4000-8000-000000000000',
+        browserUuidEntry: '',
         aptFilename: 'apt.txt',
         showSaveAptModal: false,
         showCalculationList: false,
