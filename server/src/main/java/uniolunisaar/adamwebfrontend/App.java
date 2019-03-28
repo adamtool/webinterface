@@ -9,6 +9,8 @@ import static uniolunisaar.adamwebfrontend.CalculationStatus.FAILED;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import spark.Request;
+import spark.Response;
 import uniol.apt.adt.pn.*;
 import uniol.apt.io.parser.ParseException;
 import uniol.apt.util.Pair;
@@ -290,67 +292,7 @@ public class App {
             }
         });
 
-        post("/getListOfCalculations", (req, res) -> {
-            // Return a list containing an entry for each pending/completed calculation
-            // (e.g. Graph Game BDD, Get Winning Condition) on the server.
-            JsonArray result = new JsonArray();
-            for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
-                Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(aptOfPetriGame);
-                JsonObject entry = new JsonObject();
-                // This canonicalApt String can be used as a key to access the result of the
-                // calculation (e.g. via /getBDDGraph) if the calculation is finished.
-                entry.addProperty("type", "Graph Game BDD");
-                entry.addProperty("canonicalApt", aptOfPetriGame);
-                entry.addProperty("calculationStatus", calculation.getStatus().toString());
-                entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
-                entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
-                if (calculation.getStatus() == FAILED) {
-                    entry.addProperty("failureReason", calculation.getFailedReason());
-                }
-                result.add(entry);
-            }
-
-            for (String canonicalApt : this.existsWinningStrategyOfApts.keySet()) {
-                Calculation<Boolean> calculation = this.existsWinningStrategyOfApts.get(canonicalApt);
-                JsonObject entry = new JsonObject();
-                // This canonicalApt String can be used as a key to access the result of the
-                // calculation (e.g. via /getBDDGraph) if the calculation is finished.
-                entry.addProperty("type", "existsWinningStrategy");
-                entry.addProperty("canonicalApt", canonicalApt);
-                entry.addProperty("calculationStatus", calculation.getStatus().toString());
-                entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
-                entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
-                if (calculation.getStatus() == FAILED) {
-                    entry.addProperty("failureReason", calculation.getFailedReason());
-                }
-                if (calculation.getStatus() == COMPLETED) {
-                    entry.addProperty("result", calculation.getResult());
-                }
-                result.add(entry);
-            }
-
-            for (String canonicalApt : this.strategyBddsOfApts.keySet()) {
-                Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
-                JsonObject entry = new JsonObject();
-                // This canonicalApt String can be used as a key to access the result of the
-                // calculation (e.g. via /getBDDGraph) if the calculation is finished.
-                entry.addProperty("type", "Winning Strategy");
-                entry.addProperty("canonicalApt", canonicalApt);
-                entry.addProperty("calculationStatus", calculation.getStatus().toString());
-                entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
-                entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
-                if (calculation.getStatus() == FAILED) {
-                    entry.addProperty("failureReason", calculation.getFailedReason());
-                }
-                result.add(entry);
-            }
-
-
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("listings", result);
-            return responseJson.toString();
-        });
+        post("/getListOfCalculations", this::getListOfCalculations);
 
         // Given the canonical APT representation of a Petri Game, return the current view
         // of the BDDGraph that has been calculated for it, if one is present.
@@ -821,5 +763,69 @@ public class App {
         responseJson.addProperty("status", "error");
         responseJson.addProperty("message", reason);
         return responseJson;
+    }
+
+    /**
+     * @return a list containing an entry for each pending/completed calculation
+     * (e.g. Graph Game BDD, Get Winning Condition) on the server.
+     */
+    private Object getListOfCalculations(Request req, Response res) throws ExecutionException, InterruptedException {
+        JsonArray result = new JsonArray();
+        for (String aptOfPetriGame : this.bddGraphsOfApts.keySet()) {
+            Calculation<BDDGraphExplorer> calculation = this.bddGraphsOfApts.get(aptOfPetriGame);
+            JsonObject entry = new JsonObject();
+            // This canonicalApt String can be used as a key to access the result of the
+            // calculation (e.g. via /getBDDGraph) if the calculation is finished.
+            entry.addProperty("type", "Graph Game BDD");
+            entry.addProperty("canonicalApt", aptOfPetriGame);
+            entry.addProperty("calculationStatus", calculation.getStatus().toString());
+            entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
+            entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
+            if (calculation.getStatus() == FAILED) {
+                entry.addProperty("failureReason", calculation.getFailedReason());
+            }
+            result.add(entry);
+        }
+
+        for (String canonicalApt : this.existsWinningStrategyOfApts.keySet()) {
+            Calculation<Boolean> calculation = this.existsWinningStrategyOfApts.get(canonicalApt);
+            JsonObject entry = new JsonObject();
+            // This canonicalApt String can be used as a key to access the result of the
+            // calculation (e.g. via /getBDDGraph) if the calculation is finished.
+            entry.addProperty("type", "existsWinningStrategy");
+            entry.addProperty("canonicalApt", canonicalApt);
+            entry.addProperty("calculationStatus", calculation.getStatus().toString());
+            entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
+            entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
+            if (calculation.getStatus() == FAILED) {
+                entry.addProperty("failureReason", calculation.getFailedReason());
+            }
+            if (calculation.getStatus() == COMPLETED) {
+                entry.addProperty("result", calculation.getResult());
+            }
+            result.add(entry);
+        }
+
+        for (String canonicalApt : this.strategyBddsOfApts.keySet()) {
+            Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
+            JsonObject entry = new JsonObject();
+            // This canonicalApt String can be used as a key to access the result of the
+            // calculation (e.g. via /getBDDGraph) if the calculation is finished.
+            entry.addProperty("type", "Winning Strategy");
+            entry.addProperty("canonicalApt", canonicalApt);
+            entry.addProperty("calculationStatus", calculation.getStatus().toString());
+            entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
+            entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
+            if (calculation.getStatus() == FAILED) {
+                entry.addProperty("failureReason", calculation.getFailedReason());
+            }
+            result.add(entry);
+        }
+
+
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("listings", result);
+        return responseJson.toString();
     }
 }
