@@ -91,7 +91,7 @@ public class App {
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
-        post("/savePetriGameAsAPT", this::handleSavePetriGameAsAPT);
+        postWithPetriGame("/savePetriGameAsAPT", this::handleSavePetriGameAsAPT);
 
         post("/insertPlace", this::handleInsertPlace);
 
@@ -142,6 +142,25 @@ public class App {
             }
             UserContext uc = userContextMap.get(browserUuid);
             Object answer = handler.handle(req, res, uc);
+            return answer;
+        });
+    }
+
+    /**
+     * Register a POST route that operates upon a PetriGame.
+     * This wrapper handles the parsing of the petriGameId parameter from the request.
+     */
+    private void postWithPetriGame(String path, RouteWithPetriGame handler) {
+        post(path, (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            String gameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            if (!petriGamesReadFromApt.containsKey(gameId)) {
+                throw new IllegalArgumentException("We have no PetriGame with the given UUID.  " +
+                        "You might see this error if the server has been restarted after you opened the " +
+                        "web UI.");
+            }
+            PetriGame pg = petriGamesReadFromApt.get(gameId).getPetriGame();
+            Object answer = handler.handle(req, res, pg);
             return answer;
         });
     }
@@ -629,17 +648,16 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleSavePetriGameAsAPT(Request req, Response res) throws RenderException {
+    private Object handleSavePetriGameAsAPT(Request req, Response res, PetriGame pg)
+            throws RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
-        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
         JsonObject nodesXYCoordinatesJson = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
         Type type = new TypeToken<Map<String, NodePosition>>() {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
 
-        PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
-        String apt = PetriGameAndMore.savePetriGameWithXYCoordinates(petriGameAndMore.getPetriGame(), nodePositions);
+        String apt = PetriGameAndMore.savePetriGameWithXYCoordinates(pg, nodePositions);
         JsonElement aptJson = new JsonPrimitive(apt);
 
         JsonObject responseJson = new JsonObject();
