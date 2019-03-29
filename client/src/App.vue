@@ -21,6 +21,7 @@
             style="background-color: white;"
             @loadGraphGameBdd="loadGraphGameBdd"
             @loadWinningStrategy="loadWinningStrategy"
+            @loadGraphStrategyBdd="loadGraphStrategyBdd"
             @cancelCalculation="cancelCalculation"/>
           <div
             v-else
@@ -530,6 +531,7 @@
           'existsWinningStrategy',
           'getStrategyBDD',
           'loadWinningStrategy',
+          'loadGraphStrategyBDD',
           'cancelCalculation',
           'getGraphStrategyBDD',
           'calculateGraphGameBDD',
@@ -862,6 +864,22 @@
               this.strategyBDD = response.data.strategyBDD
               this.switchToStrategyBDDTab()
               logging.sendSuccessNotification('Loaded Winning Strategy')
+          }
+        })
+      },
+      loadGraphStrategyBdd: function (canonicalApt) {
+        this.restEndpoints.loadGraphStrategyBDD({
+          canonicalApt
+        }).then(response => {
+          switch (response.data.status) {
+            case 'error':
+              logging.sendErrorNotification(response.data.message)
+              break
+            case 'success':
+              this.apt = canonicalApt
+              this.graphStrategyBDD = response.data.graphStrategyBDD
+              this.switchToGraphStrategyBDDTab()
+              logging.sendSuccessNotification('Loaded Graph Strategy BDD')
           }
         })
       },

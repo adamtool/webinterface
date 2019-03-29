@@ -48,9 +48,16 @@
         <button @click="$emit('loadGraphGameBdd', listing.canonicalApt)">Load</button>
       </td>
       <td
-        v-else-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'WINNING_STRATEGY'"
+        v-else-if="listing.calculationStatus === 'COMPLETED'
+                     && listing.type === 'WINNING_STRATEGY'"
         class="highlightable">
         <button @click="$emit('loadWinningStrategy', listing.canonicalApt)">Load</button>
+      </td>
+      <td
+        v-else-if="listing.calculationStatus === 'COMPLETED'
+                     && listing.type === 'GRAPH_STRATEGY_BDD'"
+        class="highlightable">
+        <button @click="$emit('loadGraphStrategyBdd', listing.canonicalApt)">Load</button>
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.calculationStatus)"
           class="highlightable">
