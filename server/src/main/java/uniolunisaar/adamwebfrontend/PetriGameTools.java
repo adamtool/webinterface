@@ -9,9 +9,7 @@ import uniolunisaar.adam.util.AdamExtensions;
 import java.util.Map;
 import java.util.Set;
 
-/**
- */
-public class PetriGameAndMore {
+public class PetriGameTools {
     /**
      * This is a workaround for a "feature" in ADAM.  Right now, the X/Y coordinates stored in a
      * Petri Game can be accidentally copied over into its Strategy BDD.  This ends up with the

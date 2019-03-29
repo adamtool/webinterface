@@ -325,7 +325,7 @@ public class App {
         }
         Calculation<PetriGame> calculation = new Calculation<>(() -> {
             PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
-            PetriGameAndMore.removeXAndYCoordinates(strategyBDD);
+            PetriGameTools.removeXAndYCoordinates(strategyBDD);
             return strategyBDD;
         }, petriGame.getName());
         uc.strategyBddsOfApts.put(canonicalApt, calculation);
@@ -652,7 +652,7 @@ public class App {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
 
-        String apt = PetriGameAndMore.savePetriGameWithXYCoordinates(petriGame, nodePositions);
+        String apt = PetriGameTools.savePetriGameWithXYCoordinates(petriGame, nodePositions);
         JsonElement aptJson = new JsonPrimitive(apt);
 
         JsonObject responseJson = new JsonObject();
