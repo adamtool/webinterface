@@ -45,19 +45,19 @@
       <!--Button to load the result of a calculation or cancel a pending calculation-->
       <td v-if="listing.calculationStatus === 'COMPLETED' && listing.type === 'GRAPH_GAME_BDD'"
           class="highlightable">
-        <button @click="$emit('loadGraphGameBdd', listing.canonicalApt)">Load</button>
+        <button @click="$emit('getGraphGameBdd', listing.canonicalApt)">Load</button>
       </td>
       <td
         v-else-if="listing.calculationStatus === 'COMPLETED'
                      && listing.type === 'WINNING_STRATEGY'"
         class="highlightable">
-        <button @click="$emit('loadWinningStrategy', listing.canonicalApt)">Load</button>
+        <button @click="$emit('getWinningStrategy', listing.canonicalApt)">Load</button>
       </td>
       <td
         v-else-if="listing.calculationStatus === 'COMPLETED'
                      && listing.type === 'GRAPH_STRATEGY_BDD'"
         class="highlightable">
-        <button @click="$emit('loadGraphStrategyBdd', listing.canonicalApt)">Load</button>
+        <button @click="$emit('getGraphStrategyBdd', listing.canonicalApt)">Load</button>
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.calculationStatus)"
           class="highlightable">

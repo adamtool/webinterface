@@ -71,9 +71,9 @@ public class App {
 
         postWithUserContext("/existsWinningStrategy", this::handleExistsWinningStrategy);
 
-        postWithUserContext("/getStrategyBDD", this::handleGetStrategyBDD);
+        postWithUserContext("/calculateStrategyBDD", this::handleCalculateStrategyBDD);
 
-        postWithUserContext("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
+        postWithUserContext("/calculateGraphStrategyBDD", this::handleCalculateGraphStrategyBDD);
 
         postWithUserContext("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
 
@@ -81,9 +81,9 @@ public class App {
 
         postWithUserContext("/getBDDGraph", this::handleGetBDDGraph);
 
-        postWithUserContext("/loadWinningStrategy", this::handleLoadWinningStrategy);
+        postWithUserContext("/getWinningStrategy", this::handleGetWinningStrategy);
 
-        postWithUserContext("/loadGraphStrategyBDD", this::handleLoadGraphStrategyBDD);
+        postWithUserContext("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
 
         postWithUserContext("/cancelCalculation", this::handleCancelCalculation);
 
@@ -258,7 +258,8 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleExistsWinningStrategy(Request req, Response res, UserContext uc) throws ExecutionException, InterruptedException, RenderException {
+    private Object handleExistsWinningStrategy(Request req, Response res, UserContext uc)
+            throws ExecutionException, InterruptedException, RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -310,7 +311,8 @@ public class App {
         }
     }
 
-    private Object handleGetStrategyBDD(Request req, Response res, UserContext uc) throws ExecutionException, InterruptedException, RenderException {
+    private Object handleCalculateStrategyBDD(Request req, Response res, UserContext uc)
+            throws ExecutionException, InterruptedException, RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -358,8 +360,8 @@ public class App {
         }
     }
 
-    private Object handleGetGraphStrategyBDD(Request req, Response res, UserContext uc) throws
-            RenderException, ExecutionException, InterruptedException {
+    private Object handleCalculateGraphStrategyBDD(Request req, Response res, UserContext uc)
+            throws RenderException, ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -505,7 +507,7 @@ public class App {
     }
 
     // Load the winning strategy (strategy BDD) of a Petri Game that has been calculated
-    private Object handleLoadWinningStrategy(Request req, Response res, UserContext uc) {
+    private Object handleGetWinningStrategy(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
@@ -537,7 +539,7 @@ public class App {
     }
 
     // Load the already-calculated Graph Strategy BDD of a Petri Game
-    private Object handleLoadGraphStrategyBDD(Request req, Response res, UserContext uc) {
+    private Object handleGetGraphStrategyBDD(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();

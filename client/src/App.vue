@@ -19,9 +19,9 @@
             v-if="availableBDDGraphListings.length > 0"
             :calculationListings="availableBDDGraphListings"
             style="background-color: white;"
-            @loadGraphGameBdd="loadGraphGameBdd"
-            @loadWinningStrategy="loadWinningStrategy"
-            @loadGraphStrategyBdd="loadGraphStrategyBdd"
+            @getGraphGameBdd="getGraphGameBdd"
+            @getWinningStrategy="getWinningStrategy"
+            @getGraphStrategyBdd="getGraphStrategyBdd"
             @cancelCalculation="cancelCalculation"/>
           <div
             v-else
@@ -132,11 +132,11 @@
           </hsc-menu-item>
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
-          <hsc-menu-bar-item @click.native="getStrategyBDD" label="Solve"/>
+          <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"/>
           <hsc-menu-bar-item label="Analyze">
             <hsc-menu-item @click.native="existsWinningStrategy"
                            label="Exists Winning Strategy?"/>
-            <hsc-menu-item @click.native="getGraphStrategyBDD"
+            <hsc-menu-item @click.native="calculateGraphStrategyBDD"
                            label="Get Graph Strategy BDD"/>
             <hsc-menu-item @click.native="calculateGraphGameBDD" label="Calculate Graph Game BDD"/>
           </hsc-menu-bar-item>
@@ -529,11 +529,11 @@
       restEndpoints: function () {
         const endpoints = [
           'existsWinningStrategy',
-          'getStrategyBDD',
-          'loadWinningStrategy',
-          'loadGraphStrategyBDD',
-          'cancelCalculation',
+          'calculateStrategyBDD',
+          'getWinningStrategy',
           'getGraphStrategyBDD',
+          'cancelCalculation',
+          'calculateGraphStrategyBDD',
           'calculateGraphGameBDD',
           'getListOfCalculations',
           'getBDDGraph',
@@ -778,11 +778,11 @@
           logging.logError('Network error in existsWinningStrategy')
         })
       },
-      getStrategyBDD: function () {
+      calculateStrategyBDD: function () {
         this.$refs.menubar.deactivate()
         const uuid = this.petriGame.uuid
         logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
-        this.restEndpoints.getStrategyBDD({
+        this.restEndpoints.calculateStrategyBDD({
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -802,12 +802,12 @@
             }
           })
         }).catch(() => {
-          logging.logError('Network error in getStrategyBDD')
+          logging.logError('Network error in calculateStrategyBDD')
         })
       },
-      getGraphStrategyBDD: function () {
+      calculateGraphStrategyBDD: function () {
         const uuid = this.petriGame.uuid
-        this.restEndpoints.getGraphStrategyBDD({
+        this.restEndpoints.calculateGraphStrategyBDD({
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -824,7 +824,7 @@
             }
           })
         }).catch(() => {
-          logging.logError('Network error in getGraphStrategyBDD')
+          logging.logError('Network error in calculateGraphStrategyBDD')
         })
       },
       getListOfCalculations: function () {
@@ -834,7 +834,7 @@
           })
       },
       // Load the Graph Game BDD corresponding to the given canonical APT string
-      loadGraphGameBdd: function (canonicalApt) {
+      getGraphGameBdd: function (canonicalApt) {
         this.restEndpoints.getBDDGraph({
           canonicalApt: canonicalApt
         }).then(response => {
@@ -851,8 +851,8 @@
           }
         })
       },
-      loadWinningStrategy: function (canonicalApt) {
-        this.restEndpoints.loadWinningStrategy({
+      getWinningStrategy: function (canonicalApt) {
+        this.restEndpoints.getWinningStrategy({
           canonicalApt: canonicalApt
         }).then(response => {
           switch (response.data.status) {
@@ -867,8 +867,8 @@
           }
         })
       },
-      loadGraphStrategyBdd: function (canonicalApt) {
-        this.restEndpoints.loadGraphStrategyBDD({
+      getGraphStrategyBdd: function (canonicalApt) {
+        this.restEndpoints.getGraphStrategyBDD({
           canonicalApt
         }).then(response => {
           switch (response.data.status) {
