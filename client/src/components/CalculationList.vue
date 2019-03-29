@@ -91,6 +91,8 @@
             return 'Exists winning strategy?'
           case 'WINNING_STRATEGY':
             return 'Winning Strategy'
+          case 'GRAPH_STRATEGY_BDD':
+            return 'Graph Strategy BDD'
         }
         return calculationType
       }
