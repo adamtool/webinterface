@@ -1,6 +1,5 @@
 package uniolunisaar.adamwebfrontend;
 
-import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.Node;
 import uniol.apt.io.renderer.RenderException;
 import uniolunisaar.adam.Adam;
@@ -11,25 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents a Petri Game, plus all of the artifacts related to it that we might want to produce.
- * E.g. Strategy BDD, Graph Strategy BDD
- * If the PetriGame gets modified, then these calculated artifacts should be deleted.
- * This lets us guarantee that the strategy BDD, etc. will always correspond to the current state
- * of the Petri Game that is encapsulated in an instance of this class.
- * TODO This ended up not being a very suitable abstraction.  I'm gradually getting rid of this
- *   class. -Ann
  */
 public class PetriGameAndMore {
-    private final PetriGame petriGame;
-
-    private PetriGameAndMore(PetriGame petriGame) {
-        this.petriGame = petriGame;
-    }
-
-    public static PetriGameAndMore of(PetriGame petriGame) {
-        return new PetriGameAndMore(petriGame);
-    }
-
     /**
      * This is a workaround for a "feature" in ADAM.  Right now, the X/Y coordinates stored in a
      * Petri Game can be accidentally copied over into its Strategy BDD.  This ends up with the
@@ -76,9 +58,5 @@ public class PetriGameAndMore {
             }
         }
         return Adam.getAPT(petriGame);
-    }
-
-    public PetriGame getPetriGame() {
-        return petriGame;
     }
 }

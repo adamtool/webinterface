@@ -45,7 +45,7 @@ public class App {
     private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
     // Whenever we load a PetriGame from APT, we put it into this hashmap with a
     // server-generated UUID as a key.
-    private final Map<String, PetriGameAndMore> petriGamesReadFromApt = new ConcurrentHashMap<>();
+    private final Map<String, PetriGame> petriGamesReadFromApt = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         new App().startServer();
@@ -159,13 +159,13 @@ public class App {
                         "You might see this error if the server has been restarted after you opened the " +
                         "web UI.");
             }
-            PetriGame pg = petriGamesReadFromApt.get(gameId).getPetriGame();
+            PetriGame pg = petriGamesReadFromApt.get(gameId);
             Object answer = handler.handle(req, res, pg);
             return answer;
         });
     }
 
-    private PetriGameAndMore getPetriGame(String uuid) {
+    private PetriGame getPetriGame(String uuid) {
         if (!petriGamesReadFromApt.containsKey(uuid)) {
             throw new IllegalArgumentException("We have no PetriGame with the given UUID.  " +
                     "You might see this error if the server has been restarted after you opened the " +
@@ -246,8 +246,7 @@ public class App {
         }
 
         String petriGameUUID = UUID.randomUUID().toString();
-        PetriGameAndMore petriGameAndMore = PetriGameAndMore.of(petriGame);
-        petriGamesReadFromApt.put(petriGameUUID, petriGameAndMore);
+        petriGamesReadFromApt.put(petriGameUUID, petriGame);
         System.out.println("Generated petri game with ID " + petriGameUUID);
 
         JsonElement petriNetD3Json = PetriNetD3.of(petriGame, petriGame.getNodes());
@@ -264,12 +263,12 @@ public class App {
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-        PetriGameAndMore petriGame = getPetriGame(petriGameId);
+        PetriGame petriGame = getPetriGame(petriGameId);
 
         System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
 
 
-        String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+        String canonicalApt = Adam.getAPT(petriGame);
         if (uc.existsWinningStrategyOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is already a Calculation queued up to find the " +
                     "Exists Winning Condition of the Petri Game with the given APT.  Its " +
@@ -279,9 +278,9 @@ public class App {
 
         System.out.println("Calculating Exists Winning Strategy for PetriGame id#" + petriGameId);
         Calculation<Boolean> calculation = new Calculation<>(() -> {
-            boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame.getPetriGame());
+            boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
             return existsWinningStrategy;
-        }, petriGame.getPetriGame().getName());
+        }, petriGame.getName());
         uc.existsWinningStrategyOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
@@ -295,7 +294,7 @@ public class App {
             responseJson.addProperty("calculationComplete", true);
             // Annotations might have been added to the petri game, and the client should
             // know about them.
-            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            responseJson.add("petriGame", PetriNetD3.of(petriGame));
             responseJson.addProperty("result", result);
             return responseJson.toString();
         } catch (TimeoutException e) {
@@ -316,20 +315,19 @@ public class App {
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-        PetriGameAndMore petriGame = getPetriGame(petriGameId);
+        PetriGame petriGame = getPetriGame(petriGameId);
 
-        String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+        String canonicalApt = Adam.getAPT(petriGame);
         if (uc.strategyBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is already a Calculation queued up to find the " +
                     "winning strategy of the Petri Game with the given APT.  Its status: " +
                     uc.strategyBddsOfApts.get(canonicalApt).getStatus());
         }
-        PetriGame game = petriGame.getPetriGame();
         Calculation<PetriGame> calculation = new Calculation<>(() -> {
-            PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(game);
+            PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
             PetriGameAndMore.removeXAndYCoordinates(strategyBDD);
             return strategyBDD;
-        }, game.getName());
+        }, petriGame.getName());
         uc.strategyBddsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
@@ -344,7 +342,7 @@ public class App {
             responseJson.addProperty("canonicalApt", canonicalApt);
             responseJson.addProperty("calculationComplete", true);
             responseJson.add("strategyBDD", PetriNetD3.of(result));
-            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            responseJson.add("petriGame", PetriNetD3.of(petriGame));
             return responseJson.toString();
         } catch (TimeoutException e) {
             JsonObject responseJson = new JsonObject();
@@ -366,19 +364,18 @@ public class App {
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
-        PetriGameAndMore petriGame = getPetriGame(petriGameId);
+        PetriGame petriGame = getPetriGame(petriGameId);
 
-        String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+        String canonicalApt = Adam.getAPT(petriGame);
         if (uc.graphStrategyBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is already a Calculation queued up to find the " +
                     "Graph Strategy BDD of the Petri Game with the given APT.  Its status: " +
                     uc.graphStrategyBddsOfApts.get(canonicalApt).getStatus());
         }
-        PetriGame game = petriGame.getPetriGame();
         Calculation<BDDGraph> calculation = new Calculation<>(() -> {
-            BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame.getPetriGame());
+            BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
             return graphStrategyBDD;
-        }, game.getName());
+        }, petriGame.getName());
         uc.graphStrategyBddsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
@@ -393,7 +390,7 @@ public class App {
             responseJson.addProperty("canonicalApt", canonicalApt);
             responseJson.addProperty("calculationComplete", true);
             responseJson.add("graphStrategyBDD", BDDGraphD3.of(result));
-            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            responseJson.add("petriGame", PetriNetD3.of(petriGame));
             return responseJson.toString();
         } catch (TimeoutException e) {
             JsonObject responseJson = new JsonObject();
@@ -417,13 +414,11 @@ public class App {
         boolean shouldSolveStepwise =
                 body.getAsJsonObject().get("incremental").getAsBoolean();
 
-        // TODO Consider not putting PetriGame and everything together inside of
-        //   PetriGameAndMore
-        PetriGameAndMore petriGame = getPetriGame(petriGameId);
+        PetriGame petriGame = getPetriGame(petriGameId);
 
         // Just in case the petri game gets modified after the computation starts, we will
         // save its apt right here already
-        String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+        String canonicalApt = Adam.getAPT(petriGame);
         if (uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is already a Calculation queued up to find the " +
                     "Graph Game BDD of the Petri Game with the given APT.  Its status: " +
@@ -434,20 +429,20 @@ public class App {
         // TODO What happens if you modify the petri game while this calculation is ongoing?
         // TODO Do I need to do something to stop that from happening?  -Ann
         System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
-        PetriGame game = petriGame.getPetriGame();
-        Optional<Condition.Objective> objective = PetriNetD3.getObjectiveOfPetriNet(game);
+        Optional<Condition.Objective> objective = PetriNetD3.getObjectiveOfPetriNet(petriGame);
         if (!objective.isPresent()) {
             return errorResponse("No winning condition is present for the given Petri Game.");
         }
         Calculation<BDDGraphExplorer> calculation = new Calculation<>(() -> {
             if (shouldSolveStepwise) {
-                BDDGraphExplorerStepwise bddGraphExplorerStepwise = new BDDGraphExplorerStepwise(game);
+                BDDGraphExplorerStepwise bddGraphExplorerStepwise =
+                        new BDDGraphExplorerStepwise(petriGame);
                 return bddGraphExplorerStepwise;
             } else {
-                BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(game);
+                BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame);
                 return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
             }
-        }, game.getName());
+        }, petriGame.getName());
         uc.graphGameBddsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
