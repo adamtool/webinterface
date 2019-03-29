@@ -78,13 +78,13 @@ public class App {
 
         postWithUserContext("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
 
-        postWithUserContext("/getListOfCalculations", this::handleGetListOfCalculations);
-
-        postWithUserContext("/getGraphGameBDD", this::handleGetGraphGameBDD);
-
         postWithUserContext("/getWinningStrategy", this::handleGetWinningStrategy);
 
         postWithUserContext("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
+
+        postWithUserContext("/getGraphGameBDD", this::handleGetGraphGameBDD);
+
+        postWithUserContext("/getListOfCalculations", this::handleGetListOfCalculations);
 
         postWithUserContext("/cancelCalculation", this::handleCancelCalculation);
 
