@@ -639,7 +639,7 @@ public class App {
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
 
         PetriGameAndMore petriGameAndMore = getPetriGame(petriGameId);
-        String apt = petriGameAndMore.savePetriGameWithXYCoordinates(nodePositions);
+        String apt = PetriGameAndMore.savePetriGameWithXYCoordinates(petriGameAndMore.getPetriGame(), nodePositions);
         JsonElement aptJson = new JsonPrimitive(apt);
 
         JsonObject responseJson = new JsonObject();
@@ -903,6 +903,6 @@ public class App {
         Marking initialMarking = petriGame.getInitialMarking();
         Marking newInitialMarking = transition.fire(initialMarking);
         petriGame.setInitialMarking(newInitialMarking);
-        return successResponse(petriGameAndMore.getPetriGameClient());
+        return successResponse(PetriNetD3.of(petriGame));
     }
 }

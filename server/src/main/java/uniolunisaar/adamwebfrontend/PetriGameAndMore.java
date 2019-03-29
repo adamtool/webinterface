@@ -63,7 +63,7 @@ public class PetriGameAndMore {
      * @param nodePositions a Map assigning a pair of x,y coordinates to every node ID.
      * @return the APT representation of the annotated Petri Net.
      */
-    public String savePetriGameWithXYCoordinates(Map<String, NodePosition> nodePositions) throws RenderException {
+    public static String savePetriGameWithXYCoordinates(PetriGame petriGame, Map<String, NodePosition> nodePositions) throws RenderException {
         for (Node node : petriGame.getNodes()) {
             String nodeId = node.getId();
             if (nodePositions.containsKey(nodeId)) {
@@ -76,10 +76,6 @@ public class PetriGameAndMore {
             }
         }
         return Adam.getAPT(petriGame);
-    }
-
-    public JsonElement getPetriGameClient() {
-        return PetriNetD3.of(this.petriGame);
     }
 
     public PetriGame getPetriGame() {
