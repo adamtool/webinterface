@@ -93,30 +93,30 @@ public class App {
 
         postWithPetriGame("/savePetriGameAsAPT", this::handleSavePetriGameAsAPT);
 
-        post("/insertPlace", this::handleInsertPlace);
+        postWithPetriGame("/insertPlace", this::handleInsertPlace);
 
-        post("/deleteNode", this::handleDeleteNode);
+        postWithPetriGame("/deleteNode", this::handleDeleteNode);
 
-        post("/renameNode", this::handleRenameNode);
+        postWithPetriGame("/renameNode", this::handleRenameNode);
 
-        post("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
+        postWithPetriGame("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
 
-        post("/toggleIsInitialTokenFlow", this::handleToggleIsInitialTokenFlow);
+        postWithPetriGame("/toggleIsInitialTokenFlow", this::handleToggleIsInitialTokenFlow);
 
-        post("/setInitialToken", this::handleSetInitialToken);
+        postWithPetriGame("/setInitialToken", this::handleSetInitialToken);
 
-        post("/setWinningCondition", this::handleSetWinningCondition);
-        post("/createFlow", this::handleCreateFlow);
+        postWithPetriGame("/setWinningCondition", this::handleSetWinningCondition);
+        postWithPetriGame("/createFlow", this::handleCreateFlow);
 
-        post("/deleteFlow", this::handleDeleteFlow);
+        postWithPetriGame("/deleteFlow", this::handleDeleteFlow);
 
-        post("/createTokenFlow", this::handleCreateTokenFlow);
+        postWithPetriGame("/createTokenFlow", this::handleCreateTokenFlow);
 
-        post("/checkLtlFormula", this::handleCheckLtlFormula);
+        postWithPetriGame("/checkLtlFormula", this::handleCheckLtlFormula);
 
-        post("/getModelCheckingNet", this::handleGetModelCheckingNet);
+        postWithPetriGame("/getModelCheckingNet", this::handleGetModelCheckingNet);
 
-        post("/fireTransition", this::handleFireTransition);
+        postWithPetriGame("/fireTransition", this::handleFireTransition);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -648,7 +648,7 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleSavePetriGameAsAPT(Request req, Response res, PetriGame pg)
+    private Object handleSavePetriGameAsAPT(Request req, Response res, PetriGame petriGame)
             throws RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
@@ -657,7 +657,7 @@ public class App {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
 
-        String apt = PetriGameAndMore.savePetriGameWithXYCoordinates(pg, nodePositions);
+        String apt = PetriGameAndMore.savePetriGameWithXYCoordinates(petriGame, nodePositions);
         JsonElement aptJson = new JsonPrimitive(apt);
 
         JsonObject responseJson = new JsonObject();
@@ -666,16 +666,12 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleInsertPlace(Request req, Response res) {
+    private Object handleInsertPlace(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         double x = body.get("x").getAsDouble();
         double y = body.get("y").getAsDouble();
         String nodeType = body.get("nodeType").getAsString();
         GraphNodeType graphNodeType = GraphNodeType.valueOf(nodeType);
-
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
 
         Node node = null;
         switch (graphNodeType) {
@@ -696,18 +692,15 @@ public class App {
         petriGame.setXCoord(node, x);
         petriGame.setYCoord(node, y);
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame, new HashSet<>(Collections.singletonList(node)));
+        JsonElement petriGameClient = PetriNetD3.of(
+                petriGame, new HashSet<>(Collections.singletonList(node)));
 
         return successResponse(petriGameClient);
     }
 
-    private Object handleDeleteNode(Request req, Response res) {
+    private Object handleDeleteNode(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String nodeId = body.get("nodeId").getAsString();
-
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
 
         petriGame.removeNode(nodeId);
 
@@ -715,14 +708,11 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleRenameNode(Request req, Response res) {
+    private Object handleRenameNode(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String nodeIdOld = body.get("nodeIdOld").getAsString();
         String nodeIdNew = body.get("nodeIdNew").getAsString();
 
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
         Node oldNode = petriGame.getNode(nodeIdOld);
         petriGame.rename(oldNode, nodeIdNew);
 
@@ -730,13 +720,10 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleToggleEnvironmentPlace(Request req, Response res) {
+    private Object handleToggleEnvironmentPlace(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String nodeId = body.get("nodeId").getAsString();
 
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
         Place place = petriGame.getPlace(nodeId);
         boolean environment = petriGame.isEnvironment(place);
         if (environment) {
@@ -749,13 +736,10 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleToggleIsInitialTokenFlow(Request req, Response res) {
+    private Object handleToggleIsInitialTokenFlow(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String nodeId = body.get("nodeId").getAsString();
 
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
         Place place = petriGame.getPlace(nodeId);
         boolean isInitialTokenFlow = petriGame.isInitialTransit(place);
         if (isInitialTokenFlow) {
@@ -768,14 +752,11 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleSetInitialToken(Request req, Response res) {
+    private Object handleSetInitialToken(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String nodeId = body.get("nodeId").getAsString();
         int tokens = body.get("tokens").getAsInt();
 
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
         Place place = petriGame.getPlace(nodeId);
         place.setInitialToken(tokens);
 
@@ -783,13 +764,10 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleSetWinningCondition(Request req, Response res) {
+    private Object handleSetWinningCondition(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String winningCondition = body.get("winningCondition").getAsString();
 
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
         Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
         PNWTTools.setConditionAnnotation(petriGame, objective);
 
@@ -797,13 +775,10 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleCreateFlow(Request req, Response res) {
+    private Object handleCreateFlow(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String source = body.get("source").getAsString();
         String destination = body.get("destination").getAsString();
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
 
         petriGame.createFlow(source, destination);
         JsonElement petriGameClient = PetriNetD3.of(petriGame);
@@ -811,13 +786,10 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleDeleteFlow(Request req, Response res) {
+    private Object handleDeleteFlow(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String source = body.get("sourceId").getAsString();
         String target = body.get("targetId").getAsString();
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
 
         petriGame.removeFlow(source, target);
 
@@ -825,9 +797,8 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleCreateTokenFlow(Request req, Response res) {
+    private Object handleCreateTokenFlow(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         Optional<String> sourceId = body.has("source") ?
                 Optional.of(body.get("source").getAsString()) :
                 Optional.empty();
@@ -837,9 +808,6 @@ public class App {
         postsetJson.forEach(jsonElement -> {
             postsetIds.add(jsonElement.getAsString());
         });
-
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
 
         // Create flows if they don't already exist
         Transition transition = petriGame.getTransition(transitionId);
@@ -869,13 +837,9 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleCheckLtlFormula(Request req, Response res) {
+    private Object handleCheckLtlFormula(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String formula = body.get("formula").getAsString();
-
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
 
         try {
             IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
@@ -887,13 +851,9 @@ public class App {
         }
     }
 
-    private Object handleGetModelCheckingNet(Request req, Response res) throws NotSupportedGameException, InterruptedException, ParseException, IOException, ExternalToolException, NotConvertableException, ProcessNotStartedException {
+    private Object handleGetModelCheckingNet(Request req, Response res, PetriGame petriGame) throws NotSupportedGameException, InterruptedException, ParseException, IOException, ExternalToolException, NotConvertableException, ProcessNotStartedException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String formula = body.get("formula").getAsString();
-
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
 
         IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
         // TODO ask Manuel if this cast is OK / normal / expected
@@ -910,13 +870,10 @@ public class App {
         return successResponse(PetriNetD3.of(modelCheckingNet));
     }
 
-    private Object handleFireTransition(Request req, Response res) {
+    private Object handleFireTransition(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String gameId = body.get("petriGameId").getAsString();
         String transitionId = body.get("transitionId").getAsString();
 
-        PetriGameAndMore petriGameAndMore = getPetriGame(gameId);
-        PetriGame petriGame = petriGameAndMore.getPetriGame();
         Transition transition = petriGame.getTransition(transitionId);
         Marking initialMarking = petriGame.getInitialMarking();
         Marking newInitialMarking = transition.fire(initialMarking);
