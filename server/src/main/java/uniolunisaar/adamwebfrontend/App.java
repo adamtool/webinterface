@@ -73,7 +73,7 @@ public class App {
 
         postWithUserContext("/getStrategyBDD", this::handleGetStrategyBDD);
 
-        post("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
+        postWithUserContext("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
 
         postWithUserContext("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
 
@@ -82,6 +82,8 @@ public class App {
         postWithUserContext("/getBDDGraph", this::handleGetBDDGraph);
 
         postWithUserContext("/loadWinningStrategy", this::handleLoadWinningStrategy);
+
+        postWithUserContext("/loadGraphStrategyBDD", this::handleLoadGraphStrategyBDD);
 
         postWithUserContext("/cancelCalculation", this::handleCancelCalculation);
 
@@ -339,21 +341,52 @@ public class App {
         }
     }
 
-    // TODO Prevent DDOS by throttling this endpoint somehow
-    private Object handleGetGraphStrategyBDD(Request req, Response res) throws NoStrategyExistentException, CouldNotFindSuitableConditionException, CalculationInterruptedException, ParseException, SolvingException {
+    private Object handleGetGraphStrategyBDD(Request req, Response res, UserContext uc) throws NoStrategyExistentException, CouldNotFindSuitableConditionException, CalculationInterruptedException, ParseException, SolvingException, RenderException, ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
 
         PetriGameAndMore petriGame = getPetriGame(petriGameId);
-        System.out.println("Getting graph strategy BDD for PetriGame id#" + petriGameId);
-        JsonElement bddGraph = petriGame.calculateGraphStrategyBDD();
 
-        JsonObject responseJson = new JsonObject();
-        responseJson.addProperty("status", "success");
-        responseJson.add("graphStrategyBDD", bddGraph);
-        responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
-        return responseJson.toString();
+        String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
+        if (uc.graphStrategyBddsOfApts.containsKey(canonicalApt)) {
+            return errorResponse("There is already a Calculation queued up to find the " +
+                    "Graph Strategy BDD of the Petri Game with the given APT.  Its status: " +
+                    uc.graphStrategyBddsOfApts.get(canonicalApt).getStatus());
+        }
+        PetriGame game = petriGame.getPetriGame();
+        Calculation<BDDGraph> calculation = new Calculation<>(() -> {
+            BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame.getPetriGame());
+            return graphStrategyBDD;
+        }, game.getName());
+        uc.graphStrategyBddsOfApts.put(canonicalApt, calculation);
+        calculation.queue(executorService);
+
+        try {
+            // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
+            //  error handling from /getGraphBDD))
+            BDDGraph result = calculation.getResult(5, TimeUnit.SECONDS);
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation of the " +
+                    "Graph Strategy BDD is finished.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", true);
+            responseJson.add("graphStrategyBDD", BDDGraphD3.of(result));
+            responseJson.add("petriGame", PetriNetD3.of(petriGame.getPetriGame()));
+            return responseJson.toString();
+        } catch (TimeoutException e) {
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation of the Graph " +
+                    "Strategy BDD is taking more than five seconds.  It will run in the " +
+                    "background.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", false);
+            return responseJson.toString();
+        } catch (CancellationException e) {
+            return errorResponse("The calculation was canceled.");
+        }
     }
 
     private Object handleCalculateGraphGameBDD(Request req, Response res, UserContext uc)
@@ -485,6 +518,38 @@ public class App {
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("strategyBDD", strategyBddJson);
+        return responseJson.toString();
+    }
+
+    // Load the already-calculated Graph Strategy BDD of a Petri Game
+    private Object handleLoadGraphStrategyBDD(Request req, Response res, UserContext uc) {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+
+        if (!uc.graphStrategyBddsOfApts.containsKey(canonicalApt)) {
+            return errorResponse("No Graph Strategy BDD has been calculated yet for the " +
+                    "Petri Game with the given APT representation: \n" + canonicalApt);
+        }
+        Calculation<BDDGraph> calculation = uc.graphStrategyBddsOfApts.get(canonicalApt);
+        if (!calculation.isFinished()) {
+            return errorResponse("The calculation of that Graph Strategy BDD is not yet " +
+                    "finished.  Its status: " + calculation.getStatus());
+        }
+        BDDGraph graphStrategyBdd;
+        try {
+            graphStrategyBdd = calculation.getResult();
+        } catch (InterruptedException e) {
+            return errorResponse("The calculation for that winning strategy got canceled.");
+        } catch (ExecutionException e) {
+            return errorResponse("The calculation for that winning strategy failed with the " +
+                    "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+        }
+
+        JsonElement graphStrategyBddJson = BDDGraphD3.of(graphStrategyBdd);
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.add("graphStrategyBDD", graphStrategyBddJson);
         return responseJson.toString();
     }
 

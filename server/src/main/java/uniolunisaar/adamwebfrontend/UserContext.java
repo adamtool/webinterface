@@ -65,6 +65,13 @@ public class UserContext {
                     calculation, canonicalApt, WINNING_STRATEGY);
             result.add(entry);
         }
+        for (String canonicalApt : this.graphStrategyBddsOfApts.keySet()) {
+            Calculation<BDDGraph> calculation = this.graphStrategyBddsOfApts.get(canonicalApt);
+            JsonObject entry = calculationListEntry(
+                    calculation, canonicalApt, GRAPH_STRATEGY_BDD
+            );
+            result.add(entry);
+        }
         return result;
     }
 

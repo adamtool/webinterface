@@ -2,20 +2,12 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.Node;
-import uniol.apt.io.parser.ParseException;
 import uniol.apt.io.renderer.RenderException;
 import uniolunisaar.adam.Adam;
-import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.exceptions.pg.CalculationInterruptedException;
-import uniolunisaar.adam.exceptions.pg.NoStrategyExistentException;
-import uniolunisaar.adam.exceptions.pg.SolvingException;
-import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.util.AdamExtensions;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -29,8 +21,6 @@ import java.util.Set;
  */
 public class PetriGameAndMore {
     private final PetriGame petriGame;
-    private Optional<PetriGame> strategyBDD = Optional.empty();
-    private Optional<BDDGraph> graphStrategyBDD = Optional.empty();
 
     private PetriGameAndMore(PetriGame petriGame) {
         this.petriGame = petriGame;
@@ -86,18 +76,6 @@ public class PetriGameAndMore {
             }
         }
         return Adam.getAPT(petriGame);
-    }
-
-    public JsonElement calculateGraphStrategyBDD() throws ParseException, SolvingException, NoStrategyExistentException, CouldNotFindSuitableConditionException, CalculationInterruptedException {
-        // TODO It's still possible to crash the server by calling this method many times in succession.
-        // TODO Introduce some kind of thread safety and make sure that the calculation only happens once.
-        // TODO It might make sense to use Future to represent the ongoing computation.
-        // TODO This also applies to the other calculation methods like calculateStrategyBDD and calculateExistsWinningStrategy.
-        if (!this.graphStrategyBDD.isPresent()) {
-            BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(this.petriGame);
-            this.graphStrategyBDD = Optional.of(graphStrategyBDD);
-        }
-        return BDDGraphD3.of(this.graphStrategyBDD.get());
     }
 
     public JsonElement getPetriGameClient() {
