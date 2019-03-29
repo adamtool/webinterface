@@ -134,7 +134,7 @@
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"/>
           <hsc-menu-bar-item label="Analyze">
-            <hsc-menu-item @click.native="existsWinningStrategy"
+            <hsc-menu-item @click.native="calculateExistsWinningStrategy"
                            label="Exists Winning Strategy?"/>
             <hsc-menu-item @click.native="calculateGraphStrategyBDD"
                            label="Get Graph Strategy BDD"/>
@@ -154,7 +154,7 @@
                            :label="isLogVisible ? 'Hide log' : 'Show log'"/>
         <!--TODO Grey out these buttons or something if these things have already been calculated.-->
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-        <!--TODO For "existsWinningStrategy," it could even say whether or not a strategy exists.-->
+        <!--TODO For "calculateExistsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
       <button @click="showCalculationList = true"
               style="margin-left: 40px;">View jobs running on server
@@ -528,7 +528,7 @@
       // "localhost:4567/..."
       restEndpoints: function () {
         const endpoints = [
-          'existsWinningStrategy',
+          'calculateExistsWinningStrategy',
           'calculateStrategyBDD',
           'getWinningStrategy',
           'getGraphStrategyBDD',
@@ -536,7 +536,7 @@
           'calculateGraphStrategyBDD',
           'calculateGraphGameBDD',
           'getListOfCalculations',
-          'getBDDGraph',
+          'getGraphGameBDD',
           'toggleGraphGameBDDNodePostset',
           'toggleGraphGameBDDNodePreset',
           'savePetriGameAsAPT',
@@ -750,9 +750,9 @@
         this.$refs.menubar.deactivate()
         this.$refs.graphEditorPetriGame.getModelCheckingNet()
       },
-      existsWinningStrategy: function () {
+      calculateExistsWinningStrategy: function () {
         logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')
-        this.restEndpoints.existsWinningStrategy({
+        this.restEndpoints.calculateExistsWinningStrategy({
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -775,7 +775,7 @@
             }
           })
         }).catch(() => {
-          logging.logError('Network error in existsWinningStrategy')
+          logging.logError('Network error in calculateExistsWinningStrategy')
         })
       },
       calculateStrategyBDD: function () {
@@ -835,7 +835,7 @@
       },
       // Load the Graph Game BDD corresponding to the given canonical APT string
       getGraphGameBdd: function (canonicalApt) {
-        this.restEndpoints.getBDDGraph({
+        this.restEndpoints.getGraphGameBDD({
           canonicalApt: canonicalApt
         }).then(response => {
           switch (response.data.status) {

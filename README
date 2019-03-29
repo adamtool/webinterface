@@ -39,8 +39,8 @@ Why?
 'npm run dev' serves the client at localhost:8080, while a developer
 is likely to have our java web server running at localhost:4567.
 In this case, a relative URL would be wrong; the HTTP requests would go
-to e.g. localhost:8080/existsWinningStrategy and return a 404
-instead of localhost:4567/existsWinningStrategy.
+to e.g. localhost:8080/calculateExistsWinningStrategy and return a 404
+instead of localhost:4567/calculateExistsWinningStrategy.
 
 Generating license information for the frontend
 Install the program 'npm-license-crawler' in your global scope:

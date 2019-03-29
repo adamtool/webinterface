@@ -69,7 +69,8 @@ public class App {
 
         post("/parseApt", this::handleParseApt);
 
-        postWithUserContext("/existsWinningStrategy", this::handleExistsWinningStrategy);
+        postWithUserContext("/calculateExistsWinningStrategy",
+                this::handleCalculateExistsWinningStrategy);
 
         postWithUserContext("/calculateStrategyBDD", this::handleCalculateStrategyBDD);
 
@@ -79,7 +80,7 @@ public class App {
 
         postWithUserContext("/getListOfCalculations", this::handleGetListOfCalculations);
 
-        postWithUserContext("/getBDDGraph", this::handleGetBDDGraph);
+        postWithUserContext("/getGraphGameBDD", this::handleGetGraphGameBDD);
 
         postWithUserContext("/getWinningStrategy", this::handleGetWinningStrategy);
 
@@ -258,7 +259,7 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleExistsWinningStrategy(Request req, Response res, UserContext uc)
+    private Object handleCalculateExistsWinningStrategy(Request req, Response res, UserContext uc)
             throws ExecutionException, InterruptedException, RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
@@ -475,13 +476,13 @@ public class App {
 
     // Given the canonical APT representation of a Petri Game, return the current view
     // of the BDDGraph that has been calculated for it, if one is present.
-    private Object handleGetBDDGraph(Request req, Response res, UserContext uc) {
+    private Object handleGetGraphGameBDD(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
 
         if (!uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
-            return errorResponse("No BDDGraph has been calculated yet for the Petri " +
+            return errorResponse("No Graph Game BDD has been calculated yet for the Petri " +
                     "Game with the given APT representation: \n" + canonicalApt);
         }
         Calculation<BDDGraphExplorer> calculation = uc.graphGameBddsOfApts.get(canonicalApt);
