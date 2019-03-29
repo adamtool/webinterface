@@ -9,6 +9,10 @@ import uniolunisaar.adam.util.AdamExtensions;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * This class just has some useful static methods for dealing with Petri Games
+ * and the x/y coordinates that we save inside of them.
+ */
 public class PetriGameTools {
     /**
      * This is a workaround for a "feature" in ADAM.  Right now, the X/Y coordinates stored in a
