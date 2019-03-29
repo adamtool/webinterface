@@ -341,7 +341,8 @@ public class App {
         }
     }
 
-    private Object handleGetGraphStrategyBDD(Request req, Response res, UserContext uc) throws NoStrategyExistentException, CouldNotFindSuitableConditionException, CalculationInterruptedException, ParseException, SolvingException, RenderException, ExecutionException, InterruptedException {
+    private Object handleGetGraphStrategyBDD(Request req, Response res, UserContext uc) throws
+            RenderException, ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();

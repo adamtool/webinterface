@@ -809,11 +809,17 @@
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.graphStrategyBDD = response.data.graphStrategyBDD
-            this.graphStrategyBDD.uuid = uuid
-            // We expect an updated petriGame here because there might have been partition annotations added.
-            this.petriGame.net = response.data.petriGame
-            this.switchToGraphStrategyBDDTab()
+            if (response.data.calculationComplete) {
+              this.graphStrategyBDD = response.data.graphStrategyBDD
+              this.graphStrategyBDD.uuid = uuid
+              // We expect an updated petriGame here because there might have been partition annotations added.
+              this.petriGame.net = response.data.petriGame
+              this.switchToGraphStrategyBDDTab()
+              this.apt = response.data.canonicalApt
+              logging.sendSuccessNotification(response.data.message)
+            } else {
+              logging.sendSuccessNotification(response.data.message)
+            }
           })
         }).catch(() => {
           logging.logError('Network error in getGraphStrategyBDD')
