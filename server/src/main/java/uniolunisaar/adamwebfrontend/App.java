@@ -371,10 +371,10 @@ public class App {
         // Just in case the petri game gets modified after the computation starts, we will
         // save its apt right here already
         String canonicalApt = Adam.getAPT(petriGame.getPetriGame());
-        if (uc.bddGraphsOfApts.containsKey(canonicalApt)) {
+        if (uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is already a Calculation queued up to find the " +
                     "Graph Game BDD of the Petri Game with the given APT.  Its status: " +
-                    uc.bddGraphsOfApts.get(canonicalApt).getStatus());
+                    uc.graphGameBddsOfApts.get(canonicalApt).getStatus());
         }
 
         // Calculate the Graph Game BDD
@@ -395,7 +395,7 @@ public class App {
                 return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
             }
         }, game.getName());
-        uc.bddGraphsOfApts.put(canonicalApt, calculation);
+        uc.graphGameBddsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
         try {
@@ -430,11 +430,11 @@ public class App {
         System.out.println("body: " + body.toString());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
 
-        if (!uc.bddGraphsOfApts.containsKey(canonicalApt)) {
+        if (!uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("No BDDGraph has been calculated yet for the Petri " +
                     "Game with the given APT representation: \n" + canonicalApt);
         }
-        Calculation<BDDGraphExplorer> calculation = uc.bddGraphsOfApts.get(canonicalApt);
+        Calculation<BDDGraphExplorer> calculation = uc.graphGameBddsOfApts.get(canonicalApt);
         if (!calculation.isFinished()) {
             return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + calculation.getStatus());
@@ -503,7 +503,7 @@ public class App {
                 calculationMap = uc.strategyBddsOfApts;
                 break;
             case GRAPH_GAME_BDD:
-                calculationMap = uc.bddGraphsOfApts;
+                calculationMap = uc.graphGameBddsOfApts;
                 break;
         }
         if (!calculationMap.containsKey(canonicalApt)) {
@@ -521,11 +521,11 @@ public class App {
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-        if (!uc.bddGraphsOfApts.containsKey(canonicalApt)) {
+        if (!uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is no Graph Game BDD yet for that APT input");
         }
 
-        Calculation<BDDGraphExplorer> calculation = uc.bddGraphsOfApts.get(canonicalApt);
+        Calculation<BDDGraphExplorer> calculation = uc.graphGameBddsOfApts.get(canonicalApt);
         if (!calculation.isFinished()) {
             return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + calculation.getStatus());
@@ -546,10 +546,10 @@ public class App {
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-        if (!uc.bddGraphsOfApts.containsKey(canonicalApt)) {
+        if (!uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is no Graph Game BDD yet for that APT input");
         }
-        Calculation<BDDGraphExplorer> calculation = uc.bddGraphsOfApts.get(canonicalApt);
+        Calculation<BDDGraphExplorer> calculation = uc.graphGameBddsOfApts.get(canonicalApt);
         if (!calculation.isFinished()) {
             return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + calculation.getStatus());
