@@ -126,7 +126,7 @@ public class App {
     }
 
     /**
-     * Register a route where the browserUuid is automatically extracted from each request body
+     * Register a POST route where the browserUuid is automatically extracted from each request body
      * and the corresponding UserContext is retrieved.
      * This way, the handler function does not have to handle this frequently repeated operation.
      */
