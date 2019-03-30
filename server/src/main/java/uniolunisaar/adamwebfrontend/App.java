@@ -398,19 +398,17 @@ public class App {
             T result = calculation.getResult(5, TimeUnit.SECONDS);
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of the " +
-                    "Graph Strategy BDD is finished.");
+            responseJson.addProperty("message", "The calculation is finished.");
             responseJson.addProperty("canonicalApt", canonicalApt);
             responseJson.addProperty("calculationComplete", true);
-            responseJson.add("graphStrategyBDD", resultSerializer.apply(result));
+            responseJson.add("result", resultSerializer.apply(result));
             responseJson.add("petriGame", PetriNetD3.of(petriGame));
             return responseJson.toString();
         } catch (TimeoutException e) {
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of the Graph " +
-                    "Strategy BDD is taking more than five seconds.  It will run in the " +
-                    "background.");
+            responseJson.addProperty("message", "The calculation is taking more " +
+                    "than five seconds.  It will run in the background.");
             responseJson.addProperty("canonicalApt", canonicalApt);
             responseJson.addProperty("calculationComplete", false);
             return responseJson.toString();
@@ -420,7 +418,7 @@ public class App {
             return errorResponse("The calculation was interrupted.");
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
-            return errorResponse("An exception was thrown by the calculation: " +
+            return errorResponse("The calculation failed with an exception: " +
                     cause.getClass().getSimpleName() + ": " + cause.getMessage());
         }
     }

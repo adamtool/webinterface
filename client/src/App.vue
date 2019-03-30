@@ -807,12 +807,13 @@
       },
       calculateGraphStrategyBDD: function () {
         const uuid = this.petriGame.uuid
+        logging.sendSuccessNotification('Sent request to server to calculate the Graph Strategy BDD')
         this.restEndpoints.calculateGraphStrategyBDD({
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
             if (response.data.calculationComplete) {
-              this.graphStrategyBDD = response.data.graphStrategyBDD
+              this.graphStrategyBDD = response.data.result
               this.graphStrategyBDD.uuid = uuid
               // We expect an updated petriGame here because there might have been partition annotations added.
               this.petriGame.net = response.data.petriGame
