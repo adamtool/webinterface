@@ -314,7 +314,7 @@ public class App {
     }
 
     private Object handleCalculateStrategyBDD(Request req, Response res, UserContext uc)
-            throws ExecutionException, InterruptedException, RenderException {
+            throws RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -335,31 +335,11 @@ public class App {
         uc.strategyBddsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
-        try {
-            // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
-            //  error handling from /getGraphBDD))
-            PetriGame result = calculation.getResult(5, TimeUnit.SECONDS);
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of the " +
-                    "winning strategy is finished.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", true);
-            responseJson.add("strategyBDD", PetriNetD3.of(result));
-            responseJson.add("petriGame", PetriNetD3.of(petriGame));
-            return responseJson.toString();
-        } catch (TimeoutException e) {
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of the winning " +
-                    "strategy is taking more than five seconds.  It will run in the " +
-                    "background.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", false);
-            return responseJson.toString();
-        } catch (CancellationException e) {
-            return errorResponse("The calculation was canceled.");
-        }
+        return tryToGetResultWithinFiveSeconds(
+                calculation,
+                PetriNetD3::of,
+                canonicalApt,
+                petriGame);
     }
 
     private Object handleCalculateGraphStrategyBDD(Request req, Response res, UserContext uc)

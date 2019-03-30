@@ -788,7 +788,7 @@
           this.withErrorHandling(response, response => {
             // Load the strategy BDD if it is finished within 5-10 seconds.  Otherwise just show a message
             if (response.data.calculationComplete) {
-              this.strategyBDD = response.data.strategyBDD
+              this.strategyBDD = response.data.result
               this.strategyBDD.uuid = uuid
               // We expect an updated petriGame here because there might have been partition annotations added.
               this.petriGame.net = response.data.petriGame
