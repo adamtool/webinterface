@@ -287,30 +287,11 @@ public class App {
         uc.existsWinningStrategyOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
-        try {
-            boolean result = calculation.getResult(5, TimeUnit.SECONDS);
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of Exists Winning Strategy " +
-                    "is finished.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", true);
-            // Annotations might have been added to the petri game, and the client should
-            // know about them.
-            responseJson.add("petriGame", PetriNetD3.of(petriGame));
-            responseJson.addProperty("result", result);
-            return responseJson.toString();
-        } catch (TimeoutException e) {
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of Exists Winning Strategy " +
-                    "is taking more than five seconds.  It will run in the background.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", false);
-            return responseJson.toString();
-        } catch (CancellationException e) {
-            return errorResponse("The calculation was canceled.");
-        }
+        return tryToGetResultWithinFiveSeconds(
+                calculation,
+                JsonPrimitive::new,
+                canonicalApt,
+                petriGame);
     }
 
     private Object handleCalculateStrategyBDD(Request req, Response res, UserContext uc)
