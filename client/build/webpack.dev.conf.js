@@ -13,7 +13,8 @@ var devConfig = merge(baseWebpackConfig, {
   // cheap-module-eval-source-map is faster for development
   devtool: 'inline-source-map',
   devServer: {
-    contentBase: './dist'
+    contentBase: './dist',
+    overlay: true
   },
   mode: 'development',
   plugins: [
