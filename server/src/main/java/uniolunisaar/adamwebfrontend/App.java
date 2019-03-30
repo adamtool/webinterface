@@ -419,8 +419,9 @@ public class App {
         } catch (InterruptedException e) {
             return errorResponse("The calculation was interrupted.");
         } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
             return errorResponse("An exception was thrown by the calculation: " +
-                    e.getClass().getSimpleName() + ": " + e.getMessage());
+                    cause.getClass().getSimpleName() + ": " + cause.getMessage());
         }
     }
 
