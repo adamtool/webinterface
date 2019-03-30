@@ -424,7 +424,7 @@ public class App {
     }
 
     private Object handleCalculateGraphGameBDD(Request req, Response res, UserContext uc)
-            throws RenderException, ExecutionException, InterruptedException {
+            throws RenderException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
@@ -463,29 +463,11 @@ public class App {
         uc.graphGameBddsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
-        try {
-            // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
-            //  error handling from /getGraphBDD))
-            BDDGraphExplorer result = calculation.getResult(5, TimeUnit.SECONDS);
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of the graph game " +
-                    "BDD is finished.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", true);
-            responseJson.add("bddGraph", result.getVisibleGraph());
-            return responseJson.toString();
-        } catch (TimeoutException e) {
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation of the graph game " +
-                    "BDD is taking more than five seconds.  It will run in the background.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", false);
-            return responseJson.toString();
-        } catch (CancellationException e) {
-            return errorResponse("The calculation was canceled.");
-        }
+        return tryToGetResultWithinFiveSeconds(
+                calculation,
+                BDDGraphExplorer::getVisibleGraph,
+                canonicalApt,
+                petriGame);
     }
 
     // Given the canonical APT representation of a Petri Game, return the current view

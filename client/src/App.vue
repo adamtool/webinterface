@@ -912,7 +912,7 @@
             // Load the graph game BDD if it is finished within 5-10 seconds.  Otherwise just show a message
             if (response.data.calculationComplete) {
               this.apt = response.data.canonicalApt
-              this.graphGameBDD = response.data.bddGraph
+              this.graphGameBDD = response.data.result
               this.graphGameCanonicalApt = response.data.canonicalApt
               // TODO Get Petri Game from server in caes partition annotations have been added
               // this.petriGame.net = response.data.petriGame
