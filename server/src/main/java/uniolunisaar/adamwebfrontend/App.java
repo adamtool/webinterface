@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 public class App {
     private final Gson gson = new Gson();
@@ -382,17 +383,26 @@ public class App {
         uc.graphStrategyBddsOfApts.put(canonicalApt, calculation);
         calculation.queue(executorService);
 
+        return tryToGetResultWithinFiveSeconds(
+                calculation,
+                BDDGraphD3::ofWholeBddGraph,
+                canonicalApt,
+                petriGame);
+    }
+
+    private static <T> Object tryToGetResultWithinFiveSeconds(Calculation<T> calculation,
+                                                       Function<T, JsonElement> resultSerializer,
+                                                       String canonicalApt,
+                                                       PetriGame petriGame) {
         try {
-            // TODO Handle other exceptions thrown by getResult (maybe refactor to reuse
-            //  error handling from /getGraphBDD))
-            BDDGraph result = calculation.getResult(5, TimeUnit.SECONDS);
+            T result = calculation.getResult(5, TimeUnit.SECONDS);
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.addProperty("message", "The calculation of the " +
                     "Graph Strategy BDD is finished.");
             responseJson.addProperty("canonicalApt", canonicalApt);
             responseJson.addProperty("calculationComplete", true);
-            responseJson.add("graphStrategyBDD", BDDGraphD3.of(result));
+            responseJson.add("graphStrategyBDD", resultSerializer.apply(result));
             responseJson.add("petriGame", PetriNetD3.of(petriGame));
             return responseJson.toString();
         } catch (TimeoutException e) {
@@ -406,6 +416,11 @@ public class App {
             return responseJson.toString();
         } catch (CancellationException e) {
             return errorResponse("The calculation was canceled.");
+        } catch (InterruptedException e) {
+            return errorResponse("The calculation was interrupted.");
+        } catch (ExecutionException e) {
+            return errorResponse("An exception was thrown by the calculation: " +
+                    e.getClass().getSimpleName() + ": " + e.getMessage());
         }
     }
 
@@ -564,7 +579,7 @@ public class App {
                     "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
         }
 
-        JsonElement graphStrategyBddJson = BDDGraphD3.of(graphStrategyBdd);
+        JsonElement graphStrategyBddJson = BDDGraphD3.ofWholeBddGraph(graphStrategyBdd);
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("graphStrategyBDD", graphStrategyBddJson);

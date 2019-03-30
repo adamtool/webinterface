@@ -30,8 +30,8 @@ public class BDDGraphD3 {
     /**
      * @return JSON representing all of the contents of bddGraph, with no states being hidden
      */
-    public static JsonElement of(BDDGraph bddGraph) {
-        return of(bddGraph.getStates(), bddGraph.getFlows(), bddGraph.getStates(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+    public static JsonElement ofWholeBddGraph(BDDGraph bddGraph) {
+        return ofSubsetOfBddGraph(bddGraph.getStates(), bddGraph.getFlows(), bddGraph.getStates(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
     }
 
     /**
@@ -46,12 +46,12 @@ public class BDDGraphD3 {
      * so that the user knows if they clicked on them yet or not.
      * States that have "invisible parents", i.e. parents that are not shown, are also annotated.
      */
-    public static JsonElement of(Set<BDDState> states,
-                                 Set<uniolunisaar.adam.ds.graph.Flow> flows,
-                                 Set<BDDState> postSetExpandedStates,
-                                 Set<BDDState> presetExpandedStates,
-                                 Set<BDDState> statesWithInvisibleParents,
-                                 Set<BDDState> statesWithInvisibleChildren) {
+    public static JsonElement ofSubsetOfBddGraph(Set<BDDState> states,
+                                                 Set<uniolunisaar.adam.ds.graph.Flow> flows,
+                                                 Set<BDDState> postSetExpandedStates,
+                                                 Set<BDDState> presetExpandedStates,
+                                                 Set<BDDState> statesWithInvisibleParents,
+                                                 Set<BDDState> statesWithInvisibleChildren) {
         Set<State> nodes = states.stream()
                 .map((BDDState state) -> State.of(
                         state,

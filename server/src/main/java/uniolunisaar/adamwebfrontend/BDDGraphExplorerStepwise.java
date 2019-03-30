@@ -110,7 +110,7 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                                 return isChildInvisible;
                             });
                 }).collect(Collectors.toSet());
-        return BDDGraphD3.of(
+        return BDDGraphD3.ofSubsetOfBddGraph(
                 visibleStates,
                 this.visibleFlows(),
                 this.postsetExpandedStates,
