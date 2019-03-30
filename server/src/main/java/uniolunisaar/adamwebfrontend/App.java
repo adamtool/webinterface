@@ -351,39 +351,6 @@ public class App {
                 petriGame);
     }
 
-    private static <T> Object tryToGetResultWithinFiveSeconds(Calculation<T> calculation,
-                                                       Function<T, JsonElement> resultSerializer,
-                                                       String canonicalApt,
-                                                       PetriGame petriGame) {
-        try {
-            T result = calculation.getResult(5, TimeUnit.SECONDS);
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation is finished.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", true);
-            responseJson.add("result", resultSerializer.apply(result));
-            responseJson.add("petriGame", PetriNetD3.of(petriGame));
-            return responseJson.toString();
-        } catch (TimeoutException e) {
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation is taking more " +
-                    "than five seconds.  It will run in the background.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", false);
-            return responseJson.toString();
-        } catch (CancellationException e) {
-            return errorResponse("The calculation was canceled.");
-        } catch (InterruptedException e) {
-            return errorResponse("The calculation was interrupted.");
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            return errorResponse("The calculation failed with an exception: " +
-                    cause.getClass().getSimpleName() + ": " + cause.getMessage());
-        }
-    }
-
     private Object handleCalculateGraphGameBDD(Request req, Response res, UserContext uc)
             throws RenderException {
         JsonElement body = parser.parse(req.body());
@@ -429,6 +396,55 @@ public class App {
                 BDDGraphExplorer::getVisibleGraph,
                 canonicalApt,
                 petriGame);
+    }
+
+    /**
+     * When a user queues a calculation, the calculation might finish quickly, or it might take a
+     * while.
+     * If it's fast, then we want the UI to immediately open the result.
+     * Otherwise, a message should just be shown to let the user know that the job has been added
+     * to the job queue.
+     * This method is meant to handle that type of response.
+     * @param calculation the calculation that has been queued just now
+     * @param resultSerializer A function to serialize the result of the calculation into JSON
+     *                         for the client to consume
+     * @param canonicalApt The 'canonical apt' of the Petri Game that is being analyzed
+     * @param petriGame The Petri Game that is being analyzed
+     * @param <T> The result type of the calculation
+     * @return A JSON response with the result, if it is ready within five seconds.
+     * Otherwise, just a message that the calculation is still being calculated.
+     */
+    private static <T> Object tryToGetResultWithinFiveSeconds(Calculation<T> calculation,
+                                                       Function<T, JsonElement> resultSerializer,
+                                                       String canonicalApt,
+                                                       PetriGame petriGame) {
+        try {
+            T result = calculation.getResult(5, TimeUnit.SECONDS);
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation is finished.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", true);
+            responseJson.add("result", resultSerializer.apply(result));
+            responseJson.add("petriGame", PetriNetD3.of(petriGame));
+            return responseJson.toString();
+        } catch (TimeoutException e) {
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.addProperty("message", "The calculation is taking more " +
+                    "than five seconds.  It will run in the background.");
+            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("calculationComplete", false);
+            return responseJson.toString();
+        } catch (CancellationException e) {
+            return errorResponse("The calculation was canceled.");
+        } catch (InterruptedException e) {
+            return errorResponse("The calculation was interrupted.");
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            return errorResponse("The calculation failed with an exception: " +
+                    cause.getClass().getSimpleName() + ": " + cause.getMessage());
+        }
     }
 
     // Given the canonical APT representation of a Petri Game, return the current view
