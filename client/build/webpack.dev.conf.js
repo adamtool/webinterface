@@ -11,14 +11,15 @@ var devConfig = merge(baseWebpackConfig, {
   module: {
   },
   // cheap-module-eval-source-map is faster for development
-  devtool: '#eval-source-map',
+  devtool: 'inline-source-map',
+  devServer: {
+    contentBase: './dist'
+  },
   mode: 'development',
   plugins: [
     new webpack.DefinePlugin({
       'process.env': config.dev.env
     }),
-    // https://github.com/glenjamin/webpack-hot-middleware#installation--usage
-    new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     // https://github.com/ampedandwired/html-webpack-plugin
     new HtmlWebpackPlugin({
@@ -32,11 +33,6 @@ var devConfig = merge(baseWebpackConfig, {
       logLevel: 'warn'
     })
   ]
-})
-
-// add hot-reload related code to entry chunks
-Object.keys(devConfig.entry).forEach(function (name) {
-  devConfig.entry[name] = ['./build/dev-client'].concat(devConfig.entry[name])
 })
 
 module.exports = devConfig

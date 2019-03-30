@@ -33,10 +33,7 @@ module.exports = {
       path: './src/assets/apt-examples.json',
       extensions: /\.apt/
     }),
-    new VueLoaderPlugin(),
-    new MiniCssExtractPlugin({
-      filename: 'style.css'
-    })
+    new VueLoaderPlugin()
   ],
   module: {
     rules: [

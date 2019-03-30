@@ -5,8 +5,7 @@
   "author": "Ann Yanich <ann.yanich@gmail.com>",
   "private": true,
   "scripts": {
-    "dev": "node build/dev-server.js",
-    "start": "node build/dev-server.js",
+    "dev": "webpack-dev-server --hot --config build/webpack.dev.conf.js",
     "build": "node build/build.js",
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "e2e": "node test/e2e/runner.js",
@@ -105,7 +104,9 @@
     "vue-template-compiler": "^2.6.8",
     "webpack": "^4.29.6",
     "webpack-bundle-analyzer": "^3.1.0",
+    "webpack-cli": "^3.3.0",
     "webpack-dev-middleware": "^3.6.1",
+    "webpack-dev-server": "^3.2.1",
     "webpack-hot-middleware": "^2.24.3",
     "webpack-merge": "^4.2.1"
   },
