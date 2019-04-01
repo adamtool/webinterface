@@ -71,8 +71,11 @@ public class App {
 
         post("/parseApt", this::handleParseApt);
 
-        postWithUserContext("/calculateExistsWinningStrategy",
-                this::handleCalculateExistsWinningStrategy);
+        post("/calculateExistsWinningStrategy", handleQueueCalculation(
+                this::calculateExistsWinningStrategy,
+                CalculationType.EXISTS_WINNING_STRATEGY,
+                JsonPrimitive::new
+        ));
 
         postWithUserContext("/calculateStrategyBDD", this::handleCalculateStrategyBDD);
 
@@ -261,38 +264,13 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleCalculateExistsWinningStrategy(Request req, Response res, UserContext uc)
-            throws ExecutionException, InterruptedException, RenderException {
-        JsonElement body = parser.parse(req.body());
-        System.out.println("body: " + body.toString());
-        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-
-        PetriGame petriGame = getPetriGame(petriGameId);
-
-        System.out.println("Is there a winning strategy for PetriGame id#" + petriGameId + "?");
-
-
-        String canonicalApt = Adam.getAPT(petriGame);
-        if (uc.existsWinningStrategyOfApts.containsKey(canonicalApt)) {
-            return errorResponse("There is already a Calculation queued up to find the " +
-                    "Exists Winning Condition of the Petri Game with the given APT.  Its " +
-                    "status: " +
-                    uc.existsWinningStrategyOfApts.get(canonicalApt).getStatus());
-        }
-
-        System.out.println("Calculating Exists Winning Strategy for PetriGame id#" + petriGameId);
+    private Calculation<Boolean> calculateExistsWinningStrategy(PetriGame petriGame,
+                                                                JsonObject params) {
         Calculation<Boolean> calculation = new Calculation<>(() -> {
             boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
             return existsWinningStrategy;
         }, petriGame.getName());
-        uc.existsWinningStrategyOfApts.put(canonicalApt, calculation);
-        calculation.queue(executorService);
-
-        return tryToGetResultWithinFiveSeconds(
-                calculation,
-                JsonPrimitive::new,
-                canonicalApt,
-                petriGame);
+        return calculation;
     }
 
     private Object handleCalculateStrategyBDD(Request req, Response res, UserContext uc)
