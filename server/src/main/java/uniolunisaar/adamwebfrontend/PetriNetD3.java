@@ -45,7 +45,7 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement of(PetriGame net, Set<Node> shouldSendPositions) {
+    public static JsonElement ofPetriGameWithXYCoordinates(PetriGame net, Set<Node> shouldSendPositions) {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -125,15 +125,8 @@ public class PetriNetD3 {
      * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
     public static JsonElement of(PetriGame game) {
-        return of(game, new HashSet<>());
+        return ofPetriGameWithXYCoordinates(game, new HashSet<>());
     }
-
-    public static JsonElement of(PetriNet net) throws NotSupportedGameException {
-        // TODO consider if it is reasonable to do this.
-        PetriGame game = new PetriGame(net);
-        return of(game);
-    }
-
 
     static class PetriNetLink extends GraphLink {
         private final String tokenFlow; // Null if there is no token flow given

@@ -94,6 +94,10 @@ public class App {
                 CalculationType.GRAPH_GAME_BDD,
                 BDDGraphExplorer::getVisibleGraph));
 
+//        post("/getWinningStrategy", handleGetCalculationResult(
+//                CalculationType.WINNING_STRATEGY,
+//                PetriNetD3::of
+//        ));
         postWithUserContext("/getWinningStrategy", this::handleGetWinningStrategy);
 
         postWithUserContext("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
@@ -263,7 +267,7 @@ public class App {
         petriGamesReadFromApt.put(petriGameUUID, petriGame);
         System.out.println("Generated petri game with ID " + petriGameUUID);
 
-        JsonElement petriNetD3Json = PetriNetD3.of(petriGame, petriGame.getNodes());
+        JsonElement petriNetD3Json = PetriNetD3.ofPetriGameWithXYCoordinates(petriGame, petriGame.getNodes());
         JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
 
         JsonObject responseJson = new JsonObject();
@@ -665,7 +669,7 @@ public class App {
         petriGame.setXCoord(node, x);
         petriGame.setYCoord(node, y);
 
-        JsonElement petriGameClient = PetriNetD3.of(
+        JsonElement petriGameClient = PetriNetD3.ofPetriGameWithXYCoordinates(
                 petriGame, new HashSet<>(Collections.singletonList(node)));
 
         return successResponse(petriGameClient);
@@ -840,7 +844,7 @@ public class App {
         System.out.println("result:");
         System.out.println(result);
 
-        return successResponse(PetriNetD3.of(modelCheckingNet));
+        return successResponse(PetriNetD3.of(new PetriGame(modelCheckingNet)));
     }
 
     private Object handleFireTransition(Request req, Response res, PetriGame petriGame) {
