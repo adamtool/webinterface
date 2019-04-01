@@ -493,21 +493,9 @@ public class App {
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         String typeString = body.getAsJsonObject().get("type").getAsString();
         CalculationType type = CalculationType.valueOf(typeString);
-        Map<String, ? extends Calculation> calculationMap = null;
-        // TODO Consider putting the "calculationMaps" into a Map<CalculationType, Map<...>>
-        switch (type) {
-            case EXISTS_WINNING_STRATEGY:
-                calculationMap = uc.existsWinningStrategyOfApts;
-                break;
-            case WINNING_STRATEGY:
-                calculationMap = uc.strategyBddsOfApts;
-                break;
-            case GRAPH_GAME_BDD:
-                calculationMap = uc.graphGameBddsOfApts;
-                break;
-        }
+        Map<String, ? extends Calculation> calculationMap = uc.getCalculationMap(type);
         if (!calculationMap.containsKey(canonicalApt)) {
-            return errorResponse("No calculation of " + type + " for the given APT was found.");
+            return errorResponse("The requested calculation was not found.");
         }
         Calculation calculation = calculationMap.get(canonicalApt);
         calculation.cancel();
