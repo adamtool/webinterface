@@ -138,7 +138,8 @@
                            label="Exists Winning Strategy?"/>
             <hsc-menu-item @click.native="calculateGraphStrategyBDD"
                            label="Get Graph Strategy BDD"/>
-            <hsc-menu-item @click.native="calculateGraphGameBDD" label="Calculate Graph Game BDD"/>
+            <hsc-menu-item @click.native="calculateGraphGameBDD(false)" label="Calculate whole Graph Game BDD"/>
+            <hsc-menu-item @click.native="calculateGraphGameBDD(true)" label="Calculate Graph Game BDD incrementally"/>
           </hsc-menu-bar-item>
         </template>
         <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
@@ -901,12 +902,12 @@
           }
         })
       },
-      calculateGraphGameBDD: function () {
+      calculateGraphGameBDD: function (incremental) {
         const uuid = this.petriGame.uuid
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
         this.restEndpoints.calculateGraphGameBDD({
           petriGameId: uuid,
-          incremental: false
+          incremental
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Load the graph game BDD if it is finished within 5-10 seconds.  Otherwise just show a message
