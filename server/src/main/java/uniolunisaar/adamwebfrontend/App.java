@@ -77,7 +77,11 @@ public class App {
                 JsonPrimitive::new
         ));
 
-        postWithUserContext("/calculateStrategyBDD", this::handleCalculateStrategyBDD);
+        post("/calculateStrategyBDD", handleQueueCalculation(
+                this::calculateStrategyBDD,
+                CalculationType.WINNING_STRATEGY,
+                PetriNetD3::of
+        ));
 
         postWithUserContext("/calculateGraphStrategyBDD", this::handleCalculateGraphStrategyBDD);
 
@@ -266,40 +270,19 @@ public class App {
 
     private Calculation<Boolean> calculateExistsWinningStrategy(PetriGame petriGame,
                                                                 JsonObject params) {
-        Calculation<Boolean> calculation = new Calculation<>(() -> {
+        return new Calculation<>(() -> {
             boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
             return existsWinningStrategy;
         }, petriGame.getName());
-        return calculation;
     }
 
-    private Object handleCalculateStrategyBDD(Request req, Response res, UserContext uc)
-            throws RenderException {
-        JsonElement body = parser.parse(req.body());
-        System.out.println("body: " + body.toString());
-        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-
-        PetriGame petriGame = getPetriGame(petriGameId);
-
-        String canonicalApt = Adam.getAPT(petriGame);
-        if (uc.strategyBddsOfApts.containsKey(canonicalApt)) {
-            return errorResponse("There is already a Calculation queued up to find the " +
-                    "winning strategy of the Petri Game with the given APT.  Its status: " +
-                    uc.strategyBddsOfApts.get(canonicalApt).getStatus());
-        }
-        Calculation<PetriGame> calculation = new Calculation<>(() -> {
+    private Calculation<PetriGame> calculateStrategyBDD(PetriGame petriGame,
+                                                        JsonObject params) {
+        return new Calculation<>(() -> {
             PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
             PetriGameTools.removeXAndYCoordinates(strategyBDD);
             return strategyBDD;
         }, petriGame.getName());
-        uc.strategyBddsOfApts.put(canonicalApt, calculation);
-        calculation.queue(executorService);
-
-        return tryToGetResultWithinFiveSeconds(
-                calculation,
-                PetriNetD3::of,
-                canonicalApt,
-                petriGame);
     }
 
     private Object handleCalculateGraphStrategyBDD(Request req, Response res, UserContext uc)
