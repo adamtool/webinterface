@@ -83,7 +83,11 @@ public class App {
                 PetriNetD3::of
         ));
 
-        postWithUserContext("/calculateGraphStrategyBDD", this::handleCalculateGraphStrategyBDD);
+        post("/calculateGraphStrategyBDD", handleQueueCalculation(
+                this::calculateGraphStrategyBDD,
+                CalculationType.GRAPH_STRATEGY_BDD,
+                BDDGraphD3::ofWholeBddGraph
+        ));
 
         post("/calculateGraphGameBDD", handleQueueCalculation(
                 this::calculateGraphGameBDD,
@@ -285,32 +289,12 @@ public class App {
         }, petriGame.getName());
     }
 
-    private Object handleCalculateGraphStrategyBDD(Request req, Response res, UserContext uc)
-            throws RenderException, ExecutionException, InterruptedException {
-        JsonElement body = parser.parse(req.body());
-        System.out.println("body: " + body.toString());
-        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-
-        PetriGame petriGame = getPetriGame(petriGameId);
-
-        String canonicalApt = Adam.getAPT(petriGame);
-        if (uc.graphStrategyBddsOfApts.containsKey(canonicalApt)) {
-            return errorResponse("There is already a Calculation queued up to find the " +
-                    "Graph Strategy BDD of the Petri Game with the given APT.  Its status: " +
-                    uc.graphStrategyBddsOfApts.get(canonicalApt).getStatus());
-        }
-        Calculation<BDDGraph> calculation = new Calculation<>(() -> {
+    private Calculation<BDDGraph> calculateGraphStrategyBDD(PetriGame petriGame,
+                                                            JsonObject params) {
+        return new Calculation<>(() -> {
             BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
             return graphStrategyBDD;
         }, petriGame.getName());
-        uc.graphStrategyBddsOfApts.put(canonicalApt, calculation);
-        calculation.queue(executorService);
-
-        return tryToGetResultWithinFiveSeconds(
-                calculation,
-                BDDGraphD3::ofWholeBddGraph,
-                canonicalApt,
-                petriGame);
     }
 
     private Calculation<BDDGraphExplorer> calculateGraphGameBDD(PetriGame petriGame,
