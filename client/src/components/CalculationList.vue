@@ -8,6 +8,7 @@
       <th>Time finished</th>
       <th>Status</th>
       <th>Action</th>
+      <th>Delete</th>
     </tr>
     <tr v-for="listing in calculationListings"
         :key="`${listing.canonicalApt}%${listing.type}`">
@@ -67,12 +68,19 @@
         </button>
       </td>
       <td v-else>-</td>
+
+      <td>
+        <button @click="$emit('deleteCalculation',
+          { canonicalApt: listing.canonicalApt, type: listing.type})">
+          Delete
+        </button>
+      </td>
     </tr>
   </table>
 </template>
 
 <script>
-  import {format} from 'date-fns'
+  import { format } from 'date-fns'
 
   export default {
     name: 'CalculationList',

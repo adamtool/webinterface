@@ -22,7 +22,8 @@
             @getGraphGameBdd="getGraphGameBdd"
             @getWinningStrategy="getWinningStrategy"
             @getGraphStrategyBdd="getGraphStrategyBdd"
-            @cancelCalculation="cancelCalculation"/>
+            @cancelCalculation="cancelCalculation"
+            @deleteCalculation="deleteCalculation"/>
           <div
             v-else
             style="text-align: center;">
@@ -538,6 +539,7 @@
           'getGraphGameBDD',
           'getListOfCalculations',
           'cancelCalculation',
+          'deleteCalculation',
           'toggleGraphGameBDDNodePostset',
           'toggleGraphGameBDDNodePreset',
           'savePetriGameAsAPT',
@@ -899,6 +901,24 @@
               logging.sendSuccessNotification('Cancelled the job.  Note: It might take a ' +
                 'little while for the job to actually stop.  This is a limitation of the libraries' +
                 'used by ADAM.')
+          }
+        })
+      },
+      deleteCalculation: function ({canonicalApt, type}) {
+        logging.sendSuccessNotification("Sent request to delete the calculation")
+        this.restEndpoints.deleteCalculation({
+          canonicalApt,
+          type
+        }).then(response => {
+          switch (response.data.status) {
+            case 'error':
+              logging.sendErrorNotification(response.data.message)
+              break
+            case 'success':
+              logging.sendSuccessNotification('Cancelled the job and deleted it from the ' +
+                'list of jobs.  Note: It might take a little while for the job to actually' +
+                ' stop if it was running.  This is a limitation of the libraries used by' +
+                ' ADAM.')
           }
         })
       },

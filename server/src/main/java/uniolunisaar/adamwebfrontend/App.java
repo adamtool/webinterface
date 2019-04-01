@@ -112,6 +112,8 @@ public class App {
 
         postWithUserContext("/cancelCalculation", this::handleCancelCalculation);
 
+        postWithUserContext("/deleteCalculation", this::handleDeleteCalculation);
+
         postWithUserContext("/toggleGraphGameBDDNodePostset", this::handleToggleGraphGameBDDNodePostset);
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
@@ -499,6 +501,26 @@ public class App {
         }
         Calculation calculation = calculationMap.get(canonicalApt);
         calculation.cancel();
+        return successResponse(new JsonPrimitive(true));
+    }
+
+    private Object handleDeleteCalculation(Request req, Response res, UserContext uc) {
+        JsonElement body = parser.parse(req.body());
+        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+        String typeString = body.getAsJsonObject().get("type").getAsString();
+        CalculationType type = CalculationType.valueOf(typeString);
+        Map<String, ? extends Calculation> calculationMap = uc.getCalculationMap(type);
+        if (!calculationMap.containsKey(canonicalApt)) {
+            return errorResponse("The requested calculation was not found.");
+        }
+        Calculation calculation = calculationMap.get(canonicalApt);
+        try {
+            calculation.cancel();
+        } catch (UnsupportedOperationException e) {
+            // We don't care if the calculation is not eligible to be canceled.
+            // We just want to cancel it if that's possible.
+        }
+        calculationMap.remove(canonicalApt);
         return successResponse(new JsonPrimitive(true));
     }
 
