@@ -99,7 +99,10 @@ public class App {
                 PetriNetD3::of
         ));
 
-        postWithUserContext("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
+        post("/getGraphStrategyBDD", handleGetCalculationResult(
+                CalculationType.GRAPH_STRATEGY_BDD,
+                BDDGraphD3::ofWholeBddGraph
+        ));
 
         post("/getGraphGameBDD", handleGetCalculationResult(
                 CalculationType.GRAPH_GAME_BDD,
@@ -483,38 +486,6 @@ public class App {
             responseJson.add("result", resultJson);
             return responseJson.toString();
         };
-    }
-
-    // Load the already-calculated Graph Strategy BDD of a Petri Game
-    private Object handleGetGraphStrategyBDD(Request req, Response res, UserContext uc) {
-        JsonElement body = parser.parse(req.body());
-        System.out.println("body: " + body.toString());
-        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
-
-        if (!uc.graphStrategyBddsOfApts.containsKey(canonicalApt)) {
-            return errorResponse("No Graph Strategy BDD has been calculated yet for the " +
-                    "Petri Game with the given APT representation: \n" + canonicalApt);
-        }
-        Calculation<BDDGraph> calculation = uc.graphStrategyBddsOfApts.get(canonicalApt);
-        if (!calculation.isFinished()) {
-            return errorResponse("The calculation of that Graph Strategy BDD is not yet " +
-                    "finished.  Its status: " + calculation.getStatus());
-        }
-        BDDGraph graphStrategyBdd;
-        try {
-            graphStrategyBdd = calculation.getResult();
-        } catch (InterruptedException e) {
-            return errorResponse("The calculation for that winning strategy got canceled.");
-        } catch (ExecutionException e) {
-            return errorResponse("The calculation for that winning strategy failed with the " +
-                    "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
-        }
-
-        JsonElement graphStrategyBddJson = BDDGraphD3.ofWholeBddGraph(graphStrategyBdd);
-        JsonObject responseJson = new JsonObject();
-        responseJson.addProperty("status", "success");
-        responseJson.add("graphStrategyBDD", graphStrategyBddJson);
-        return responseJson.toString();
     }
 
     private Object handleCancelCalculation(Request req, Response res, UserContext uc) {
