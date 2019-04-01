@@ -862,7 +862,7 @@
               break
             case 'success':
               this.apt = canonicalApt
-              this.strategyBDD = response.data.strategyBDD
+              this.strategyBDD = response.data.result
               this.switchToStrategyBDDTab()
               logging.sendSuccessNotification('Loaded Winning Strategy')
           }
@@ -878,7 +878,7 @@
               break
             case 'success':
               this.apt = canonicalApt
-              this.graphStrategyBDD = response.data.graphStrategyBDD
+              this.graphStrategyBDD = response.data.result
               this.switchToGraphStrategyBDDTab()
               logging.sendSuccessNotification('Loaded Graph Strategy BDD')
           }
