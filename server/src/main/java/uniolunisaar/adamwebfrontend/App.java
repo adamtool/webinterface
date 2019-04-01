@@ -9,6 +9,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import spark.Request;
 import spark.Response;
+import spark.Route;
 import uniol.apt.adt.pn.*;
 import uniol.apt.io.parser.ParseException;
 import uniol.apt.io.renderer.RenderException;
@@ -156,12 +157,7 @@ public class App {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
             String gameId = body.getAsJsonObject().get("petriGameId").getAsString();
-            if (!petriGamesReadFromApt.containsKey(gameId)) {
-                throw new IllegalArgumentException("We have no PetriGame with the given UUID.  " +
-                        "You might see this error if the server has been restarted after you opened the " +
-                        "web UI.");
-            }
-            PetriGame pg = petriGamesReadFromApt.get(gameId);
+            PetriGame pg = getPetriGame(gameId);
             Object answer = handler.handle(req, res, pg);
             return answer;
         });
@@ -399,25 +395,91 @@ public class App {
     }
 
     /**
+     * Create a Route that allows queueing a job to calculate some attribute of a Petri Game.
+     * E.g. What is the winning strategy?  What does the "graph game BDD" look like?
+     * What does the model checking net look like?
+     * <p>
+     * When this route is called, we expect the client to give us two things: A Petri Game's UUID
+     * and a browser/user-session UUID.
+     * We retrieve the corresponding Petri Game and queue up the requested job.
+     *
+     * @param calculationFactory A function that creates the Calculation that should be run
+     * @param calculationType    The result type of the calculation, used to save it in a
+     *                           corresponding Map
+     * @param serializerFunction A function that will serialize the result of the calculation so it
+     *                           can be sent to the client.
+     * @param <T>                The result type of the calculation
+     * @return A Sparkjava Route
+     */
+    private <T> Route handleQueueCalculation(CalculationFactory<T> calculationFactory,
+                                             CalculationType calculationType,
+                                             Function<T, JsonElement> serializerFunction) {
+        return (req, res) -> {
+            // Read request parameters.  Get the Petri Game that should be operated upon and the
+            // UserContext of the client making the request.
+            JsonElement body = parser.parse(req.body());
+            String gameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            // This throws an exception if the Petri Game's not there
+            PetriGame petriGame = getPetriGame(gameId);
+
+            // If there isn't a UserContext object for the given browserUuid, create one.
+            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
+            UUID browserUuid = UUID.fromString(browserUuidString);
+            if (!userContextMap.containsKey(browserUuid)) {
+                userContextMap.put(browserUuid, new UserContext());
+            }
+            UserContext userContext = userContextMap.get(browserUuid);
+
+            // Check if this calculation has already been requested
+            String canonicalApt = Adam.getAPT(petriGame);
+            Map<String, Calculation<T>> calculationMap =
+                    (Map<String, Calculation<T>>) userContext.getCalculationMap(calculationType);
+            if (calculationMap.containsKey(canonicalApt)) {
+                return errorResponse("There is already a Calculation of " +
+                        "\"" + calculationType.toString() + "\" " +
+                        "for the given Petri Game. Its status: " +
+                        calculationMap.get(canonicalApt).getStatus());
+            }
+
+            // Create the calculation and queue it up
+            Calculation<T> calculation = calculationFactory.createCalculation(
+                    petriGame,
+                    body.getAsJsonObject());
+            calculationMap.put(canonicalApt, calculation);
+            calculation.queue(executorService);
+
+            // If the calculation runs and completes immediately, send the result to the client.
+            // Otherwise, let them know that the calculation has been queued.
+            return tryToGetResultWithinFiveSeconds(
+                    calculation,
+                    serializerFunction,
+                    canonicalApt,
+                    petriGame
+            );
+        };
+    }
+
+    /**
      * When a user queues a calculation, the calculation might finish quickly, or it might take a
      * while.
      * If it's fast, then we want the UI to immediately open the result.
      * Otherwise, a message should just be shown to let the user know that the job has been added
      * to the job queue.
      * This method is meant to handle that type of response.
-     * @param calculation the calculation that has been queued just now
+     *
+     * @param calculation      the calculation that has been queued just now
      * @param resultSerializer A function to serialize the result of the calculation into JSON
      *                         for the client to consume
-     * @param canonicalApt The 'canonical apt' of the Petri Game that is being analyzed
-     * @param petriGame The Petri Game that is being analyzed
-     * @param <T> The result type of the calculation
+     * @param canonicalApt     The 'canonical apt' of the Petri Game that is being analyzed
+     * @param petriGame        The Petri Game that is being analyzed
+     * @param <T>              The result type of the calculation
      * @return A JSON response with the result, if it is ready within five seconds.
      * Otherwise, just a message that the calculation is still being calculated.
      */
     private static <T> Object tryToGetResultWithinFiveSeconds(Calculation<T> calculation,
-                                                       Function<T, JsonElement> resultSerializer,
-                                                       String canonicalApt,
-                                                       PetriGame petriGame) {
+                                                              Function<T, JsonElement> resultSerializer,
+                                                              String canonicalApt,
+                                                              PetriGame petriGame) {
         try {
             T result = calculation.getResult(5, TimeUnit.SECONDS);
             JsonObject responseJson = new JsonObject();

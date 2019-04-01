@@ -76,8 +76,8 @@ public class UserContext {
     }
 
     private static JsonObject calculationListEntry(Calculation calculation,
-                                            String canonicalApt,
-                                            CalculationType calculationType) {
+                                                   String canonicalApt,
+                                                   CalculationType calculationType) {
         JsonObject entry = new JsonObject();
         entry.addProperty("type", calculationType.toString());
         entry.addProperty("canonicalApt", canonicalApt);
@@ -88,5 +88,21 @@ public class UserContext {
             entry.addProperty("failureReason", calculation.getFailedReason());
         }
         return entry;
+    }
+
+    public Map<String, ? extends Calculation> getCalculationMap(CalculationType calculationType) {
+        switch (calculationType) {
+            case EXISTS_WINNING_STRATEGY:
+                return existsWinningStrategyOfApts;
+            case WINNING_STRATEGY:
+                return strategyBddsOfApts;
+            case GRAPH_STRATEGY_BDD:
+                return graphStrategyBddsOfApts;
+            case GRAPH_GAME_BDD:
+                return graphGameBddsOfApts;
+            default:
+                throw new IllegalArgumentException("Missing switch case in getCalculationMap for " +
+                        "the following CalculationType: " + calculationType.toString());
+        }
     }
 }
