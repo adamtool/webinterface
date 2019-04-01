@@ -78,7 +78,10 @@ public class App {
 
         postWithUserContext("/calculateGraphStrategyBDD", this::handleCalculateGraphStrategyBDD);
 
-        postWithUserContext("/calculateGraphGameBDD", this::handleCalculateGraphGameBDD);
+        post("/calculateGraphGameBDD", handleQueueCalculation(
+                this::calculateGraphGameBDD,
+                CalculationType.GRAPH_GAME_BDD,
+                BDDGraphExplorer::getVisibleGraph));
 
         postWithUserContext("/getWinningStrategy", this::handleGetWinningStrategy);
 
@@ -347,34 +350,15 @@ public class App {
                 petriGame);
     }
 
-    private Object handleCalculateGraphGameBDD(Request req, Response res, UserContext uc)
-            throws RenderException {
-        JsonElement body = parser.parse(req.body());
-        System.out.println("body: " + body.toString());
-        String petriGameId = body.getAsJsonObject().get("petriGameId").getAsString();
-        boolean shouldSolveStepwise =
-                body.getAsJsonObject().get("incremental").getAsBoolean();
-
-        PetriGame petriGame = getPetriGame(petriGameId);
-
-        // Just in case the petri game gets modified after the computation starts, we will
-        // save its apt right here already
-        String canonicalApt = Adam.getAPT(petriGame);
-        if (uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
-            return errorResponse("There is already a Calculation queued up to find the " +
-                    "Graph Game BDD of the Petri Game with the given APT.  Its status: " +
-                    uc.graphGameBddsOfApts.get(canonicalApt).getStatus());
-        }
-
-        // Calculate the Graph Game BDD
-        // TODO What happens if you modify the petri game while this calculation is ongoing?
-        // TODO Do I need to do something to stop that from happening?  -Ann
-        System.out.println("Calculating graph game BDD for PetriGame id#" + petriGameId);
+    private Calculation<BDDGraphExplorer> calculateGraphGameBDD(PetriGame petriGame,
+                                                                JsonObject params) {
         Optional<Condition.Objective> objective = PetriNetD3.getObjectiveOfPetriNet(petriGame);
         if (!objective.isPresent()) {
-            return errorResponse("No winning condition is present for the given Petri Game.");
+            throw new IllegalArgumentException(
+                    "No winning condition is present for the given Petri Game.");
         }
-        Calculation<BDDGraphExplorer> calculation = new Calculation<>(() -> {
+        boolean shouldSolveStepwise = params.get("incremental").getAsBoolean();
+        return new Calculation<>(() -> {
             if (shouldSolveStepwise) {
                 BDDGraphExplorerStepwise bddGraphExplorerStepwise =
                         new BDDGraphExplorerStepwise(petriGame);
@@ -384,14 +368,6 @@ public class App {
                 return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
             }
         }, petriGame.getName());
-        uc.graphGameBddsOfApts.put(canonicalApt, calculation);
-        calculation.queue(executorService);
-
-        return tryToGetResultWithinFiveSeconds(
-                calculation,
-                BDDGraphExplorer::getVisibleGraph,
-                canonicalApt,
-                petriGame);
     }
 
     /**
