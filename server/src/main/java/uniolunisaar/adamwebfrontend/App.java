@@ -94,11 +94,10 @@ public class App {
                 CalculationType.GRAPH_GAME_BDD,
                 BDDGraphExplorer::getVisibleGraph));
 
-//        post("/getWinningStrategy", handleGetCalculationResult(
-//                CalculationType.WINNING_STRATEGY,
-//                PetriNetD3::of
-//        ));
-        postWithUserContext("/getWinningStrategy", this::handleGetWinningStrategy);
+        post("/getWinningStrategy", handleGetCalculationResult(
+                CalculationType.WINNING_STRATEGY,
+                PetriNetD3::of
+        ));
 
         postWithUserContext("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
 
@@ -484,38 +483,6 @@ public class App {
             responseJson.add("result", resultJson);
             return responseJson.toString();
         };
-    }
-
-    // Load the winning strategy (strategy BDD) of a Petri Game that has been calculated
-    private Object handleGetWinningStrategy(Request req, Response res, UserContext uc) {
-        JsonElement body = parser.parse(req.body());
-        System.out.println("body: " + body.toString());
-        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
-
-        if (!uc.strategyBddsOfApts.containsKey(canonicalApt)) {
-            return errorResponse("No winning strategy has been calculated yet for the Petri " +
-                    "Game with the given APT representation: \n" + canonicalApt);
-        }
-        Calculation<PetriGame> calculation = uc.strategyBddsOfApts.get(canonicalApt);
-        if (!calculation.isFinished()) {
-            return errorResponse("The calculation of that winning strategy is not yet " +
-                    "finished.  Its status: " + calculation.getStatus());
-        }
-        PetriGame strategyBdd;
-        try {
-            strategyBdd = calculation.getResult();
-        } catch (InterruptedException e) {
-            return errorResponse("The calculation for that winning strategy got canceled.");
-        } catch (ExecutionException e) {
-            return errorResponse("The calculation for that winning strategy failed with the " +
-                    "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
-        }
-
-        JsonElement strategyBddJson = PetriNetD3.of(strategyBdd);
-        JsonObject responseJson = new JsonObject();
-        responseJson.addProperty("status", "success");
-        responseJson.add("strategyBDD", strategyBddJson);
-        return responseJson.toString();
     }
 
     // Load the already-calculated Graph Strategy BDD of a Petri Game
