@@ -845,7 +845,7 @@
               break
             case 'success':
               this.apt = canonicalApt
-              this.graphGameBDD = response.data.bddGraph
+              this.graphGameBDD = response.data.result
               this.graphGameCanonicalApt = canonicalApt
               this.switchToGraphGameBDDTab()
               logging.sendSuccessNotification('Loaded Graph Game BDD')

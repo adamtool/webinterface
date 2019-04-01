@@ -87,7 +87,9 @@ public class App {
 
         postWithUserContext("/getGraphStrategyBDD", this::handleGetGraphStrategyBDD);
 
-        postWithUserContext("/getGraphGameBDD", this::handleGetGraphGameBDD);
+        post("/getGraphGameBDD", handleGetCalculationResult(
+                CalculationType.GRAPH_GAME_BDD,
+                BDDGraphExplorer::getVisibleGraph));
 
         postWithUserContext("/getListOfCalculations", this::handleGetListOfCalculations);
 
@@ -485,37 +487,54 @@ public class App {
         }
     }
 
-    // Given the canonical APT representation of a Petri Game, return the current view
-    // of the BDDGraph that has been calculated for it, if one is present.
-    private Object handleGetGraphGameBDD(Request req, Response res, UserContext uc) {
-        JsonElement body = parser.parse(req.body());
-        System.out.println("body: " + body.toString());
-        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+    /**
+     * Given the canonical APT representation of a Petri Game and a type of calculation job,
+     * return the result of the job, if one has been queued and has completed successfully.
+     */
+    private <T> Route handleGetCalculationResult(CalculationType calculationType,
+                                                 Function<T, JsonElement> serializerFunction) {
+        return (req, res) -> {
+            JsonElement body = parser.parse(req.body());
+            System.out.println("body: " + body.toString());
+            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
 
-        if (!uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
-            return errorResponse("No Graph Game BDD has been calculated yet for the Petri " +
-                    "Game with the given APT representation: \n" + canonicalApt);
-        }
-        Calculation<BDDGraphExplorer> calculation = uc.graphGameBddsOfApts.get(canonicalApt);
-        if (!calculation.isFinished()) {
-            return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
-                    ".  Its status: " + calculation.getStatus());
-        }
-        BDDGraphExplorer bddGraphExplorer;
-        try {
-            bddGraphExplorer = calculation.getResult();
-        } catch (InterruptedException e) {
-            return errorResponse("The calculation for that Graph Game BDD got canceled.");
-        } catch (ExecutionException e) {
-            return errorResponse("The calculation for that Graph Game BDD failed with the " +
-                    "following exception: " + e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
-        }
+            // If there isn't a UserContext object for the given browserUuid, create one.
+            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
+            UUID browserUuid = UUID.fromString(browserUuidString);
+            if (!userContextMap.containsKey(browserUuid)) {
+                userContextMap.put(browserUuid, new UserContext());
+            }
+            UserContext userContext = userContextMap.get(browserUuid);
 
-        JsonElement bddGraph = bddGraphExplorer.getVisibleGraph();
-        JsonObject responseJson = new JsonObject();
-        responseJson.addProperty("status", "success");
-        responseJson.add("bddGraph", bddGraph);
-        return responseJson.toString();
+            Map<String, Calculation<T>> calculationMap =
+                    (Map<String, Calculation<T>>) userContext.getCalculationMap(calculationType);
+            if (!calculationMap.containsKey(canonicalApt)) {
+                return errorResponse("The requested calculation was not found.");
+            }
+
+            Calculation<T> calculation = calculationMap.get(canonicalApt);
+            if (!calculation.isFinished()) {
+                return errorResponse("The requested calculation is not yet finished.  " +
+                        "Its status: " + calculation.getStatus());
+            }
+
+            T result;
+            try {
+                result = calculation.getResult();
+            } catch (InterruptedException e) {
+                return errorResponse("The requested calculation got canceled.");
+            } catch (ExecutionException e) {
+                return errorResponse(
+                        "The requested calculation failed with the following exception: " +
+                                e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
+            }
+
+            JsonElement resultJson = serializerFunction.apply(result);
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("status", "success");
+            responseJson.add("result", resultJson);
+            return responseJson.toString();
+        };
     }
 
     // Load the winning strategy (strategy BDD) of a Petri Game that has been calculated
