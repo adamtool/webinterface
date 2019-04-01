@@ -139,8 +139,10 @@
                            label="Exists Winning Strategy?"/>
             <hsc-menu-item @click.native="calculateGraphStrategyBDD"
                            label="Get Graph Strategy BDD"/>
-            <hsc-menu-item @click.native="calculateGraphGameBDD(false)" label="Calculate whole Graph Game BDD"/>
-            <hsc-menu-item @click.native="calculateGraphGameBDD(true)" label="Calculate Graph Game BDD incrementally"/>
+            <hsc-menu-item @click.native="calculateGraphGameBDD(false)"
+                           label="Calculate whole Graph Game BDD"/>
+            <hsc-menu-item @click.native="calculateGraphGameBDD(true)"
+                           label="Calculate Graph Game BDD incrementally"/>
           </hsc-menu-bar-item>
         </template>
         <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
@@ -303,7 +305,7 @@
   import CalculationList from './components/CalculationList'
   import Vue from 'vue'
   import * as axios from 'axios'
-  import {debounce} from 'underscore'
+  import { debounce } from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   import Vuetify from 'vuetify'
@@ -325,14 +327,14 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
-  import {saveFileAs} from './fileutilities'
+  import { saveFileAs } from './fileutilities'
 
   import Split from 'split.js'
 
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import {format} from 'date-fns'
+  import { format } from 'date-fns'
 
   const uuidv4 = require('uuid/v4')
 
@@ -902,10 +904,10 @@
                 'little while for the job to actually stop.  This is a limitation of the libraries' +
                 'used by ADAM.')
           }
-        })
+        }).then(this.getListOfCalculations)
       },
       deleteCalculation: function ({canonicalApt, type}) {
-        logging.sendSuccessNotification("Sent request to delete the calculation")
+        logging.sendSuccessNotification('Sent request to delete the calculation')
         this.restEndpoints.deleteCalculation({
           canonicalApt,
           type
@@ -920,7 +922,7 @@
                 ' stop if it was running.  This is a limitation of the libraries used by' +
                 ' ADAM.')
           }
-        })
+        }).then(this.getListOfCalculations)
       },
       calculateGraphGameBDD: function (incremental) {
         const uuid = this.petriGame.uuid
