@@ -6,8 +6,8 @@
     </p>
 
     <p>
-      ADAM Web exposes functionalities provided by the library
-      <a href=" https://uol.de/csd/adam/">
+      ADAM Web is based on the library
+      <a href="https://uol.de/csd/adam/" target="_blank">
         ADAM (Analyzer of Distributed Asynchronous Models)
       </a>
       by Bernd Finkbeiner, Manuel Gieseking and Ernst-Rüdinger Olderog.
