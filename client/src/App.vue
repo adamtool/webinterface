@@ -1150,7 +1150,7 @@
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
-        this.restEndpoints.insertNode({
+        this.restEndpoints.insertPlace({
           petriGameId: this.petriGame.uuid,
           nodeType: nodeSpec.type,
           x: nodeSpec.x,
