@@ -274,6 +274,9 @@
         labelElements: undefined,
         contentElements: undefined,
         lastUserClick: undefined,
+        // The time the user last interacted with this component.  We stop the force simulation
+        // after a while if the user isn't touching it, because it is CPU-intensive.
+        lastUserInteractionTime: Date.now(),
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
           .force('charge', d3.forceManyBody())
@@ -515,6 +518,7 @@
       onNodeClick: function () {
         return (d) => {
           d3.event.stopPropagation()
+          this.onUserInteraction()
           // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
             // Expand or collapse the postset of the State that has been clicked.
@@ -556,6 +560,9 @@
             this.openContextMenu(d)
           }
         }
+      },
+      onUserInteraction: function () {
+        this.lastUserInteractionTime = Date.now()
       },
       nodeClickHandler: function () {
         switch (this.leftClickMode) {
