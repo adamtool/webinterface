@@ -283,7 +283,9 @@
           //          .force('center', d3.forceCenter(width / 2, height / 2))
           .force('link', d3.forceLink()
             .id(link => link.id))
-          .alphaMin(0.002),
+          .alphaMin(0.002)
+          .alpha(0.7)
+          .alphaTarget(0),
         repulsionStrength: this.repulsionStrengthDefault,
         linkStrength: this.linkStrengthDefault,
         gravityStrength: this.gravityStrengthDefault
@@ -768,7 +770,9 @@
             node.fy = node.y
           },
           'drag': node => {
-            this.simulation.alphaTarget(0.7).restart()
+            // When the user drags a node, the simulation should start again in case it had been
+            // paused for inactivity.
+            this.simulation.alpha(0.7).restart()
             if (isSelectionDrag) {
               // To you, dear reader, this might seem overcomplicated.  You might ask, "Ann,
               // why didn't you simply write this:
@@ -791,9 +795,6 @@
             }
           },
           'end': node => {
-            if (!d3.event.active) {
-              this.simulation.alphaTarget(0)
-            }
             this.onGraphModified()
           }
         }
@@ -1258,6 +1259,7 @@
             node.fy = null
           })
         }
+        this.simulation.alpha(0.7).restart()
       },
       // If you lost track of where the graph actually is, you can click this button and it will
       // zoom out far enough that all the nodes can be seen.  :)
@@ -1665,7 +1667,15 @@
           'SYSPLACE': this.nodeRadius * 1.4,
           'TRANSITION': this.nodeRadius * 1.6
         }
+        // let ticksElapsed = 0 // For printing debug info
         this.simulation.nodes(this.nodes).on('tick', () => {
+          // Debugging alpha value of simulation (used to pause it when it's not in use)
+          // ticksElapsed++
+          // if (ticksElapsed === 10) {
+          //   ticksElapsed = 0
+          //   console.log(`Simulation alpha: ${this.simulation.alpha()}`)
+          // }
+
           // Make sure the D3 forceSimulation is only running if the Graph Editor is visible.
           const svgElement = this.$refs.svg
           const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
@@ -1787,13 +1797,11 @@
 
           // Let the simulation know what links it is working with
           this.simulation.force('link').links(this.links)
-
-          // Raise the temperature of the force simulation, because otherwise, if the temperature is
-          // below alphaMin, the newly inserted nodes' positions will not get updated, and they will
-          // appear in the upper left corner of the svg until something causes the temperature to
-          // increase again past the threshold.
-          this.simulation.alpha(0.7)
         })
+        // Raise the temperature of the force simulation and restart it, because if the simulation
+        // isn't running, the newly inserted nodes' positions will not get applied to the SVG,
+        // and you won't be able to see them.
+        this.simulation.alpha(0.7).restart()
       },
       updateSelectionBorder: function () {
         // TODO Figure out why this sometimes yields a border from -999999 to 999999
