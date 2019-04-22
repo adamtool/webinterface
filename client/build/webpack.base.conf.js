@@ -4,6 +4,8 @@ var config = require('../config')
 var DirectoryTreePlugin = require('directory-tree-webpack-plugin')
 var VueLoaderPlugin = require('vue-loader/lib/plugin')
 var MiniCssExtractPlugin = require('mini-css-extract-plugin')
+var webpack = require('webpack')
+var childProcess = require('child_process')
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -28,6 +30,10 @@ module.exports = {
     }
   },
   plugins: [
+    new webpack.DefinePlugin({
+      '____ADAM_WEB_BUILD_DATE____': `"${new Date().toString()}"`,
+      '____ADAM_WEB_BUILD_SHA____': `"${childProcess.execSync('git rev-parse HEAD').toString().replace('\n', '')}"`
+    }),
     new DirectoryTreePlugin({
       dir: './src/assets/apt-examples',
       path: './src/assets/apt-examples.json',

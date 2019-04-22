@@ -1,6 +1,11 @@
 <template>
   <div style="">
     <p>
+      This version of ADAM Web was built at {{ formattedBuildDate }}
+      using git revision {{ sourceCodeRevision }}.
+    </p>
+
+    <p>
       ADAM Web was developed by Ann Yanich under the supervision of Manuel Gieseking in the
       department Entwicklung korrekter Systeme [Correct System Design] at the Universität Oldenburg.
     </p>
@@ -8,9 +13,8 @@
     <p>
       ADAM Web is based on the library
       <a href="https://uol.de/csd/adam/" target="_blank">
-        ADAM (Analyzer of Distributed Asynchronous Models)
+        ADAM (Analyzer of Distributed Asynchronous Models).
       </a>
-      by Bernd Finkbeiner, Manuel Gieseking and Ernst-Rüdinger Olderog.
     </p>
 
     <p>
@@ -32,12 +36,18 @@
 
 <script>
   import creditsJson from '../assets/licenses-json.json'
+  import { format } from 'date-fns'
 
   export default {
     name: 'AboutAdamWeb',
     computed: {
-      creditsJson: () => creditsJson
-    }
+      creditsJson: () => creditsJson,
+      buildDate: () => Date.parse(____ADAM_WEB_BUILD_DATE____),
+      formattedBuildDate: function () {
+        return format(this.buildDate, 'HH:mm:ss on MMMM Do YYYY ')
+      },
+      sourceCodeRevision: () => ____ADAM_WEB_BUILD_SHA____
+    },
   }
 </script>
 
