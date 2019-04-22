@@ -165,6 +165,7 @@
       </button>
       <v-dialog
         style="display: block;"
+        max-width="600"
         v-model="showAboutModal"
         @keydown.esc="showAboutModal = false">
         <template v-slot:activator="{ on }">
