@@ -11,7 +11,7 @@
     </p>
 
     <p>
-      ADAM Web is based on the library
+      ADAM Web is a frontend for the library
       <a href="https://uol.de/csd/adam/" target="_blank">
         ADAM (Analyzer of Distributed Asynchronous Models).
       </a>
