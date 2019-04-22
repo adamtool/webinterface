@@ -8,8 +8,15 @@
     </p>
 
     <p>
-      It was developed by Ann Yanich under the supervision of Manuel Gieseking in the
-      Correct System Design group at the Universität Oldenburg.
+      It was developed by
+      <a href="mailto:ann.yanich@posteo.de" target="_blank">
+        Ann Yanich
+      </a>
+      under the supervision of
+      <a href="mailto:manuel.gieseking@informatik.uni-oldenburg.de" target="_blank">
+        Manuel Gieseking
+      </a>
+      in the Correct System Design group at the Universität Oldenburg.
     </p>
 
     <v-expansion-panel>
