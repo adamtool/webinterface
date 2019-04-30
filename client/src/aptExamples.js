@@ -15,7 +15,7 @@ const aptFileTreeModelChecking = {
 }
 
 importAll(aptFilesContextSynthesis, aptFileTreeSynthesis)
-export { aptFileTreeSynthesis }
+export { aptFileTreeSynthesis, aptFileTreeModelChecking }
 
 function importAll (r, tree) {
   r.keys().forEach(key => {
