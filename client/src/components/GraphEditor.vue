@@ -392,7 +392,9 @@
         }
       },
       contextMenuItemsPlace: function () {
-        return [
+        // In model checking, there is no concept of "system" or "environment" places.
+        // So, in that mode, we should hide the "change to [system/environment] place" menu item.
+        const itemsForSynthesis = [
           {
             title: function (d) {
               if (d.type === 'ENVPLACE') {
@@ -403,6 +405,8 @@
             },
             action: this.toggleEnvironmentPlace
           },
+        ]
+        const itemsForBothModes = [
           {
             title: 'Set initial token',
             action: this.setInitialTokenInteractively
@@ -416,6 +420,12 @@
             disabled: true // TODO implement this
           }
         ]
+
+        if (this.useModelChecking) {
+          return itemsForBothModes
+        } else {
+          return itemsForSynthesis.concat(itemsForBothModes)
+        }
       },
       contextMenuItemsTransition: function () {
         return [{
