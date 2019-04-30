@@ -299,7 +299,7 @@
 
 
 <script>
-  import aptFileTree from './aptExamples'
+  import { aptFileTreeSynthesis, aptFileTreeModelChecking } from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
@@ -516,7 +516,11 @@
         return `border-radius: 0 0 4pt 0; padding-left: ${vuetifySidebarPadding + 10}px`
       },
       aptFileTree: function () {
-        return aptFileTree
+        if (this.useDistributedSynthesis) {
+          return aptFileTreeSynthesis
+        } else {
+          return aptFileTreeModelChecking
+        }
       },
       splitLeftSideStyle: function () {
         const hideStyle = this.isLeftPaneVisible ? '' : 'display: none;'

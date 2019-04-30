@@ -1,19 +1,26 @@
 // Import all the preset APT examples for users to try out.
 // See https://webpack.js.org/guides/dependency-management/#require-with-expression
-const aptFilesContext = require.context('./assets/apt-examples', true, /\.apt$/)
-const aptFileTree = {
+const aptFilesContextSynthesis = require.context('./assets/apt-examples-synthesis', true, /\.apt$/)
+const aptFileTreeSynthesis = {
   type: 'directory',
   name: 'root',
   children: []
 }
 
-importAll(aptFilesContext)
-export default aptFileTree
+// TODO Import model checking examples
+const aptFileTreeModelChecking = {
+  type: 'directory',
+  name: 'root',
+  children: []
+}
 
-function importAll (r) {
+importAll(aptFilesContextSynthesis, aptFileTreeSynthesis)
+export { aptFileTreeSynthesis }
+
+function importAll (r, tree) {
   r.keys().forEach(key => {
     // Use substring to discard the './' at the start of each path
-    importPath(key.substring(2), r(key), aptFileTree)
+    importPath(key.substring(2), r(key), tree)
   })
 }
 
