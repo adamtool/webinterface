@@ -48,8 +48,14 @@
           <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
           <v-radio label="draw flows" value="drawFlow"/>
           <v-radio label="draw token flows" value="drawTokenFlow"/>
-          <v-radio label="insert sysplace" value="insertSysPlace"/>
-          <v-radio label="insert envplace" value="insertEnvPlace"/>
+          <!--Model checking has only one kind of place.  No system/environment distinction-->
+          <template v-if="useModelChecking">
+            <v-radio label="insert place" value="insertSysPlace"/>
+          </template>
+          <template v-else>
+            <v-radio label="insert sysplace" value="insertSysPlace"/>
+            <v-radio label="insert envplace" value="insertEnvPlace"/>
+          </template>
           <v-radio label="insert transition" value="insertTransition"/>
         </v-radio-group>
         <v-layout row>
@@ -173,14 +179,14 @@
 
 <script>
   import * as d3 from 'd3'
-  import {saveFileAs} from '../fileutilities'
-  import {layoutNodes} from '../autoLayout'
-  import {noOpImplementation} from '../modelCheckingRoutes'
-  import {pointOnRect, pointOnCircle} from '../shapeIntersections'
-  import {rectanglePath, arcPath, loopPath, containingBorder} from '../svgFunctions'
+  import { saveFileAs } from '../fileutilities'
+  import { layoutNodes } from '../autoLayout'
+  import { noOpImplementation } from '../modelCheckingRoutes'
+  import { pointOnRect, pointOnCircle } from '../shapeIntersections'
+  import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
-  import {debounce} from 'underscore'
+  import { debounce } from 'underscore'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
@@ -765,7 +771,7 @@
             dragStartY = d3.event.y
             nodeStartPositions = {}
             this.selectedNodes.forEach(selectedNode => {
-              nodeStartPositions[selectedNode.id] = { x: selectedNode.x, y: selectedNode.y }
+              nodeStartPositions[selectedNode.id] = {x: selectedNode.x, y: selectedNode.y}
             })
 
             // Freeze the node that is being dragged.
