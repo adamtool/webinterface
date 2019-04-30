@@ -3,11 +3,14 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
+import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
 import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
+import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.AdamExtensions;
 import uniolunisaar.adam.util.PNWTTools;
@@ -103,21 +106,18 @@ public class PetriNetD3 {
         }
     }
 
-    public static Optional<Condition.Objective> getObjectiveOfPetriNet(PetriNet net) {
+    public static Optional<Condition.Objective> getObjectiveOfPetriNet(PetriNetWithTransits net) {
         Optional<String> winningCondition = getWinningConditionOfPetriNet(net);
         return winningCondition.map(Condition.Objective::valueOf);
     }
 
-    public static Optional<String> getWinningConditionOfPetriNet(PetriNet net) {
-        boolean hasCondition = net.hasExtension(AdamExtensions.condition.name());
-        boolean hasWinningCondition = net.hasExtension(AdamExtensions.winningCondition.name());
-         if (hasCondition || hasWinningCondition) {
-             String condition = hasCondition ?
-                     (String) net.getExtension(AdamExtensions.condition.name()) :
-                     (String) net.getExtension(AdamExtensions.winningCondition.name());
-             return Optional.of(condition);
-         }
-         return Optional.empty();
+    public static Optional<String> getWinningConditionOfPetriNet(PetriNetWithTransits net) {
+        try {
+            return Optional.of(Adam.getCondition(net).toString());
+        } catch (CouldNotFindSuitableConditionException e) {
+            // TODO Instead of returning Optional, re-throw this exception
+            return Optional.empty();
+        }
     }
 
 

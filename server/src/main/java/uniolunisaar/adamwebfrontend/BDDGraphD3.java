@@ -103,7 +103,7 @@ public class BDDGraphD3 {
             return new State(
                     bddState.getId(),
                     bddState.isMcut(),
-                    bddState.isGood(),
+                    bddState.isSpecial(),
                     bddState.isBad(),
                     bddState.getContent(),
                     isPostsetExpanded,

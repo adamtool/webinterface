@@ -254,7 +254,9 @@ public class App {
         String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
         PetriGame petriGame;
         try {
-            petriGame = Adam.getPetriGame(apt);
+            petriGame = AdamSynthesizer.getPetriGame(apt);
+            // TODO Use this to parse model checking APT
+            //            AdamModelChecker.getPetriNetWithTransits()
         } catch (ParseException | NotSupportedGameException | IOException | CouldNotFindSuitableConditionException | CouldNotCalculateException e) {
             JsonObject errorResponse =
                     errorResponseObject(e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -780,17 +782,16 @@ public class App {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String formula = body.get("formula").getAsString();
 
-        IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-        // TODO ask Manuel if this cast is OK / normal / expected
-        RunFormula runFormula = (RunFormula) iRunFormula;
+        RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
 
         PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
         System.out.println("Checking flow LTL formula");
-        // TODO check the flow ltl formula
-        ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
-        ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
-        System.out.println("result:");
-        System.out.println(result);
+
+        // TODO Split this off into another method ('Check') to check the LTL formula
+//        ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
+//        ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
+//        System.out.println("result:");
+//        System.out.println(result);
 
         return successResponse(PetriNetD3.of(new PetriGame(modelCheckingNet)));
     }
