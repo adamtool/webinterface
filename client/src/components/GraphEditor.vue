@@ -925,7 +925,7 @@
     watch: {
       ltlFormula: function (formula) {
         if (this.selectedWinningCondition === 'LTL' && formula !== '') {
-          this.checkLtlFormula()
+          this.parseLtlFormula()
         }
       },
       selectedWinningCondition: function (condition) {
@@ -1077,14 +1077,14 @@
           logging.sendErrorNotification('Error getting model checking net: ' + error)
         }
       },
-      checkLtlFormula: debounce(async function () {
+      parseLtlFormula: debounce(async function () {
         console.log('Parsing Ltl Formula')
         // TODO Show 'running' status somehow in gui to distinguish it from 'success'
         // TODO Implement a timeout in case the server takes a really long time to respond
         this.ltlParseStatus = 'running'
         this.ltlParseErrors = []
         try {
-          const result = await this.modelCheckingRoutes.checkLtlFormula(this.petriGameId, this.ltlFormula)
+          const result = await this.modelCheckingRoutes.parseLtlFormula(this.petriGameId, this.ltlFormula)
           console.log(result)
           switch (result.data.status) {
             case 'success': {

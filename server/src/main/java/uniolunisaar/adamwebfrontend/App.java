@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Function;
 
 public class App {
     private final Gson gson = new Gson();
@@ -139,7 +138,7 @@ public class App {
 
         postWithPetriGame("/createTokenFlow", this::handleCreateTokenFlow);
 
-        postWithPetriGame("/checkLtlFormula", this::handleCheckLtlFormula);
+        postWithPetriGame("/parseLtlFormula", this::handleParseLtlFormula);
 
         postWithPetriGame("/getModelCheckingNet", this::handleGetModelCheckingNet);
         postWithPetriGame("/checkLTLFormula", this::handleCheckLTLFormula);
@@ -776,7 +775,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleCheckLtlFormula(Request req, Response res, PetriGame petriGame) {
+    private Object handleParseLtlFormula(Request req, Response res, PetriGame petriGame) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String formula = body.get("formula").getAsString();
 
