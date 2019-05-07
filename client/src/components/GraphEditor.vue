@@ -1246,6 +1246,7 @@
               node.y = position.y
             }
           })
+          this.updateD3()
         })
       },
       saveGraph: function () {
