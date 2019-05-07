@@ -142,6 +142,7 @@ public class App {
         postWithPetriGame("/checkLtlFormula", this::handleCheckLtlFormula);
 
         postWithPetriGame("/getModelCheckingNet", this::handleGetModelCheckingNet);
+        postWithPetriGame("/checkLTLFormula", this::handleCheckLTLFormula);
 
         postWithPetriGame("/fireTransition", this::handleFireTransition);
 
@@ -222,10 +223,13 @@ public class App {
     }
 
     private static String successResponse(JsonElement result) {
+        return successResponseObject(result).toString();
+    }
+    private static JsonObject successResponseObject(JsonElement result) {
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("result", result);
-        return responseJson.toString();
+       return responseJson;
     }
 
     private static String errorResponse(String reason) {
@@ -793,15 +797,34 @@ public class App {
         RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
 
         PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
-        System.out.println("Checking flow LTL formula");
-
-        // TODO Split this off into another method ('Check') to check the LTL formula
-//        ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
-//        ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
-//        System.out.println("result:");
-//        System.out.println(result);
 
         return successResponse(PetriNetD3.of(new PetriGame(modelCheckingNet)));
+    }
+
+    private Object handleCheckLTLFormula(Request req, Response res, PetriGame petriGame) throws ParseException, InterruptedException, NotConvertableException, ExternalToolException, ProcessNotStartedException, IOException {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String formula = body.get("formula").getAsString();
+
+        System.out.println("Checking flow LTL formula");
+        RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+        ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
+        ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
+
+        ModelCheckingResult.Satisfied satisfied = result.getSatisfied();
+        switch (satisfied) {
+            case TRUE:
+                return successResponse(new JsonPrimitive(true));
+            case FALSE:
+                JsonObject response = successResponseObject(new JsonPrimitive(false));
+                // TODO Serialize CounterExample and display it in the client
+//                CounterExample cex = result.getCex();
+//                response.addProperty("counterExample", );
+                return response;
+            case UNKNOWN:
+                return errorResponse("The Model Checker returned the result 'unknown'");
+            default:
+                return errorResponse("Missing switch branch in handleCheckLTLFormula: " + satisfied);
+        }
     }
 
     private Object handleFireTransition(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
