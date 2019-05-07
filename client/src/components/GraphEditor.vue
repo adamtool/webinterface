@@ -1025,6 +1025,9 @@
       shouldShowPartitions: function () {
         this.updateD3()
       },
+      useModelChecking: function () {
+        this.updateD3()
+      },
       graph: function (graph) {
         console.log('GraphEditor: graph changed:')
         console.log(graph)
@@ -1590,6 +1593,8 @@
               return partitionColorForPlace(data)
             } else if (data.type === 'ENVPLACE') {
               return 'white'
+            } else if (this.useModelChecking && data.type === 'SYSPLACE') {
+              return 'white' // In Model Checking mode, all places should be white.
             } else if (data.type === 'SYSPLACE') {
               return 'lightgrey'
             } else if (data.type === 'TRANSITION') {
