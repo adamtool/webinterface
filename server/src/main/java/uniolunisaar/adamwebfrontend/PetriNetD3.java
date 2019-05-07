@@ -9,10 +9,8 @@ import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
-import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
-import uniolunisaar.adam.util.AdamExtensions;
 import uniolunisaar.adam.util.PNWTTools;
 
 import java.util.*;
@@ -48,7 +46,7 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement ofPetriGameWithXYCoordinates(PetriGame net, Set<Node> shouldSendPositions) {
+    public static JsonElement ofPetriGameWithXYCoordinates(PetriGame net, Set<Node> shouldSendPositions) throws CouldNotFindSuitableConditionException {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -90,41 +88,25 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        Optional<Condition.Objective> objectiveOfPetriNet = getObjectiveOfPetriNet(net);
-        if (objectiveOfPetriNet.isPresent()) {
-            Condition.Objective objective = objectiveOfPetriNet.get();
-            boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
-                    objective.equals(Condition.Objective.A_REACHABILITY) ||
-                    objective.equals(Condition.Objective.A_SAFETY);
-            String ltlFormula = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) : "";
-            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objective.toString(),
-                    ltlFormula);
-            return new Gson().toJsonTree(petriNetD3);
-        } else {
-            PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, "", "");
-            return new Gson().toJsonTree(petriNetD3);
-        }
+        Condition.Objective objective = getObjectiveOfPetriNet(net);
+        boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
+                objective.equals(Condition.Objective.A_REACHABILITY) ||
+                objective.equals(Condition.Objective.A_SAFETY);
+        String ltlFormula = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) : "";
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objective.toString(),
+                ltlFormula);
+        return new Gson().toJsonTree(petriNetD3);
     }
 
-    public static Optional<Condition.Objective> getObjectiveOfPetriNet(PetriNetWithTransits net) {
-        Optional<String> winningCondition = getWinningConditionOfPetriNet(net);
-        return winningCondition.map(Condition.Objective::valueOf);
+    public static Condition.Objective getObjectiveOfPetriNet(PetriNetWithTransits net) throws CouldNotFindSuitableConditionException {
+        String conditionString = Adam.getCondition(net).toString();
+        return Condition.Objective.valueOf(conditionString);
     }
-
-    public static Optional<String> getWinningConditionOfPetriNet(PetriNetWithTransits net) {
-        try {
-            return Optional.of(Adam.getCondition(net).toString());
-        } catch (CouldNotFindSuitableConditionException e) {
-            // TODO Instead of returning Optional, re-throw this exception
-            return Optional.empty();
-        }
-    }
-
 
     /**
      * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
-    public static JsonElement of(PetriGame game) {
+    public static JsonElement of(PetriGame game) throws CouldNotFindSuitableConditionException {
         return ofPetriGameWithXYCoordinates(game, new HashSet<>());
     }
 

@@ -147,11 +147,14 @@ public class App {
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
-            String exceptionName = exception.getClass().getSimpleName();
-            String exceptionAsString = exceptionName + ": " + exception.getMessage();
+            String exceptionAsString = exceptionToString(exception);
             String responseBody = errorResponse(exceptionAsString);
             response.body(responseBody);
         });
+    }
+    private static String exceptionToString(Exception exception) {
+        String exceptionName = exception.getClass().getSimpleName();
+        return exceptionName + ": " + exception.getMessage();
     }
 
     /**
@@ -248,7 +251,7 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleParseApt(Request req, Response res) {
+    private Object handleParseApt(Request req, Response res) throws CouldNotFindSuitableConditionException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
@@ -309,11 +312,15 @@ public class App {
 
     private Calculation<BDDGraphExplorer> calculateGraphGameBDD(PetriGame petriGame,
                                                                 JsonObject params) {
-        Optional<Condition.Objective> objective = PetriNetD3.getObjectiveOfPetriNet(petriGame);
-        if (!objective.isPresent()) {
-            throw new IllegalArgumentException(
-                    "No winning condition is present for the given Petri Game.");
+        // If there is an invalid condition annotation, we should throw an error right away instead
+        // of waiting until the calculation gets started (which might take a while if there is a
+        // queue).
+        try {
+            PetriNetD3.getObjectiveOfPetriNet(petriGame);
+        } catch (CouldNotFindSuitableConditionException e) {
+            throw new IllegalArgumentException(exceptionToString(e));
         }
+
         boolean shouldSolveStepwise = params.get("incremental").getAsBoolean();
         return new Calculation<>(() -> {
             if (shouldSolveStepwise) {
@@ -346,7 +353,7 @@ public class App {
      */
     private <T> Route handleQueueCalculation(CalculationFactory<T> calculationFactory,
                                              CalculationType calculationType,
-                                             Function<T, JsonElement> serializerFunction) {
+                                             SerializerFunction<T> serializerFunction) {
         return (req, res) -> {
             // Read request parameters.  Get the Petri Game that should be operated upon and the
             // UserContext of the client making the request.
@@ -408,11 +415,12 @@ public class App {
      * @param <T>              The result type of the calculation
      * @return A JSON response with the result, if it is ready within five seconds.
      * Otherwise, just a message that the calculation is still being calculated.
+     * @throws Exception if the serializer function throws an exception.
      */
     private static <T> Object tryToGetResultWithinFiveSeconds(Calculation<T> calculation,
-                                                              Function<T, JsonElement> resultSerializer,
+                                                              SerializerFunction<T> resultSerializer,
                                                               String canonicalApt,
-                                                              PetriGame petriGame) {
+                                                              PetriGame petriGame) throws Exception {
         try {
             T result = calculation.getResult(5, TimeUnit.SECONDS);
             JsonObject responseJson = new JsonObject();
@@ -447,7 +455,7 @@ public class App {
      * return the result of the job, if one has been queued and has completed successfully.
      */
     private <T> Route handleGetCalculationResult(CalculationType calculationType,
-                                                 Function<T, JsonElement> serializerFunction) {
+                                                 SerializerFunction<T> serializerFunction) {
         return (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
@@ -593,7 +601,7 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleInsertPlace(Request req, Response res, PetriGame petriGame) {
+    private Object handleInsertPlace(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         double x = body.get("x").getAsDouble();
         double y = body.get("y").getAsDouble();
@@ -625,7 +633,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleDeleteNode(Request req, Response res, PetriGame petriGame) {
+    private Object handleDeleteNode(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
 
@@ -635,7 +643,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleRenameNode(Request req, Response res, PetriGame petriGame) {
+    private Object handleRenameNode(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeIdOld = body.get("nodeIdOld").getAsString();
         String nodeIdNew = body.get("nodeIdNew").getAsString();
@@ -647,7 +655,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleToggleEnvironmentPlace(Request req, Response res, PetriGame petriGame) {
+    private Object handleToggleEnvironmentPlace(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
 
@@ -663,7 +671,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleToggleIsInitialTokenFlow(Request req, Response res, PetriGame petriGame) {
+    private Object handleToggleIsInitialTokenFlow(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
 
@@ -679,7 +687,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleSetInitialToken(Request req, Response res, PetriGame petriGame) {
+    private Object handleSetInitialToken(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
         int tokens = body.get("tokens").getAsInt();
@@ -691,7 +699,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleSetWinningCondition(Request req, Response res, PetriGame petriGame) {
+    private Object handleSetWinningCondition(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String winningCondition = body.get("winningCondition").getAsString();
 
@@ -702,7 +710,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleCreateFlow(Request req, Response res, PetriGame petriGame) {
+    private Object handleCreateFlow(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String source = body.get("source").getAsString();
         String destination = body.get("destination").getAsString();
@@ -713,7 +721,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleDeleteFlow(Request req, Response res, PetriGame petriGame) {
+    private Object handleDeleteFlow(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String source = body.get("sourceId").getAsString();
         String target = body.get("targetId").getAsString();
@@ -724,7 +732,7 @@ public class App {
         return successResponse(petriGameClient);
     }
 
-    private Object handleCreateTokenFlow(Request req, Response res, PetriGame petriGame) {
+    private Object handleCreateTokenFlow(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         Optional<String> sourceId = body.has("source") ?
                 Optional.of(body.get("source").getAsString()) :
@@ -778,7 +786,7 @@ public class App {
         }
     }
 
-    private Object handleGetModelCheckingNet(Request req, Response res, PetriGame petriGame) throws NotSupportedGameException, InterruptedException, ParseException, IOException, ExternalToolException, NotConvertableException, ProcessNotStartedException {
+    private Object handleGetModelCheckingNet(Request req, Response res, PetriGame petriGame) throws NotSupportedGameException, InterruptedException, ParseException, IOException, ExternalToolException, NotConvertableException, ProcessNotStartedException, CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String formula = body.get("formula").getAsString();
 
@@ -796,7 +804,7 @@ public class App {
         return successResponse(PetriNetD3.of(new PetriGame(modelCheckingNet)));
     }
 
-    private Object handleFireTransition(Request req, Response res, PetriGame petriGame) {
+    private Object handleFireTransition(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String transitionId = body.get("transitionId").getAsString();
 

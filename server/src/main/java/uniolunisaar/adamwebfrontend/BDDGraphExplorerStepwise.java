@@ -7,6 +7,7 @@ import uniolunisaar.adam.ds.graph.Flow;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.exceptions.pg.SolvingException;
+import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
 import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolver;
@@ -26,10 +27,10 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
     // States that we called getSuccessors() on already
     private final Set<BDDState> expandedStates;
 
-    public BDDGraphExplorerStepwise(PetriGame game) throws SolvingException {
+    public BDDGraphExplorerStepwise(PetriGame game) throws SolvingException, CouldNotFindSuitableConditionException {
         solver = AdamSynthesizer.getBDDSolver(
                 game,
-                PetriNetD3.getObjectiveOfPetriNet(game).get(),
+                PetriNetD3.getObjectiveOfPetriNet(game),
                 new BDDSolverOptions());
         bddGraph = new BDDGraph("My Graph");
         solver.initialize();
