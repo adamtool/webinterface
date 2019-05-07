@@ -1329,6 +1329,7 @@
             }
           }
         })
+        this.updateD3()
       },
       getNodeXYCoordinates: function () {
         // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as value.
