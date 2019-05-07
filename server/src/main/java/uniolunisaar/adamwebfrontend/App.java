@@ -141,7 +141,7 @@ public class App {
         postWithPetriGame("/parseLtlFormula", this::handleParseLtlFormula);
 
         postWithPetriGame("/getModelCheckingNet", this::handleGetModelCheckingNet);
-        postWithPetriGame("/checkLTLFormula", this::handleCheckLTLFormula);
+        postWithPetriGame("/checkLtlFormula", this::handleCheckLtlFormula);
 
         postWithPetriGame("/fireTransition", this::handleFireTransition);
 
@@ -800,7 +800,7 @@ public class App {
         return successResponse(PetriNetD3.of(new PetriGame(modelCheckingNet)));
     }
 
-    private Object handleCheckLTLFormula(Request req, Response res, PetriGame petriGame) throws ParseException, InterruptedException, NotConvertableException, ExternalToolException, ProcessNotStartedException, IOException {
+    private Object handleCheckLtlFormula(Request req, Response res, PetriGame petriGame) throws ParseException, InterruptedException, NotConvertableException, ExternalToolException, ProcessNotStartedException, IOException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String formula = body.get("formula").getAsString();
 
@@ -822,7 +822,7 @@ public class App {
             case UNKNOWN:
                 return errorResponse("The Model Checker returned the result 'unknown'");
             default:
-                return errorResponse("Missing switch branch in handleCheckLTLFormula: " + satisfied);
+                return errorResponse("Missing switch branch in handleCheckLtlFormula: " + satisfied);
         }
     }
 
