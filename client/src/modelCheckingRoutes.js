@@ -11,7 +11,7 @@ export { noOpImplementation, withPathPrefix }
 // Return an object that has functions to send certain HTTP requests to the server.
 // All of the routes will have the prefix prepended to them.  e.g. withPathPrefix('localhost:8080')
 function withPathPrefix (prefix) {
-  return {parseLtlFormula, getModelCheckingNet}
+  return {parseLtlFormula, getModelCheckingNet, checkLtlFormula}
 
   // Return a promise that gets fulfilled if the server responds to our request.
   // The result of the promise: TODO Specify what the promise's result contains
@@ -24,6 +24,13 @@ function withPathPrefix (prefix) {
 
   async function getModelCheckingNet (petriGameId, formula) {
     return axios.post(prefix + '/getModelCheckingNet', {
+      petriGameId,
+      formula
+    })
+  }
+
+  async function checkLtlFormula (petriGameId, formula) {
+    return axios.post(prefix + '/checkLtlFormula', {
       petriGameId,
       formula
     })
