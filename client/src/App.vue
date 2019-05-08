@@ -148,7 +148,8 @@
         <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
                            v-if="useModelChecking"/>
         <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check LTL Formula"
-                           v-if="useModelChecking"/>
+                           v-if="useModelChecking"
+                           style="display: none;"/>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
             :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
@@ -301,14 +302,14 @@
 
 
 <script>
-  import { aptFileTreeSynthesis, aptFileTreeModelChecking } from './aptExamples'
+  import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import CalculationList from './components/CalculationList'
   import Vue from 'vue'
   import * as axios from 'axios'
-  import { debounce } from 'underscore'
+  import {debounce} from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   import Vuetify from 'vuetify'
@@ -330,14 +331,14 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
-  import { saveFileAs } from './fileutilities'
+  import {saveFileAs} from './fileutilities'
 
   import Split from 'split.js'
 
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
 
   const uuidv4 = require('uuid/v4')
 
