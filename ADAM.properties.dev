@@ -1,5 +1,5 @@
 libraryFolder=absolutePathToLib
-aigertools=/var/local/aiger/aiger-1.9.9/
+aigertools=./aiger-1.9.9/
 mcHyper=./mchypertool/Main
-abcBin=/var/local/abc/abc
+abcBin=./abc-master/abc
 

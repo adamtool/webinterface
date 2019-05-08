@@ -6,6 +6,8 @@ mvn clean package && java -jar target/web-frontend-1.0-SNAPSHOT-jar-with-depende
     
 Then open localhost:4567 in your browser.
 
+For model checking to work, you have to have the tools abc, aiger and mchyper installed on your system and update the file ADAM.properties to have the correct paths to each one.  The source code of each one is in a .tar.gz or a .zip file in this repository.  The README for mchyper explains how to compile them.
+
 How to develop
 You can build the frontend itself and have your changes immediately compiled and reloaded in the browser if you go into the "client" directory and run "npm run dev".  (See client/README.md)  The development server will make itself available at localhost:8080.
 
