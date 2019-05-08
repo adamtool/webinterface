@@ -1958,12 +1958,15 @@
       },
       updateGravityStrength: function (strength) {
         this.simulation.force('gravity').strength(strength)
+        this.simulation.alpha(0.7).restart()
       },
       updateLinkStrength: function (strength) {
         this.simulation.force('link').strength(strength)
+        this.simulation.alpha(0.7).restart()
       },
       updateRepulsionStrength: function (strength) {
         this.simulation.force('charge').strength(-strength)
+        this.simulation.alpha(0.7).restart()
       },
       /**
        * Perform a deep copy of an arbitrary object.
