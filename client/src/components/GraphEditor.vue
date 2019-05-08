@@ -179,14 +179,14 @@
 
 <script>
   import * as d3 from 'd3'
-  import { saveFileAs } from '../fileutilities'
-  import { layoutNodes } from '../autoLayout'
-  import { noOpImplementation } from '../modelCheckingRoutes'
-  import { pointOnRect, pointOnCircle } from '../shapeIntersections'
-  import { rectanglePath, arcPath, loopPath, containingBorder } from '../svgFunctions'
+  import {saveFileAs} from '../fileutilities'
+  import {layoutNodes} from '../autoLayout'
+  import {noOpImplementation} from '../modelCheckingRoutes'
+  import {pointOnRect, pointOnCircle} from '../shapeIntersections'
+  import {rectanglePath, arcPath, loopPath, containingBorder} from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
-  import { debounce } from 'underscore'
+  import {debounce} from 'underscore'
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
@@ -410,7 +410,7 @@
               }
             },
             action: this.toggleEnvironmentPlace
-          },
+          }
         ]
         const itemsForBothModes = [
           {
@@ -1049,6 +1049,34 @@
       }
     },
     methods: {
+      checkLtlFormula: async function () {
+        try {
+          const response = await this.modelCheckingRoutes.checkLtlFormula(
+            this.petriGameId, this.ltlFormula)
+          console.log(response)
+          switch (response.data.status) {
+            case 'success':
+              logging.sendSuccessNotification('Got model checking result')
+              logging.logObject(response.data.result)
+              // TODO Definitely should refactor this so it's not taking place in this component.
+              // I would like the SVG element to be its own thing.
+              // The buttons for auto-layout and so on; the place to enter the LTL formula and
+              // winning condition; the toolbar to select "draw token flows" / "insert sysplace"
+              // etc. should each be their own components, I think.
+              this.$emit('gotModelCheckingResult', response.data.result)
+              break
+            case 'error':
+              logging.sendErrorNotification(
+                `Couldn't check the LTL formula. Reason: ${response.data.message}`)
+              break
+            default:
+              logging.sendErrorNotification(
+                `Couldn't check the LTL formula.  Unknown status from server: ${response.data.status}`)
+          }
+        } catch (error) {
+          logging.sendErrorNotification('Error checking LTL formula: ' + error)
+        }
+      },
       // Send request to server to get the model checking net.
       // TODO: Show a progress indicator.  Show the net in the GUI.
       // TODO Consider putting this in App instead of in GraphEditor

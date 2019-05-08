@@ -147,6 +147,8 @@
         </template>
         <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
                            v-if="useModelChecking"/>
+        <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check LTL Formula"
+                           v-if="useModelChecking"/>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
             :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
@@ -759,6 +761,10 @@
       getModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
         this.$refs.graphEditorPetriGame.getModelCheckingNet()
+      },
+      checkLtlFormula: function () {
+        this.$refs.menubar.deactivate()
+        this.$refs.graphEditorPetriGame.checkLtlFormula()
       },
       calculateExistsWinningStrategy: function () {
         logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')
