@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="App" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="uniolunisaar.adamwebfrontend.App" />
+    <module name="web-frontend" />
+    <option name="VM_PARAMETERS" value="-DPROPERTY_FILE=./ADAM.properties.dev" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

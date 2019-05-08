@@ -9,7 +9,10 @@ test/e2e/reports
 selenium-debug.log
 
 # Editor directories and files
-.idea
+!server/.idea
+server/.idea/*
+!server/.idea/runConfigurations
+client/.idea
 *.suo
 *.ntvs*
 *.njsproj
