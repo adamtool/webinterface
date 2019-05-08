@@ -148,8 +148,7 @@
         <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
                            v-if="useModelChecking"/>
         <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check LTL Formula"
-                           v-if="useModelChecking"
-                           style="display: none;"/>
+                           v-if="useModelChecking"/>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
             :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"

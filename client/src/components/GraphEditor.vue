@@ -1051,18 +1051,14 @@
     methods: {
       checkLtlFormula: async function () {
         try {
+          const ltlFormula = this.ltlFormula
           const response = await this.modelCheckingRoutes.checkLtlFormula(
             this.petriGameId, this.ltlFormula)
           console.log(response)
           switch (response.data.status) {
             case 'success':
-              logging.sendSuccessNotification('Got model checking result')
-              logging.logObject(response.data.result)
-              // TODO Definitely should refactor this so it's not taking place in this component.
-              // I would like the SVG element to be its own thing.
-              // The buttons for auto-layout and so on; the place to enter the LTL formula and
-              // winning condition; the toolbar to select "draw token flows" / "insert sysplace"
-              // etc. should each be their own components, I think.
+              logging.sendSuccessNotification(
+                `Got model checking result for the formula "${ltlFormula}": ${response.data.result}`)
               this.$emit('gotModelCheckingResult', response.data.result)
               break
             case 'error':
