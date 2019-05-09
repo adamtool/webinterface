@@ -42,7 +42,7 @@
       <template
         v-else-if="listing.calculationStatus === 'COMPLETED'
                         && listing.type === 'MODEL_CHECKING_RESULT'">
-        <td :style="modelCheckingResultColor(listing.result)">
+        <td :style="`color: ${modelCheckingResultColor(listing.result)}`">
           {{ modelCheckingResultText(listing.result) }}
         </td>
       </template>
