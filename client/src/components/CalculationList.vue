@@ -39,6 +39,13 @@
           {{ listing.result ? '(There is a strategy)' : '(There is no strategy)'}}
         </td>
       </template>
+      <template
+        v-else-if="listing.calculationStatus === 'COMPLETED'
+                        && listing.type === 'MODEL_CHECKING_RESULT'">
+        <td :style="modelCheckingResultColor(listing.result)">
+          {{ modelCheckingResultText(listing.result) }}
+        </td>
+      </template>
       <template v-else>
         <td>{{ listing.calculationStatus }}</td>
       </template>
@@ -80,7 +87,8 @@
 </template>
 
 <script>
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
+  import logging from '../logging'
 
   export default {
     name: 'CalculationList',
@@ -110,6 +118,22 @@
             return 'Graph Strategy BDD'
         }
         return calculationType
+      },
+      modelCheckingResultColor (result) {
+        switch (result) {
+          case 'TRUE':
+            return 'blue'
+          case 'FALSE':
+          case 'UNKNOWN':
+            return 'red'
+          default:
+            logging.logError('Missing switch case in CalculationList.modelCheckingResultColor' +
+              ' for the case "' + result + '".')
+            return 'red'
+        }
+      },
+      modelCheckingResultText (result) {
+        return result
       }
     }
   }
