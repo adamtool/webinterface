@@ -38,7 +38,6 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
         postsetExpandedStates = new HashSet<>();
         presetExpandedStates = new HashSet<>();
         expandedStates = new HashSet<>();
-        Pair<List<Flow>, List<BDDState>> successors = AdamSynthesizer.getSuccessors(initialState, bddGraph, solver);
     }
 
     private Set<BDDState> visibleStates() {
