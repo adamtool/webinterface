@@ -563,7 +563,8 @@
           'toggleIsInitialTokenFlow',
           'fireTransition',
           'setInitialToken',
-          'setWinningCondition'
+          'setWinningCondition',
+          'calculateModelCheckingResult'
         ]
         const funs = {}
         endpoints.forEach(endpointName => {
@@ -764,7 +765,35 @@
       },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
-        this.$refs.graphEditorPetriGame.checkLtlFormula()
+        this.restEndpoints.calculateModelCheckingResult({
+          formula: this.$refs.graphEditorPetriGame.ltlFormula,
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
+            if (response.data.calculationComplete) {
+              this.apt = response.data.canonicalApt
+              switch (response.data.result) {
+                case 'TRUE':
+                  logging.sendSuccessNotification(
+                    'The result of model checking is: ' + response.data.result)
+                  break
+                case 'UNKNOWN':
+                case 'FALSE':
+                default:
+                  logging.sendErrorNotification(
+                    'The result of model checking is: ' + response.data.result)
+                  break
+              }
+            } else {
+              // The message from server will explain that the calculation has been enqueued.
+              // TODO Provide a notification after it is finished
+              logging.sendSuccessNotification(response.data.message)
+            }
+          })
+        }).catch(() => {
+          logging.logError('Network error in calculateModelCheckingResult')
+        })
       },
       calculateExistsWinningStrategy: function () {
         logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')

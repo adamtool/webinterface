@@ -92,6 +92,7 @@ public class UserContext {
                             "Please let Ann know about it. :)");
                 }
             }
+            result.add(entry);
         }
 
         return result;
