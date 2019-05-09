@@ -817,9 +817,16 @@ public class App {
     private Calculation<ModelCheckingResult> calculateModelCheckingResult(
             PetriGame petriGame,
             JsonObject params) {
-        return null; // TODO
+        String formula = params.get("formula").getAsString();
+        return new Calculation<>(() -> {
+            RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+            ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
+            ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
+            return result;
+        }, petriGame.getName());
     }
 
+    // TODO delete (replace with job system)
     private Object handleCheckLtlFormula(Request req, Response res, PetriGame petriGame) throws ParseException, InterruptedException, NotConvertableException, ExternalToolException, ProcessNotStartedException, IOException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String formula = body.get("formula").getAsString();
