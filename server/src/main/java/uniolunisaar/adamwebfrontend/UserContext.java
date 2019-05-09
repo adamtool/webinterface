@@ -2,6 +2,7 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
@@ -34,6 +35,9 @@ public class UserContext {
             new ConcurrentHashMap<>();
     // Store the results of "getGraphStrategyBdd"
     public final Map<String, Calculation<BDDGraph>> graphStrategyBddsOfApts =
+            new ConcurrentHashMap<>();
+    // "Check LTL formula"
+    public final Map<String, Calculation<ModelCheckingResult>> modelCheckingResults =
             new ConcurrentHashMap<>();
 
     public JsonArray getCalculationList() {
@@ -72,6 +76,24 @@ public class UserContext {
             );
             result.add(entry);
         }
+        for (String canonicalApt : this.modelCheckingResults.keySet()) {
+            Calculation<ModelCheckingResult> calculation = this.modelCheckingResults.get(canonicalApt);
+            JsonObject entry = calculationListEntry(
+                    calculation, canonicalApt, MODEL_CHECKING_RESULT);
+            if (calculation.getStatus() == COMPLETED) {
+                try {
+                    entry.addProperty(
+                            "result",
+                            calculation.getResult().getSatisfied().toString());
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("calculation.getResult() threw an exception, " +
+                            "although calculation.getStatus() == COMPLETED.  This is a bug.  " +
+                            "Please let Ann know about it. :)");
+                }
+            }
+        }
+
         return result;
     }
 
@@ -100,6 +122,8 @@ public class UserContext {
                 return graphStrategyBddsOfApts;
             case GRAPH_GAME_BDD:
                 return graphGameBddsOfApts;
+            case MODEL_CHECKING_RESULT:
+                return modelCheckingResults;
             default:
                 throw new IllegalArgumentException("Missing switch case in getCalculationMap for " +
                         "the following CalculationType: " + calculationType.toString());
