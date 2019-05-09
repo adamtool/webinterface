@@ -765,6 +765,9 @@
       },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
+        this.$refs.graphEditorPetriGame.checkLtlFormula() // synchronous, proof of concept way
+        return
+        // TODO Finish up this feature of queuing up model checking jobs so they run asynchronously
         this.restEndpoints.calculateModelCheckingResult({
           formula: this.$refs.graphEditorPetriGame.ltlFormula,
           petriGameId: this.petriGame.uuid
