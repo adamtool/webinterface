@@ -52,6 +52,11 @@ public class App {
         new App().startServer();
     }
 
+    // TODO serialize the counterexample as well if it is present
+    private static JsonElement serializeModelCheckingResult(ModelCheckingResult result) {
+        return new JsonPrimitive(result.getSatisfied().toString());
+    }
+
     public void startServer() {
         // Tell ADAM to send all of its messages to our websocket clients instead of stdout
         Logger.getInstance().setVerboseMessageStream(LogWebSocket.getPrintStreamVerbose());
@@ -92,6 +97,12 @@ public class App {
                 this::calculateGraphGameBDD,
                 CalculationType.GRAPH_GAME_BDD,
                 BDDGraphExplorer::getVisibleGraph));
+
+        // TODO rename to "checkLtlFormula" or something?
+        post("/calculateModelCheckingResult", handleQueueCalculation(
+                this::calculateModelCheckingResult,
+                CalculationType.MODEL_CHECKING_RESULT,
+                App::serializeModelCheckingResult));
 
         post("/getWinningStrategy", handleGetCalculationResult(
                 CalculationType.WINNING_STRATEGY,
@@ -152,6 +163,8 @@ public class App {
             response.body(responseBody);
         });
     }
+
+
     private static String exceptionToString(Exception exception) {
         String exceptionName = exception.getClass().getSimpleName();
         return exceptionName + ": " + exception.getMessage();
@@ -224,11 +237,12 @@ public class App {
     private static String successResponse(JsonElement result) {
         return successResponseObject(result).toString();
     }
+
     private static JsonObject successResponseObject(JsonElement result) {
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("result", result);
-       return responseJson;
+        return responseJson;
     }
 
     private static String errorResponse(String reason) {
@@ -798,6 +812,12 @@ public class App {
         PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
 
         return successResponse(PetriNetD3.of(new PetriGame(modelCheckingNet)));
+    }
+
+    private Calculation<ModelCheckingResult> calculateModelCheckingResult(
+            PetriGame petriGame,
+            JsonObject params) {
+        return null; // TODO
     }
 
     private Object handleCheckLtlFormula(Request req, Response res, PetriGame petriGame) throws ParseException, InterruptedException, NotConvertableException, ExternalToolException, ProcessNotStartedException, IOException {
