@@ -84,7 +84,7 @@ public class App {
         post("/calculateStrategyBDD", handleQueueJob(
                 this::calculateStrategyBDD,
                 JobType.WINNING_STRATEGY,
-                PetriNetD3::of
+                PetriNetD3::ofNetWithoutObjective
         ));
 
         post("/calculateGraphStrategyBDD", handleQueueJob(
@@ -106,7 +106,7 @@ public class App {
 
         post("/getWinningStrategy", handleGetJobResult(
                 JobType.WINNING_STRATEGY,
-                PetriNetD3::of
+                PetriNetD3::ofNetWithoutObjective
         ));
 
         post("/getGraphStrategyBDD", handleGetJobResult(
@@ -293,7 +293,8 @@ public class App {
         petriGamesReadFromApt.put(petriGameUUID, petriGame);
         System.out.println("Generated petri game with ID " + petriGameUUID);
 
-        JsonElement petriNetD3Json = PetriNetD3.ofPetriGameWithXYCoordinates(petriGame, petriGame.getNodes());
+        JsonElement petriNetD3Json =
+                PetriNetD3.ofPetriGameWithXYCoordinates(petriGame, petriGame.getNodes(), true);
         JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
 
         JsonObject responseJson = new JsonObject();
@@ -360,8 +361,8 @@ public class App {
      * and a browser/user-session UUID.
      * We retrieve the corresponding Petri Game and queue up the requested job.
      *
-     * @param jobFactory A function that creates the Job that should be run
-     * @param jobType    The result type of the job, used to save it in a
+     * @param jobFactory         A function that creates the Job that should be run
+     * @param jobType            The result type of the job, used to save it in a
      *                           corresponding Map
      * @param serializerFunction A function that will serialize the result of the job so it
      *                           can be sent to the client.
@@ -424,7 +425,7 @@ public class App {
      * to the job queue.
      * This method is meant to handle that type of response.
      *
-     * @param job      the job that has been queued just now
+     * @param job              the job that has been queued just now
      * @param resultSerializer A function to serialize the result of the job into JSON
      *                         for the client to consume
      * @param canonicalApt     The 'canonical apt' of the Petri Game that is being analyzed
@@ -645,7 +646,7 @@ public class App {
         petriGame.setYCoord(node, y);
 
         JsonElement petriGameClient = PetriNetD3.ofPetriGameWithXYCoordinates(
-                petriGame, new HashSet<>(Collections.singletonList(node)));
+                petriGame, new HashSet<>(Collections.singletonList(node)), true);
 
         return successResponse(petriGameClient);
     }

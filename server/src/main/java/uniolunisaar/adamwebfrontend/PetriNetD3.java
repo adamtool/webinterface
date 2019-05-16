@@ -42,11 +42,16 @@ public class PetriNetD3 {
      *
      * @param net                 - A PetriNet
      * @param shouldSendPositions - We will send x/y coordinates for these nodes to the client.
+       @param shouldIncludeObjective - For Petri Games, we want to include the objective/winning
+       condition, but for other Petri Nets (e.g. those which represent winning strategies), the
+       annotation may not be present, and we shouldn't try to send it to the client.
      * @return A JSON object containing the relevant information from the PetriNet
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement ofPetriGameWithXYCoordinates(PetriGame net, Set<Node> shouldSendPositions) throws CouldNotFindSuitableConditionException {
+    public static JsonElement ofPetriGameWithXYCoordinates(PetriGame net,
+                                                           Set<Node> shouldSendPositions,
+                                                           boolean shouldIncludeObjective) throws CouldNotFindSuitableConditionException {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -88,13 +93,22 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        Condition.Objective objective = getObjectiveOfPetriNet(net);
-        boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
-                objective.equals(Condition.Objective.A_REACHABILITY) ||
-                objective.equals(Condition.Objective.A_SAFETY);
-        String ltlFormula = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) : "";
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objective.toString(),
-                ltlFormula);
+        String objectiveString;
+        String ltlFormulaString;
+        if (shouldIncludeObjective) {
+            Condition.Objective objective = getObjectiveOfPetriNet(net);
+            boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
+                    objective.equals(Condition.Objective.A_REACHABILITY) ||
+                    objective.equals(Condition.Objective.A_SAFETY);
+            ltlFormulaString = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) :
+                    "";
+            objectiveString = objective.toString();
+        } else {
+            objectiveString = "";
+            ltlFormulaString = "";
+        }
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objectiveString,
+                ltlFormulaString);
         return new Gson().toJsonTree(petriNetD3);
     }
 
@@ -107,8 +121,14 @@ public class PetriNetD3 {
      * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
     public static JsonElement of(PetriGame game) throws CouldNotFindSuitableConditionException {
-        return ofPetriGameWithXYCoordinates(game, new HashSet<>());
+        return ofPetriGameWithXYCoordinates(game, new HashSet<>(), true);
     }
+
+    public static JsonElement ofNetWithoutObjective(PetriGame game) throws CouldNotFindSuitableConditionException {
+        return ofPetriGameWithXYCoordinates(game, new HashSet<>(), false);
+    }
+
+
 
     static class PetriNetLink extends GraphLink {
         private final String tokenFlow; // Null if there is no token flow given
