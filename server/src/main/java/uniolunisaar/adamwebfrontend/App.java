@@ -42,7 +42,7 @@ public class App {
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    // Map from clientside-generated browserUuid to browser-specific list of running calculations
+    // Map from clientside-generated browserUuid to browser-specific list of running Jobs
     private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
     // Whenever we load a PetriGame from APT, we put it into this hashmap with a
     // server-generated UUID as a key.
@@ -75,54 +75,54 @@ public class App {
 
         post("/parseApt", this::handleParseApt);
 
-        post("/calculateExistsWinningStrategy", handleQueueCalculation(
+        post("/calculateExistsWinningStrategy", handleQueueJob(
                 this::calculateExistsWinningStrategy,
-                CalculationType.EXISTS_WINNING_STRATEGY,
+                JobType.EXISTS_WINNING_STRATEGY,
                 JsonPrimitive::new
         ));
 
-        post("/calculateStrategyBDD", handleQueueCalculation(
+        post("/calculateStrategyBDD", handleQueueJob(
                 this::calculateStrategyBDD,
-                CalculationType.WINNING_STRATEGY,
+                JobType.WINNING_STRATEGY,
                 PetriNetD3::of
         ));
 
-        post("/calculateGraphStrategyBDD", handleQueueCalculation(
+        post("/calculateGraphStrategyBDD", handleQueueJob(
                 this::calculateGraphStrategyBDD,
-                CalculationType.GRAPH_STRATEGY_BDD,
+                JobType.GRAPH_STRATEGY_BDD,
                 BDDGraphD3::ofWholeBddGraph
         ));
 
-        post("/calculateGraphGameBDD", handleQueueCalculation(
+        post("/calculateGraphGameBDD", handleQueueJob(
                 this::calculateGraphGameBDD,
-                CalculationType.GRAPH_GAME_BDD,
+                JobType.GRAPH_GAME_BDD,
                 BDDGraphExplorer::getVisibleGraph));
 
         // TODO rename to "checkLtlFormula" or something?
-        post("/calculateModelCheckingResult", handleQueueCalculation(
+        post("/calculateModelCheckingResult", handleQueueJob(
                 this::calculateModelCheckingResult,
-                CalculationType.MODEL_CHECKING_RESULT,
+                JobType.MODEL_CHECKING_RESULT,
                 App::serializeModelCheckingResult));
 
-        post("/getWinningStrategy", handleGetCalculationResult(
-                CalculationType.WINNING_STRATEGY,
+        post("/getWinningStrategy", handleGetJobResult(
+                JobType.WINNING_STRATEGY,
                 PetriNetD3::of
         ));
 
-        post("/getGraphStrategyBDD", handleGetCalculationResult(
-                CalculationType.GRAPH_STRATEGY_BDD,
+        post("/getGraphStrategyBDD", handleGetJobResult(
+                JobType.GRAPH_STRATEGY_BDD,
                 BDDGraphD3::ofWholeBddGraph
         ));
 
-        post("/getGraphGameBDD", handleGetCalculationResult(
-                CalculationType.GRAPH_GAME_BDD,
+        post("/getGraphGameBDD", handleGetJobResult(
+                JobType.GRAPH_GAME_BDD,
                 BDDGraphExplorer::getVisibleGraph));
 
-        postWithUserContext("/getListOfCalculations", this::handleGetListOfCalculations);
+        postWithUserContext("/getListOfJobs", this::handleGetListOfJobs);
 
-        postWithUserContext("/cancelCalculation", this::handleCancelCalculation);
+        postWithUserContext("/cancelJob", this::handleCancelJob);
 
-        postWithUserContext("/deleteCalculation", this::handleDeleteCalculation);
+        postWithUserContext("/deleteJob", this::handleDeleteJob);
 
         postWithUserContext("/toggleGraphGameBDDNodePostset", this::handleToggleGraphGameBDDNodePostset);
 
@@ -257,11 +257,11 @@ public class App {
     }
 
     /**
-     * @return a list containing an entry for each pending/completed calculation
+     * @return a list containing an entry for each pending/completed job
      * (e.g. Graph Game BDD, Get Winning Condition) on the server.
      */
-    private Object handleGetListOfCalculations(Request req, Response res, UserContext uc) {
-        JsonArray result = uc.getCalculationList();
+    private Object handleGetListOfJobs(Request req, Response res, UserContext uc) {
+        JsonArray result = uc.getJobList();
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("listings", result);
@@ -302,35 +302,35 @@ public class App {
         return responseJson.toString();
     }
 
-    private Calculation<Boolean> calculateExistsWinningStrategy(PetriGame petriGame,
-                                                                JsonObject params) {
-        return new Calculation<>(() -> {
+    private Job<Boolean> calculateExistsWinningStrategy(PetriGame petriGame,
+                                                        JsonObject params) {
+        return new Job<>(() -> {
             boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
             return existsWinningStrategy;
         }, petriGame.getName());
     }
 
-    private Calculation<PetriGame> calculateStrategyBDD(PetriGame petriGame,
-                                                        JsonObject params) {
-        return new Calculation<>(() -> {
+    private Job<PetriGame> calculateStrategyBDD(PetriGame petriGame,
+                                                JsonObject params) {
+        return new Job<>(() -> {
             PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
             PetriGameTools.removeXAndYCoordinates(strategyBDD);
             return strategyBDD;
         }, petriGame.getName());
     }
 
-    private Calculation<BDDGraph> calculateGraphStrategyBDD(PetriGame petriGame,
-                                                            JsonObject params) {
-        return new Calculation<>(() -> {
+    private Job<BDDGraph> calculateGraphStrategyBDD(PetriGame petriGame,
+                                                    JsonObject params) {
+        return new Job<>(() -> {
             BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
             return graphStrategyBDD;
         }, petriGame.getName());
     }
 
-    private Calculation<BDDGraphExplorer> calculateGraphGameBDD(PetriGame petriGame,
-                                                                JsonObject params) {
+    private Job<BDDGraphExplorer> calculateGraphGameBDD(PetriGame petriGame,
+                                                        JsonObject params) {
         // If there is an invalid condition annotation, we should throw an error right away instead
-        // of waiting until the calculation gets started (which might take a while if there is a
+        // of waiting until the job gets started (which might take a while if there is a
         // queue).
         try {
             PetriNetD3.getObjectiveOfPetriNet(petriGame);
@@ -339,7 +339,7 @@ public class App {
         }
 
         boolean shouldSolveStepwise = params.get("incremental").getAsBoolean();
-        return new Calculation<>(() -> {
+        return new Job<>(() -> {
             if (shouldSolveStepwise) {
                 BDDGraphExplorerStepwise bddGraphExplorerStepwise =
                         new BDDGraphExplorerStepwise(petriGame);
@@ -360,17 +360,17 @@ public class App {
      * and a browser/user-session UUID.
      * We retrieve the corresponding Petri Game and queue up the requested job.
      *
-     * @param calculationFactory A function that creates the Calculation that should be run
-     * @param calculationType    The result type of the calculation, used to save it in a
+     * @param jobFactory A function that creates the Job that should be run
+     * @param jobType    The result type of the job, used to save it in a
      *                           corresponding Map
-     * @param serializerFunction A function that will serialize the result of the calculation so it
+     * @param serializerFunction A function that will serialize the result of the job so it
      *                           can be sent to the client.
-     * @param <T>                The result type of the calculation
+     * @param <T>                The result type of the job
      * @return A Sparkjava Route
      */
-    private <T> Route handleQueueCalculation(CalculationFactory<T> calculationFactory,
-                                             CalculationType calculationType,
-                                             SerializerFunction<T> serializerFunction) {
+    private <T> Route handleQueueJob(JobFactory<T> jobFactory,
+                                     JobType jobType,
+                                     SerializerFunction<T> serializerFunction) {
         return (req, res) -> {
             // Read request parameters.  Get the Petri Game that should be operated upon and the
             // UserContext of the client making the request.
@@ -387,28 +387,28 @@ public class App {
             }
             UserContext userContext = userContextMap.get(browserUuid);
 
-            // Check if this calculation has already been requested
+            // Check if this job has already been requested
             String canonicalApt = Adam.getAPT(petriGame);
-            Map<String, Calculation<T>> calculationMap =
-                    (Map<String, Calculation<T>>) userContext.getCalculationMap(calculationType);
-            if (calculationMap.containsKey(canonicalApt)) {
-                return errorResponse("There is already a Calculation of " +
-                        "\"" + calculationType.toString() + "\" " +
+            Map<String, Job<T>> jobMap =
+                    (Map<String, Job<T>>) userContext.getJobMap(jobType);
+            if (jobMap.containsKey(canonicalApt)) {
+                return errorResponse("There is already a Job of " +
+                        "\"" + jobType.toString() + "\" " +
                         "for the given Petri Game. Its status: " +
-                        calculationMap.get(canonicalApt).getStatus());
+                        jobMap.get(canonicalApt).getStatus());
             }
 
-            // Create the calculation and queue it up
-            Calculation<T> calculation = calculationFactory.createCalculation(
+            // Create the job and queue it up
+            Job<T> job = jobFactory.createJob(
                     petriGame,
                     body.getAsJsonObject());
-            calculationMap.put(canonicalApt, calculation);
-            calculation.queue(executorService);
+            jobMap.put(canonicalApt, job);
+            job.queue(executorService);
 
-            // If the calculation runs and completes immediately, send the result to the client.
-            // Otherwise, let them know that the calculation has been queued.
+            // If the job runs and completes immediately, send the result to the client.
+            // Otherwise, let them know that the job has been queued.
             return tryToGetResultWithinFiveSeconds(
-                    calculation,
+                    job,
                     serializerFunction,
                     canonicalApt,
                     petriGame
@@ -417,62 +417,62 @@ public class App {
     }
 
     /**
-     * When a user queues a calculation, the calculation might finish quickly, or it might take a
+     * When a user queues a job, the job might finish quickly, or it might take a
      * while.
      * If it's fast, then we want the UI to immediately open the result.
      * Otherwise, a message should just be shown to let the user know that the job has been added
      * to the job queue.
      * This method is meant to handle that type of response.
      *
-     * @param calculation      the calculation that has been queued just now
-     * @param resultSerializer A function to serialize the result of the calculation into JSON
+     * @param job      the job that has been queued just now
+     * @param resultSerializer A function to serialize the result of the job into JSON
      *                         for the client to consume
      * @param canonicalApt     The 'canonical apt' of the Petri Game that is being analyzed
      * @param petriGame        The Petri Game that is being analyzed
-     * @param <T>              The result type of the calculation
+     * @param <T>              The result type of the job
      * @return A JSON response with the result, if it is ready within five seconds.
-     * Otherwise, just a message that the calculation is still being calculated.
+     * Otherwise, just a message that the job is still being calculated.
      * @throws Exception if the serializer function throws an exception.
      */
-    private static <T> Object tryToGetResultWithinFiveSeconds(Calculation<T> calculation,
+    private static <T> Object tryToGetResultWithinFiveSeconds(Job<T> job,
                                                               SerializerFunction<T> resultSerializer,
                                                               String canonicalApt,
                                                               PetriGame petriGame) throws Exception {
         try {
-            T result = calculation.getResult(5, TimeUnit.SECONDS);
+            T result = job.getResult(5, TimeUnit.SECONDS);
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation is finished.");
+            responseJson.addProperty("message", "The job is finished.");
             responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", true);
+            responseJson.addProperty("jobComplete", true);
             responseJson.add("result", resultSerializer.apply(result));
             responseJson.add("petriGame", PetriNetD3.of(petriGame));
             return responseJson.toString();
         } catch (TimeoutException e) {
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The calculation is taking more " +
+            responseJson.addProperty("message", "The job is taking more " +
                     "than five seconds.  It will run in the background.");
             responseJson.addProperty("canonicalApt", canonicalApt);
-            responseJson.addProperty("calculationComplete", false);
+            responseJson.addProperty("jobComplete", false);
             return responseJson.toString();
         } catch (CancellationException e) {
-            return errorResponse("The calculation was canceled.");
+            return errorResponse("The job was canceled.");
         } catch (InterruptedException e) {
-            return errorResponse("The calculation was interrupted.");
+            return errorResponse("The job was interrupted.");
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
-            return errorResponse("The calculation failed with an exception: " +
+            return errorResponse("The job failed with an exception: " +
                     cause.getClass().getSimpleName() + ": " + cause.getMessage());
         }
     }
 
     /**
-     * Given the canonical APT representation of a Petri Game and a type of calculation job,
+     * Given the canonical APT representation of a Petri Game and a type of job job,
      * return the result of the job, if one has been queued and has completed successfully.
      */
-    private <T> Route handleGetCalculationResult(CalculationType calculationType,
-                                                 SerializerFunction<T> serializerFunction) {
+    private <T> Route handleGetJobResult(JobType jobType,
+                                         SerializerFunction<T> serializerFunction) {
         return (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
@@ -486,26 +486,26 @@ public class App {
             }
             UserContext userContext = userContextMap.get(browserUuid);
 
-            Map<String, Calculation<T>> calculationMap =
-                    (Map<String, Calculation<T>>) userContext.getCalculationMap(calculationType);
-            if (!calculationMap.containsKey(canonicalApt)) {
-                return errorResponse("The requested calculation was not found.");
+            Map<String, Job<T>> jobMap =
+                    (Map<String, Job<T>>) userContext.getJobMap(jobType);
+            if (!jobMap.containsKey(canonicalApt)) {
+                return errorResponse("The requested job was not found.");
             }
 
-            Calculation<T> calculation = calculationMap.get(canonicalApt);
-            if (!calculation.isFinished()) {
-                return errorResponse("The requested calculation is not yet finished.  " +
-                        "Its status: " + calculation.getStatus());
+            Job<T> job = jobMap.get(canonicalApt);
+            if (!job.isFinished()) {
+                return errorResponse("The requested job is not yet finished.  " +
+                        "Its status: " + job.getStatus());
             }
 
             T result;
             try {
-                result = calculation.getResult();
+                result = job.getResult();
             } catch (InterruptedException e) {
-                return errorResponse("The requested calculation got canceled.");
+                return errorResponse("The requested job got canceled.");
             } catch (ExecutionException e) {
                 return errorResponse(
-                        "The requested calculation failed with the following exception: " +
+                        "The requested job failed with the following exception: " +
                                 e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
             }
 
@@ -517,37 +517,37 @@ public class App {
         };
     }
 
-    private Object handleCancelCalculation(Request req, Response res, UserContext uc) {
+    private Object handleCancelJob(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         String typeString = body.getAsJsonObject().get("type").getAsString();
-        CalculationType type = CalculationType.valueOf(typeString);
-        Map<String, ? extends Calculation> calculationMap = uc.getCalculationMap(type);
-        if (!calculationMap.containsKey(canonicalApt)) {
-            return errorResponse("The requested calculation was not found.");
+        JobType type = JobType.valueOf(typeString);
+        Map<String, ? extends Job> jobMap = uc.getJobMap(type);
+        if (!jobMap.containsKey(canonicalApt)) {
+            return errorResponse("The requested job was not found.");
         }
-        Calculation calculation = calculationMap.get(canonicalApt);
-        calculation.cancel();
+        Job job = jobMap.get(canonicalApt);
+        job.cancel();
         return successResponse(new JsonPrimitive(true));
     }
 
-    private Object handleDeleteCalculation(Request req, Response res, UserContext uc) {
+    private Object handleDeleteJob(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
         String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         String typeString = body.getAsJsonObject().get("type").getAsString();
-        CalculationType type = CalculationType.valueOf(typeString);
-        Map<String, ? extends Calculation> calculationMap = uc.getCalculationMap(type);
-        if (!calculationMap.containsKey(canonicalApt)) {
-            return errorResponse("The requested calculation was not found.");
+        JobType type = JobType.valueOf(typeString);
+        Map<String, ? extends Job> jobMap = uc.getJobMap(type);
+        if (!jobMap.containsKey(canonicalApt)) {
+            return errorResponse("The requested job was not found.");
         }
-        Calculation calculation = calculationMap.get(canonicalApt);
+        Job job = jobMap.get(canonicalApt);
         try {
-            calculation.cancel();
+            job.cancel();
         } catch (UnsupportedOperationException e) {
-            // We don't care if the calculation is not eligible to be canceled.
+            // We don't care if the job is not eligible to be canceled.
             // We just want to cancel it if that's possible.
         }
-        calculationMap.remove(canonicalApt);
+        jobMap.remove(canonicalApt);
         return successResponse(new JsonPrimitive(true));
     }
 
@@ -562,12 +562,12 @@ public class App {
             return errorResponse("There is no Graph Game BDD yet for that APT input");
         }
 
-        Calculation<BDDGraphExplorer> calculation = uc.graphGameBddsOfApts.get(canonicalApt);
-        if (!calculation.isFinished()) {
-            return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
-                    ".  Its status: " + calculation.getStatus());
+        Job<BDDGraphExplorer> job = uc.graphGameBddsOfApts.get(canonicalApt);
+        if (!job.isFinished()) {
+            return errorResponse("The job for that Graph Game BDD is not yet finished" +
+                    ".  Its status: " + job.getStatus());
         }
-        BDDGraphExplorer bddGraphExplorer = calculation.getResult();
+        BDDGraphExplorer bddGraphExplorer = job.getResult();
         bddGraphExplorer.toggleStatePostset(stateId);
 
         JsonObject responseJson = new JsonObject();
@@ -586,12 +586,12 @@ public class App {
         if (!uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
             return errorResponse("There is no Graph Game BDD yet for that APT input");
         }
-        Calculation<BDDGraphExplorer> calculation = uc.graphGameBddsOfApts.get(canonicalApt);
-        if (!calculation.isFinished()) {
-            return errorResponse("The calculation for that Graph Game BDD is not yet finished" +
-                    ".  Its status: " + calculation.getStatus());
+        Job<BDDGraphExplorer> job = uc.graphGameBddsOfApts.get(canonicalApt);
+        if (!job.isFinished()) {
+            return errorResponse("The job for that Graph Game BDD is not yet finished" +
+                    ".  Its status: " + job.getStatus());
         }
-        BDDGraphExplorer bddGraphExplorer = calculation.getResult();
+        BDDGraphExplorer bddGraphExplorer = job.getResult();
         bddGraphExplorer.toggleStatePreset(stateId);
 
         JsonObject responseJson = new JsonObject();
@@ -814,11 +814,11 @@ public class App {
         return successResponse(PetriNetD3.of(new PetriGame(modelCheckingNet)));
     }
 
-    private Calculation<ModelCheckingResult> calculateModelCheckingResult(
+    private Job<ModelCheckingResult> calculateModelCheckingResult(
             PetriGame petriGame,
             JsonObject params) {
         String formula = params.get("formula").getAsString();
-        return new Calculation<>(() -> {
+        return new Job<>(() -> {
             RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
             ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
             ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);

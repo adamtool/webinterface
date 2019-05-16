@@ -7,6 +7,6 @@ import uniolunisaar.adam.ds.petrigame.PetriGame;
  * Created by Ann on 4/1/19.
  */
 @FunctionalInterface
-public interface CalculationFactory<T> {
-    Calculation<T> createCalculation(PetriGame p, JsonObject params);
+public interface JobFactory<T> {
+    Job<T> createJob(PetriGame p, JsonObject params);
 }

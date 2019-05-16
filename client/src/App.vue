@@ -1,29 +1,29 @@
 <template>
   <v-app absolute id='app'>
-    <v-dialog v-model="showCalculationList"
+    <v-dialog v-model="showJobList"
               :hide-overlay="false"
               :persistent="false"
-              @keydown.esc="showCalculationList = false">
+              @keydown.esc="showJobList = false">
       <v-card>
         <v-card-title
           primary-title
           style="justify-content: space-between;">
           <span>Your jobs run/running/queued on the server</span>
           <v-icon standard right
-                  @click="showCalculationList = false">
+                  @click="showJobList = false">
             close
           </v-icon>
         </v-card-title>
         <v-card-text>
-          <CalculationList
+          <JobList
             v-if="availableBDDGraphListings.length > 0"
-            :calculationListings="availableBDDGraphListings"
+            :jobListings="availableBDDGraphListings"
             style="background-color: white;"
             @getGraphGameBdd="getGraphGameBdd"
             @getWinningStrategy="getWinningStrategy"
             @getGraphStrategyBdd="getGraphStrategyBdd"
-            @cancelCalculation="cancelCalculation"
-            @deleteCalculation="deleteCalculation"/>
+            @cancelJob="cancelJob"
+            @deleteJob="deleteJob"/>
           <div
             v-else
             style="text-align: center;">
@@ -162,7 +162,7 @@
         <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
         <!--TODO For "calculateExistsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
-      <button @click="showCalculationList = true"
+      <button @click="showJobList = true"
               style="margin-left: 40px;">View jobs running on server
       </button>
       <v-dialog
@@ -305,7 +305,7 @@
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
-  import CalculationList from './components/CalculationList'
+  import JobList from './components/JobList'
   import Vue from 'vue'
   import * as axios from 'axios'
   import {debounce} from 'underscore'
@@ -359,7 +359,7 @@
       'my-theme': MyVueMenuTheme,
       'LogViewer': LogViewer,
       AptEditor,
-      CalculationList,
+      JobList,
       AboutAdamWeb
     },
     created: function () {
@@ -389,7 +389,7 @@
       useModelChecking: ${this.useModelChecking}
       baseurl: ${this.baseUrl}`)
 
-      // Save a uuid to identify this browser in the future (e.g. to only show Calculations belonging to this user)
+      // Save a uuid to identify this browser in the future (e.g. to only show Jobs belonging to this user)
       if (window.localStorage.getItem('browserUuid') === null) {
         window.localStorage.setItem('browserUuid', uuidv4())
       }
@@ -408,7 +408,7 @@
       })
 
       this.parseAPTToPetriGame(this.apt)
-      this.getListOfCalculations()
+      this.getListOfJobs()
       logging.log('Hello!')
 
       // Initialize draggable, resizable pane
@@ -432,10 +432,11 @@
         browserUuidEntry: '',
         aptFilename: 'apt.txt',
         showSaveAptModal: false,
-        showCalculationList: false,
+        showJobList: false,
         showAboutModal: false,
-        // True iff the modal dialog with the list of calculations is visible
-        availableBDDGraphListings: [], // Listings for enqueued/finished "Graph Game BDD" calculations
+        // True iff the modal dialog with the list of jobs is visible
+        availableBDDGraphListings: [], // Listings for all enqueued/finished jobs
+        // TODO Rename to just 'availableJobListings' or 'jobListings'
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
@@ -475,14 +476,14 @@
       }
     },
     watch: {
-      // When the browser UUID is changed, we should reload the list of calculations
+      // When the browser UUID is changed, we should reload the list of jobs
       browserUuid: function () {
-        this.getListOfCalculations()
+        this.getListOfJobs()
       },
-      // When we open the modal dialog, we should reload the list of calculations
-      showCalculationList: function () {
-        if (this.showCalculationList) {
-          this.getListOfCalculations()
+      // When we open the modal dialog, we should reload the list of jobs
+      showJobList: function () {
+        if (this.showJobList) {
+          this.getListOfJobs()
         }
       },
       apt: function (apt) {
@@ -546,9 +547,9 @@
           'getWinningStrategy',
           'getGraphStrategyBDD',
           'getGraphGameBDD',
-          'getListOfCalculations',
-          'cancelCalculation',
-          'deleteCalculation',
+          'getListOfJobs',
+          'cancelJob',
+          'deleteJob',
           'toggleGraphGameBDDNodePostset',
           'toggleGraphGameBDDNodePreset',
           'savePetriGameAsAPT',
@@ -774,7 +775,7 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.calculationComplete) {
+            if (response.data.jobComplete) {
               this.apt = response.data.canonicalApt
               switch (response.data.result) {
                 case 'TRUE':
@@ -789,7 +790,7 @@
                   break
               }
             } else {
-              // The message from server will explain that the calculation has been enqueued.
+              // The message from server will explain that the job has been enqueued.
               // TODO Provide a notification after it is finished
               logging.sendSuccessNotification(response.data.message)
             }
@@ -805,7 +806,7 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.calculationComplete) {
+            if (response.data.jobComplete) {
               this.apt = response.data.canonicalApt
               this.petriGame.hasWinningStrategy = response.data.result
               if (this.petriGame.hasWinningStrategy) {
@@ -817,7 +818,7 @@
                 logging.sendErrorNotification('No, there is no winning strategy for this Petri Game.')
               }
             } else {
-              // The message from server will explain that the calculation has been enqueued.
+              // The message from server will explain that the job has been enqueued.
               // TODO Provide a notification after it is finished
               logging.sendSuccessNotification(response.data.message)
             }
@@ -835,7 +836,7 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Load the strategy BDD if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.calculationComplete) {
+            if (response.data.jobComplete) {
               this.strategyBDD = response.data.result
               this.strategyBDD.uuid = uuid
               // We expect an updated petriGame here because there might have been partition annotations added.
@@ -844,7 +845,7 @@
               this.apt = response.data.canonicalApt
               logging.sendSuccessNotification(response.data.message)
             } else {
-              // The message from server will explain that the calculation has been enqueued.
+              // The message from server will explain that the job has been enqueued.
               // TODO Provide a notification after it is finished
               logging.sendSuccessNotification(response.data.message)
             }
@@ -860,7 +861,7 @@
           petriGameId: uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
-            if (response.data.calculationComplete) {
+            if (response.data.jobComplete) {
               this.graphStrategyBDD = response.data.result
               this.graphStrategyBDD.uuid = uuid
               // We expect an updated petriGame here because there might have been partition annotations added.
@@ -876,8 +877,8 @@
           logging.logError('Network error in calculateGraphStrategyBDD')
         })
       },
-      getListOfCalculations: function () {
-        this.restEndpoints.getListOfCalculations()
+      getListOfJobs: function () {
+        this.restEndpoints.getListOfJobs()
           .then(response => {
             this.availableBDDGraphListings = response.data.listings
           })
@@ -932,9 +933,9 @@
           }
         })
       },
-      cancelCalculation: function ({canonicalApt, type}) {
+      cancelJob: function ({canonicalApt, type}) {
         logging.sendSuccessNotification('Sent request to cancel the job of ' + type)
-        this.restEndpoints.cancelCalculation({
+        this.restEndpoints.cancelJob({
           canonicalApt,
           type
         }).then(response => {
@@ -947,11 +948,11 @@
                 'little while for the job to actually stop.  This is a limitation of the libraries' +
                 'used by ADAM.')
           }
-        }).then(this.getListOfCalculations)
+        }).then(this.getListOfJobs)
       },
-      deleteCalculation: function ({canonicalApt, type}) {
-        logging.sendSuccessNotification('Sent request to delete the calculation')
-        this.restEndpoints.deleteCalculation({
+      deleteJob: function ({canonicalApt, type}) {
+        logging.sendSuccessNotification('Sent request to delete the job')
+        this.restEndpoints.deleteJob({
           canonicalApt,
           type
         }).then(response => {
@@ -965,7 +966,7 @@
                 ' stop if it was running.  This is a limitation of the libraries used by' +
                 ' ADAM.')
           }
-        }).then(this.getListOfCalculations)
+        }).then(this.getListOfJobs)
       },
       calculateGraphGameBDD: function (incremental) {
         const uuid = this.petriGame.uuid
@@ -976,7 +977,7 @@
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Load the graph game BDD if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.calculationComplete) {
+            if (response.data.jobComplete) {
               this.apt = response.data.canonicalApt
               this.graphGameBDD = response.data.result
               this.graphGameCanonicalApt = response.data.canonicalApt
@@ -985,7 +986,7 @@
               this.switchToGraphGameBDDTab()
               logging.sendSuccessNotification(response.data.message)
             } else {
-              // The message from server will explain that the calculation has been enqueued.
+              // The message from server will explain that the job has been enqueued.
               // TODO Provide a notification after it is finished
               logging.sendSuccessNotification(response.data.message)
             }

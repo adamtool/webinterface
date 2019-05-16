@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
-import static uniolunisaar.adamwebfrontend.CalculationStatus.COMPLETED;
-import static uniolunisaar.adamwebfrontend.CalculationStatus.FAILED;
-import static uniolunisaar.adamwebfrontend.CalculationType.*;
+import static uniolunisaar.adamwebfrontend.JobStatus.COMPLETED;
+import static uniolunisaar.adamwebfrontend.JobStatus.FAILED;
+import static uniolunisaar.adamwebfrontend.JobType.*;
 
 /**
  * Stores data related to a single user session
@@ -20,75 +20,75 @@ import static uniolunisaar.adamwebfrontend.CalculationType.*;
 public class UserContext {
     /*
     When we calculate anything based on a petri game, we convert the petri game to APT, then
-    put the (APT, Calculation) pair in one of these maps.
+    put the (APT, Job) pair in one of these maps.
     I call this APT the "canonical APT" representation of the Petri Game.
     This allows us to recognize when a user is trying to repeat an operation unnecessarily.
     */
     // Store the results of "getGraphGameBdd"
-    public final Map<String, Calculation<BDDGraphExplorer>> graphGameBddsOfApts =
+    public final Map<String, Job<BDDGraphExplorer>> graphGameBddsOfApts =
             new ConcurrentHashMap<>();
     // Store the results of "existsWinningStrategy"
-    public final Map<String, Calculation<Boolean>> existsWinningStrategyOfApts =
+    public final Map<String, Job<Boolean>> existsWinningStrategyOfApts =
             new ConcurrentHashMap<>();
     // Store the results of "getStrategyBdd"
-    public final Map<String, Calculation<PetriGame>> strategyBddsOfApts =
+    public final Map<String, Job<PetriGame>> strategyBddsOfApts =
             new ConcurrentHashMap<>();
     // Store the results of "getGraphStrategyBdd"
-    public final Map<String, Calculation<BDDGraph>> graphStrategyBddsOfApts =
+    public final Map<String, Job<BDDGraph>> graphStrategyBddsOfApts =
             new ConcurrentHashMap<>();
     // "Check LTL formula"
-    public final Map<String, Calculation<ModelCheckingResult>> modelCheckingResults =
+    public final Map<String, Job<ModelCheckingResult>> modelCheckingResults =
             new ConcurrentHashMap<>();
 
-    public JsonArray getCalculationList() {
+    public JsonArray getJobList() {
         JsonArray result = new JsonArray();
         for (String aptOfPetriGame : this.graphGameBddsOfApts.keySet()) {
-            Calculation<BDDGraphExplorer> calculation = this.graphGameBddsOfApts.get(aptOfPetriGame);
-            JsonObject entry = calculationListEntry(calculation, aptOfPetriGame, GRAPH_GAME_BDD);
+            Job<BDDGraphExplorer> job = this.graphGameBddsOfApts.get(aptOfPetriGame);
+            JsonObject entry = jobListEntry(job, aptOfPetriGame, GRAPH_GAME_BDD);
             result.add(entry);
         }
         for (String canonicalApt : this.existsWinningStrategyOfApts.keySet()) {
-            Calculation<Boolean> calculation = this.existsWinningStrategyOfApts.get(canonicalApt);
-            JsonObject entry = calculationListEntry(
-                    calculation, canonicalApt, EXISTS_WINNING_STRATEGY);
-            if (calculation.getStatus() == COMPLETED) {
+            Job<Boolean> job = this.existsWinningStrategyOfApts.get(canonicalApt);
+            JsonObject entry = jobListEntry(
+                    job, canonicalApt, EXISTS_WINNING_STRATEGY);
+            if (job.getStatus() == COMPLETED) {
                 try {
-                    entry.addProperty("result", calculation.getResult());
+                    entry.addProperty("result", job.getResult());
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
-                    throw new RuntimeException("calculation.getResult() threw an exception, " +
-                            "although calculation.getStatus() == COMPLETED.  This is a bug.  " +
+                    throw new RuntimeException("job.getResult() threw an exception, " +
+                            "although job.getStatus() == COMPLETED.  This is a bug.  " +
                             "Please let Ann know about it. :)");
                 }
             }
             result.add(entry);
         }
         for (String canonicalApt : this.strategyBddsOfApts.keySet()) {
-            Calculation<PetriGame> calculation = this.strategyBddsOfApts.get(canonicalApt);
-            JsonObject entry = calculationListEntry(
-                    calculation, canonicalApt, WINNING_STRATEGY);
+            Job<PetriGame> job = this.strategyBddsOfApts.get(canonicalApt);
+            JsonObject entry = jobListEntry(
+                    job, canonicalApt, WINNING_STRATEGY);
             result.add(entry);
         }
         for (String canonicalApt : this.graphStrategyBddsOfApts.keySet()) {
-            Calculation<BDDGraph> calculation = this.graphStrategyBddsOfApts.get(canonicalApt);
-            JsonObject entry = calculationListEntry(
-                    calculation, canonicalApt, GRAPH_STRATEGY_BDD
+            Job<BDDGraph> job = this.graphStrategyBddsOfApts.get(canonicalApt);
+            JsonObject entry = jobListEntry(
+                    job, canonicalApt, GRAPH_STRATEGY_BDD
             );
             result.add(entry);
         }
         for (String canonicalApt : this.modelCheckingResults.keySet()) {
-            Calculation<ModelCheckingResult> calculation = this.modelCheckingResults.get(canonicalApt);
-            JsonObject entry = calculationListEntry(
-                    calculation, canonicalApt, MODEL_CHECKING_RESULT);
-            if (calculation.getStatus() == COMPLETED) {
+            Job<ModelCheckingResult> job = this.modelCheckingResults.get(canonicalApt);
+            JsonObject entry = jobListEntry(
+                    job, canonicalApt, MODEL_CHECKING_RESULT);
+            if (job.getStatus() == COMPLETED) {
                 try {
                     entry.addProperty(
                             "result",
-                            calculation.getResult().getSatisfied().toString());
+                            job.getResult().getSatisfied().toString());
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
-                    throw new RuntimeException("calculation.getResult() threw an exception, " +
-                            "although calculation.getStatus() == COMPLETED.  This is a bug.  " +
+                    throw new RuntimeException("job.getResult() threw an exception, " +
+                            "although job.getStatus() == COMPLETED.  This is a bug.  " +
                             "Please let Ann know about it. :)");
                 }
             }
@@ -98,23 +98,23 @@ public class UserContext {
         return result;
     }
 
-    private static JsonObject calculationListEntry(Calculation calculation,
-                                                   String canonicalApt,
-                                                   CalculationType calculationType) {
+    private static JsonObject jobListEntry(Job job,
+                                           String canonicalApt,
+                                           JobType jobType) {
         JsonObject entry = new JsonObject();
-        entry.addProperty("type", calculationType.toString());
+        entry.addProperty("type", jobType.toString());
         entry.addProperty("canonicalApt", canonicalApt);
-        entry.addProperty("calculationStatus", calculation.getStatus().toString());
-        entry.addProperty("timeStarted", calculation.getTimeStarted().getEpochSecond());
-        entry.addProperty("timeFinished", calculation.getTimeFinished().getEpochSecond());
-        if (calculation.getStatus() == FAILED) {
-            entry.addProperty("failureReason", calculation.getFailedReason());
+        entry.addProperty("jobStatus", job.getStatus().toString());
+        entry.addProperty("timeStarted", job.getTimeStarted().getEpochSecond());
+        entry.addProperty("timeFinished", job.getTimeFinished().getEpochSecond());
+        if (job.getStatus() == FAILED) {
+            entry.addProperty("failureReason", job.getFailedReason());
         }
         return entry;
     }
 
-    public Map<String, ? extends Calculation> getCalculationMap(CalculationType calculationType) {
-        switch (calculationType) {
+    public Map<String, ? extends Job> getJobMap(JobType jobType) {
+        switch (jobType) {
             case EXISTS_WINNING_STRATEGY:
                 return existsWinningStrategyOfApts;
             case WINNING_STRATEGY:
@@ -126,8 +126,8 @@ public class UserContext {
             case MODEL_CHECKING_RESULT:
                 return modelCheckingResults;
             default:
-                throw new IllegalArgumentException("Missing switch case in getCalculationMap for " +
-                        "the following CalculationType: " + calculationType.toString());
+                throw new IllegalArgumentException("Missing switch case in getJobMap for " +
+                        "the following JobType: " + jobType.toString());
         }
     }
 }

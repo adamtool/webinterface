@@ -3,10 +3,9 @@ package uniolunisaar.adamwebfrontend;
 import uniolunisaar.adam.tools.ProcessPool;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.concurrent.*;
 
-import static uniolunisaar.adamwebfrontend.CalculationStatus.*;
+import static uniolunisaar.adamwebfrontend.JobStatus.*;
 
 /**
  * This class represents a possibly long-running calculation that should run in its own thread.
@@ -15,7 +14,7 @@ import static uniolunisaar.adamwebfrontend.CalculationStatus.*;
  *
  * @param <T> The result type of the calculation
  */
-public class Calculation<T> {
+public class Job<T> {
     private final Callable<T> callable;
     private final String netId;
     private Future<T> future = null;
@@ -25,10 +24,10 @@ public class Calculation<T> {
 
     /**
      * @param v     a lambda that will return a value you want to have be computed
-     * @param netId the ID of the Petri Net that is underlying this calculation.
-     *              It will get used to kill the processes in case the calculation gets canceled.
+     * @param netId the ID of the Petri Net that is underlying this job.
+     *              It will get used to kill the processes in case the job gets canceled.
      */
-    public Calculation(Callable<T> v, String netId) {
+    public Job(Callable<T> v, String netId) {
         this.callable = v;
         this.netId = netId;
     }
@@ -54,7 +53,7 @@ public class Calculation<T> {
     public void cancel() {
         if (this.getStatus() != RUNNING && this.getStatus() != QUEUED) {
             throw new UnsupportedOperationException(
-                    "This Calculation is not running/queued, so you can't cancel it.");
+                    "This Job is not running/queued, so you can't cancel it.");
         }
         this.future.cancel(true);
         ProcessPool.getInstance().destroyProcessesOfNet(netId);
@@ -73,7 +72,7 @@ public class Calculation<T> {
         return future.get(timeout, unit);
     }
 
-    public CalculationStatus getStatus() {
+    public JobStatus getStatus() {
         if (future == null) {
             return NOT_STARTED;
         }

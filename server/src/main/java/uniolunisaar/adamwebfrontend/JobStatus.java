@@ -1,5 +1,5 @@
 package uniolunisaar.adamwebfrontend;
 
-public enum CalculationStatus {
+public enum JobStatus {
     NOT_STARTED, QUEUED, RUNNING, COMPLETED, FAILED, CANCELED
 }
