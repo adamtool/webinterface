@@ -120,7 +120,7 @@ public class PetriNetD3 {
     /**
      * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
-    public static JsonElement of(PetriGame game) throws CouldNotFindSuitableConditionException {
+    public static JsonElement ofPetriGame(PetriGame game) throws CouldNotFindSuitableConditionException {
         return ofPetriGameWithXYCoordinates(game, new HashSet<>(), true);
     }
 

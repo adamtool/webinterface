@@ -447,7 +447,7 @@ public class App {
             responseJson.addProperty("canonicalApt", canonicalApt);
             responseJson.addProperty("jobComplete", true);
             responseJson.add("result", resultSerializer.apply(result));
-            responseJson.add("petriGame", PetriNetD3.of(petriGame));
+            responseJson.add("petriGame", PetriNetD3.ofPetriGame(petriGame));
             return responseJson.toString();
         } catch (TimeoutException e) {
             JsonObject responseJson = new JsonObject();
@@ -657,7 +657,7 @@ public class App {
 
         petriGame.removeNode(nodeId);
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
         return successResponse(petriGameClient);
     }
 
@@ -669,7 +669,7 @@ public class App {
         Node oldNode = petriGame.getNode(nodeIdOld);
         petriGame.rename(oldNode, nodeIdNew);
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
         return successResponse(petriGameClient);
     }
 
@@ -685,7 +685,7 @@ public class App {
             petriGame.setEnvironment(place);
         }
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
         return successResponse(petriGameClient);
     }
 
@@ -701,7 +701,7 @@ public class App {
             petriGame.setInitialTokenflow(place);
         }
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
         return successResponse(petriGameClient);
     }
 
@@ -713,7 +713,7 @@ public class App {
         Place place = petriGame.getPlace(nodeId);
         place.setInitialToken(tokens);
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
         return successResponse(petriGameClient);
     }
 
@@ -724,7 +724,7 @@ public class App {
         Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
         PNWTTools.setConditionAnnotation(petriGame, objective);
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
         return successResponse(petriGameClient);
     }
 
@@ -734,7 +734,7 @@ public class App {
         String destination = body.get("destination").getAsString();
 
         petriGame.createFlow(source, destination);
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
 
         return successResponse(petriGameClient);
     }
@@ -746,7 +746,7 @@ public class App {
 
         petriGame.removeFlow(source, target);
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
         return successResponse(petriGameClient);
     }
 
@@ -785,7 +785,7 @@ public class App {
             petriGame.createInitialTransit(transitionId, postsetArray);
         }
 
-        JsonElement petriGameClient = PetriNetD3.of(petriGame);
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
 
         return successResponse(petriGameClient);
     }
@@ -812,7 +812,7 @@ public class App {
 
         PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
 
-        return successResponse(PetriNetD3.of(new PetriGame(modelCheckingNet)));
+        return successResponse(PetriNetD3.ofPetriGame(new PetriGame(modelCheckingNet)));
     }
 
     private Job<ModelCheckingResult> calculateModelCheckingResult(
@@ -862,6 +862,6 @@ public class App {
         Marking initialMarking = petriGame.getInitialMarking();
         Marking newInitialMarking = transition.fire(initialMarking);
         petriGame.setInitialMarking(newInitialMarking);
-        return successResponse(PetriNetD3.of(petriGame));
+        return successResponse(PetriNetD3.ofPetriGame(petriGame));
     }
 }
