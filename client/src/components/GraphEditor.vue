@@ -762,7 +762,7 @@
         let isSelectionDrag
         let nodeStartPositions = {} // Map from node ID -> {x, y}
         let dragStartX, dragStartY
-        let snapToGrid = false
+        let snapToGrid
         return {
           'start': node => {
             isSelectionDrag = this.selectedNodes.includes(node)
@@ -780,6 +780,7 @@
             node.fy = node.y
           },
           'drag': node => {
+            snapToGrid = d3.event.sourceEvent.ctrlKey
             // When the user drags a node, the simulation should start again in case it had been
             // paused for inactivity.
             this.simulation.alpha(0.7).restart()
@@ -796,22 +797,22 @@
               const dx = d3.event.x - dragStartX
               const dy = d3.event.y - dragStartY
               this.selectedNodes.forEach(node => {
-                const newX = nodeStartPositions[node.id].x + dx
-                const newY = nodeStartPositions[node.id].y + dy
                 if (snapToGrid) {
-                  const xSnapped = roundToMiddle(50, newX)
-                  const ySnapped = roundToMiddle(50, newY)
+                  const newX = snap(nodeStartPositions[node.id].x) + dx
+                  const newY = snap(nodeStartPositions[node.id].y) + dy
+                  const xSnapped = snap(newX)
+                  const ySnapped = snap(newY)
                   node.fx = xSnapped
                   node.fy = ySnapped
                 } else {
-                  node.fx = newX
-                  node.fy = newY
+                  node.fx = nodeStartPositions[node.id].x + dx
+                  node.fy = nodeStartPositions[node.id].y + dy
                 }
               })
             } else {
               if (snapToGrid) {
-                node.fx = roundToMiddle(50, d3.event.x)
-                node.fy = roundToMiddle(50, d3.event.y)
+                node.fx = snap(d3.event.x)
+                node.fy = snap(d3.event.y)
               } else {
                 node.fx = d3.event.x
                 node.fy = d3.event.y
@@ -823,6 +824,9 @@
           }
         }
 
+        function snap(x) {
+          return roundToMiddle(60, x)
+        }
         function roundToMiddle(roundingNumber, x) {
           return x + (roundingNumber / 2 - (x % roundingNumber))
         }
