@@ -215,7 +215,7 @@
           <GraphEditor :graph='petriGame.net'
                        :petriGameId='petriGame.uuid'
                        ref='graphEditorPetriGame'
-                       v-on:graphModified='onGraphModified'
+                       v-on:dragDropEnd='onDragDropEnd'
                        v-on:insertNode='insertNode'
                        v-on:createFlow='createFlow'
                        v-on:createTokenFlow='createTokenFlow'
@@ -1225,10 +1225,9 @@
           logging.logError('Network error')
         })
       },
-      onGraphModified: function (graph) {
-        logging.logVerbose('App: Received graphModified event from graph editor:')
-        logging.logObject(graph)
-        // TODO: Implement undo/redo.
+      onDragDropEnd: function (graph) {
+        logging.logVerbose('App: Received dragDrop event from graph editor. Saving x/y coordinates.')
+        this.saveXYCoordinatesOnServer()
       },
       onAptExampleSelected: function (apt) {
         // Let the Graph Editor know that a new petri game has been loaded.

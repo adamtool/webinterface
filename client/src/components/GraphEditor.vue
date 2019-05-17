@@ -804,7 +804,7 @@
             }
           },
           'end': node => {
-            this.onGraphModified()
+            this.onDragDropEnd()
           }
         }
       },
@@ -1368,13 +1368,8 @@
           return map
         }, {})
       },
-      onGraphModified: function () {
-        // TODO Consider this as a possible culprit if there prove to be memory leaks or other performance problems.
-        const graph = {
-          links: this.deepCopy(this.links),
-          nodes: this.deepCopy(this.nodes)
-        }
-        this.$emit('graphModified', graph)
+      onDragDropEnd: function () {
+        this.$emit('dragDropEnd')
       },
       initializeD3: function () {
         this.svg = d3.select('#' + this.graphSvgId)
