@@ -1142,9 +1142,12 @@
       renameNodeInteractively: function (d) {
         const callback = (text) => {
           console.log('Emitting renameNode')
+          // Include the x/y coordinates so they can be re-applied to the node later
           this.$emit('renameNode', {
             idOld: d.id,
-            idNew: text
+            idNew: text,
+            xOld: d.x,
+            yOld: d.y
           })
         }
         console.log('Opening text input box to rename the following node:')
@@ -1898,6 +1901,7 @@
         // TODO (This would require a boolean AdamExtension to be added)
         this.nodes.forEach(node => {
           if (newNodePositions.hasOwnProperty(node.id)) {
+            logging.logVerbose('updating x/y coordinates of this node: ' + node.id)
             const newPosition = newNodePositions[node.id]
             node.fx = newPosition.x
             node.fy = newPosition.y

@@ -1124,7 +1124,7 @@
           logging.logError('Network error')
         })
       },
-      renameNode: function ({idOld, idNew}) {
+      renameNode: function ({xOld, yOld, idOld, idNew}) {
         console.log('processing renameNode event')
         console.log(`renaming node '${idOld}' to '${idNew}'`)
         this.restEndpoints.renameNode({
@@ -1133,7 +1133,14 @@
           nodeIdNew: idNew
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            // Preserve the x/y coordinates of the renamed node
+            const newNet = response.data.result
+            newNet.nodePositions = {}
+            newNet.nodePositions[idNew] = {
+              x: xOld,
+              y: yOld
+            }
+            this.petriGame.net = newNet
           })
         }).catch(() => {
           logging.logError('Network error')
