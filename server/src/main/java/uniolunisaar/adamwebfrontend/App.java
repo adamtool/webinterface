@@ -128,7 +128,9 @@ public class App {
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
-        postWithPetriGame("/savePetriGameAsAPT", this::handleSavePetriGameAsAPT);
+        postWithPetriGame("/getAptOfPetriGame", this::handleGetAptOfPetriGame);
+
+        postWithPetriGame("/updateXYCoordinates", this::handleUpdateXYCoordinates);
 
         postWithPetriGame("/insertPlace", this::handleInsertPlace);
 
@@ -601,22 +603,34 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleSavePetriGameAsAPT(Request req, Response res, PetriGame petriGame)
+    // Get the APT representation of a given Petri Game
+    private Object handleGetAptOfPetriGame(Request req, Response res, PetriGame petriGame)
             throws RenderException {
         JsonElement body = parser.parse(req.body());
-        System.out.println("body: " + body.toString());
-        JsonObject nodesXYCoordinatesJson = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
-        Type type = new TypeToken<Map<String, NodePosition>>() {
-        }.getType();
-        Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
-
-        String apt = PetriGameTools.savePetriGameWithXYCoordinates(petriGame, nodePositions);
+        String apt = Adam.getAPT(petriGame);
         JsonElement aptJson = new JsonPrimitive(apt);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("apt", aptJson);
         return responseJson.toString();
+    }
+
+    // Update the X/Y coordinates of multiple nodes.  Send them back to the client to confirm it
+    // worked
+    private Object handleUpdateXYCoordinates(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+        JsonElement body = parser.parse(req.body());
+        JsonObject nodesXYCoordinatesJson =
+                body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        Type type = new TypeToken<Map<String, NodePosition>>() {
+        }.getType();
+        Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
+        PetriGameTools.saveXYCoordinates(petriGame, nodePositions);
+
+        JsonElement petriGameClient = PetriNetD3.ofPetriGameWithXYCoordinates(
+                petriGame, new HashSet<>(petriGame.getNodes()), true);
+
+        return successResponse(petriGameClient);
     }
 
     private Object handleInsertPlace(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {

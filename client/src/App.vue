@@ -552,7 +552,8 @@
           'deleteJob',
           'toggleGraphGameBDDNodePostset',
           'toggleGraphGameBDDNodePreset',
-          'savePetriGameAsAPT',
+          'getAptOfPetriGame',
+          'updateXYCoordinates',
           'parseApt',
           'insertPlace',
           'createFlow',
@@ -1030,25 +1031,42 @@
         logging.logVerbose('Switching to APT editor')
         this.savePetriGameAsAPT()
       },
-      // Return a promise that is fulfilled iff the http request to the server is successfully processed
-      savePetriGameAsAPT: function () {
+      saveXYCoordinatesOnServer: function () {
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriGame object.
-        // Then, the server converts the PetriGame into APT format and gives that to us.
         const nodePositions = this.$refs.graphEditorPetriGame.getNodeXYCoordinates()
-        return this.restEndpoints.savePetriGameAsAPT({
+        return this.restEndpoints.updateXYCoordinates({
           petriGameId: this.petriGame.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.apt = response.data.apt
+            // TODO assert that the x/y coordinates we recieve match those we sent?
           })
         }, reason => {
           // This function gets called if the promise is rejected (i.e. the http request failed)
-          logging.logError('savePetriGameAsAPT(): An error occurred. ' + reason)
+          logging.logError('saveXYCoordinatesOnServer(): An error occurred. ' + reason)
           throw new Error(reason)
         })
+      },
+      // Return a promise with the return value of the new apt
+      // TODO refactor 'withErrorHandling'. It's annoying to have to type 'return' twice.
+      getAptOfPetriGame: function () {
+        return this.restEndpoints.getAptOfPetriGame({
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          return this.withErrorHandling(response, response => {
+            return response.data.apt
+          })
+        })
+      },
+      // Save xy coordinates on the server and then get the new updated APT back
+      savePetriGameAsAPT: function () {
+        this.saveXYCoordinatesOnServer()
+          .then(this.getAptOfPetriGame)
+          .then(apt => {
+            this.apt = apt
+          })
       },
       createFlow: function (flowSpec) {
         console.log('processing createFlow event')
@@ -1226,7 +1244,7 @@
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
           case 'success':
-            onSuccessCallback(response)
+            return onSuccessCallback(response)
             break
           case 'error':
             logging.sendErrorNotification(response.data.message)
