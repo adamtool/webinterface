@@ -65,7 +65,7 @@
               v-if="showEditorTools"
               v-model="selectedWinningCondition"
               :items="winningConditions"
-              label="Winning Condition"/>
+              label="Condition"/>
             <v-text-field
               style="flex: 1 1 0"
               :disabled="selectedWinningCondition !== 'LTL'"
