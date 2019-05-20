@@ -2,6 +2,7 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonElement;
 import uniol.apt.util.Pair;
+import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.Flow;
 import uniolunisaar.adam.ds.objectives.Condition;
@@ -30,7 +31,7 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
     public BDDGraphExplorerStepwise(PetriGame game) throws SolvingException, CouldNotFindSuitableConditionException {
         solver = AdamSynthesizer.getBDDSolver(
                 game,
-                PetriNetD3.getObjectiveOfPetriNet(game),
+                Adam.getCondition(game),
                 new BDDSolverOptions());
         bddGraph = new BDDGraph("My Graph");
         solver.initialize();

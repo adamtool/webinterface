@@ -336,7 +336,7 @@ public class App {
         // of waiting until the job gets started (which might take a while if there is a
         // queue).
         try {
-            PetriNetD3.getObjectiveOfPetriNet(petriGame);
+            Adam.getCondition(petriGame);
         } catch (CouldNotFindSuitableConditionException e) {
             throw new IllegalArgumentException(exceptionToString(e));
         }

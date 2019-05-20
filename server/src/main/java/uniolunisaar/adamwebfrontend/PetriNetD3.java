@@ -96,7 +96,7 @@ public class PetriNetD3 {
         String objectiveString;
         String ltlFormulaString;
         if (shouldIncludeObjective) {
-            Condition.Objective objective = getObjectiveOfPetriNet(net);
+            Condition.Objective objective = Adam.getCondition(net);
             boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
                     objective.equals(Condition.Objective.A_REACHABILITY) ||
                     objective.equals(Condition.Objective.A_SAFETY);
@@ -110,11 +110,6 @@ public class PetriNetD3 {
         PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objectiveString,
                 ltlFormulaString);
         return new Gson().toJsonTree(petriNetD3);
-    }
-
-    public static Condition.Objective getObjectiveOfPetriNet(PetriNetWithTransits net) throws CouldNotFindSuitableConditionException {
-        String conditionString = Adam.getCondition(net).toString();
-        return Condition.Objective.valueOf(conditionString);
     }
 
     /**
