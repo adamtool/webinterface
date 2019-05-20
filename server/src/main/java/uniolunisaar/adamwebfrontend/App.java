@@ -142,6 +142,8 @@ public class App {
 
         postWithPetriGame("/toggleIsInitialTokenFlow", this::handleToggleIsInitialTokenFlow);
 
+        postWithPetriGame("/setIsSpecial", this::handleSetIsSpecial);
+
         postWithPetriGame("/setInitialToken", this::handleSetInitialToken);
 
         postWithPetriGame("/setWinningCondition", this::handleSetWinningCondition);
@@ -726,6 +728,24 @@ public class App {
 
         Place place = petriGame.getPlace(nodeId);
         place.setInitialToken(tokens);
+
+        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
+        return successResponse(petriGameClient);
+    }
+
+    private Object handleSetIsSpecial(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String nodeId = body.get("nodeId").getAsString();
+        boolean special = body.get("isSpecial").getAsBoolean();
+
+        Place place = petriGame.getPlace(nodeId);
+        if (special) {
+            Condition.Objective condition = Adam.getCondition(petriGame);
+            petriGame.setSpecial(place, condition);
+        } else {
+            throw new IllegalArgumentException("Setting a place to be 'not special' is not yet " +
+                    "implemented.");
+        }
 
         JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
         return successResponse(petriGameClient);
