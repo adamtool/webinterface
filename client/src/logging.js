@@ -14,10 +14,13 @@ export default {
   logServerMessage,
   sendErrorNotification,
   sendSuccessNotification,
+  resetNotification,
   subscribeErrorNotification,
   subscribeSuccessNotification,
+  subscribeResetNotification,
   unsubscribeErrorNotification,
-  unsubscribeSuccessNotification
+  unsubscribeSuccessNotification,
+  unsubscribeResetNotification
 }
 
 const EventBus = new Vue()
@@ -38,12 +41,20 @@ function subscribeSuccessNotification (callback) {
   EventBus.$on('successNotification', callback)
 }
 
+function subscribeResetNotification (callback) {
+  EventBus.$on('resetNotification', callback)
+}
+
 function unsubscribeErrorNotification (callback) {
   EventBus.$off('errorNotification', callback)
 }
 
 function unsubscribeSuccessNotification (callback) {
   EventBus.$off('successNotification', callback)
+}
+
+function unsubscribeResetNotification (callback) {
+  EventBus.$off('resetNotification', callback)
 }
 
 function logServerMessage (message, level) {
@@ -85,4 +96,9 @@ function sendErrorNotification (message) {
 function sendSuccessNotification (message) {
   log(message)
   EventBus.$emit('successNotification', message)
+}
+
+// This is intended to e.g. trigger clearing the message from the transient notification area
+function resetNotification () {
+  EventBus.$emit('resetNotification')
 }

@@ -307,6 +307,11 @@
         logging.logObject(event)
         switch (event.key) {
           case 'Escape':
+            // Allow pressing Esc to clear the temporary notification area
+            if (this.selectedNodes.length === 0 &&
+              this.drawTokenFlowHandler.getCurrentState() === 0) {
+              logging.resetNotification()
+            }
             this.selectedNodes = []
             this.drawTokenFlowHandler.reset()
             break
@@ -659,7 +664,10 @@
           this.updateD3()
         }
 
+        const getCurrentState = () => state
+
         return {
+          getCurrentState,
           reset,
           finish: () => {
             const sourceId = source ? source.id : undefined

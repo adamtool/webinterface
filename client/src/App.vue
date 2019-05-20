@@ -407,6 +407,7 @@
       logging.subscribeSuccessNotification(message => {
         this.showNotification(message, '#009900')
       })
+      logging.subscribeResetNotification(this.resetNotification)
 
       this.parseAPTToPetriGame(this.apt)
       this.getListOfJobs()
@@ -1279,6 +1280,9 @@
         const timeStamp = format(new Date(), 'HH:mm:ss')
         this.notificationMessage = timeStamp + ' ' + message
         this.notificationColor = color
+      },
+      resetNotification: function () {
+        this.notificationMessage = ''
       }
     }
   }
