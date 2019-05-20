@@ -224,6 +224,7 @@
                        v-on:renameNode='renameNode'
                        v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
                        v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                       v-on:setIsSpecial='setIsSpecial'
                        v-on:fireTransition='fireTransition'
                        v-on:setInitialToken='setInitialToken'
                        v-on:setWinningCondition='setWinningCondition'
@@ -563,6 +564,7 @@
           'renameNode',
           'toggleEnvironmentPlace',
           'toggleIsInitialTokenFlow',
+          'setIsSpecial',
           'fireTransition',
           'setInitialToken',
           'setWinningCondition',
@@ -1164,6 +1166,20 @@
         this.restEndpoints.toggleIsInitialTokenFlow({
           petriGameId: this.petriGame.uuid,
           nodeId: nodeId
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        }).catch(() => {
+          logging.logError('Network error')
+        })
+      },
+      setIsSpecial: function ({nodeId, newSpecialValue}) {
+        console.log('processing setIsSpecial event')
+        this.restEndpoints.setIsSpecial({
+          petriGameId: this.petriGame.uuid,
+          nodeId,
+          newSpecialValue
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.petriGame.net = response.data.result

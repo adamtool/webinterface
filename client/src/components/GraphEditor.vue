@@ -423,7 +423,9 @@
           },
           {
             title: 'Toggle isSpecial',
-            disabled: true // TODO implement this
+            action: this.toggleIsSpecial,
+            disabled: (d) => d.isSpecial || this.winningCondition === 'LTL'
+            // TODO implement removeSpecial
           }
         ]
 
@@ -824,10 +826,11 @@
           }
         }
 
-        function snap(x) {
+        function snap (x) {
           return roundToMiddle(60, x)
         }
-        function roundToMiddle(roundingNumber, x) {
+
+        function roundToMiddle (roundingNumber, x) {
           return x + (roundingNumber / 2 - (x % roundingNumber))
         }
       },
@@ -1161,6 +1164,12 @@
       },
       toggleIsInitialTokenFlow: function (d) {
         this.$emit('toggleIsInitialTokenFlow', d.id)
+      },
+      toggleIsSpecial: function (d) {
+        this.$emit('setIsSpecial', {
+          nodeId: d.id,
+          newSpecialValue: !d.isSpecial
+        })
       },
       renameNodeInteractively: function (d) {
         const callback = (text) => {

@@ -736,7 +736,7 @@ public class App {
     private Object handleSetIsSpecial(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
-        boolean special = body.get("isSpecial").getAsBoolean();
+        boolean special = body.get("newSpecialValue").getAsBoolean();
 
         Place place = petriGame.getPlace(nodeId);
         if (special) {
