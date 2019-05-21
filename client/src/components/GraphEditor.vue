@@ -429,8 +429,7 @@
           {
             title: 'Toggle isSpecial',
             action: this.toggleIsSpecial,
-            disabled: (d) => d.isSpecial || this.winningCondition === 'LTL'
-            // TODO implement removeSpecial
+            disabled: this.winningCondition === 'LTL'
           }
         ]
 

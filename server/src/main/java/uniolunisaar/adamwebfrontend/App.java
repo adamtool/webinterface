@@ -739,12 +739,11 @@ public class App {
         boolean special = body.get("newSpecialValue").getAsBoolean();
 
         Place place = petriGame.getPlace(nodeId);
+        Condition.Objective condition = Adam.getCondition(petriGame);
         if (special) {
-            Condition.Objective condition = Adam.getCondition(petriGame);
             petriGame.setSpecial(place, condition);
         } else {
-            throw new IllegalArgumentException("Setting a place to be 'not special' is not yet " +
-                    "implemented.");
+            petriGame.removeSpecial(place, condition);
         }
 
         JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
