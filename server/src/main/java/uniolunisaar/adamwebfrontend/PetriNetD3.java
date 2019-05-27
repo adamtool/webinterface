@@ -182,18 +182,37 @@ public class PetriNetD3 {
             return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false, -1);
         }
 
-        static PetriNetNode of(PetriGame game, Place place) {
+        static PetriNetNode of(PetriGame game, Place place) throws CouldNotFindSuitableConditionException {
             String id = place.getId();
             String label = id;
             boolean isEnvironment = game.isEnvironment(place);
             boolean isBad = game.isBad(place);
             long initialToken = place.getInitialToken().getValue();
-            boolean isSpecial = game.isSpecial(place);
+
+            Condition.Objective objective = Adam.getCondition(game);
+            boolean isSpecial = isSpecial(game, place, objective);
+
             boolean isInitialTokenFlow = game.isInitialTransit(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
 
             int partition = game.hasPartition(place) ? game.getPartition(place) : -1;
             return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial, isInitialTokenFlow, partition);
+        }
+
+        static boolean isSpecial(PetriGame game, Place place, Condition.Objective objective) {
+            switch (objective) {
+                case A_REACHABILITY:
+                case E_REACHABILITY:
+                    return game.isReach(place);
+                case A_BUCHI:
+                case E_BUCHI:
+                    return game.isBuchi(place);
+                case A_SAFETY:
+                case E_SAFETY:
+                    return game.isBad(place);
+                default:
+                    return false;
+            }
         }
 
     }
