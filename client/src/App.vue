@@ -748,11 +748,11 @@
               this.aptParseError = response.data.message
               this.aptParseErrorLineNumber = response.data.lineNumber
               this.aptParseErrorColumnNumber = response.data.columnNumber
-              logging.log(`There was an error when we tried to parse the APT: ${response.data.message}`)
+              logging.logVerbose(`There was an error when we tried to parse the APT: ${response.data.message}`)
               break
             default:
-              logging.log('We got an unexpected response from the server when trying to parse the APT:')
-              logging.log(response)
+              logging.logError('We got an unexpected response from the server when trying to parse the APT:')
+              logging.logError(response)
               this.aptParseStatus = 'error'
               this.aptParseError = 'Unexpected response from server: ' + JSON.stringify(response, null, 2)
               this.aptParseErrorLineNumber = -1
