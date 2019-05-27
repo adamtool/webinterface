@@ -1,6 +1,12 @@
 <!--This component is here to show the list of pending/finished jobs in a table.-->
 <template>
-  <table class="job-list-table" style="width: 100%;">
+  <div v-if="visibleJobListings.length === 0"
+       style="text-align: center;">
+    (No jobs found)
+  </div>
+  <table v-else
+    class="job-list-table"
+    style="width: 100%;">
     <tr>
       <th>APT</th>
       <th>Job type</th>
@@ -10,7 +16,7 @@
       <th>Action</th>
       <th>Delete</th>
     </tr>
-    <tr v-for="listing in jobListings"
+    <tr v-for="listing in visibleJobListings"
         :key="`${listing.canonicalApt}%${listing.type}`">
       <td>{{ listing.canonicalApt.split('\n')[0] }}</td>
       <td>{{ formatJobType(listing.type) }}</td>
@@ -96,6 +102,19 @@
       jobListings: {
         type: Array,
         required: true
+      },
+      useModelChecking: {
+        type: Boolean,
+        required: true
+      }
+    },
+    computed: {
+      visibleJobListings: function () {
+        const visibleJobTypes = this.useModelChecking ? ['MODEL_CHECKING_RESULT']
+          : ['GRAPH_GAME_BDD', 'EXISTS_WINNING_STRATEGY', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD']
+        return this.jobListings.filter(listing => {
+          return visibleJobTypes.includes(listing.type)
+        })
       }
     },
     methods: {

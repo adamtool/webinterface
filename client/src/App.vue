@@ -16,19 +16,14 @@
         </v-card-title>
         <v-card-text>
           <JobList
-            v-if="availableBDDGraphListings.length > 0"
             :jobListings="availableBDDGraphListings"
+            :useModelChecking="useModelChecking"
             style="background-color: white;"
             @getGraphGameBdd="getGraphGameBdd"
             @getWinningStrategy="getWinningStrategy"
             @getGraphStrategyBdd="getGraphStrategyBdd"
             @cancelJob="cancelJob"
             @deleteJob="deleteJob"/>
-          <div
-            v-else
-            style="text-align: center;">
-            (No jobs found)
-          </div>
           <div
             style="padding-top: 15px;">
             <v-expansion-panel>
