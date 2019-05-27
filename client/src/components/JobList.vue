@@ -116,8 +116,11 @@
             return 'Winning Strategy'
           case 'GRAPH_STRATEGY_BDD':
             return 'Graph Strategy BDD'
+          case 'MODEL_CHECKING_RESULT':
+            return 'Model Checking Result'
+          default:
+            return jobType
         }
-        return jobType
       },
       modelCheckingResultColor (result) {
         switch (result) {
