@@ -1082,30 +1082,6 @@
       }
     },
     methods: {
-      checkLtlFormula: async function () {
-        try {
-          const ltlFormula = this.ltlFormula
-          const response = await this.modelCheckingRoutes.checkLtlFormula(
-            this.petriGameId, this.ltlFormula)
-          console.log(response)
-          switch (response.data.status) {
-            case 'success':
-              logging.sendSuccessNotification(
-                `Got model checking result for the formula "${ltlFormula}": ${response.data.result}`)
-              this.$emit('gotModelCheckingResult', response.data.result)
-              break
-            case 'error':
-              logging.sendErrorNotification(
-                `Couldn't check the LTL formula. Reason: ${response.data.message}`)
-              break
-            default:
-              logging.sendErrorNotification(
-                `Couldn't check the LTL formula.  Unknown status from server: ${response.data.status}`)
-          }
-        } catch (error) {
-          logging.sendErrorNotification('Error checking LTL formula: ' + error)
-        }
-      },
       // Send request to server to get the model checking net.
       // TODO: Show a progress indicator.  Show the net in the GUI.
       // TODO Consider putting this in App instead of in GraphEditor
