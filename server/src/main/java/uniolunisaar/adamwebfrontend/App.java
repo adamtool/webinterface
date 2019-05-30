@@ -379,13 +379,13 @@ public class App {
         return (req, res) -> {
             // Read request parameters.  Get the Petri Game that should be operated upon and the
             // UserContext of the client making the request.
-            JsonElement body = parser.parse(req.body());
-            String gameId = body.getAsJsonObject().get("petriGameId").getAsString();
+            JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
+            String gameId = requestBody.get("petriGameId").getAsString();
             // This throws an exception if the Petri Game's not there
             PetriGame petriGame = getPetriGame(gameId);
 
             // If there isn't a UserContext object for the given browserUuid, create one.
-            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
+            String browserUuidString = requestBody.get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
             if (!userContextMap.containsKey(browserUuid)) {
                 userContextMap.put(browserUuid, new UserContext());
@@ -394,20 +394,21 @@ public class App {
 
             // Check if this job has already been requested
             String canonicalApt = Adam.getAPT(petriGame);
-            Map<String, Job<T>> jobMap =
-                    (Map<String, Job<T>>) userContext.getJobMap(jobType);
-            if (jobMap.containsKey(canonicalApt)) {
+            JobKey jobKey = new JobKey(canonicalApt, requestBody);
+            Map<JobKey, Job<T>> jobMap =
+                    (Map<JobKey, Job<T>>) userContext.getJobMap(jobType);
+            if (jobMap.containsKey(jobKey)) {
                 return errorResponse("There is already a Job of " +
                         "\"" + jobType.toString() + "\" " +
                         "for the given Petri Game. Its status: " +
-                        jobMap.get(canonicalApt).getStatus());
+                        jobMap.get(jobKey).getStatus());
             }
 
             // Create the job and queue it up
             Job<T> job = jobFactory.createJob(
                     petriGame,
-                    body.getAsJsonObject());
-            jobMap.put(canonicalApt, job);
+                    requestBody.getAsJsonObject());
+            jobMap.put(jobKey, job);
             job.queue(executorService);
 
             // If the job runs and completes immediately, send the result to the client.
@@ -415,7 +416,7 @@ public class App {
             return tryToGetResultWithinFiveSeconds(
                     job,
                     serializerFunction,
-                    canonicalApt,
+                    jobKey,
                     petriGame
             );
         };
@@ -432,7 +433,7 @@ public class App {
      * @param job              the job that has been queued just now
      * @param resultSerializer A function to serialize the result of the job into JSON
      *                         for the client to consume
-     * @param canonicalApt     The 'canonical apt' of the Petri Game that is being analyzed
+     * @param jobKey     A key containing all parameters needed to uniquely identify the job
      * @param petriGame        The Petri Game that is being analyzed
      * @param <T>              The result type of the job
      * @return A JSON response with the result, if it is ready within five seconds.
@@ -441,14 +442,14 @@ public class App {
      */
     private static <T> Object tryToGetResultWithinFiveSeconds(Job<T> job,
                                                               SerializerFunction<T> resultSerializer,
-                                                              String canonicalApt,
+                                                              JobKey jobKey,
                                                               PetriGame petriGame) throws Exception {
         try {
             T result = job.getResult(5, TimeUnit.SECONDS);
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.addProperty("message", "The job is finished.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("jobKey", new Gson().toJson(jobKey));
             responseJson.addProperty("jobComplete", true);
             responseJson.add("result", resultSerializer.apply(result));
             responseJson.add("petriGame", PetriNetD3.ofPetriGame(petriGame));
@@ -458,7 +459,7 @@ public class App {
             responseJson.addProperty("status", "success");
             responseJson.addProperty("message", "The job is taking more " +
                     "than five seconds.  It will run in the background.");
-            responseJson.addProperty("canonicalApt", canonicalApt);
+            responseJson.addProperty("jobKey", new Gson().toJson(jobKey));
             responseJson.addProperty("jobComplete", false);
             return responseJson.toString();
         } catch (CancellationException e) {
@@ -481,7 +482,12 @@ public class App {
         return (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
-            String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+
+            // Deserialize the JobKey
+            Type type = new TypeToken<JobKey>() {
+            }.getType();
+            JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+            JobKey jobKey = gson.fromJson(jobKeyJson, type);
 
             // If there isn't a UserContext object for the given browserUuid, create one.
             String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
@@ -491,13 +497,13 @@ public class App {
             }
             UserContext userContext = userContextMap.get(browserUuid);
 
-            Map<String, Job<T>> jobMap =
-                    (Map<String, Job<T>>) userContext.getJobMap(jobType);
-            if (!jobMap.containsKey(canonicalApt)) {
+            Map<JobKey, Job<T>> jobMap =
+                    (Map<JobKey, Job<T>>) userContext.getJobMap(jobType);
+            if (!jobMap.containsKey(jobKey)) {
                 return errorResponse("The requested job was not found.");
             }
 
-            Job<T> job = jobMap.get(canonicalApt);
+            Job<T> job = jobMap.get(jobKey);
             if (!job.isFinished()) {
                 return errorResponse("The requested job is not yet finished.  " +
                         "Its status: " + job.getStatus());
@@ -524,35 +530,45 @@ public class App {
 
     private Object handleCancelJob(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
-        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         String typeString = body.getAsJsonObject().get("type").getAsString();
-        JobType type = JobType.valueOf(typeString);
-        Map<String, ? extends Job> jobMap = uc.getJobMap(type);
-        if (!jobMap.containsKey(canonicalApt)) {
+        JobType jobType = JobType.valueOf(typeString);
+
+        Type t = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, t);
+
+        Map<JobKey, ? extends Job> jobMap = uc.getJobMap(jobType);
+        if (!jobMap.containsKey(jobKey)) {
             return errorResponse("The requested job was not found.");
         }
-        Job job = jobMap.get(canonicalApt);
+        Job job = jobMap.get(jobKey);
         job.cancel();
         return successResponse(new JsonPrimitive(true));
     }
 
     private Object handleDeleteJob(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
-        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
         String typeString = body.getAsJsonObject().get("type").getAsString();
-        JobType type = JobType.valueOf(typeString);
-        Map<String, ? extends Job> jobMap = uc.getJobMap(type);
-        if (!jobMap.containsKey(canonicalApt)) {
+        JobType jobType = JobType.valueOf(typeString);
+
+        Type t = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, t);
+
+        Map<JobKey, ? extends Job> jobMap = uc.getJobMap(jobType);
+        if (!jobMap.containsKey(jobKey)) {
             return errorResponse("The requested job was not found.");
         }
-        Job job = jobMap.get(canonicalApt);
+        Job job = jobMap.get(jobKey);
         try {
             job.cancel();
         } catch (UnsupportedOperationException e) {
             // We don't care if the job is not eligible to be canceled.
             // We just want to cancel it if that's possible.
         }
-        jobMap.remove(canonicalApt);
+        jobMap.remove(jobKey);
         return successResponse(new JsonPrimitive(true));
     }
 

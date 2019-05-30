@@ -1,5 +1,6 @@
 package uniolunisaar.adamwebfrontend;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
@@ -25,32 +26,32 @@ public class UserContext {
     This allows us to recognize when a user is trying to repeat an operation unnecessarily.
     */
     // Store the results of "getGraphGameBdd"
-    public final Map<String, Job<BDDGraphExplorer>> graphGameBddsOfApts =
+    public final Map<JobKey, Job<BDDGraphExplorer>> graphGameBddsOfApts =
             new ConcurrentHashMap<>();
     // Store the results of "existsWinningStrategy"
-    public final Map<String, Job<Boolean>> existsWinningStrategyOfApts =
+    public final Map<JobKey, Job<Boolean>> existsWinningStrategyOfApts =
             new ConcurrentHashMap<>();
     // Store the results of "getStrategyBdd"
-    public final Map<String, Job<PetriGame>> strategyBddsOfApts =
+    public final Map<JobKey, Job<PetriGame>> strategyBddsOfApts =
             new ConcurrentHashMap<>();
     // Store the results of "getGraphStrategyBdd"
-    public final Map<String, Job<BDDGraph>> graphStrategyBddsOfApts =
+    public final Map<JobKey, Job<BDDGraph>> graphStrategyBddsOfApts =
             new ConcurrentHashMap<>();
     // "Check LTL formula"
-    public final Map<String, Job<ModelCheckingResult>> modelCheckingResults =
+    public final Map<JobKey, Job<ModelCheckingResult>> modelCheckingResults =
             new ConcurrentHashMap<>();
 
     public JsonArray getJobList() {
         JsonArray result = new JsonArray();
-        for (String aptOfPetriGame : this.graphGameBddsOfApts.keySet()) {
-            Job<BDDGraphExplorer> job = this.graphGameBddsOfApts.get(aptOfPetriGame);
-            JsonObject entry = jobListEntry(job, aptOfPetriGame, GRAPH_GAME_BDD);
+        for (JobKey jobKey : this.graphGameBddsOfApts.keySet()) {
+            Job<BDDGraphExplorer> job = this.graphGameBddsOfApts.get(jobKey);
+            JsonObject entry = jobListEntry(job, jobKey, GRAPH_GAME_BDD);
             result.add(entry);
         }
-        for (String canonicalApt : this.existsWinningStrategyOfApts.keySet()) {
-            Job<Boolean> job = this.existsWinningStrategyOfApts.get(canonicalApt);
+        for (JobKey jobKey : this.existsWinningStrategyOfApts.keySet()) {
+            Job<Boolean> job = this.existsWinningStrategyOfApts.get(jobKey);
             JsonObject entry = jobListEntry(
-                    job, canonicalApt, EXISTS_WINNING_STRATEGY);
+                    job, jobKey, EXISTS_WINNING_STRATEGY);
             if (job.getStatus() == COMPLETED) {
                 try {
                     entry.addProperty("result", job.getResult());
@@ -63,23 +64,23 @@ public class UserContext {
             }
             result.add(entry);
         }
-        for (String canonicalApt : this.strategyBddsOfApts.keySet()) {
-            Job<PetriGame> job = this.strategyBddsOfApts.get(canonicalApt);
+        for (JobKey jobKey : this.strategyBddsOfApts.keySet()) {
+            Job<PetriGame> job = this.strategyBddsOfApts.get(jobKey);
             JsonObject entry = jobListEntry(
-                    job, canonicalApt, WINNING_STRATEGY);
+                    job, jobKey, WINNING_STRATEGY);
             result.add(entry);
         }
-        for (String canonicalApt : this.graphStrategyBddsOfApts.keySet()) {
-            Job<BDDGraph> job = this.graphStrategyBddsOfApts.get(canonicalApt);
+        for (JobKey jobKey : this.graphStrategyBddsOfApts.keySet()) {
+            Job<BDDGraph> job = this.graphStrategyBddsOfApts.get(jobKey);
             JsonObject entry = jobListEntry(
-                    job, canonicalApt, GRAPH_STRATEGY_BDD
+                    job, jobKey, GRAPH_STRATEGY_BDD
             );
             result.add(entry);
         }
-        for (String canonicalApt : this.modelCheckingResults.keySet()) {
-            Job<ModelCheckingResult> job = this.modelCheckingResults.get(canonicalApt);
+        for (JobKey jobKey : this.modelCheckingResults.keySet()) {
+            Job<ModelCheckingResult> job = this.modelCheckingResults.get(jobKey);
             JsonObject entry = jobListEntry(
-                    job, canonicalApt, MODEL_CHECKING_RESULT);
+                    job, jobKey, MODEL_CHECKING_RESULT);
             if (job.getStatus() == COMPLETED) {
                 try {
                     entry.addProperty(
@@ -99,11 +100,11 @@ public class UserContext {
     }
 
     private static JsonObject jobListEntry(Job job,
-                                           String canonicalApt,
+                                           JobKey jobKey,
                                            JobType jobType) {
         JsonObject entry = new JsonObject();
         entry.addProperty("type", jobType.toString());
-        entry.addProperty("canonicalApt", canonicalApt);
+        entry.addProperty("jobKey", new Gson().toJson(jobKey));
         entry.addProperty("jobStatus", job.getStatus().toString());
         entry.addProperty("timeStarted", job.getTimeStarted().getEpochSecond());
         entry.addProperty("timeFinished", job.getTimeFinished().getEpochSecond());
@@ -113,7 +114,7 @@ public class UserContext {
         return entry;
     }
 
-    public Map<String, ? extends Job> getJobMap(JobType jobType) {
+    public Map<JobKey, ? extends Job> getJobMap(JobType jobType) {
         switch (jobType) {
             case EXISTS_WINNING_STRATEGY:
                 return existsWinningStrategyOfApts;
