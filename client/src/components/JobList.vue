@@ -17,8 +17,8 @@
       <th>Delete</th>
     </tr>
     <tr v-for="listing in visibleJobListings"
-        :key="`${listing.canonicalApt}%${listing.type}`">
-      <td>{{ listing.canonicalApt.split('\n')[0] }}</td>
+        :key="`${listing.jobKey}%${listing.type}`">
+      <td>{{ listing.jobKey.canonicalApt.split('\n')[0] }}</td>
       <td>{{ formatJobType(listing.type) }}</td>
       <td>{{ formatDate(listing.timeStarted) }}</td>
       <td>{{ formatDate(listing.timeFinished) }}</td>
@@ -59,24 +59,24 @@
       <!--Button to load the result of a job or cancel a pending job-->
       <td v-if="listing.jobStatus === 'COMPLETED' && listing.type === 'GRAPH_GAME_BDD'"
           class="highlightable">
-        <button @click="$emit('getGraphGameBdd', listing.canonicalApt)">Load</button>
+        <button @click="$emit('getGraphGameBdd', listing.jobKey)">Load</button>
       </td>
       <td
         v-else-if="listing.jobStatus === 'COMPLETED'
                      && listing.type === 'WINNING_STRATEGY'"
         class="highlightable">
-        <button @click="$emit('getWinningStrategy', listing.canonicalApt)">Load</button>
+        <button @click="$emit('getWinningStrategy', listing.jobKey)">Load</button>
       </td>
       <td
         v-else-if="listing.jobStatus === 'COMPLETED'
                      && listing.type === 'GRAPH_STRATEGY_BDD'"
         class="highlightable">
-        <button @click="$emit('getGraphStrategyBdd', listing.canonicalApt)">Load</button>
+        <button @click="$emit('getGraphStrategyBdd', listing.jobKey)">Load</button>
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.jobStatus)"
           class="highlightable">
         <button @click="$emit('cancelJob',
-        { canonicalApt: listing.canonicalApt, type: listing.type})">
+        { jobKey: listing.jobKey, type: listing.type})">
           Cancel
         </button>
       </td>
@@ -84,7 +84,7 @@
 
       <td>
         <button @click="$emit('deleteJob',
-          { canonicalApt: listing.canonicalApt, type: listing.type})">
+          { jobKey: listing.jobKey, type: listing.type})">
           Delete
         </button>
       </td>

@@ -882,60 +882,60 @@
             this.availableBDDGraphListings = response.data.listings
           })
       },
-      // Load the Graph Game BDD corresponding to the given canonical APT string
-      getGraphGameBdd: function (canonicalApt) {
+      // Load the Graph Game BDD corresponding to the given job key
+      getGraphGameBdd: function (jobKey) {
         this.restEndpoints.getGraphGameBDD({
-          canonicalApt: canonicalApt
+          jobKey
         }).then(response => {
           switch (response.data.status) {
             case 'error':
               logging.sendErrorNotification(response.data.message)
               break
             case 'success':
-              this.apt = canonicalApt
+              this.apt = jobKey.canonicalApt
               this.graphGameBDD = response.data.result
-              this.graphGameCanonicalApt = canonicalApt
+              this.graphGameCanonicalApt = jobKey.canonicalApt
               this.switchToGraphGameBDDTab()
               logging.sendSuccessNotification('Loaded Graph Game BDD')
           }
         })
       },
-      getWinningStrategy: function (canonicalApt) {
+      getWinningStrategy: function (jobKey) {
         this.restEndpoints.getWinningStrategy({
-          canonicalApt: canonicalApt
+          jobKey: jobKey
         }).then(response => {
           switch (response.data.status) {
             case 'error':
               logging.sendErrorNotification(response.data.message)
               break
             case 'success':
-              this.apt = canonicalApt
+              this.apt = jobKey.canonicalApt
               this.strategyBDD = response.data.result
               this.switchToStrategyBDDTab()
               logging.sendSuccessNotification('Loaded Winning Strategy')
           }
         })
       },
-      getGraphStrategyBdd: function (canonicalApt) {
+      getGraphStrategyBdd: function (jobKey) {
         this.restEndpoints.getGraphStrategyBDD({
-          canonicalApt
+          jobKey
         }).then(response => {
           switch (response.data.status) {
             case 'error':
               logging.sendErrorNotification(response.data.message)
               break
             case 'success':
-              this.apt = canonicalApt
+              this.apt = jobKey.canonicalApt
               this.graphStrategyBDD = response.data.result
               this.switchToGraphStrategyBDDTab()
               logging.sendSuccessNotification('Loaded Graph Strategy BDD')
           }
         })
       },
-      cancelJob: function ({canonicalApt, type}) {
+      cancelJob: function ({jobKey, type}) {
         logging.sendSuccessNotification('Sent request to cancel the job of ' + type)
         this.restEndpoints.cancelJob({
-          canonicalApt,
+          jobKey,
           type
         }).then(response => {
           switch (response.data.status) {
@@ -949,10 +949,10 @@
           }
         }).then(this.getListOfJobs)
       },
-      deleteJob: function ({canonicalApt, type}) {
+      deleteJob: function ({jobKey, type}) {
         logging.sendSuccessNotification('Sent request to delete the job')
         this.restEndpoints.deleteJob({
-          canonicalApt,
+          jobKey,
           type
         }).then(response => {
           switch (response.data.status) {
