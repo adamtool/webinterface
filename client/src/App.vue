@@ -140,7 +140,7 @@
                            label="Calculate Graph Game BDD incrementally"/>
           </hsc-menu-bar-item>
         </template>
-        <hsc-menu-bar-item @click.native="getModelCheckingNet" label="Get Model Checking Net"
+        <hsc-menu-bar-item @click.native="calculateModelCheckingNet" label="Get Model Checking Net"
                            v-if="useModelChecking"/>
         <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check LTL Formula"
                            v-if="useModelChecking"/>
@@ -223,7 +223,6 @@
                        v-on:fireTransition='fireTransition'
                        v-on:setInitialToken='setInitialToken'
                        v-on:setWinningCondition='setWinningCondition'
-                       v-on:gotModelCheckingNet='gotModelCheckingNet'
                        showEditorTools
                        :useModelChecking="useModelChecking"
                        :useDistributedSynthesis="useDistributedSynthesis"
@@ -564,7 +563,8 @@
           'fireTransition',
           'setInitialToken',
           'setWinningCondition',
-          'calculateModelCheckingResult'
+          'calculateModelCheckingResult',
+          'calculateModelCheckingNet'
         ]
         const funs = {}
         endpoints.forEach(endpointName => {
@@ -759,9 +759,27 @@
         })
         this.aptParseStatus = 'running'
       }, 200),
-      getModelCheckingNet: function () {
+      calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
-        this.$refs.graphEditorPetriGame.getModelCheckingNet()
+        this.restEndpoints.calculateModelCheckingNet({
+          params: {
+            formula: this.$refs.graphEditorPetriGame.ltlFormula
+          },
+          petriGameId: this.petriGame.uuid
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
+            if (response.data.jobComplete) {
+              this.modelCheckingNet = net
+            } else {
+              // The message from server will explain that the job has been enqueued.
+              // TODO Provide a notification after it is finished
+              logging.sendSuccessNotification(response.data.message)
+            }
+          })
+        }).catch(() => {
+          logging.logError('Network error in calculateModelCheckingNet')
+        })
       },
       checkLtlFormula: function () {
         // this.$refs.menubar.deactivate()
@@ -1227,11 +1245,6 @@
         }).catch(() => {
           logging.logError('Network error')
         })
-      },
-      gotModelCheckingNet: function (net) {
-        console.log('App: Got model checking net')
-        console.log(net)
-        this.modelCheckingNet = net
       },
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')

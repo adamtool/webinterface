@@ -3,6 +3,7 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
@@ -40,6 +41,7 @@ public class UserContext {
     // "Check LTL formula"
     public final Map<JobKey, Job<ModelCheckingResult>> modelCheckingResults =
             new ConcurrentHashMap<>();
+    public final Map<JobKey, Job<PetriNet>> modelCheckingNets = new ConcurrentHashMap<>();
 
     public JsonArray getJobList() {
         JsonArray result = new JsonArray();
@@ -95,6 +97,13 @@ public class UserContext {
             }
             result.add(entry);
         }
+        for (JobKey jobKey : this.modelCheckingNets.keySet()) {
+            Job<PetriNet> job = this.modelCheckingNets.get(jobKey);
+            JsonObject entry = jobListEntry(
+                    job, jobKey, MODEL_CHECKING_NET
+            );
+            result.add(entry);
+        }
 
         return result;
     }
@@ -126,6 +135,8 @@ public class UserContext {
                 return graphGameBddsOfApts;
             case MODEL_CHECKING_RESULT:
                 return modelCheckingResults;
+            case MODEL_CHECKING_NET:
+                return modelCheckingNets;
             default:
                 throw new IllegalArgumentException("Missing switch case in getJobMap for " +
                         "the following JobType: " + jobType.toString());

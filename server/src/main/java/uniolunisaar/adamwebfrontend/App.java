@@ -104,6 +104,13 @@ public class App {
                 JobType.MODEL_CHECKING_RESULT,
                 App::serializeModelCheckingResult));
 
+        post("/calculateModelCheckingNet", handleQueueJob(
+                this::calculateModelCheckingNet,
+                JobType.MODEL_CHECKING_NET,
+                (PetriNet modelCheckingNet) ->
+                        PetriNetD3.ofPetriGame(new PetriGame(modelCheckingNet))
+        ));
+
         post("/getWinningStrategy", handleGetJobResult(
                 JobType.WINNING_STRATEGY,
                 PetriNetD3::ofNetWithoutObjective
@@ -155,7 +162,6 @@ public class App {
 
         postWithPetriGame("/parseLtlFormula", this::handleParseLtlFormula);
 
-        postWithPetriGame("/getModelCheckingNet", this::handleGetModelCheckingNet);
         postWithPetriGame("/checkLtlFormula", this::handleCheckLtlFormula);
 
         postWithPetriGame("/fireTransition", this::handleFireTransition);
@@ -434,7 +440,7 @@ public class App {
      * @param job              the job that has been queued just now
      * @param resultSerializer A function to serialize the result of the job into JSON
      *                         for the client to consume
-     * @param jobKey     A key containing all parameters needed to uniquely identify the job
+     * @param jobKey           A key containing all parameters needed to uniquely identify the job
      * @param petriGame        The Petri Game that is being analyzed
      * @param <T>              The result type of the job
      * @return A JSON response with the result, if it is ready within five seconds.
@@ -864,15 +870,13 @@ public class App {
         }
     }
 
-    private Object handleGetModelCheckingNet(Request req, Response res, PetriGame petriGame) throws NotSupportedGameException, InterruptedException, ParseException, IOException, ExternalToolException, NotConvertableException, ProcessNotStartedException, CouldNotFindSuitableConditionException {
-        JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String formula = body.get("formula").getAsString();
-
-        RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-
-        PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
-
-        return successResponse(PetriNetD3.ofPetriGame(new PetriGame(modelCheckingNet)));
+    private Job<PetriNet> calculateModelCheckingNet(PetriGame petriGame, JsonObject params) {
+        String formula = params.get("formula").getAsString();
+        return new Job<>(() -> {
+            RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+            PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
+            return modelCheckingNet;
+        }, petriGame.getName());
     }
 
     private Job<ModelCheckingResult> calculateModelCheckingResult(

@@ -1082,34 +1082,6 @@
       }
     },
     methods: {
-      // Send request to server to get the model checking net.
-      // TODO: Show a progress indicator.  Show the net in the GUI.
-      // TODO Consider putting this in App instead of in GraphEditor
-      getModelCheckingNet: async function () {
-        try {
-          const response = await this.modelCheckingRoutes.getModelCheckingNet(this.petriGameId, this.ltlFormula)
-          console.log(response)
-          switch (response.data.status) {
-            case 'success':
-              logging.log('Got model checking net')
-              logging.logObject(response.data.result)
-              // TODO Definitely should refactor this so it's not taking place in this component.
-              // I would like the SVG element to be its own thing.
-              // The buttons for auto-layout and so on; the place to enter the LTL formula and
-              // winning condition; the toolbar to select "draw token flows" / "insert sysplace"
-              // etc. should each be their own components, I think.
-              this.$emit('gotModelCheckingNet', response.data.result)
-              break
-            case 'error':
-              logging.sendErrorNotification(`Couldn't get model checking net. Reason: ` + response.data.message)
-              break
-            default:
-              logging.sendErrorNotification(`Couldn't get model checking net.  Unknown status from server: ` + response.data.status)
-          }
-        } catch (error) {
-          logging.sendErrorNotification('Error getting model checking net: ' + error)
-        }
-      },
       parseLtlFormula: debounce(async function () {
         console.log('Parsing Ltl Formula')
         // TODO Show 'running' status somehow in gui to distinguish it from 'success'

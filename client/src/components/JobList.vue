@@ -5,8 +5,8 @@
     (No jobs found)
   </div>
   <table v-else
-    class="job-list-table"
-    style="width: 100%;">
+         class="job-list-table"
+         style="width: 100%;">
     <tr>
       <th>APT</th>
       <th>Job type</th>
@@ -110,8 +110,9 @@
     },
     computed: {
       visibleJobListings: function () {
-        const visibleJobTypes = this.useModelChecking ? ['MODEL_CHECKING_RESULT']
-          : ['GRAPH_GAME_BDD', 'EXISTS_WINNING_STRATEGY', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD']
+        const visibleJobTypes = this.useModelChecking ?
+          ['MODEL_CHECKING_RESULT', 'MODEL_CHECKING_NET'] :
+          ['GRAPH_GAME_BDD', 'EXISTS_WINNING_STRATEGY', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD']
         return this.jobListings.filter(listing => {
           return visibleJobTypes.includes(listing.type)
         })
@@ -137,6 +138,8 @@
             return 'Graph Strategy BDD'
           case 'MODEL_CHECKING_RESULT':
             return 'Model Checking Result'
+          case 'MODEL_CHECKING_NET':
+            return 'Model Checking Net'
           default:
             return jobType
         }
