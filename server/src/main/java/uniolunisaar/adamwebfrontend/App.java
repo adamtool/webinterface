@@ -449,7 +449,7 @@ public class App {
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("status", "success");
             responseJson.addProperty("message", "The job is finished.");
-            responseJson.addProperty("jobKey", new Gson().toJson(jobKey));
+            responseJson.add("jobKey", new Gson().toJsonTree(jobKey));
             responseJson.addProperty("jobComplete", true);
             responseJson.add("result", resultSerializer.apply(result));
             responseJson.add("petriGame", PetriNetD3.ofPetriGame(petriGame));
@@ -459,7 +459,7 @@ public class App {
             responseJson.addProperty("status", "success");
             responseJson.addProperty("message", "The job is taking more " +
                     "than five seconds.  It will run in the background.");
-            responseJson.addProperty("jobKey", new Gson().toJson(jobKey));
+            responseJson.add("jobKey", new Gson().toJsonTree(jobKey));
             responseJson.addProperty("jobComplete", false);
             return responseJson.toString();
         } catch (CancellationException e) {

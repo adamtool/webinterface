@@ -104,7 +104,7 @@ public class UserContext {
                                            JobType jobType) {
         JsonObject entry = new JsonObject();
         entry.addProperty("type", jobType.toString());
-        entry.addProperty("jobKey", new Gson().toJson(jobKey));
+        entry.add("jobKey", new Gson().toJsonTree(jobKey));
         entry.addProperty("jobStatus", job.getStatus().toString());
         entry.addProperty("timeStarted", job.getTimeStarted().getEpochSecond());
         entry.addProperty("timeFinished", job.getTimeFinished().getEpochSecond());
