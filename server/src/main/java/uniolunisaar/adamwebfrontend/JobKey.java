@@ -2,6 +2,8 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonObject;
 
+import java.util.Objects;
+
 /**
  * We store Jobs in Map<JobKey, Job>
  * A JobKey contains the info necessary to uniquely identify a job
@@ -9,6 +11,7 @@ import com.google.gson.JsonObject;
  */
 public class JobKey {
     private final String canonicalApt;
+
     private final JsonObject requestBody;
 
     /**
@@ -21,11 +24,17 @@ public class JobKey {
         this.requestBody = requestBody;
     }
 
-    public String getCanonicalApt() {
-        return canonicalApt;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JobKey jobKey = (JobKey) o;
+        return canonicalApt.equals(jobKey.canonicalApt) &&
+                requestBody.equals(jobKey.requestBody);
     }
 
-    public JsonObject getRequestBody() {
-        return requestBody;
+    @Override
+    public int hashCode() {
+        return Objects.hash(canonicalApt, requestBody);
     }
 }
