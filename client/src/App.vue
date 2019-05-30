@@ -769,7 +769,9 @@
         return
         // TODO Finish up this feature of queuing up model checking jobs so they run asynchronously
         this.restEndpoints.calculateModelCheckingResult({
-          formula: this.$refs.graphEditorPetriGame.ltlFormula,
+          params: {
+            formula: this.$refs.graphEditorPetriGame.ltlFormula
+          },
           petriGameId: this.petriGame.uuid
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -801,7 +803,8 @@
       calculateExistsWinningStrategy: function () {
         logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')
         this.restEndpoints.calculateExistsWinningStrategy({
-          petriGameId: this.petriGame.uuid
+          petriGameId: this.petriGame.uuid,
+          params: {}
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
@@ -831,7 +834,8 @@
         const uuid = this.petriGame.uuid
         logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
         this.restEndpoints.calculateStrategyBDD({
-          petriGameId: uuid
+          petriGameId: uuid,
+          params: {}
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Load the strategy BDD if it is finished within 5-10 seconds.  Otherwise just show a message
@@ -857,7 +861,8 @@
         const uuid = this.petriGame.uuid
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Strategy BDD')
         this.restEndpoints.calculateGraphStrategyBDD({
-          petriGameId: uuid
+          petriGameId: uuid,
+          params: {}
         }).then(response => {
           this.withErrorHandling(response, response => {
             if (response.data.jobComplete) {
@@ -972,7 +977,9 @@
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
         this.restEndpoints.calculateGraphGameBDD({
           petriGameId: uuid,
-          incremental
+          params: {
+            incremental
+          }
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Load the graph game BDD if it is finished within 5-10 seconds.  Otherwise just show a message

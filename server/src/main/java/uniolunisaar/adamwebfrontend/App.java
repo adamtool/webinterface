@@ -381,6 +381,7 @@ public class App {
             // UserContext of the client making the request.
             JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
             String gameId = requestBody.get("petriGameId").getAsString();
+            JsonObject jobParams = requestBody.get("params").getAsJsonObject();
             // This throws an exception if the Petri Game's not there
             PetriGame petriGame = getPetriGame(gameId);
 
@@ -394,7 +395,7 @@ public class App {
 
             // Check if this job has already been requested
             String canonicalApt = Adam.getAPT(petriGame);
-            JobKey jobKey = new JobKey(canonicalApt, requestBody);
+            JobKey jobKey = new JobKey(canonicalApt, jobParams);
             Map<JobKey, Job<T>> jobMap =
                     (Map<JobKey, Job<T>>) userContext.getJobMap(jobType);
             if (jobMap.containsKey(jobKey)) {
@@ -407,7 +408,7 @@ public class App {
             // Create the job and queue it up
             Job<T> job = jobFactory.createJob(
                     petriGame,
-                    requestBody.getAsJsonObject());
+                    jobParams);
             jobMap.put(jobKey, job);
             job.queue(executorService);
 

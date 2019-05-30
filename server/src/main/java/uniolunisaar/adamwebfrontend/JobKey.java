@@ -12,16 +12,16 @@ import java.util.Objects;
 public class JobKey {
     private final String canonicalApt;
 
-    private final JsonObject requestBody;
+    private final JsonObject requestParams;
 
     /**
      * @param canonicalApt the 'canonical apt' representation of a Petri Game that the Job is
      *                     based on
-     * @param requestBody All other parameters related to the job
+     * @param requestParams All other parameters related to the job
      */
-    public JobKey(String canonicalApt, JsonObject requestBody) {
+    public JobKey(String canonicalApt, JsonObject requestParams) {
         this.canonicalApt = canonicalApt;
-        this.requestBody = requestBody;
+        this.requestParams = requestParams;
     }
 
     @Override
@@ -30,11 +30,11 @@ public class JobKey {
         if (o == null || getClass() != o.getClass()) return false;
         JobKey jobKey = (JobKey) o;
         return canonicalApt.equals(jobKey.canonicalApt) &&
-                requestBody.equals(jobKey.requestBody);
+                requestParams.equals(jobKey.requestParams);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(canonicalApt, requestBody);
+        return Objects.hash(canonicalApt, requestParams);
     }
 }
