@@ -577,14 +577,19 @@ public class App {
             throws ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
-        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+
+        Type type = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, type);
+
         int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-        if (!uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
+        if (!uc.graphGameBddsOfApts.containsKey(jobKey)) {
             return errorResponse("There is no Graph Game BDD yet for that APT input");
         }
 
-        Job<BDDGraphExplorer> job = uc.graphGameBddsOfApts.get(canonicalApt);
+        Job<BDDGraphExplorer> job = uc.graphGameBddsOfApts.get(jobKey);
         if (!job.isFinished()) {
             return errorResponse("The job for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + job.getStatus());
@@ -602,13 +607,18 @@ public class App {
             throws ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
-        String canonicalApt = body.getAsJsonObject().get("canonicalApt").getAsString();
+
+        Type type = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, type);
+
         int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-        if (!uc.graphGameBddsOfApts.containsKey(canonicalApt)) {
+        if (!uc.graphGameBddsOfApts.containsKey(jobKey)) {
             return errorResponse("There is no Graph Game BDD yet for that APT input");
         }
-        Job<BDDGraphExplorer> job = uc.graphGameBddsOfApts.get(canonicalApt);
+        Job<BDDGraphExplorer> job = uc.graphGameBddsOfApts.get(jobKey);
         if (!job.isFinished()) {
             return errorResponse("The job for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + job.getStatus());

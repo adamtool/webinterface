@@ -452,9 +452,9 @@
         strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
-        // This is a key in a map used on the server to store the Graph Game BDDs.  It is the "canonical" APT
-        // representation of the Petri Game that the GraphBDD belongs to.
-        graphGameCanonicalApt: '',
+        // This is a key in a map used on the server to store the Graph Game BDDs.
+        // It uniquely identifies our own graphGameBdd on the server.
+        graphGameJobKey: {},
         modelCheckingNet: null,
         isLeftPaneVisible: true,
         isLogVisible: false,
@@ -899,7 +899,7 @@
             case 'success':
               this.apt = jobKey.canonicalApt
               this.graphGameBDD = response.data.result
-              this.graphGameCanonicalApt = jobKey.canonicalApt
+              this.graphGameJobKey = jobKey
               this.switchToGraphGameBDDTab()
               logging.sendSuccessNotification('Loaded Graph Game BDD')
           }
@@ -986,7 +986,7 @@
             if (response.data.jobComplete) {
               this.apt = response.data.jobKey.canonicalApt
               this.graphGameBDD = response.data.result
-              this.graphGameCanonicalApt = response.data.jobKey.canonicalApt
+              this.graphGameJobKey = response.data.jobKey
               // TODO Get Petri Game from server in caes partition annotations have been added
               // this.petriGame.net = response.data.petriGame
               this.switchToGraphGameBDDTab()
@@ -1003,7 +1003,7 @@
       },
       toggleGraphGameStatePostset: function (stateId) {
         this.restEndpoints.toggleGraphGameBDDNodePostset({
-          canonicalApt: this.graphGameCanonicalApt,
+          jobKey: this.graphGameJobKey,
           stateId: stateId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1015,7 +1015,7 @@
       },
       toggleGraphGameStatePreset: function (stateId) {
         this.restEndpoints.toggleGraphGameBDDNodePreset({
-          canonicalApt: this.graphGameCanonicalApt,
+          jobKey: this.graphGameJobKey,
           stateId: stateId
         }).then(response => {
           this.withErrorHandling(response, response => {
