@@ -775,7 +775,7 @@
           this.withErrorHandling(response, response => {
             // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
             if (response.data.jobComplete) {
-              this.apt = response.data.canonicalApt
+              this.apt = response.data.jobKey.canonicalApt
               switch (response.data.result) {
                 case 'TRUE':
                   logging.sendSuccessNotification(
@@ -806,7 +806,7 @@
           this.withErrorHandling(response, response => {
             // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
             if (response.data.jobComplete) {
-              this.apt = response.data.canonicalApt
+              this.apt = response.data.jobKey.canonicalApt
               this.petriGame.hasWinningStrategy = response.data.result
               if (this.petriGame.hasWinningStrategy) {
                 // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
@@ -841,7 +841,7 @@
               // We expect an updated petriGame here because there might have been partition annotations added.
               this.petriGame.net = response.data.petriGame
               this.switchToStrategyBDDTab()
-              this.apt = response.data.canonicalApt
+              this.apt = response.data.jobKey.canonicalApt
               logging.sendSuccessNotification(response.data.message)
             } else {
               // The message from server will explain that the job has been enqueued.
@@ -866,7 +866,7 @@
               // We expect an updated petriGame here because there might have been partition annotations added.
               this.petriGame.net = response.data.petriGame
               this.switchToGraphStrategyBDDTab()
-              this.apt = response.data.canonicalApt
+              this.apt = response.data.jobKey.canonicalApt
               logging.sendSuccessNotification(response.data.message)
             } else {
               logging.sendSuccessNotification(response.data.message)
@@ -977,9 +977,9 @@
           this.withErrorHandling(response, response => {
             // Load the graph game BDD if it is finished within 5-10 seconds.  Otherwise just show a message
             if (response.data.jobComplete) {
-              this.apt = response.data.canonicalApt
+              this.apt = response.data.jobKey.canonicalApt
               this.graphGameBDD = response.data.result
-              this.graphGameCanonicalApt = response.data.canonicalApt
+              this.graphGameCanonicalApt = response.data.jobKey.canonicalApt
               // TODO Get Petri Game from server in caes partition annotations have been added
               // this.petriGame.net = response.data.petriGame
               this.switchToGraphGameBDDTab()
