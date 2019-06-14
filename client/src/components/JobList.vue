@@ -10,6 +10,7 @@
     <tr>
       <th>APT</th>
       <th>Job type</th>
+      <th>Options</th>
       <th>Time started</th>
       <th>Time finished</th>
       <th>Status</th>
@@ -17,9 +18,10 @@
       <th>Delete</th>
     </tr>
     <tr v-for="listing in visibleJobListings"
-        :key="`${listing.jobKey}%${listing.type}`">
+        :key="`${JSON.stringify(listing.jobKey)}%${listing.type}`">
       <td>{{ listing.jobKey.canonicalApt.split('\n')[0] }}</td>
       <td>{{ formatJobType(listing.type) }}</td>
+      <td>{{ formatRequestParamsShort(listing.jobKey.requestParams) }}</td>
       <td>{{ formatDate(listing.timeStarted) }}</td>
       <td>{{ formatDate(listing.timeFinished) }}</td>
 
@@ -125,6 +127,15 @@
         }
         return format(secondsSinceUnixEpoch * 1000, 'HH:mm:ss')
         // You can add 'MMM Do' to get month and day
+      },
+      formatRequestParamsShort(requestParams) {
+        const str = JSON.stringify(requestParams)
+        const maxLength = 40
+        if (str.length > 40) {
+          return str.slice(0, 40) + ' [...]' // TODO mouseover to see full params
+        } else {
+          return str
+        }
       },
       formatJobType (jobType) {
         switch (jobType) {
