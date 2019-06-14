@@ -21,7 +21,26 @@
         :key="`${JSON.stringify(listing.jobKey)}%${listing.type}`">
       <td>{{ listing.jobKey.canonicalApt.split('\n')[0] }}</td>
       <td>{{ formatJobType(listing.type) }}</td>
-      <td>{{ formatRequestParamsShort(listing.jobKey.requestParams) }}</td>
+
+      <!--Options-->
+      <template v-if="JSON.stringify(listing.jobKey.requestParams).length > 40">
+        <v-tooltip bottom style="display: none;">
+          <template #activator="data">
+            <td v-on="data.on"
+                class="highlightable">
+              {{ JSON.stringify(listing.jobKey.requestParams).slice(0, 40) }}...
+              <v-icon>more</v-icon>
+            </td>
+          </template>
+          <div>{{ JSON.stringify(listing.jobKey.requestParams, null, 2) }}</div>
+        </v-tooltip>
+      </template>
+      <template v-else>
+        <td>
+          {{ JSON.stringify(listing.jobKey.requestParams) }}
+        </td>
+      </template>
+
       <td>{{ formatDate(listing.timeStarted) }}</td>
       <td>{{ formatDate(listing.timeFinished) }}</td>
 
@@ -127,15 +146,6 @@
         }
         return format(secondsSinceUnixEpoch * 1000, 'HH:mm:ss')
         // You can add 'MMM Do' to get month and day
-      },
-      formatRequestParamsShort(requestParams) {
-        const str = JSON.stringify(requestParams)
-        const maxLength = 40
-        if (str.length > 40) {
-          return str.slice(0, 40) + ' [...]' // TODO mouseover to see full params
-        } else {
-          return str
-        }
       },
       formatJobType (jobType) {
         switch (jobType) {
