@@ -16,7 +16,7 @@ public class JobKey {
 
     /**
      * @param canonicalApt the 'canonical apt' representation of a Petri Game that the Job is
-     *                     based on
+     *                     based on.  Obtained using Adam.getApt(petriGame)
      * @param requestParams All other parameters related to the job
      */
     public JobKey(String canonicalApt, JsonObject requestParams) {
