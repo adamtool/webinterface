@@ -7,7 +7,11 @@ function makeSocket (socketurl) {
   const emitter = new Vue({
     methods: {
       send (message) {
-        if (socket.readyState === 1) { socket.send(message) }
+        if (socket.readyState === 1) {
+          socket.send(message)
+        } else {
+          throw new Error('Websocket is not yet ready')
+        }
       }
     }
   })
@@ -16,6 +20,12 @@ function makeSocket (socketurl) {
   }
   socket.onerror = function (err) {
     emitter.$emit('error', err)
+  }
+  socket.onopen = function () {
+    emitter.$emit('open')
+  }
+  socket.onclose = function () {
+    emitter.$emit('close')
   }
 
   return emitter

@@ -358,27 +358,6 @@
       AboutAdamWeb
     },
     created: function () {
-      // Connect to the server and subscribe to ADAM's log output
-      // TODO Capture the error and display it in the log on screen if the websocket fails to open
-      let socket
-      try {
-        socket = makeWebSocket(this.webSocketUrl)
-      } catch (exception) {
-        logging.logError('An exception was thrown when opening the websocket connection to the server.  ' +
-          'Server log messages may not be displayed.  Exception:')
-        logging.logError(exception.message)
-        return
-      }
-      socket.$on('message', message => {
-        const messageParsed = JSON.parse(message)
-        logging.logServerMessage(messageParsed.message, messageParsed.level)
-      })
-      socket.$on('error', () => {
-        logging.logError('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
-          'be displayed.')
-      })
-    },
-    mounted: function () {
       console.log(`Adam Web App.vue Configuration:
       useDistributedSynthesis: ${this.useDistributedSynthesis}
       useModelChecking: ${this.useModelChecking}
@@ -402,11 +381,30 @@
         this.showNotification(message, '#009900')
       })
       logging.subscribeResetNotification(this.resetNotification)
-
-      this.parseAPTToPetriGame(this.apt)
-      this.getListOfJobs()
       logging.log('Hello!')
 
+      // Connect to the server and subscribe to ADAM's log output
+      // TODO Capture the error and display it in the log on screen if the websocket fails to open
+      let socket
+      try {
+        socket = makeWebSocket(this.webSocketUrl)
+      } catch (exception) {
+        logging.sendErrorNotification('An exception was thrown when opening the websocket connection to the server.  ' +
+          'Server log messages may not be displayed.  Exception: ' + exception.message)
+        return
+      }
+      socket.$on('message', message => {
+        const messageParsed = JSON.parse(message)
+        logging.logServerMessage(messageParsed.message, messageParsed.level)
+      })
+      socket.$on('error', message => {
+        logging.sendErrorNotification('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
+          'be displayed.')
+      })
+      this.parseAPTToPetriGame(this.apt)
+      this.getListOfJobs()
+    },
+    mounted: function () {
       // Initialize draggable, resizable pane
       this.horizontalSplit = this.createHorizontalSplit()
     },
