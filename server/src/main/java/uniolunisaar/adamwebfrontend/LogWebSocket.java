@@ -22,15 +22,7 @@ public class LogWebSocket {
     // Store sessions if you want to, for example, broadcast a message to all users
     private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
 
-    // TODO Think about initializing this some better way... Seems kind of brittle to have a System.exit()
-    // call happen in the initialization of a static class.
-    // TODO Figure out how to handle multiple users.  Not everyone should see everyone else's output.
-    private static final PrintStream printStreamVerbose = makePrintStream(1);
-    private static final PrintStream printStreamNormal = makePrintStream(2);
-    private static final PrintStream printStreamWarning = makePrintStream(3);
-    private static final PrintStream printStreamError = makePrintStream(4);
-
-    private static PrintStream makePrintStream(int loggingLevel) {
+    public static PrintStream makePrintStream(int loggingLevel) {
         OutputStream outputStream = makeOutputStream(loggingLevel);
         try {
             return new PrintStream(outputStream, false, "UTF-8");
@@ -69,25 +61,16 @@ public class LogWebSocket {
                 JsonObject messageJson = new JsonObject();
                 messageJson.addProperty("level", loggingLevel);
                 messageJson.addProperty("message", message);
+                /**
+                 * Broadcast the message to all sessions.
+                 * TODO Send it to only sessions with the correct UUID
+                 */
                 for (Session session : sessions) {
                     session.getRemote().sendString(messageJson.toString());
                 }
             }
         };
 
-    }
-
-    public static PrintStream getPrintStreamVerbose() {
-        return printStreamVerbose;
-    }
-    public static PrintStream getPrintStreamNormal() {
-        return printStreamNormal;
-    }
-    public static PrintStream getPrintStreamWarning() {
-        return printStreamWarning;
-    }
-    public static PrintStream getPrintStreamError() {
-        return printStreamError;
     }
 
     @OnWebSocketConnect

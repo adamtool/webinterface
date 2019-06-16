@@ -7,7 +7,9 @@ import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
+import uniolunisaar.adam.tools.Logger;
 
+import java.io.PrintStream;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +29,12 @@ public class UserContext {
     public final ExecutorService executorService;
     private final UUID uuid; // Stored for debugging purposes
     private final ThreadGroup threadGroup;
+
+    // Each user has their own logging streams
+    private static final PrintStream printStreamVerbose = LogWebSocket.makePrintStream(1);
+    private static final PrintStream printStreamNormal = LogWebSocket.makePrintStream(2);
+    private static final PrintStream printStreamWarning = LogWebSocket.makePrintStream(3);
+    private static final PrintStream printStreamError = LogWebSocket.makePrintStream(4);
 
     // Store the results of "getGraphGameBdd"
     public final Map<JobKey, Job<BDDGraphExplorer>> graphGameBddsOfApts =
@@ -50,9 +58,22 @@ public class UserContext {
         this.uuid = uuid;
         this.threadGroup = new ThreadGroup("UserContext " + uuid.toString());
         this.executorService = Executors.newSingleThreadExecutor((Runnable jobRunnable) -> {
-            Thread thread = new Thread(this.threadGroup, jobRunnable, "my thread");
+            Thread thread = new Thread(
+                    this.threadGroup,
+                    jobRunnable,
+                    "Thread of UserContext " + uuid.toString());
             return thread;
         });
+        // Set ADAM's loggers to use our specific PrintStreams for the threads in this user
+        // session's ThreadGroup.
+        // This only needs to be done once per ThreadGroup.
+        // (Logger.getInstance() returns a ThreadGroup-local instance.)
+        new Thread(this.threadGroup, () -> {
+            Logger.getInstance().setVerboseMessageStream(printStreamVerbose);
+            Logger.getInstance().setShortMessageStream(printStreamNormal);
+            Logger.getInstance().setWarningStream(printStreamWarning);
+            Logger.getInstance().setErrorStream(printStreamError);
+        }).start();
     }
 
     public JsonArray getJobList() {

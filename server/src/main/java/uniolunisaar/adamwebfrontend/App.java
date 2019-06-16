@@ -59,14 +59,6 @@ public class App {
     }
 
     public void startServer() {
-        // Tell ADAM to send all of its messages to our websocket clients instead of stdout
-        Logger.getInstance().setVerboseMessageStream(LogWebSocket.getPrintStreamVerbose());
-        Logger.getInstance().setShortMessageStream(LogWebSocket.getPrintStreamNormal());
-        Logger.getInstance().setWarningStream(LogWebSocket.getPrintStreamWarning());
-        Logger.getInstance().setErrorStream(LogWebSocket.getPrintStreamError());
-//            Logger.OUTPUT output = Logger.OUTPUT.STREAMS;
-//            Logger.getInstance().setOutput(output);
-
         webSocket("/log", LogWebSocket.class);
 
         staticFiles.location("/static");
