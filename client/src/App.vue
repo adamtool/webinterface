@@ -398,9 +398,20 @@
         logging.logServerMessage(messageParsed.message, messageParsed.level)
       })
       socket.$on('error', message => {
-        logging.sendErrorNotification('The websocket connection to the server threw an error.  ADAM\'s log output might not ' +
-          'be displayed.')
+        logging.sendErrorNotification('The websocket connection to the server threw an error.  ' +
+          'ADAM\'s log output might not be displayed.')
       })
+      socket.$on('close', () => {
+        logging.sendErrorNotification('The websocket connection to the server was closed.  ' +
+          'ADAM\'s log output might not be displayed.')
+      })
+      socket.$on('open', () => {
+        // Make sure we get notifications from the server corresponding to our unique session ID
+        socket.send(JSON.stringify({
+          browserUuid: this.browserUuid
+        }))
+      })
+
       this.parseAPTToPetriGame(this.apt)
       this.getListOfJobs()
     },

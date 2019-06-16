@@ -31,10 +31,10 @@ public class UserContext {
     private final ThreadGroup threadGroup;
 
     // Each user has their own logging streams
-    private static final PrintStream printStreamVerbose = LogWebSocket.makePrintStream(1);
-    private static final PrintStream printStreamNormal = LogWebSocket.makePrintStream(2);
-    private static final PrintStream printStreamWarning = LogWebSocket.makePrintStream(3);
-    private static final PrintStream printStreamError = LogWebSocket.makePrintStream(4);
+    private final PrintStream printStreamVerbose;
+    private final PrintStream printStreamNormal;
+    private final PrintStream printStreamWarning;
+    private final PrintStream printStreamError;
 
     // Store the results of "getGraphGameBdd"
     public final Map<JobKey, Job<BDDGraphExplorer>> graphGameBddsOfApts =
@@ -68,12 +68,16 @@ public class UserContext {
         // session's ThreadGroup.
         // This only needs to be done once per ThreadGroup.
         // (Logger.getInstance() returns a ThreadGroup-local instance.)
-        new Thread(this.threadGroup, () -> {
+        this.printStreamVerbose = LogWebSocket.makePrintStream(1, this.uuid);
+        this.printStreamNormal = LogWebSocket.makePrintStream(2, this.uuid);
+        this.printStreamWarning = LogWebSocket.makePrintStream(3, this.uuid);
+        this.printStreamError = LogWebSocket.makePrintStream(4, this.uuid);
+        this.executorService.submit(() -> {
             Logger.getInstance().setVerboseMessageStream(printStreamVerbose);
             Logger.getInstance().setShortMessageStream(printStreamNormal);
             Logger.getInstance().setWarningStream(printStreamWarning);
             Logger.getInstance().setErrorStream(printStreamError);
-        }).start();
+        });
     }
 
     public JsonArray getJobList() {

@@ -1,6 +1,7 @@
 package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -12,6 +13,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Queue;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -21,9 +24,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class LogWebSocket {
     // Store sessions if you want to, for example, broadcast a message to all users
     private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
+    private static final JsonParser parser = new JsonParser();
+    private static final ConcurrentHashMap<Session, UUID> sessionUuids = new ConcurrentHashMap<>();
 
-    public static PrintStream makePrintStream(int loggingLevel) {
-        OutputStream outputStream = makeOutputStream(loggingLevel);
+    /**
+     * @return A PrintStream that will only send output to Websocket clients that have associated
+     * themselves with the given UserContext via its UUID.
+     */
+    public static PrintStream makePrintStream(int loggingLevel, UUID userContextUuid) {
+        OutputStream outputStream = makeOutputStream(loggingLevel, userContextUuid);
         try {
             return new PrintStream(outputStream, false, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -39,7 +48,7 @@ public class LogWebSocket {
 
     }
 
-    private static OutputStream makeOutputStream(int loggingLevel) {
+    private static OutputStream makeOutputStream(int loggingLevel, UUID userContextUuid) {
         return new OutputStream() {
             StringBuffer sb = new StringBuffer();
 
@@ -62,11 +71,14 @@ public class LogWebSocket {
                 messageJson.addProperty("level", loggingLevel);
                 messageJson.addProperty("message", message);
                 /**
-                 * Broadcast the message to all sessions.
-                 * TODO Send it to only sessions with the correct UUID
+                 * Broadcast the message to all sessions associated with the correct user context
+                 * UUID.
                  */
                 for (Session session : sessions) {
-                    session.getRemote().sendString(messageJson.toString());
+                    UUID sessionUuid = sessionUuids.get(session);
+                    if (userContextUuid.equals(sessionUuid)) {
+                        session.getRemote().sendString(messageJson.toString());
+                    }
                 }
             }
         };
@@ -87,13 +99,16 @@ public class LogWebSocket {
     public void message(Session session, String message) throws IOException {
         System.out.println("Got: " + message);   // Print message
         session.getRemote().sendString(message); // and send it back
-    }
+        JsonObject messageJson = parser.parse(message).getAsJsonObject();
 
-    // Send a message to all connected clients
-    public static void broadcastMessage(String message) throws IOException {
-        for (Session session : sessions) {
-            session.getRemote().sendString(message);
+        if (messageJson.has("browserUuid")) {
+            String browserUuidString = messageJson.get("browserUuid").getAsString();
+            UUID browserUuid = UUID.fromString(browserUuidString);
+            sessionUuids.put(session, browserUuid);
+        } else {
+            throw new IllegalArgumentException("Got an unrecognizable message over a websocket.\n" +
+                    "Message: " + message + "\nSession: " + session.getRemoteAddress().toString());
         }
-
     }
+
 }
