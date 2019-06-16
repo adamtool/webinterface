@@ -383,34 +383,7 @@
       logging.subscribeResetNotification(this.resetNotification)
       logging.log('Hello!')
 
-      // Connect to the server and subscribe to ADAM's log output
-      // TODO Capture the error and display it in the log on screen if the websocket fails to open
-      let socket
-      try {
-        socket = makeWebSocket(this.webSocketUrl)
-      } catch (exception) {
-        logging.sendErrorNotification('An exception was thrown when opening the websocket connection to the server.  ' +
-          'Server log messages may not be displayed.  Exception: ' + exception.message)
-        return
-      }
-      socket.$on('message', message => {
-        const messageParsed = JSON.parse(message)
-        logging.logServerMessage(messageParsed.message, messageParsed.level)
-      })
-      socket.$on('error', message => {
-        logging.sendErrorNotification('The websocket connection to the server threw an error.  ' +
-          'ADAM\'s log output might not be displayed.')
-      })
-      socket.$on('close', () => {
-        logging.sendErrorNotification('The websocket connection to the server was closed.  ' +
-          'ADAM\'s log output might not be displayed.')
-      })
-      socket.$on('open', () => {
-        // Make sure we get notifications from the server corresponding to our unique session ID
-        socket.send(JSON.stringify({
-          browserUuid: this.browserUuid
-        }))
-      })
+      this.socket = this.initializeWebSocket()
 
       this.parseAPTToPetriGame(this.apt)
       this.getListOfJobs()
@@ -481,9 +454,11 @@
       }
     },
     watch: {
-      // When the browser UUID is changed, we should reload the list of jobs
+      // When the browser UUID is changed, we should reload the list of jobs and tell the server
+      // we want to subscribe to notifications corresponding to our new UUIUD
       browserUuid: function () {
         this.getListOfJobs()
+        this.updateWebSocketBrowserUuid()
       },
       // When we open the modal dialog, we should reload the list of jobs
       showJobList: function () {
@@ -611,6 +586,38 @@
       }
     },
     methods: {
+      initializeWebSocket: function () {
+        // Connect to the server and subscribe to ADAM's log output
+        let socket
+        try {
+          socket = makeWebSocket(this.webSocketUrl)
+        } catch (exception) {
+          const errorMessage = 'An exception was thrown when opening the websocket connection to the server.  ' +
+            'Server log messages may not be displayed.  Exception: ' + exception.message
+          logging.sendErrorNotification(errorMessage)
+          throw new Error(errorMessage) // TODO make errors get caught by a global error handler
+        }
+        socket.$on('message', message => {
+          const messageParsed = JSON.parse(message)
+          logging.logServerMessage(messageParsed.message, messageParsed.level)
+        })
+        socket.$on('error', message => {
+          logging.sendErrorNotification('The websocket connection to the server threw an error.  ' +
+            'ADAM\'s log output might not be displayed.')
+        })
+        socket.$on('close', () => {
+          logging.sendErrorNotification('The websocket connection to the server was closed.  ' +
+            'ADAM\'s log output might not be displayed.')
+        })
+        socket.$on('open', this.updateWebSocketBrowserUuid)
+        return socket
+      },
+      updateWebSocketBrowserUuid: function () {
+        // Make sure we get notifications from the server corresponding to our unique session ID
+        this.socket.send(JSON.stringify({
+          browserUuid: this.browserUuid
+        }))
+      },
       saveBrowserUuid: function () {
         if (this.browserUuidEntry === this.browserUuid) {
           return
