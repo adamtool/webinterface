@@ -41,10 +41,9 @@ import java.util.concurrent.*;
 public class App {
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
-
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     // Map from clientside-generated browserUuid to browser-specific list of running Jobs
     private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
-
     // Whenever we load a PetriGame from APT, we put it into this hashmap with a
     // server-generated UUID as a key.
     private final Map<String, PetriGame> petriGamesReadFromApt = new ConcurrentHashMap<>();
@@ -192,7 +191,7 @@ public class App {
             String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
             if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
+                userContextMap.put(browserUuid, new UserContext());
             }
             UserContext uc = userContextMap.get(browserUuid);
             Object answer = handler.handle(req, res, uc);
@@ -396,7 +395,7 @@ public class App {
             String browserUuidString = requestBody.get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
             if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
+                userContextMap.put(browserUuid, new UserContext());
             }
             UserContext userContext = userContextMap.get(browserUuid);
 
@@ -412,12 +411,12 @@ public class App {
                         jobMap.get(jobKey).getStatus());
             }
 
-            // Create the job and queue it up in the user's job queue
+            // Create the job and queue it up
             Job<T> job = jobFactory.createJob(
                     petriGame,
                     jobParams);
             jobMap.put(jobKey, job);
-            job.queue(userContext.executorService);
+            job.queue(executorService);
 
             // If the job runs and completes immediately, send the result to the client.
             // Otherwise, let them know that the job has been queued.
@@ -501,7 +500,7 @@ public class App {
             String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
             if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
+                userContextMap.put(browserUuid, new UserContext());
             }
             UserContext userContext = userContextMap.get(browserUuid);
 
