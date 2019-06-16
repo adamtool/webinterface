@@ -1888,7 +1888,7 @@
         // TODO (This would require a boolean AdamExtension to be added)
         this.nodes.forEach(node => {
           if (newNodePositions.hasOwnProperty(node.id)) {
-            logging.logVerbose('updating x/y coordinates of this node: ' + node.id)
+            // logging.logVerbose('updating x/y coordinates of this node: ' + node.id)
             const newPosition = newNodePositions[node.id]
             node.fx = newPosition.x
             node.fy = newPosition.y
