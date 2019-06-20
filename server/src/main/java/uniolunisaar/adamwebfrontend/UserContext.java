@@ -166,6 +166,11 @@ public class UserContext {
         return entry;
     }
 
+    /**
+     * @param job A job in this UserContext
+     * @return -1 if the job's not running or in the queue, else 1, 2, 3, ... for queued jobs
+     * (skipping the number zero).
+     */
     private int getQueuePosition(Job job) {
         if (job.getFuture() == null) {
             return -1;
@@ -177,7 +182,7 @@ public class UserContext {
         int index = 0;
         for (Runnable runnable : jobQueue) {
             if (runnable == future) {
-                return index;
+                return index + 1;
             }
             index++;
         }
