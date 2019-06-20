@@ -105,6 +105,7 @@
       <td v-else>-</td>
 
       <td v-if="listing.queuePosition !== -1">{{ listing.queuePosition }}</td>
+      <td v-else-if="['RUNNING', 'CANCELING'].includes(listing.jobStatus)">In progress</td>
       <td v-else>-</td>
 
       <td>
