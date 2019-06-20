@@ -410,6 +410,17 @@ public class App {
                     jobParams);
             jobMap.put(jobKey, job);
             job.queue(userContext.executorService);
+            /*
+            When the job's status changes, a websocket message should be sent to the client,
+            and the client should then poll the job list again to see what's new.
+            TODO Distinguish between different kinds of events (e.g. old status -> new status)
+                 in order to provide nice notifications about specific jobs
+            */
+            job.addObserver((Job ignored) -> {
+                JsonObject message = new JsonObject();
+                message.addProperty("type", "jobStatusChanged");
+                LogWebSocket.sendWebsocketMessage(browserUuid, message);
+            });
 
             // If the job runs and completes immediately, send the result to the client.
             // Otherwise, let them know that the job has been queued.

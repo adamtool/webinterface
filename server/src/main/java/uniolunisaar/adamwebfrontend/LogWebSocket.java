@@ -1,5 +1,6 @@
 package uniolunisaar.adamwebfrontend;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.eclipse.jetty.websocket.api.Session;
@@ -68,20 +69,30 @@ public class LogWebSocket {
                 String message = sb.toString();
                 sb.setLength(0);
                 JsonObject messageJson = new JsonObject();
+                messageJson.addProperty("type", "serverLogMessage");
                 messageJson.addProperty("level", loggingLevel);
                 messageJson.addProperty("message", message);
-                /**
-                 * Broadcast the message to all sessions associated with the correct user context
-                 * UUID.
-                 */
-                for (Session session : sessions) {
-                    UUID sessionUuid = sessionUuids.get(session);
-                    if (userContextUuid.equals(sessionUuid)) {
-                        session.getRemote().sendString(messageJson.toString());
-                    }
-                }
+                sendWebsocketMessage(userContextUuid, messageJson);
             }
         };
+
+    }
+
+    /**
+     * Broadcast a message to all sessions associated with the given user context.
+     */
+    public static void sendWebsocketMessage(UUID userContextUuid, JsonElement message) {
+        for (Session session : sessions) {
+            UUID sessionUuid = sessionUuids.get(session);
+            if (userContextUuid.equals(sessionUuid)) {
+                try {
+                    session.getRemote().sendString(message.toString());
+                } catch (IOException e) {
+                    System.err.println("IOException occurred when sending a websocket message");
+                    e.printStackTrace();
+                }
+            }
+        }
 
     }
 
@@ -97,8 +108,6 @@ public class LogWebSocket {
 
     @OnWebSocketMessage
     public void message(Session session, String message) throws IOException {
-        System.out.println("Got: " + message);   // Print message
-        session.getRemote().sendString(message); // and send it back
         JsonObject messageJson = parser.parse(message).getAsJsonObject();
 
         if (messageJson.has("browserUuid")) {

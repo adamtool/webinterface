@@ -391,7 +391,7 @@
       logging.subscribeResetNotification(this.resetNotification)
       logging.log('Hello!')
 
-      this.socket = this.initializeWebSocket()
+      this.socket = this.initializeWebSocket(0)
 
       this.parseAPTToPetriGame(this.apt)
       this.getListOfJobs()
@@ -599,7 +599,7 @@
       }
     },
     methods: {
-      initializeWebSocket: function () {
+      initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
         let socket
         try {
@@ -630,15 +630,25 @@
             'ADAM\'s log output might not be displayed.')
         })
         socket.$on('close', () => {
-          logging.sendErrorNotification('The websocket connection to the server was closed.  ' +
-            'ADAM\'s log output might not be displayed.',
-            'Reconnect', () => {
-              this.socket = this.initializeWebSocket()
-              logging.sendSuccessNotification('Re-established the connection to the server')
-
-            })
+          if (retryAttempts < 100) {
+            logging.sendErrorNotification('The websocket connection to the server was closed.  ' +
+              'ADAM\'s log output might not be displayed.  Attempting to reconnect in 1 second.  ' +
+              'Retry attempt #' + retryAttempts)
+            setTimeout(() => {
+              this.socket = this.initializeWebSocket(retryAttempts + 1)
+            }, 1000)
+          } else {
+            logging.sendErrorNotification('The websocket connection to the server was closed.  ' +
+              'ADAM\'s log output might not be displayed.',
+              'Reconnect', () => {
+                this.socket = this.initializeWebSocket(0)
+              })
+          }
         })
-        socket.$on('open', this.updateWebSocketBrowserUuid)
+        socket.$on('open', () => {
+          this.updateWebSocketBrowserUuid()
+          logging.sendSuccessNotification('Established the connection to the server')
+        })
         return socket
       },
       updateWebSocketBrowserUuid: function () {

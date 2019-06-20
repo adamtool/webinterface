@@ -3,6 +3,7 @@ package uniolunisaar.adamwebfrontend;
 import uniolunisaar.adam.tools.ProcessPool;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.concurrent.*;
 
 import static uniolunisaar.adamwebfrontend.JobStatus.*;
@@ -18,14 +19,25 @@ public class Job<T> {
     private final Callable<T> callable;
     private final String netId;
 
-    public Future<T> getFuture() {
-        return future;
-    }
-
     private Future<T> future = null;
     private volatile boolean isStarted = false;
     private volatile Instant timeStarted = Instant.EPOCH;
     private volatile Instant timeFinished = Instant.EPOCH;
+    private final HashSet<JobObserver> observers = new HashSet<>();
+
+    public Future<T> getFuture() {
+        return future;
+    }
+
+    public void addObserver(JobObserver observer) {
+        observers.add(observer);
+    }
+
+    private void fireJobStatusChanged() {
+        for (JobObserver observer : observers) {
+            observer.onJobChange(this);
+        }
+    }
 
     /**
      * @param v     a lambda that will return a value you want to have be computed
@@ -44,15 +56,19 @@ public class Job<T> {
         this.future = executorService.submit(() -> {
             isStarted = true;
             timeStarted = Instant.now();
+            fireJobStatusChanged();
             try {
                 T result = callable.call();
                 timeFinished = Instant.now();
+                fireJobStatusChanged();
                 return result;
             } catch (Throwable e) {
                 timeFinished = Instant.now();
+                fireJobStatusChanged();
                 throw e;
             }
         });
+        fireJobStatusChanged();
     }
 
     public void cancel() {
@@ -62,6 +78,7 @@ public class Job<T> {
         }
         this.future.cancel(true);
         ProcessPool.getInstance().destroyProcessesOfNet(netId);
+        fireJobStatusChanged();
     }
 
     public boolean isFinished() {
