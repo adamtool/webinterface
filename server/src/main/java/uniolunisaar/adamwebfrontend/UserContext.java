@@ -49,6 +49,7 @@ public class UserContext {
     public final Map<JobKey, Job<ModelCheckingResult>> modelCheckingResults =
             new ConcurrentHashMap<>();
     public final Map<JobKey, Job<PetriNet>> modelCheckingNets = new ConcurrentHashMap<>();
+    private final LinkedBlockingQueue<Runnable> jobQueue;
 
 
     public UserContext(UUID uuid) {
@@ -61,9 +62,10 @@ public class UserContext {
                     "Thread of UserContext " + uuid.toString());
             return thread;
         };
+        this.jobQueue = new LinkedBlockingQueue<Runnable>();
         this.executorService = new ThreadPoolExecutor(
                 1, 1, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(),
+                this.jobQueue,
                 threadFactory);
         // Set ADAM's loggers to use our specific PrintStreams for the threads in this user
         // session's ThreadGroup.
@@ -146,9 +148,9 @@ public class UserContext {
         return result;
     }
 
-    private static JsonObject jobListEntry(Job job,
-                                           JobKey jobKey,
-                                           JobType jobType) {
+    private JsonObject jobListEntry(Job job,
+                                    JobKey jobKey,
+                                    JobType jobType) {
         JsonObject entry = new JsonObject();
         entry.addProperty("type", jobType.toString());
         entry.add("jobKey", new Gson().toJsonTree(jobKey));
@@ -158,7 +160,28 @@ public class UserContext {
         if (job.getStatus() == FAILED) {
             entry.addProperty("failureReason", job.getFailedReason());
         }
+
+        int queuePosition = getQueuePosition(job);
+        entry.addProperty("queuePosition", queuePosition);
         return entry;
+    }
+
+    private int getQueuePosition(Job job) {
+        if (job.getFuture() == null) {
+            return -1;
+        }
+        Future future = job.getFuture();
+        if (!jobQueue.contains(future)) {
+            return -1;
+        }
+        int index = 0;
+        for (Runnable runnable : jobQueue) {
+            if (runnable == future) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
     }
 
     public Map<JobKey, ? extends Job> getJobMap(JobType jobType) {

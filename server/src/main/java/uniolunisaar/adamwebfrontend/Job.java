@@ -17,6 +17,11 @@ import static uniolunisaar.adamwebfrontend.JobStatus.*;
 public class Job<T> {
     private final Callable<T> callable;
     private final String netId;
+
+    public Future<T> getFuture() {
+        return future;
+    }
+
     private Future<T> future = null;
     private volatile boolean isStarted = false;
     private volatile Instant timeStarted = Instant.EPOCH;
