@@ -88,9 +88,11 @@ function logError (message) {
   log(message, 4)
 }
 
-function sendErrorNotification (message) {
+function sendErrorNotification (message, actionName, action) {
   logError(message)
-  EventBus.$emit('errorNotification', message)
+  EventBus.$emit('errorNotification', {
+    message, actionName, action
+  })
 }
 
 function sendSuccessNotification (message) {

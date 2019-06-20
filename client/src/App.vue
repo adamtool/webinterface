@@ -278,7 +278,12 @@
         </v-tab-item>
       </v-tabs>
     </div>
-    <div :style="`color: ${this.notificationColor}`">{{ notificationMessage }}</div>
+    <div :style="`color: ${this.notificationColor}`">
+      {{ notificationMessage }}
+      <a @click="quickAction.action">
+        {{ quickAction.actionName }}
+      </a>
+    </div>
     <hsc-window-style-metal>
       <hsc-window resizable
                   closeButton
@@ -296,14 +301,14 @@
 
 
 <script>
-  import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
+  import { aptFileTreeSynthesis, aptFileTreeModelChecking } from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
   import Vue from 'vue'
   import * as axios from 'axios'
-  import {debounce} from 'underscore'
+  import { debounce } from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   import Vuetify from 'vuetify'
@@ -325,14 +330,14 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from '@/logWebSocket'
-  import {saveFileAs} from './fileutilities'
+  import { saveFileAs } from './fileutilities'
 
   import Split from 'split.js'
 
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import {format} from 'date-fns'
+  import { format } from 'date-fns'
 
   const uuidv4 = require('uuid/v4')
 
@@ -374,8 +379,11 @@
       logging.subscribeLog(message => {
         this.messageLog.push(message)
       })
-      logging.subscribeErrorNotification(message => {
+      logging.subscribeErrorNotification(({message, actionName, action}) => {
         this.showNotification(message, '#cc0000')
+        if (actionName !== undefined && action !== undefined) {
+          this.showQuickActionLink(actionName, action)
+        }
       })
       logging.subscribeSuccessNotification(message => {
         this.showNotification(message, '#009900')
@@ -423,6 +431,11 @@
         // This shows temporary notifications after events happen, e.g. if an error happens when trying to solve a net
         notificationMessage: '',
         notificationColor: '',
+        // This creates a link that the user can click in the notification bar to do a certain action.
+        quickAction: {
+          actionName: '',
+          action: () => {}
+        },
         petriGame: {
           net: {
             links: [],
@@ -599,7 +612,18 @@
         }
         socket.$on('message', message => {
           const messageParsed = JSON.parse(message)
-          logging.logServerMessage(messageParsed.message, messageParsed.level)
+          switch (messageParsed.type) {
+            case 'serverLogMessage':
+              logging.logServerMessage(messageParsed.message, messageParsed.level)
+              break
+            case 'jobStatusChanged':
+              logging.logVerbose('A job\'s status changed.  Polling job list')
+              this.getListOfJobs()
+              break
+            default:
+              logging.sendErrorNotification('Got a malformed Websocket message from the server.  See log')
+              logging.logObject(message)
+          }
         })
         socket.$on('error', message => {
           logging.sendErrorNotification('The websocket connection to the server threw an error.  ' +
@@ -607,7 +631,12 @@
         })
         socket.$on('close', () => {
           logging.sendErrorNotification('The websocket connection to the server was closed.  ' +
-            'ADAM\'s log output might not be displayed.')
+            'ADAM\'s log output might not be displayed.',
+            'Reconnect', () => {
+              this.socket = this.initializeWebSocket()
+              logging.sendSuccessNotification('Re-established the connection to the server')
+
+            })
         })
         socket.$on('open', this.updateWebSocketBrowserUuid)
         return socket
@@ -1308,9 +1337,21 @@
         const timeStamp = format(new Date(), 'HH:mm:ss')
         this.notificationMessage = timeStamp + ' ' + message
         this.notificationColor = color
+        this.resetQuickAction()
       },
       resetNotification: function () {
         this.notificationMessage = ''
+        this.resetQuickAction()
+      },
+      resetQuickAction: function () {
+        this.quickAction = {
+          actionName: '',
+          action: () => {
+          }
+        }
+      },
+      showQuickActionLink: function (actionName, action) {
+        this.quickAction = {actionName, action}
       }
     }
   }
