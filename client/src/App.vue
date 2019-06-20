@@ -329,7 +329,7 @@
   import aptExampleDistributedSynthesis from './somewhatSmallExampleNotLtl.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
-  import makeWebSocket from '@/logWebSocket'
+  import makeWebSocket from './logWebSocket'
   import { saveFileAs } from './fileutilities'
 
   import Split from 'split.js'
@@ -625,9 +625,11 @@
               logging.logObject(message)
           }
         })
-        socket.$on('error', message => {
+        socket.$on('error', event => {
           logging.sendErrorNotification('The websocket connection to the server threw an error.  ' +
             'ADAM\'s log output might not be displayed.')
+          console.log('websocket error on next line: ')
+          console.log(event)
         })
         socket.$on('close', () => {
           if (retryAttempts < 100) {

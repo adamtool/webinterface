@@ -4,10 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.api.annotations.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -118,6 +115,11 @@ public class LogWebSocket {
             throw new IllegalArgumentException("Got an unrecognizable message over a websocket.\n" +
                     "Message: " + message + "\nSession: " + session.getRemoteAddress().toString());
         }
+    }
+
+    @OnWebSocketError
+    public void error(Session session, Throwable error) {
+        error.printStackTrace();
     }
 
 }
