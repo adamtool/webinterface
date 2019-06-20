@@ -15,6 +15,7 @@
       <th>Time finished</th>
       <th>Status</th>
       <th>Action</th>
+      <th>Queue position</th>
       <th>Delete</th>
     </tr>
     <tr v-for="listing in visibleJobListings"
@@ -101,6 +102,9 @@
           Cancel
         </button>
       </td>
+      <td v-else>-</td>
+
+      <td v-if="listing.queuePosition !== -1">{{ listing.queuePosition }}</td>
       <td v-else>-</td>
 
       <td>
