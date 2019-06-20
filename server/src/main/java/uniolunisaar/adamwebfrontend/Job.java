@@ -18,9 +18,9 @@ public class Job<T> {
     private final Callable<T> callable;
     private final String netId;
     private Future<T> future = null;
-    private boolean isStarted = false;
-    private Instant timeStarted = Instant.EPOCH;
-    private Instant timeFinished = Instant.EPOCH;
+    private volatile boolean isStarted = false;
+    private volatile Instant timeStarted = Instant.EPOCH;
+    private volatile Instant timeFinished = Instant.EPOCH;
 
     /**
      * @param v     a lambda that will return a value you want to have be computed
@@ -77,6 +77,11 @@ public class Job<T> {
             return NOT_STARTED;
         }
         if (future.isCancelled()) {
+            if (isStarted && timeFinished == Instant.EPOCH) {
+                // We have interrupted the thread and are waiting for it to check the interrupt
+                // flag and stop running.
+                return CANCELING;
+            }
             return CANCELED;
         }
         if (future.isDone()) {

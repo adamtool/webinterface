@@ -12,10 +12,7 @@ import uniolunisaar.adam.tools.Logger;
 import java.io.PrintStream;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static uniolunisaar.adamwebfrontend.JobStatus.COMPLETED;
 import static uniolunisaar.adamwebfrontend.JobStatus.FAILED;
@@ -26,7 +23,7 @@ import static uniolunisaar.adamwebfrontend.JobType.*;
  */
 public class UserContext {
     // Each user has a queue that will run one job at a time in a single thread
-    public final ExecutorService executorService;
+    public final ThreadPoolExecutor executorService;
     private final UUID uuid; // Stored for debugging purposes
     private final ThreadGroup threadGroup;
 
@@ -57,13 +54,17 @@ public class UserContext {
     public UserContext(UUID uuid) {
         this.uuid = uuid;
         this.threadGroup = new ThreadGroup("UserContext " + uuid.toString());
-        this.executorService = Executors.newSingleThreadExecutor((Runnable jobRunnable) -> {
+        ThreadFactory threadFactory = (Runnable jobRunnable) -> {
             Thread thread = new Thread(
                     this.threadGroup,
                     jobRunnable,
                     "Thread of UserContext " + uuid.toString());
             return thread;
-        });
+        };
+        this.executorService = new ThreadPoolExecutor(
+                1, 1, 0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(),
+                threadFactory);
         // Set ADAM's loggers to use our specific PrintStreams for the threads in this user
         // session's ThreadGroup.
         // This only needs to be done once per ThreadGroup.
