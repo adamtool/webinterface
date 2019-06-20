@@ -980,8 +980,8 @@
               break
             case 'success':
               logging.sendSuccessNotification('Cancelled the job.  Note: It might take a ' +
-                'little while for the job to actually stop.  This is a limitation of the libraries' +
-                'used by ADAM.')
+                'little while for the job to actually stop.  This is a limitation of the ' +
+                'libraries used by ADAM.')
           }
         }).then(this.getListOfJobs)
       },
