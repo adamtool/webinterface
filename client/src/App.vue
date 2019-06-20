@@ -649,6 +649,9 @@
         })
         socket.$on('open', () => {
           this.updateWebSocketBrowserUuid()
+          // TODO Hack to reload the job list whenever the websocket connection is dropped and reacquired
+          // TODO Figure out why the connection keeps dropping!!
+          this.getListOfJobs() // TODO remove this
           logging.sendSuccessNotification('Established the connection to the server')
         })
         return socket
