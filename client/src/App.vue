@@ -620,6 +620,12 @@
               logging.logVerbose('A job\'s status changed.  Polling job list')
               this.getListOfJobs()
               break
+            case 'ping':
+              logging.logVerbose('Got ping from server.  Sending pong')
+              this.socket.send(JSON.stringify({
+                type: 'pong'
+              }))
+              break
             default:
               logging.sendErrorNotification('Got a malformed Websocket message from the server.  See log')
               logging.logObject(message)

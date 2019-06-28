@@ -90,7 +90,36 @@ public class LogWebSocket {
                 }
             }
         }
+    }
 
+    public static void sendPingMessage() {
+        JsonObject message = new JsonObject();
+        message.addProperty("type", "ping");
+        for (Session session: sessions) {
+            try {
+                session.getRemote().sendString(message.toString());
+            } catch (IOException e) {
+                System.err.println("IOException occurred when sending a websocket message");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Start a thread that, every 15 seconds, sends a ping message to all connected websocket
+     * clients in order to stop the connections from being dropped.
+     */
+    public static void startPingThread() {
+        new Thread(() -> {
+            while (true) {
+                sendPingMessage();
+                try {
+                    Thread.sleep(15000);
+                } catch (InterruptedException e) {
+                    return;
+                }
+            }
+        }).start();
     }
 
     @OnWebSocketConnect
@@ -100,17 +129,20 @@ public class LogWebSocket {
 
     @OnWebSocketClose
     public void closed(Session session, int statusCode, String reason) {
+        System.out.println("Websocket closed.  Statuscode: " + statusCode + ", reason: " + reason);
         sessions.remove(session);
     }
 
     @OnWebSocketMessage
-    public void message(Session session, String message) throws IOException {
+    public void message(Session session, String message) {
         JsonObject messageJson = parser.parse(message).getAsJsonObject();
 
         if (messageJson.has("browserUuid")) {
             String browserUuidString = messageJson.get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
             sessionUuids.put(session, browserUuid);
+        } else if (messageJson.has("type") && messageJson.get("type").getAsString().equals("pong")) {
+            System.out.println("Got pong from client");
         } else {
             throw new IllegalArgumentException("Got an unrecognizable message over a websocket.\n" +
                     "Message: " + message + "\nSession: " + session.getRemoteAddress().toString());
@@ -119,7 +151,10 @@ public class LogWebSocket {
 
     @OnWebSocketError
     public void error(Session session, Throwable error) {
+        System.err.println("OnWebSocketError.  Error stack trace: ");
         error.printStackTrace();
+        System.err.println("OnWebSocketError.  Error cause stack trace: ");
+        error.getCause().printStackTrace();
     }
 
 }

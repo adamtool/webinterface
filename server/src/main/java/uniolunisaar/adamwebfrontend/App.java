@@ -63,6 +63,7 @@ public class App {
 
         staticFiles.location("/static");
         enableCORS();
+        LogWebSocket.startPingThread();
 
         get("/hello", (req, res) -> "Hello World");
 
