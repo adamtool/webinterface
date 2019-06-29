@@ -172,6 +172,9 @@ public class UserContext {
      * (skipping the number zero).
      */
     private int getQueuePosition(Job job) {
+        if (job.getStatus() == JobStatus.RUNNING) {
+            return 0;
+        }
         if (job.getFuture() == null) {
             return -1;
         }

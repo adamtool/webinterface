@@ -104,8 +104,8 @@
       </td>
       <td v-else>-</td>
 
-      <td v-if="listing.queuePosition !== -1">{{ listing.queuePosition }}</td>
-      <td v-else-if="['RUNNING', 'CANCELING'].includes(listing.jobStatus)">In progress</td>
+      <td v-if="['RUNNING', 'CANCELING'].includes(listing.jobStatus)">In progress</td>
+      <td v-else-if="listing.queuePosition !== -1">{{ listing.queuePosition }}</td>
       <td v-else>-</td>
 
       <td>
@@ -141,6 +141,17 @@
           ['GRAPH_GAME_BDD', 'EXISTS_WINNING_STRATEGY', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD']
         return this.jobListings.filter(listing => {
           return visibleJobTypes.includes(listing.type)
+        }).sort((a, b) => {
+          // Put queued jobs first, then the running job, then jobs that are done,
+          // with the oldest jobs at the bottom and newly queued jobs at the top.
+          if (a.queuePosition !== -1 && b.queuePosition !== -1) {
+            return b.queuePosition - a.queuePosition
+          } else if (a.queuePosition !== -1) {
+            return -1
+          } else if (b.queuePosition !== -1) {
+            return 1
+          }
+          return b.timeStarted - a.timeStarted
         })
       }
     },
