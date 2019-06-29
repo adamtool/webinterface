@@ -64,6 +64,7 @@ public class App {
         staticFiles.location("/static");
         enableCORS();
         LogWebSocket.startPingThread();
+        LogWebSocket.startMessageQueueThread();
 
         get("/hello", (req, res) -> "Hello World");
 
@@ -420,7 +421,7 @@ public class App {
             job.addObserver((Job ignored) -> {
                 JsonObject message = new JsonObject();
                 message.addProperty("type", "jobStatusChanged");
-                LogWebSocket.sendWebsocketMessage(browserUuid, message);
+                LogWebSocket.queueWebsocketMessage(browserUuid, message);
             });
 
             // If the job runs and completes immediately, send the result to the client.

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
+import uniol.apt.util.Pair;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,8 +13,10 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Handles WebSocket connections for sending ADAM's text output to the client
@@ -24,6 +27,13 @@ public class LogWebSocket {
     private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
     private static final JsonParser parser = new JsonParser();
     private static final ConcurrentHashMap<Session, UUID> sessionUuids = new ConcurrentHashMap<>();
+    // Queue of messages meant to be pushed to clients: Pair<UserContext UUID, message>.
+    // The messages need to be sent in their own thread, asynchronously, because, for example, if
+    // the messages are sent in the same thread that a Job is running in, that Thread can get
+    // interrupted if the Job gets canceled, and that causes the Websocket to be closed with a
+    // 'EofException', since Jetty recognizes that its Thread has been interrupted.
+    private static final BlockingQueue<Pair<UUID, JsonElement>> messageQueue =
+            new LinkedBlockingQueue<>();
 
     /**
      * @return A PrintStream that will only send output to Websocket clients that have associated
@@ -69,16 +79,20 @@ public class LogWebSocket {
                 messageJson.addProperty("type", "serverLogMessage");
                 messageJson.addProperty("level", loggingLevel);
                 messageJson.addProperty("message", message);
-                sendWebsocketMessage(userContextUuid, messageJson);
+                queueWebsocketMessage(userContextUuid, messageJson);
             }
         };
 
     }
 
+    public static void queueWebsocketMessage(UUID userContextUuid, JsonObject messageJson) {
+        messageQueue.add(new Pair<>(userContextUuid, messageJson));
+    }
+
     /**
      * Broadcast a message to all sessions associated with the given user context.
      */
-    public static void sendWebsocketMessage(UUID userContextUuid, JsonElement message) {
+    private static void sendWebsocketMessage(UUID userContextUuid, JsonElement message) {
         for (Session session : sessions) {
             UUID sessionUuid = sessionUuids.get(session);
             if (userContextUuid.equals(sessionUuid)) {
@@ -92,7 +106,7 @@ public class LogWebSocket {
         }
     }
 
-    public static void sendPingMessage() {
+    private static void sendPingMessage() {
         JsonObject message = new JsonObject();
         message.addProperty("type", "ping");
         for (Session session: sessions) {
@@ -117,6 +131,24 @@ public class LogWebSocket {
                     Thread.sleep(15000);
                 } catch (InterruptedException e) {
                     return;
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Start a thread that continuously blocks on the websocket message queue and broadcasts
+     * messages to the appropriate clients as soon as they are enqueued
+     */
+    public static void startMessageQueueThread() {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Pair<UUID, JsonElement> messageSpec = messageQueue.take();
+                    sendWebsocketMessage(messageSpec.getFirst(), messageSpec.getSecond());
+                } catch (InterruptedException e) {
+                    System.err.println("Message queue thread interrupted.  Stack trace: ");
+                    e.printStackTrace();
                 }
             }
         }).start();
