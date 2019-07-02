@@ -413,6 +413,7 @@ public class App {
             job.addObserver((Job ignored) -> {
                 JsonObject message = new JsonObject();
                 message.addProperty("type", "jobStatusChanged");
+                message.add("jobKey", gson.toJsonTree(jobKey));
                 LogWebSocket.queueWebsocketMessage(browserUuid, message);
             });
 
