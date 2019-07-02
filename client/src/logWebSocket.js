@@ -12,6 +12,9 @@ function makeSocket (socketurl) {
         } else {
           throw new Error('Websocket is not yet ready')
         }
+      },
+      isReady () {
+        return socket.readyState === 1
       }
     }
   })

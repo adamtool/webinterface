@@ -471,7 +471,9 @@
       // we want to subscribe to notifications corresponding to our new UUIUD
       browserUuid: function () {
         this.getListOfJobs()
-        this.updateWebSocketBrowserUuid()
+        if (this.socket.isReady()) {
+          this.updateWebSocketBrowserUuid()
+        }
       },
       // When we open the modal dialog, we should reload the list of jobs
       showJobList: function () {
