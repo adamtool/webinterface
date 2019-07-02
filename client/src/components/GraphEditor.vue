@@ -1501,7 +1501,7 @@
               const lengthsOfLines = lines.map(str => str.length)
               const maxLineLength = lengthsOfLines.reduce((max, val) => val > max ? val : max, 0)
               node.maxContentLineLength = maxLineLength
-              console.log(`max content line length: ${maxLineLength}`)
+              // logging.logVerbose(`max content line length: ${maxLineLength}`)
               return node.content
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
               return node.initialToken === 0 ? '' : node.initialToken
