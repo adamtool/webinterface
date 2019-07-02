@@ -33,24 +33,8 @@ public class UserContext {
     private final PrintStream printStreamWarning;
     private final PrintStream printStreamError;
 
-    // Store the results of "getGraphGameBdd"
-    public final Map<JobKey, Job<BDDGraphExplorer>> graphGameBddsOfApts =
-            new ConcurrentHashMap<>();
-    // Store the results of "existsWinningStrategy"
-    public final Map<JobKey, Job<Boolean>> existsWinningStrategyOfApts =
-            new ConcurrentHashMap<>();
-    // Store the results of "getStrategyBdd"
-    public final Map<JobKey, Job<PetriGame>> strategyBddsOfApts =
-            new ConcurrentHashMap<>();
-    // Store the results of "getGraphStrategyBdd"
-    public final Map<JobKey, Job<BDDGraph>> graphStrategyBddsOfApts =
-            new ConcurrentHashMap<>();
-    // "Check LTL formula"
-    public final Map<JobKey, Job<ModelCheckingResult>> modelCheckingResults =
-            new ConcurrentHashMap<>();
-    public final Map<JobKey, Job<PetriNet>> modelCheckingNets = new ConcurrentHashMap<>();
     private final LinkedBlockingQueue<Runnable> jobQueue;
-
+    private final Map<JobKey, Job> jobsByKey = new ConcurrentHashMap<>();
 
     public UserContext(UUID uuid) {
         this.uuid = uuid;
@@ -84,19 +68,24 @@ public class UserContext {
     }
 
     public JsonArray getJobList() {
-        JsonArray result = new JsonArray();
-        for (JobKey jobKey : this.graphGameBddsOfApts.keySet()) {
-            Job<BDDGraphExplorer> job = this.graphGameBddsOfApts.get(jobKey);
-            JsonObject entry = jobListEntry(job, jobKey, GRAPH_GAME_BDD);
-            result.add(entry);
-        }
-        for (JobKey jobKey : this.existsWinningStrategyOfApts.keySet()) {
-            Job<Boolean> job = this.existsWinningStrategyOfApts.get(jobKey);
-            JsonObject entry = jobListEntry(
-                    job, jobKey, EXISTS_WINNING_STRATEGY);
+        JsonArray jobListJson = new JsonArray();
+        for (JobKey jobKey : this.jobsByKey.keySet()) {
+            Job job = this.jobsByKey.get(jobKey);
+            JsonObject entry = jobListEntry(job, jobKey);
+
+            // Add the results of special job types whose results can be shown in the list
             if (job.getStatus() == COMPLETED) {
                 try {
-                    entry.addProperty("result", job.getResult());
+                    switch (jobKey.getJobType()) {
+                        case EXISTS_WINNING_STRATEGY:
+                            entry.addProperty("result", (boolean) job.getResult());
+                            break;
+                        case MODEL_CHECKING_RESULT:
+                            ModelCheckingResult result1 = (ModelCheckingResult) job.getResult();
+                            entry.addProperty( "result", result1.getSatisfied().toString());
+                            break;
+                        default:
+                    }
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                     throw new RuntimeException("job.getResult() threw an exception, " +
@@ -104,55 +93,16 @@ public class UserContext {
                             "Please let Ann know about it. :)");
                 }
             }
-            result.add(entry);
-        }
-        for (JobKey jobKey : this.strategyBddsOfApts.keySet()) {
-            Job<PetriGame> job = this.strategyBddsOfApts.get(jobKey);
-            JsonObject entry = jobListEntry(
-                    job, jobKey, WINNING_STRATEGY);
-            result.add(entry);
-        }
-        for (JobKey jobKey : this.graphStrategyBddsOfApts.keySet()) {
-            Job<BDDGraph> job = this.graphStrategyBddsOfApts.get(jobKey);
-            JsonObject entry = jobListEntry(
-                    job, jobKey, GRAPH_STRATEGY_BDD
-            );
-            result.add(entry);
-        }
-        for (JobKey jobKey : this.modelCheckingResults.keySet()) {
-            Job<ModelCheckingResult> job = this.modelCheckingResults.get(jobKey);
-            JsonObject entry = jobListEntry(
-                    job, jobKey, MODEL_CHECKING_RESULT);
-            if (job.getStatus() == COMPLETED) {
-                try {
-                    entry.addProperty(
-                            "result",
-                            job.getResult().getSatisfied().toString());
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException("job.getResult() threw an exception, " +
-                            "although job.getStatus() == COMPLETED.  This is a bug.  " +
-                            "Please let Ann know about it. :)");
-                }
-            }
-            result.add(entry);
-        }
-        for (JobKey jobKey : this.modelCheckingNets.keySet()) {
-            Job<PetriNet> job = this.modelCheckingNets.get(jobKey);
-            JsonObject entry = jobListEntry(
-                    job, jobKey, MODEL_CHECKING_NET
-            );
-            result.add(entry);
+            jobListJson.add(entry);
         }
 
-        return result;
+        return jobListJson;
     }
 
     private JsonObject jobListEntry(Job job,
-                                    JobKey jobKey,
-                                    JobType jobType) {
+                                    JobKey jobKey) {
         JsonObject entry = new JsonObject();
-        entry.addProperty("type", jobType.toString());
+        entry.addProperty("type", jobKey.getJobType().toString()); // TODO delete.  this is redundant; the jobKey itself also contains the job type
         entry.add("jobKey", new Gson().toJsonTree(jobKey));
         entry.addProperty("jobStatus", job.getStatus().toString());
         entry.addProperty("timeStarted", job.getTimeStarted().getEpochSecond());
@@ -192,23 +142,27 @@ public class UserContext {
         return -1;
     }
 
-    public Map<JobKey, ? extends Job> getJobMap(JobType jobType) {
-        switch (jobType) {
-            case EXISTS_WINNING_STRATEGY:
-                return existsWinningStrategyOfApts;
-            case WINNING_STRATEGY:
-                return strategyBddsOfApts;
-            case GRAPH_STRATEGY_BDD:
-                return graphStrategyBddsOfApts;
-            case GRAPH_GAME_BDD:
-                return graphGameBddsOfApts;
-            case MODEL_CHECKING_RESULT:
-                return modelCheckingResults;
-            case MODEL_CHECKING_NET:
-                return modelCheckingNets;
-            default:
-                throw new IllegalArgumentException("Missing switch case in getJobMap for " +
-                        "the following JobType: " + jobType.toString());
+    public <T> void queueJob(JobKey jobKey, Job<T> job) {
+        jobsByKey.put(jobKey, job);
+        job.queue(this.executorService);
+    }
+
+    public boolean hasJobWithKey(JobKey jobKey) {
+        return jobsByKey.containsKey(jobKey);
+    }
+
+    public Job getJobFromKey(JobKey jobKey) {
+        return jobsByKey.get(jobKey);
+    }
+
+    public void removeJobWithKey(JobKey jobKey) {
+        jobsByKey.remove(jobKey);
+    }
+
+    public Job<BDDGraphExplorer> getGraphGameBDDJob(JobKey jobKey) {
+        if (jobKey.getJobType() != JobType.GRAPH_GAME_BDD) {
+            throw new IllegalArgumentException("The given jobKey doesn't correspond to a Graph Game BDD.");
         }
+        return (Job<BDDGraphExplorer>) jobsByKey.get(jobKey);
     }
 }

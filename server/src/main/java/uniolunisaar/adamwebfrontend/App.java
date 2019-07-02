@@ -29,7 +29,6 @@ import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
-import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
 
@@ -107,17 +106,14 @@ public class App {
         ));
 
         post("/getWinningStrategy", handleGetJobResult(
-                JobType.WINNING_STRATEGY,
                 PetriNetD3::ofNetWithoutObjective
         ));
 
         post("/getGraphStrategyBDD", handleGetJobResult(
-                JobType.GRAPH_STRATEGY_BDD,
                 BDDGraphD3::ofWholeBddGraph
         ));
 
         post("/getGraphGameBDD", handleGetJobResult(
-                JobType.GRAPH_GAME_BDD,
                 BDDGraphExplorer::getVisibleGraph));
 
         postWithUserContext("/getListOfJobs", this::handleGetListOfJobs);
@@ -396,22 +392,18 @@ public class App {
 
             // Check if this job has already been requested
             String canonicalApt = Adam.getAPT(petriGame);
-            JobKey jobKey = new JobKey(canonicalApt, jobParams);
-            Map<JobKey, Job<T>> jobMap =
-                    (Map<JobKey, Job<T>>) userContext.getJobMap(jobType);
-            if (jobMap.containsKey(jobKey)) {
-                return errorResponse("There is already a Job of " +
-                        "\"" + jobType.toString() + "\" " +
-                        "for the given Petri Game. Its status: " +
-                        jobMap.get(jobKey).getStatus());
+            JobKey jobKey = new JobKey(canonicalApt, jobParams, jobType);
+
+            if (userContext.hasJobWithKey(jobKey)) {
+                return errorResponse("An identical job has already been queued.  Its status: " +
+                        userContext.getJobFromKey(jobKey).getStatus());
             }
 
             // Create the job and queue it up in the user's job queue
             Job<T> job = jobFactory.createJob(
                     petriGame,
                     jobParams);
-            jobMap.put(jobKey, job);
-            job.queue(userContext.executorService);
+            userContext.queueJob(jobKey, job);
             /*
             When the job's status changes, a websocket message should be sent to the client,
             and the client should then poll the job list again to see what's new.
@@ -487,11 +479,9 @@ public class App {
     }
 
     /**
-     * Given the canonical APT representation of a Petri Game and a type of job job,
-     * return the result of the job, if one has been queued and has completed successfully.
+     * Retrieve the result of a job with a given key
      */
-    private <T> Route handleGetJobResult(JobType jobType,
-                                         SerializerFunction<T> serializerFunction) {
+    private <T> Route handleGetJobResult(SerializerFunction<T> serializerFunction) {
         return (req, res) -> {
             JsonElement body = parser.parse(req.body());
             System.out.println("body: " + body.toString());
@@ -510,13 +500,11 @@ public class App {
             }
             UserContext userContext = userContextMap.get(browserUuid);
 
-            Map<JobKey, Job<T>> jobMap =
-                    (Map<JobKey, Job<T>>) userContext.getJobMap(jobType);
-            if (!jobMap.containsKey(jobKey)) {
+            if (!userContext.hasJobWithKey(jobKey)) {
                 return errorResponse("The requested job was not found.");
             }
 
-            Job<T> job = jobMap.get(jobKey);
+            Job<T> job = userContext.getJobFromKey(jobKey);
             if (!job.isFinished()) {
                 return errorResponse("The requested job is not yet finished.  " +
                         "Its status: " + job.getStatus());
@@ -543,45 +531,43 @@ public class App {
 
     private Object handleCancelJob(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
-        String typeString = body.getAsJsonObject().get("type").getAsString();
-        JobType jobType = JobType.valueOf(typeString);
 
         Type t = new TypeToken<JobKey>() {
         }.getType();
         JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
         JobKey jobKey = gson.fromJson(jobKeyJson, t);
 
-        Map<JobKey, ? extends Job> jobMap = uc.getJobMap(jobType);
-        if (!jobMap.containsKey(jobKey)) {
+        if (!uc.hasJobWithKey(jobKey)) {
             return errorResponse("The requested job was not found.");
         }
-        Job job = jobMap.get(jobKey);
+        Job job = uc.getJobFromKey(jobKey);
         job.cancel();
         return successResponse(new JsonPrimitive(true));
     }
 
     private Object handleDeleteJob(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
-        String typeString = body.getAsJsonObject().get("type").getAsString();
-        JobType jobType = JobType.valueOf(typeString);
 
         Type t = new TypeToken<JobKey>() {
         }.getType();
         JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
         JobKey jobKey = gson.fromJson(jobKeyJson, t);
 
-        Map<JobKey, ? extends Job> jobMap = uc.getJobMap(jobType);
-        if (!jobMap.containsKey(jobKey)) {
+        if (!uc.hasJobWithKey(jobKey)) {
             return errorResponse("The requested job was not found.");
         }
-        Job job = jobMap.get(jobKey);
+        Job job = uc.getJobFromKey(jobKey);
+        if (job.getStatus() == JobStatus.CANCELING) {
+            return errorResponse("That job is still in the process of being canceled.  " +
+                    "You can't delete it until it has finished canceling.");
+        }
         try {
             job.cancel();
         } catch (UnsupportedOperationException e) {
             // We don't care if the job is not eligible to be canceled.
             // We just want to cancel it if that's possible.
         }
-        jobMap.remove(jobKey);
+        uc.removeJobWithKey(jobKey);
         return successResponse(new JsonPrimitive(true));
     }
 
@@ -597,11 +583,11 @@ public class App {
 
         int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-        if (!uc.graphGameBddsOfApts.containsKey(jobKey)) {
-            return errorResponse("There is no Graph Game BDD yet for that APT input");
+        if (!uc.hasJobWithKey(jobKey)) {
+            return errorResponse("The requested Graph Game BDD does not exist.");
         }
 
-        Job<BDDGraphExplorer> job = uc.graphGameBddsOfApts.get(jobKey);
+        Job<BDDGraphExplorer> job = uc.getGraphGameBDDJob(jobKey);
         if (!job.isFinished()) {
             return errorResponse("The job for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + job.getStatus());
@@ -627,10 +613,11 @@ public class App {
 
         int stateId = body.getAsJsonObject().get("stateId").getAsInt();
 
-        if (!uc.graphGameBddsOfApts.containsKey(jobKey)) {
-            return errorResponse("There is no Graph Game BDD yet for that APT input");
+        if (!uc.hasJobWithKey(jobKey)) {
+            return errorResponse("The requested Graph Game BDD does not exist.");
         }
-        Job<BDDGraphExplorer> job = uc.graphGameBddsOfApts.get(jobKey);
+
+        Job<BDDGraphExplorer> job = uc.getGraphGameBDDJob(jobKey);
         if (!job.isFinished()) {
             return errorResponse("The job for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + job.getStatus());
