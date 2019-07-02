@@ -617,8 +617,9 @@
               logging.logServerMessage(messageParsed.message, messageParsed.level)
               break
             case 'jobStatusChanged':
-              logging.logVerbose('A job\'s status changed.  Polling job list.  Job key:')
-              logging.logObject(messageParsed.jobKey)
+              logging.logVerbose('A job\'s status changed.  Polling job list.')
+              // logging.logObject('Key of job whose status changed:')
+              // logging.logObject(messageParsed.jobKey)
               this.getListOfJobs()
               break
             case 'ping':
