@@ -204,10 +204,13 @@
       </div>
       <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
               v-model="selectedTabLeftSide">
-        <v-tab>Petri Game</v-tab>
-        <v-tab @click="onSwitchToAptEditor">APT Editor</v-tab>
-        <v-tab-item>
-          <GraphEditor :graph='petriGame.net'
+        <v-tab v-for="tab in tabsLeftSide"
+               @click="onSwitchToTab(tab)">
+          {{ tab.name }}
+        </v-tab>
+        <v-tab-item v-for="tab in tabsLeftSide">
+          <GraphEditor v-if="tab.type === 'petriGameEditor'"
+                       :graph='petriGame.net'
                        :petriGameId='petriGame.uuid'
                        ref='graphEditorPetriGame'
                        v-on:dragDropEnd='onDragDropEnd'
@@ -231,14 +234,17 @@
                        :shouldShowPartitions="showPartitions"
                        :repulsionStrengthDefault="360"
                        :linkStrengthDefault="0.086"/>
-        </v-tab-item>
-        <v-tab-item>
-          <AptEditor :aptFromAdamParser='apt'
+          </GraphEditor>
+          <AptEditor v-else-if="tab.type === 'aptEditor'"
+                     :aptFromAdamParser='apt'
                      :aptParseStatus='aptParseStatus'
                      :aptParseError='aptParseError'
                      :aptParseErrorLineNumber='aptParseErrorLineNumber'
                      :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
                      @input='onAptEditorInput'/>
+          <div v-else>
+            Tab type not yet implemented: {{ tab.type }}
+          </div>
         </v-tab-item>
       </v-tabs>
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide">
@@ -301,14 +307,14 @@
 
 
 <script>
-  import { aptFileTreeSynthesis, aptFileTreeModelChecking } from './aptExamples'
+  import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
   import Vue from 'vue'
   import * as axios from 'axios'
-  import { debounce } from 'underscore'
+  import {debounce} from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   import Vuetify from 'vuetify'
@@ -330,14 +336,14 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from './logWebSocket'
-  import { saveFileAs } from './fileutilities'
+  import {saveFileAs} from './fileutilities'
 
   import Split from 'split.js'
 
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
 
   const uuidv4 = require('uuid/v4')
 
@@ -434,8 +440,19 @@
         // This creates a link that the user can click in the notification bar to do a certain action.
         quickAction: {
           actionName: '',
-          action: () => {}
+          action: () => {
+          }
         },
+        tabsLeftSide: [
+          {
+            type: 'petriGameEditor',
+            name: 'Petri Game'
+          },
+          {
+            type: 'aptEditor',
+            name: 'APT Editor'
+          }
+        ],
         petriGame: {
           net: {
             links: [],
@@ -1113,18 +1130,26 @@
       onAptEditorInput: function (apt) {
         this.apt = apt
       },
-      onSwitchToAptEditor: function () {
-        const isAptEditorAlreadySelected = this.selectedTabLeftSide === 1
-        if (isAptEditorAlreadySelected) {
-          return
+      onSwitchToTab: function (tab) {
+        console.log('onSwitchToTab(tab) with tab = ')
+        console.log(tab)
+        if (tab.type === 'aptEditor') {
+          console.log('SelctedTabLeftSide on next line')
+          console.log(this.selectedTabLeftSide)
+          const isAptEditorAlreadySelected = this.selectedTabLeftSide === 1
+          // TODO Detect whether the given tab is selected, rather than hard-coding this value
+          if (isAptEditorAlreadySelected) {
+            return
+          }
+          logging.logVerbose('Switching to APT editor')
+          this.savePetriGameAsAPT()
         }
-        logging.logVerbose('Switching to APT editor')
-        this.savePetriGameAsAPT()
       },
       saveXYCoordinatesOnServer: function () {
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriGame object.
+        // TODO Don't use a ref for this.  Put the function inside of here.
         const nodePositions = this.$refs.graphEditorPetriGame.getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
           petriGameId: this.petriGame.uuid,
