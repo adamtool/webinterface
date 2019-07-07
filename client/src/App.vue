@@ -210,14 +210,12 @@
                    @choose="onTabChosen">
           <v-tab v-for="tab in tabsLeftSide"
                  :key="tab.uuid"
-                 :href="`#left-tab-${tab.uuid}`"
                  @click="onSwitchToTab(tab)">
             {{ tab.name }}
           </v-tab>
         </draggable>
         <v-tab-item v-for="tab in tabsLeftSide"
                     :key="tab.uuid"
-                    :id="`left-tab-${tab.uuid}`"
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
@@ -502,6 +500,9 @@
       }
     },
     watch: {
+      selectedTabLeftSide: function (val) {
+        console.log(`selectedTabLeftSide: ${val}`)
+      },
       // When the browser UUID is changed, we should reload the list of jobs and tell the server
       // we want to subscribe to notifications corresponding to our new UUIUD
       browserUuid: function () {
@@ -1176,7 +1177,9 @@
       },
       // Callback function called whenever the user clicks on a tab
       onSwitchToTab: function (clickedTab) {
+        console.log(`clickedTab: ${clickedTab}`)
         const clickedTabIndex = this.tabsLeftSide.indexOf(clickedTab)
+        console.log(`clickedTabIndex: ${clickedTabIndex}`)
         const isTheClickedTabAlreadyActive = this.selectedTabLeftSide === clickedTabIndex
         if (isTheClickedTabAlreadyActive) {
           return // We are staying in the same tab we were already in
