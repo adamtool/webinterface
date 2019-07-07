@@ -211,42 +211,44 @@
           </v-tab>
         </draggable>
         <v-tab-item v-for="tab in tabsLeftSide">
-          <GraphEditor v-if="tab.type === 'petriGameEditor'"
-                       :graph='petriGame.net'
-                       :petriGameId='petriGame.uuid'
-                       ref='graphEditorPetriGame'
-                       v-on:dragDropEnd='onDragDropEnd'
-                       v-on:insertNode='insertNode'
-                       v-on:createFlow='createFlow'
-                       v-on:createTokenFlow='createTokenFlow'
-                       v-on:deleteFlow='deleteFlow'
-                       v-on:deleteNode='deleteNode'
-                       v-on:renameNode='renameNode'
-                       v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
-                       v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
-                       v-on:setIsSpecial='setIsSpecial'
-                       v-on:fireTransition='fireTransition'
-                       v-on:setInitialToken='setInitialToken'
-                       v-on:setWinningCondition='setWinningCondition'
-                       showEditorTools
-                       :useModelChecking="useModelChecking"
-                       :useDistributedSynthesis="useDistributedSynthesis"
-                       :modelCheckingRoutes="modelCheckingRoutes"
-                       :shouldShowPhysicsControls="showPhysicsControls"
-                       :shouldShowPartitions="showPartitions"
-                       :repulsionStrengthDefault="360"
-                       :linkStrengthDefault="0.086"/>
-          </GraphEditor>
-          <AptEditor v-else-if="tab.type === 'aptEditor'"
-                     :aptFromAdamParser='apt'
-                     :aptParseStatus='aptParseStatus'
-                     :aptParseError='aptParseError'
-                     :aptParseErrorLineNumber='aptParseErrorLineNumber'
-                     :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
-                     @input='onAptEditorInput'/>
-          <div v-else>
-            Tab type not yet implemented: {{ tab.type }}
-          </div>
+          <keep-alive>
+            <GraphEditor v-if="tab.type === 'petriGameEditor'"
+                         :graph='petriGame.net'
+                         :petriGameId='petriGame.uuid'
+                         ref='graphEditorPetriGame'
+                         v-on:dragDropEnd='onDragDropEnd'
+                         v-on:insertNode='insertNode'
+                         v-on:createFlow='createFlow'
+                         v-on:createTokenFlow='createTokenFlow'
+                         v-on:deleteFlow='deleteFlow'
+                         v-on:deleteNode='deleteNode'
+                         v-on:renameNode='renameNode'
+                         v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                         v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                         v-on:setIsSpecial='setIsSpecial'
+                         v-on:fireTransition='fireTransition'
+                         v-on:setInitialToken='setInitialToken'
+                         v-on:setWinningCondition='setWinningCondition'
+                         showEditorTools
+                         :useModelChecking="useModelChecking"
+                         :useDistributedSynthesis="useDistributedSynthesis"
+                         :modelCheckingRoutes="modelCheckingRoutes"
+                         :shouldShowPhysicsControls="showPhysicsControls"
+                         :shouldShowPartitions="showPartitions"
+                         :repulsionStrengthDefault="360"
+                         :linkStrengthDefault="0.086"/>
+            </GraphEditor>
+            <AptEditor v-else-if="tab.type === 'aptEditor'"
+                       :aptFromAdamParser='apt'
+                       :aptParseStatus='aptParseStatus'
+                       :aptParseError='aptParseError'
+                       :aptParseErrorLineNumber='aptParseErrorLineNumber'
+                       :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
+                       @input='onAptEditorInput'/>
+            <div v-else>
+              Tab type not yet implemented: {{ tab.type }}
+            </div>
+          </keep-alive>
         </v-tab-item>
       </v-tabs>
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide">
