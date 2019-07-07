@@ -487,7 +487,7 @@
         horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
         horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
-        selectedTabLeftSide: 0
+        selectedTabLeftSide: 0 // Index of the currently selected tab
       }
     },
     watch: {
@@ -506,7 +506,7 @@
         }
       },
       apt: function (apt) {
-        this.parseAPTToPetriGame(this.apt)
+        this.parseAPTToPetriGame(apt)
       },
       aptParseStatus: function (status) {
         if (status === 'error') {
@@ -825,7 +825,8 @@
         this.$refs.graphEditorGraphGameBDD.saveGraph()
       },
       switchToAptEditor: function () {
-        this.selectedTabLeftSide = 1
+        const aptEditorTabIndex = this.tabsLeftSide.findIndex(tab => tab.type === 'aptEditor')
+        this.selectedTabLeftSide = aptEditorTabIndex
       },
       switchToStrategyBDDTab: function () {
         console.log('TODO implement switchToStrategyBDDTab')
