@@ -206,11 +206,13 @@
               v-model="selectedTabLeftSide">
         <draggable v-model="tabsLeftSide" class="v-tabs__container" @update="tabUpdate">
           <v-tab v-for="tab in tabsLeftSide"
+                 :key="tab.uuid"
                  @click="onSwitchToTab(tab)">
             {{ tab.name }}
           </v-tab>
         </draggable>
-        <v-tab-item v-for="tab in tabsLeftSide">
+        <v-tab-item v-for="tab in tabsLeftSide"
+                    :key="tab.uuid">
           <keep-alive>
             <GraphEditor v-if="tab.type === 'petriGameEditor'"
                          :graph='petriGame.net'
@@ -453,11 +455,13 @@
         tabsLeftSide: [
           {
             type: 'petriGameEditor',
-            name: 'Petri Game'
+            name: 'Petri Game',
+            uuid: 'PetriGameTab' // this tab is hard-coded
           },
           {
             type: 'aptEditor',
-            name: 'APT Editor'
+            name: 'APT Editor',
+            uuid: 'AptEditorTab'
           }
         ],
         petriGame: {
