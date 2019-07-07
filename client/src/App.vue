@@ -204,15 +204,22 @@
       </div>
       <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
               v-model="selectedTabLeftSide">
-        <draggable v-model="tabsLeftSide" class="v-tabs__container" @update="tabUpdate">
+        <draggable v-model="tabsLeftSide" class="v-tabs__container"
+                   @start="tabDragStart"
+                   @end="tabDragEnd"
+                   @choose="onTabChosen">
           <v-tab v-for="tab in tabsLeftSide"
                  :key="tab.uuid"
+                 :href="`#left-tab-${tab.uuid}`"
                  @click="onSwitchToTab(tab)">
             {{ tab.name }}
           </v-tab>
         </draggable>
         <v-tab-item v-for="tab in tabsLeftSide"
-                    :key="tab.uuid">
+                    :key="tab.uuid"
+                    :id="`left-tab-${tab.uuid}`"
+                    :transition="false"
+                    :reverse-transition="false">
           <keep-alive>
             <GraphEditor v-if="tab.type === 'petriGameEditor'"
                          :graph='petriGame.net'
@@ -629,31 +636,30 @@
       }
     },
     methods: {
-      tabUpdate: function (evt) {
-        let tabNumber = this.selectedTabLeftSide // The active tab number before udpate
-        let oldIndex = evt.oldIndex // Old index number of tab we are moving
-        let newIndex = evt.newIndex // New index number of tab we are moving
-        let tabActive = null // The new tab which can be set as active tab
-        /**
-         * This is description for each if condition with corresponding number
-         * 1. Check if tab moved is the active one
-         * 2. Check if tab moved is placed on active tab from right side
-         * 3. Check if tab moved is placed on active tab from left side
-         * 4. Check if tab moved to right side of active tab
-         * 5. Check if tab moved to left side of active tab
-         */
-        if (tabNumber === oldIndex) {
-          tabActive = newIndex
-        } else if (tabNumber === newIndex && tabNumber < oldIndex) {
-          tabActive = tabNumber + 1
-        } else if (tabNumber === newIndex && tabNumber > oldIndex) {
-          tabActive = tabNumber - 1
-        } else if (tabNumber < oldIndex) {
-          tabActive = tabNumber + 1
-        } else if (tabNumber > oldIndex) {
-          tabActive = tabNumber - 1
-        }
-        this.selectedTabLeftSide = tabActive
+      onTabChosen: function (evt) {
+        console.log('onTabChosen')
+        console.log(evt)
+        console.log('Tabs array:')
+        console.log(this.tabsLeftSide)
+        // this.selectedTabLeftSide = evt.oldIndex
+        console.log(`selected tab index: ${this.selectedTabLeftSide}`)
+      },
+      tabDragStart: function (evt) {
+        console.log('tabDragStart')
+        console.log(evt)
+        console.log('Tabs array:')
+        console.log(this.tabsLeftSide)
+        // this.selectedTabLeftSide = evt.oldIndex
+        console.log(`selected tab index: ${this.selectedTabLeftSide}`)
+      },
+      tabDragEnd: function (evt) {
+        console.log('tabDragEnd')
+        console.log(evt)
+        console.log('Tabs array:')
+        console.log(this.tabsLeftSide)
+        console.log(`selected tab index: ${this.selectedTabLeftSide}`)
+        this.selectedTabLeftSide = evt.newIndex
+        console.log(`new selected tab index: ${this.selectedTabLeftSide}`)
       },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
