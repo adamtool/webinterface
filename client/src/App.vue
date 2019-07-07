@@ -1163,17 +1163,16 @@
       onAptEditorInput: function (apt) {
         this.apt = apt
       },
-      onSwitchToTab: function (tab) {
-        console.log('onSwitchToTab(tab) with tab = ')
-        console.log(tab)
-        if (tab.type === 'aptEditor') {
-          console.log('SelctedTabLeftSide on next line')
-          console.log(this.selectedTabLeftSide)
-          const isAptEditorAlreadySelected = this.selectedTabLeftSide === 1
-          // TODO Detect whether the given tab is selected, rather than hard-coding this value
-          if (isAptEditorAlreadySelected) {
-            return
-          }
+      // Callback function called whenever the user clicks on a tab
+      onSwitchToTab: function (clickedTab) {
+        const clickedTabIndex = this.tabsLeftSide.indexOf(clickedTab)
+        const isTheClickedTabAlreadyActive = this.selectedTabLeftSide === clickedTabIndex
+        if (isTheClickedTabAlreadyActive) {
+          return // We are staying in the same tab we were already in
+        }
+        console.log('Tab switch detected.  New tab on next line: ')
+        console.log(clickedTab)
+        if (clickedTab.type === 'aptEditor') {
           logging.logVerbose('Switching to APT editor')
           this.savePetriGameAsAPT()
         }
