@@ -813,7 +813,7 @@
         this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
       },
       saveSvgToFilePetriGame: function () {
-        this.$refs.graphEditorPetriGame.saveGraph()
+        this.$refs.graphEditorPetriGame[0].saveGraph()
       },
       saveSvgToFileStrategyBDD: function () {
         this.$refs.graphEditorStrategyBDD.saveGraph()
@@ -883,7 +883,7 @@
         this.$refs.menubar.deactivate()
         this.restEndpoints.calculateModelCheckingNet({
           params: {
-            formula: this.$refs.graphEditorPetriGame.ltlFormula
+            formula: this.$refs.graphEditorPetriGame[0].ltlFormula
           },
           petriGameId: this.petriGame.uuid
         }).then(response => {
@@ -905,7 +905,7 @@
         // this.$refs.menubar.deactivate()
         this.restEndpoints.calculateModelCheckingResult({
           params: {
-            formula: this.$refs.graphEditorPetriGame.ltlFormula
+            formula: this.$refs.graphEditorPetriGame[0].ltlFormula
           },
           petriGameId: this.petriGame.uuid
         }).then(response => {
@@ -1183,7 +1183,7 @@
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriGame object.
         // TODO Don't use a ref for this.  Put the function inside of here.
-        const nodePositions = this.$refs.graphEditorPetriGame.getNodeXYCoordinates()
+        const nodePositions = this.$refs.graphEditorPetriGame[0].getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
           petriGameId: this.petriGame.uuid,
           nodeXYCoordinateAnnotations: nodePositions
@@ -1398,7 +1398,7 @@
         // This needs to be handled differently than an incremental edit to an already loaded
         // Petri Game, because when we load a new APT file, we want all of the nodes' positions
         // to be reset.
-        this.$refs.graphEditorPetriGame.onLoadNewPetriGame()
+        this.$refs.graphEditorPetriGame[0].onLoadNewPetriGame()
         this.apt = apt
         this.isLeftPaneVisible = true
       },
