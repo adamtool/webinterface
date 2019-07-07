@@ -79,7 +79,7 @@
     <!--<v-spacer/>-->
     <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
     <!--</v-toolbar>-->
-    <my-theme
+    <MyVueMenuTheme
       style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
@@ -193,7 +193,7 @@
             @click="useModelChecking = !useModelChecking; useDistributedSynthesis = !useDistributedSynthesis"/>
         </template>
       </hsc-menu-context-menu>
-    </my-theme>
+    </MyVueMenuTheme>
 
     <div style="display: flex; flex-direction: row; height: calc(100vh - 34.333px); width: 100%;"
          ref="horizontalSplitDiv">
@@ -360,10 +360,10 @@
       }
     },
     components: {
-      HscMenuBarDirectory, // TODO decide on import style
-      'GraphEditor': GraphEditor,
-      'my-theme': MyVueMenuTheme,
-      'LogViewer': LogViewer,
+      HscMenuBarDirectory,
+      GraphEditor,
+      MyVueMenuTheme,
+      LogViewer,
       AptEditor,
       JobList,
       AboutAdamWeb
