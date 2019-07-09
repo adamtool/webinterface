@@ -1,11 +1,5 @@
 <template>
   <v-app absolute id='app'>
-    <pre>
-      {{ selectedTabLeftSide }}
-    </pre>
-    <pre>
-      {{ JSON.stringify(tabsLeftSide, null, 2) }}
-    </pre>
     <v-dialog v-model="showJobList"
               :hide-overlay="false"
               :persistent="false"
