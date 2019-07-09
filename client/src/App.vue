@@ -213,8 +213,7 @@
           update appropriately after a drag-drop.-->
           <v-tab v-for="(tab, index) in tabsLeftSide"
                  :key="`${index}-${tab.uuid}`"
-                 :href="`#tab-${tab.uuid}`"
-                 @click="onSwitchToTab(tab)">
+                 :href="`#tab-${tab.uuid}`">
             {{ tab.name }}
           </v-tab>
         </draggable>
@@ -224,8 +223,6 @@
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
-            <!--TODO figure out how to keep the graph editor from being killed when the parent
-            component (v-tabs) gets re-rendered.  OR, fix the visual glitch another way-->
             <GraphEditor v-if="tab.type === 'petriGameEditor'"
                          :graph='petriGame.net'
                          :petriGameId='petriGame.uuid'
@@ -507,8 +504,11 @@
       }
     },
     watch: {
-      selectedTabLeftSide: function (val) {
-        console.log(`selectedTabLeftSide: ${val}`)
+      selectedTabLeftSide: function (newTab, oldTab) {
+        console.log(`selectedTabLeftSide: ${this.selectedTabLeftSide}`)
+        if (oldTab !== newTab) {
+          this.onSwitchToTab(this.selectedTabLeftSide)
+        }
       },
       // When the browser UUID is changed, we should reload the list of jobs and tell the server
       // we want to subscribe to notifications corresponding to our new UUIUD
@@ -1166,16 +1166,14 @@
       onAptEditorInput: function (apt) {
         this.apt = apt
       },
-      // Callback function called whenever the user clicks on a tab
-      onSwitchToTab: function (clickedTab) {
-        const clickedTabId = `tab-${clickedTab.uuid}`
-        const isTheClickedTabAlreadyActive = this.selectedTabLeftSide === clickedTabId
-        if (isTheClickedTabAlreadyActive) {
-          return // We are staying in the same tab we were already in
-        }
-        console.log('Tab switch detected.')
-        if (clickedTab.type === 'aptEditor') {
-          logging.logVerbose('Switching to APT editor')
+      // Callback function called whenever the active tab changes
+      onSwitchToTab: function (tabId) {
+        console.log(`onSwitchToTab(${tabId})`)
+        const tabSwitchedTo = this.tabsLeftSide.find(tab => tabId === `tab-${tab.uuid}`)
+        // console.log(`switched to tab:`)
+        // console.log(tabSwitchedTo)
+        if (tabSwitchedTo.type === 'aptEditor') {
+          logging.logVerbose('Switched to APT editor')
           this.savePetriGameAsAPT()
         }
       },
