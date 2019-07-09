@@ -227,7 +227,6 @@
             <!--TODO figure out how to keep the graph editor from being killed when the parent
             component (v-tabs) gets re-rendered.  OR, fix the visual glitch another way-->
             <GraphEditor v-if="tab.type === 'petriGameEditor'"
-                         :key="'petriGameTabKey'"
                          :graph='petriGame.net'
                          :petriGameId='petriGame.uuid'
                          ref='graphEditorPetriGame'
