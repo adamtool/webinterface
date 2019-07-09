@@ -73,6 +73,7 @@ function log (message, level) {
     time: new Date(),
     text: message
   })
+  console.log(message)
 }
 
 function logObject (message) {
