@@ -56,7 +56,15 @@
         required: true
       }
     },
+    created: function () {
+      // Workaround to make sure the contents of editor don't disappear when the component is
+      // re-rendered (e.g. when the APT Editor tab gets moved around).  See also (*)
+      this.apt = this.aptFromAdamParser
+    },
     mounted: function () {
+      // (*) Workaround to make sure the contents of editor don't disappear
+      this.$refs.theInputField.innerHTML = this.formatAptWithHighlightedError(this.apt)
+
       this.$refs.theInputField.addEventListener('keydown', (event) => {
         if (typeof event.which === 'number' && event.which > 0 && !event.ctrlKey) {
           this.undoHistory.push(this.currentHistoryPoint())
