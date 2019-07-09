@@ -209,6 +209,7 @@
         <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
       </div>
       <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
+              :key="vTabsLeftKey"
               v-model="selectedTabLeftSide">
         <draggable v-model="tabsLeftSide" class="v-tabs__container"
                    @start="tabDragStart"
@@ -227,6 +228,8 @@
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
+            <!--TODO figure out how to keep the graph editor from being killed when the parent
+            component (v-tabs) gets re-rendered.  OR, fix the visual glitch another way-->
             <GraphEditor v-if="tab.type === 'petriGameEditor'"
                          :graph='petriGame.net'
                          :petriGameId='petriGame.uuid'
@@ -430,6 +433,12 @@
     },
     data: function () {
       return {
+        // We increment this key to force the v-tabs component to rerender.
+        // This is a workaround of a visual glitch related to our implementation of drag-and-drop.
+        // Basically, the 'selected tab' indicator does not update in response to a drag-drop,
+        // so we just force the component to be refreshed using this key.
+        // See https://michaelnthiessen.com/force-re-render
+        vTabsLeftKey: 0,
         // Validate whether the given string represents a uuidv4.
         validateBrowserUuid: uuidString => {
           const pattern =
@@ -645,6 +654,9 @@
       }
     },
     methods: {
+      forceLeftTabsRerender: function () {
+        this.vTabsLeftKey += 1
+      },
       onTabChosen: function (evt) {
         console.log('onTabChosen')
       },
@@ -654,6 +666,7 @@
       tabDragEnd: function (evt) {
         console.log('tabDragEnd')
         console.log(evt)
+        this.forceLeftTabsRerender()
         // this.selectedTabLeftSide = evt.newIndex
       },
       initializeWebSocket: function (retryAttempts) {
