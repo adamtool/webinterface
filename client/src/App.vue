@@ -816,7 +816,13 @@
         document.getElementById('file-picker').click()
       },
       saveAptToFile: function () {
-        this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
+        logging.logVerbose('saveAptToFile()')
+        const isAptEditorOpen = this.selectedTabLeftSide === 'tab-AptEditorTab'
+        if (isAptEditorOpen) {
+          saveFileAs(this.apt, this.aptFilename);
+        } else {
+          this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
+        }
       },
       saveSvgToFilePetriGame: function () {
         this.$refs.graphEditorPetriGame[0].saveGraph()
@@ -1212,7 +1218,7 @@
       },
       // Save xy coordinates on the server and then get the new updated APT back
       savePetriGameAsAPT: function () {
-        this.saveXYCoordinatesOnServer()
+        return this.saveXYCoordinatesOnServer()
           .then(this.getAptOfPetriGame)
           .then(apt => {
             this.apt = apt
