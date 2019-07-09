@@ -653,6 +653,9 @@
       tabDragEnd: function (evt) {
         console.log('tabDragEnd')
         console.log(evt)
+        const newTab = this.tabsLeftSide[evt.newIndex]
+        const newTabId = `tab-${newTab.uuid}`
+        this.selectedTabLeftSide = newTabId
       },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
