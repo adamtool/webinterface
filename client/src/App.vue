@@ -1,5 +1,11 @@
 <template>
   <v-app absolute id='app'>
+    <pre>
+      {{ selectedTabLeftSide }}
+    </pre>
+    <pre>
+      {{ JSON.stringify(tabsLeftSide, null, 2) }}
+    </pre>
     <v-dialog v-model="showJobList"
               :hide-overlay="false"
               :persistent="false"
@@ -210,12 +216,14 @@
                    @choose="onTabChosen">
           <v-tab v-for="tab in tabsLeftSide"
                  :key="tab.uuid"
+                 :href="`#tab-${tab.uuid}`"
                  @click="onSwitchToTab(tab)">
             {{ tab.name }}
           </v-tab>
         </draggable>
         <v-tab-item v-for="tab in tabsLeftSide"
                     :key="tab.uuid"
+                    :value="`tab-${tab.uuid}`"
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
@@ -496,7 +504,7 @@
         horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
         horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
-        selectedTabLeftSide: 0 // Index of the currently selected tab
+        selectedTabLeftSide: 'tab-PetriGameTab' // Name of the currently selected tab.  'tab-<uuid>'
       }
     },
     watch: {
@@ -639,28 +647,14 @@
     methods: {
       onTabChosen: function (evt) {
         console.log('onTabChosen')
-        console.log(evt)
-        console.log('Tabs array:')
-        console.log(this.tabsLeftSide)
-        // this.selectedTabLeftSide = evt.oldIndex
-        console.log(`selected tab index: ${this.selectedTabLeftSide}`)
       },
       tabDragStart: function (evt) {
         console.log('tabDragStart')
-        console.log(evt)
-        console.log('Tabs array:')
-        console.log(this.tabsLeftSide)
-        // this.selectedTabLeftSide = evt.oldIndex
-        console.log(`selected tab index: ${this.selectedTabLeftSide}`)
       },
       tabDragEnd: function (evt) {
         console.log('tabDragEnd')
         console.log(evt)
-        console.log('Tabs array:')
-        console.log(this.tabsLeftSide)
-        console.log(`selected tab index: ${this.selectedTabLeftSide}`)
-        this.selectedTabLeftSide = evt.newIndex
-        console.log(`new selected tab index: ${this.selectedTabLeftSide}`)
+        // this.selectedTabLeftSide = evt.newIndex
       },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
@@ -836,8 +830,7 @@
         this.$refs.graphEditorGraphGameBDD.saveGraph()
       },
       switchToAptEditor: function () {
-        const aptEditorTabIndex = this.tabsLeftSide.findIndex(tab => tab.type === 'aptEditor')
-        this.selectedTabLeftSide = aptEditorTabIndex
+        this.selectedTabLeftSide = 'tab-AptEditorTab'
       },
       switchToStrategyBDDTab: function () {
         console.log('TODO implement switchToStrategyBDDTab')
@@ -1177,15 +1170,12 @@
       },
       // Callback function called whenever the user clicks on a tab
       onSwitchToTab: function (clickedTab) {
-        console.log(`clickedTab: ${clickedTab}`)
-        const clickedTabIndex = this.tabsLeftSide.indexOf(clickedTab)
-        console.log(`clickedTabIndex: ${clickedTabIndex}`)
-        const isTheClickedTabAlreadyActive = this.selectedTabLeftSide === clickedTabIndex
+        const clickedTabId = `tab-${clickedTab.uuid}`
+        const isTheClickedTabAlreadyActive = this.selectedTabLeftSide === clickedTabId
         if (isTheClickedTabAlreadyActive) {
           return // We are staying in the same tab we were already in
         }
-        console.log('Tab switch detected.  New tab on next line: ')
-        console.log(clickedTab)
+        console.log('Tab switch detected.')
         if (clickedTab.type === 'aptEditor') {
           logging.logVerbose('Switching to APT editor')
           this.savePetriGameAsAPT()
