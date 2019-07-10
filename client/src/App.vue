@@ -216,6 +216,7 @@
                  :href="`#tab-${tab.uuid}`">
             {{ tab.name }}
             <v-icon standard right
+                    v-if="tab.isCloseable"
                     @click="closeTab(tab)">
               close
             </v-icon>
@@ -469,12 +470,14 @@
           {
             type: 'petriGameEditor',
             name: 'Petri Game',
-            uuid: 'PetriGameTab' // this tab is hard-coded
+            uuid: 'PetriGameTab', // this tab is hard-coded
+            isCloseable: false
           },
           {
             type: 'aptEditor',
             name: 'APT Editor',
-            uuid: 'AptEditorTab'
+            uuid: 'AptEditorTab',
+            isCloseable: false
           }
         ],
         petriGame: {
