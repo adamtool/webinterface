@@ -215,6 +215,10 @@
                  :key="`${index}-${tab.uuid}`"
                  :href="`#tab-${tab.uuid}`">
             {{ tab.name }}
+            <v-icon standard right
+                    @click="closeTab(tab)">
+              close
+            </v-icon>
           </v-tab>
         </draggable>
         <v-tab-item v-for="tab in tabsLeftSide"
@@ -644,6 +648,10 @@
       }
     },
     methods: {
+      closeTab: function (tab) {
+        console.log(`closeTab(${tab.name})`)
+        this.tabsLeftSide = this.tabsLeftSide.filter(t => t !== tab)
+      },
       onTabChosen: function (evt) {
         console.log('onTabChosen')
       },
