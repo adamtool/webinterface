@@ -116,12 +116,7 @@
             </v-card>
           </v-dialog>
           <hsc-menu-item label="Save Petri Game SVG to file" @click="saveSvgToFilePetriGame"/>
-          <hsc-menu-item label="Save Strategy BDD SVG to file" @click="saveSvgToFileStrategyBDD"
-                         v-if="strategyBDD"/>
-          <hsc-menu-item label="Save Graph Strategy BDD SVG to file"
-                         @click="saveSvgToFileGraphStrategyBDD" v-if="graphStrategyBDD"/>
-          <hsc-menu-item label="Save Graph Game BDD SVG to file" @click="saveSvgToFileGraphGameBDD"
-                         v-if="graphGameBDD"/>
+          <!--TODO Save right pane as SVG-->
           <hsc-menu-item label="Load example">
             <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
                                     :callback="onAptExampleSelected"/>
@@ -326,6 +321,9 @@
                        :aptParseErrorLineNumber='aptParseErrorLineNumber'
                        :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
                        @input='onAptEditorInput'/>
+            <GraphEditor v-else-if="tab.type === 'strategyBdd'"
+                         :graph="tab.strategyBdd"
+                         :shouldShowPhysicsControls="showPhysicsControls"/>
             <div v-else>
               Tab type not yet implemented: {{ tab.type }}
             </div>
@@ -333,16 +331,9 @@
         </v-tab-item>
 
         <!--TODO Maybe mark the tabs somehow if the Petri Game has been modified since the tabs were opened-->
-        <!--<v-tab v-if="strategyBDD">Strategy BDD</v-tab>-->
         <!--<v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>-->
         <!--<v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>-->
         <!--<v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>-->
-        <!--<v-tab-item v-if="strategyBDD">-->
-        <!--<GraphEditor :graph='strategyBDD'-->
-        <!--:petriGameId='petriGame.uuid'-->
-        <!--ref='graphEditorStrategyBDD'-->
-        <!--:shouldShowPhysicsControls="showPhysicsControls"/>-->
-        <!--</v-tab-item>-->
         <!--<v-tab-item v-if="graphStrategyBDD">-->
         <!--<GraphEditor :graph='graphStrategyBDD'-->
         <!--:petriGameId='petriGame.uuid'-->
@@ -545,12 +536,6 @@
         ],
         tabsRightSide: [
           {
-            type: 'petriGameEditor',
-            name: 'Petri Game (Extra)',
-            uuid: 'PetriGameTab2', // TODO delete this tab.  It's only for testing
-            isCloseable: false
-          },
-          {
             type: 'testTab',
             name: 'Test',
             uuid: 'oienwfoyujiehsrayltj32425125',
@@ -570,7 +555,6 @@
           },
           uuid: 'abcfakeuuid123'
         },
-        strategyBDD: null,
         graphStrategyBDD: null,
         graphGameBDD: null,
         // This is a key in a map used on the server to store the Graph Game BDDs.
@@ -661,7 +645,7 @@
       },
       shouldShowRightSide: function () {
         // TODO delete
-        // return this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD || this.modelCheckingNet
+        // return this.graphStrategyBDD || this.graphGameBDD || this.modelCheckingNet
         return this.tabsRightSide.length !== 0
       },
       splitRightSideStyle: function () {
@@ -947,29 +931,9 @@
       saveSvgToFilePetriGame: function () {
         this.$refs.graphEditorPetriGame[0].saveGraph()
       },
-      saveSvgToFileStrategyBDD: function () {
-        this.$refs.graphEditorStrategyBDD.saveGraph()
-      },
-      saveSvgToFileGraphStrategyBDD: function () {
-        this.$refs.graphEditorGraphStrategyBDD.saveGraph()
-      },
-      saveSvgToFileGraphGameBDD: function () {
-        this.$refs.graphEditorGraphGameBDD.saveGraph()
-      },
+      // TODO Implement saveSvgToFile for 'left side' / 'right side'
       switchToAptEditor: function () {
         this.selectedTabLeftSide = 'tab-AptEditorTab'
-      },
-      switchToStrategyBDDTab: function () {
-        console.log('TODO implement switchToStrategyBDDTab')
-        // TODO: This should be easy, but it's kind of inconvenient because they can only be
-        // identified by number, and the number of tabs is variable.
-        // you do it with e.g. this.selectedTabRightSide = 0 to switch to the 0th tab
-      },
-      switchToGraphStrategyBDDTab: function () {
-        console.log('TODO implement switchToGraphStrategyBDDTab')
-      },
-      switchToGraphGameBDDTab: function () {
-        console.log('TODO implement switchToGraphGameBDDTab')
       },
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
@@ -1098,30 +1062,38 @@
       },
       calculateStrategyBDD: function () {
         this.$refs.menubar.deactivate()
-        const uuid = this.petriGame.uuid
         logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
         this.restEndpoints.calculateStrategyBDD({
-          petriGameId: uuid,
+          petriGameId: this.petriGame.uuid,
           params: {}
         }).then(response => {
           this.withErrorHandling(response, response => {
             // Load the strategy BDD if it is finished within 5-10 seconds.  Otherwise just show a message
             if (response.data.jobComplete) {
-              this.strategyBDD = response.data.result
-              this.strategyBDD.uuid = uuid
+              // TODO Refactor into own method **
+              this.tabsRightSide.push({
+                name: 'Strategy BDD',
+                type: 'strategyBdd',
+                strategyBdd: response.data.result,
+                uuid: uuidv4(),
+                closeable: true
+                // TODO Memorize the canonicalApt of the petri game prior to running the job,
+                // so that we can mark the tab in case it no longer corresponds to the Petri Game
+                // in the editor.  The server should then send it to us along with the job's result.
+              })
               // We expect an updated petriGame here because there might have been partition annotations added.
               this.petriGame.net = response.data.petriGame
-              this.switchToStrategyBDDTab()
               this.apt = response.data.jobKey.canonicalApt
               logging.sendSuccessNotification(response.data.message)
             } else {
               // The message from server will explain that the job has been enqueued.
-              // TODO Provide a notification after it is finished
+              // TODO Provide a notification after it is finished, (and show the tab?)
               logging.sendSuccessNotification(response.data.message)
             }
           })
-        }).catch(() => {
+        }).catch((error) => {
           logging.logError('Network error in calculateStrategyBDD')
+          logging.logObject(error)
         })
       },
       calculateGraphStrategyBDD: function () {
@@ -1137,7 +1109,7 @@
               this.graphStrategyBDD.uuid = uuid
               // We expect an updated petriGame here because there might have been partition annotations added.
               this.petriGame.net = response.data.petriGame
-              this.switchToGraphStrategyBDDTab()
+              // TODO create a tab and switch to it
               this.apt = response.data.jobKey.canonicalApt
               logging.sendSuccessNotification(response.data.message)
             } else {
@@ -1167,7 +1139,7 @@
               this.apt = jobKey.canonicalApt
               this.graphGameBDD = response.data.result
               this.graphGameJobKey = jobKey
-              this.switchToGraphGameBDDTab()
+              // TODO create a tab and switch to it
               logging.sendSuccessNotification('Loaded Graph Game BDD')
           }
         })
@@ -1182,8 +1154,15 @@
               break
             case 'success':
               this.apt = jobKey.canonicalApt
-              this.strategyBDD = response.data.result
-              this.switchToStrategyBDDTab()
+              // TODO refactor into own method.  See **
+              this.tabsRightSide.push({
+                name: 'Strategy BDD',
+                type: 'strategyBdd',
+                strategyBdd: response.data.result,
+                canonicalApt: jobKey.canonicalApt,
+                uuid: uuidv4(), // TODO put a UUID in the server
+                closeable: true
+              })
               logging.sendSuccessNotification('Loaded Winning Strategy')
           }
         })
@@ -1199,7 +1178,7 @@
             case 'success':
               this.apt = jobKey.canonicalApt
               this.graphStrategyBDD = response.data.result
-              this.switchToGraphStrategyBDDTab()
+              // TODO create a tab and switch to it
               logging.sendSuccessNotification('Loaded Graph Strategy BDD')
           }
         })
@@ -1256,7 +1235,7 @@
               this.graphGameJobKey = response.data.jobKey
               // TODO Get Petri Game from server in caes partition annotations have been added
               // this.petriGame.net = response.data.petriGame
-              this.switchToGraphGameBDDTab()
+              // TODO Create a tab and switch to it
               logging.sendSuccessNotification(response.data.message)
             } else {
               // The message from server will explain that the job has been enqueued.
