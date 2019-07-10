@@ -206,7 +206,7 @@
               v-model="selectedTabLeftSide">
         <draggable v-model="tabsLeftSide" class="v-tabs__container"
                    @start="tabDragStart"
-                   @end="tabDragEnd"
+                   @end="(evt) => tabDragEnd(evt, 'left')"
                    @choose="onTabChosen">
           <!--We include the tab's index in the key so that this component will re-render when
           the tabs' order changes.  That's necessary so that the 'current tab' indicator will
@@ -217,7 +217,7 @@
             {{ tab.name }}
             <v-icon standard right
                     v-if="tab.isCloseable"
-                    @click="closeTab(tab)">
+                    @click="closeTab(tab, 'left')">
               close
             </v-icon>
           </v-tab>
@@ -267,41 +267,104 @@
           </keep-alive>
         </v-tab-item>
       </v-tabs>
-      <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide">
-        <!--TODO Allow closing these tabs-->
+      <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide"
+              v-model="selectedTabRightSide">
+        <draggable v-model="tabsRightSide" class="v-tabs__container"
+                   @start="tabDragStart"
+                   @end="(evt) => tabDragEnd(evt, 'right')"
+                   @choose="onTabChosen">
+          <!--We include the tab's index in the key so that this component will re-render when
+          the tabs' order changes.  That's necessary so that the 'current tab' indicator will
+          update appropriately after a drag-drop.-->
+          <v-tab v-for="(tab, index) in tabsRightSide"
+                 :key="`${index}-${tab.uuid}`"
+                 :href="`#tab-${tab.uuid}`">
+            {{ tab.name }}
+            <v-icon standard right
+                    v-if="tab.isCloseable"
+                    @click="closeTab(tab, 'right')">
+              close
+            </v-icon>
+          </v-tab>
+        </draggable>
+        <v-tab-item v-for="tab in tabsRightSide"
+                    :key="tab.uuid"
+                    :value="`tab-${tab.uuid}`"
+                    :transition="false"
+                    :reverse-transition="false">
+          <keep-alive>
+            <GraphEditor v-if="tab.type === 'petriGameEditor'"
+                         :graph='petriGame.net'
+                         :petriGameId='petriGame.uuid'
+                         ref='graphEditorPetriGame2'
+                         v-on:dragDropEnd='onDragDropEnd'
+                         v-on:insertNode='insertNode'
+                         v-on:createFlow='createFlow'
+                         v-on:createTokenFlow='createTokenFlow'
+                         v-on:deleteFlow='deleteFlow'
+                         v-on:deleteNode='deleteNode'
+                         v-on:renameNode='renameNode'
+                         v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                         v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                         v-on:setIsSpecial='setIsSpecial'
+                         v-on:fireTransition='fireTransition'
+                         v-on:setInitialToken='setInitialToken'
+                         v-on:setWinningCondition='setWinningCondition'
+                         showEditorTools
+                         :useModelChecking="useModelChecking"
+                         :useDistributedSynthesis="useDistributedSynthesis"
+                         :modelCheckingRoutes="modelCheckingRoutes"
+                         :shouldShowPhysicsControls="showPhysicsControls"
+                         :shouldShowPartitions="showPartitions"
+                         :repulsionStrengthDefault="360"
+                         :linkStrengthDefault="0.086"/>
+            </GraphEditor>
+            <AptEditor v-else-if="tab.type === 'aptEditor'"
+                       :aptFromAdamParser='apt'
+                       :aptParseStatus='aptParseStatus'
+                       :aptParseError='aptParseError'
+                       :aptParseErrorLineNumber='aptParseErrorLineNumber'
+                       :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
+                       @input='onAptEditorInput'/>
+            <div v-else>
+              Tab type not yet implemented: {{ tab.type }}
+            </div>
+          </keep-alive>
+        </v-tab-item>
+
         <!--TODO Maybe mark the tabs somehow if the Petri Game has been modified since the tabs were opened-->
-        <v-tab v-if="strategyBDD">Strategy BDD</v-tab>
-        <v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>
-        <v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>
-        <v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>
-        <v-tab-item v-if="strategyBDD">
-          <GraphEditor :graph='strategyBDD'
-                       :petriGameId='petriGame.uuid'
-                       ref='graphEditorStrategyBDD'
-                       :shouldShowPhysicsControls="showPhysicsControls"/>
-        </v-tab-item>
-        <v-tab-item v-if="graphStrategyBDD">
-          <GraphEditor :graph='graphStrategyBDD'
-                       :petriGameId='petriGame.uuid'
-                       ref='graphEditorGraphStrategyBDD'
-                       :shouldShowPhysicsControls="showPhysicsControls"/>
-        </v-tab-item>
-        <v-tab-item v-if="graphGameBDD">
-          <GraphEditor :graph='graphGameBDD'
-                       :petriGameId='petriGame.uuid'
-                       ref='graphEditorGraphGameBDD'
-                       v-on:toggleStatePostset='toggleGraphGameStatePostset'
-                       v-on:toggleStatePreset='toggleGraphGameStatePreset'
-                       :shouldShowPhysicsControls="showPhysicsControls"
-                       :repulsionStrengthDefault="415"
-                       :linkStrengthDefault="0.04"
-                       :gravityStrengthDefault="300"/>
-        </v-tab-item>
-        <v-tab-item v-if="modelCheckingNet">
-          <GraphEditor :graph="modelCheckingNet"
-                       :petriGameId='petriGame.uuid'
-                       :shouldShowPhysicsControls="showPhysicsControls"/>
-        </v-tab-item>
+        <!--<v-tab v-if="strategyBDD">Strategy BDD</v-tab>-->
+        <!--<v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>-->
+        <!--<v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>-->
+        <!--<v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>-->
+        <!--<v-tab-item v-if="strategyBDD">-->
+        <!--<GraphEditor :graph='strategyBDD'-->
+        <!--:petriGameId='petriGame.uuid'-->
+        <!--ref='graphEditorStrategyBDD'-->
+        <!--:shouldShowPhysicsControls="showPhysicsControls"/>-->
+        <!--</v-tab-item>-->
+        <!--<v-tab-item v-if="graphStrategyBDD">-->
+        <!--<GraphEditor :graph='graphStrategyBDD'-->
+        <!--:petriGameId='petriGame.uuid'-->
+        <!--ref='graphEditorGraphStrategyBDD'-->
+        <!--:shouldShowPhysicsControls="showPhysicsControls"/>-->
+        <!--</v-tab-item>-->
+        <!--<v-tab-item v-if="graphGameBDD">-->
+        <!--<GraphEditor :graph='graphGameBDD'-->
+        <!--:petriGameId='petriGame.uuid'-->
+        <!--ref='graphEditorGraphGameBDD'-->
+        <!--v-on:toggleStatePostset='toggleGraphGameStatePostset'-->
+        <!--v-on:toggleStatePreset='toggleGraphGameStatePreset'-->
+        <!--:shouldShowPhysicsControls="showPhysicsControls"-->
+        <!--:repulsionStrengthDefault="415"-->
+        <!--:linkStrengthDefault="0.04"-->
+        <!--:gravityStrengthDefault="300"/>-->
+        <!--</v-tab-item>-->
+        <!--<v-tab-item v-if="modelCheckingNet">-->
+        <!--<GraphEditor :graph="modelCheckingNet"-->
+        <!--:petriGameId='petriGame.uuid'-->
+        <!--:shouldShowPhysicsControls="showPhysicsControls"/>-->
+        <!--</v-tab-item>-->
       </v-tabs>
     </div>
     <div :style="`color: ${this.notificationColor}`">
@@ -480,6 +543,26 @@
             isCloseable: false
           }
         ],
+        tabsRightSide: [
+          {
+            type: 'petriGameEditor',
+            name: 'Petri Game (Extra)',
+            uuid: 'PetriGameTab2', // TODO delete this tab.  It's only for testing
+            isCloseable: false
+          },
+          {
+            type: 'testTab',
+            name: 'Test',
+            uuid: 'oienwfoyujiehsrayltj32425125',
+            isCloseable: true
+          },
+          {
+            type: 'testTab',
+            name: 'Test 2',
+            uuid: 'oienwfoyujiehsrayltj32425126',
+            isCloseable: true
+          }
+        ],
         petriGame: {
           net: {
             links: [],
@@ -507,7 +590,9 @@
         horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
         horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
-        selectedTabLeftSide: 'tab-PetriGameTab' // Name of the currently selected tab.  'tab-<uuid>'
+        // Name of the currently selected tab.  'tab-<uuid>'
+        selectedTabLeftSide: 'tab-PetriGameTab',
+        selectedTabRightSide: 'tab-PetriGameTab2' // TODO change.  This is only for testing
       }
     },
     watch: {
@@ -575,7 +660,9 @@
         return hideStyle + 'flex-grow: 1;'
       },
       shouldShowRightSide: function () {
-        return this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD || this.modelCheckingNet
+        // TODO delete
+        // return this.strategyBDD || this.graphStrategyBDD || this.graphGameBDD || this.modelCheckingNet
+        return this.tabsRightSide.length !== 0
       },
       splitRightSideStyle: function () {
         return this.shouldShowRightSide ? '' : 'display: none;'
@@ -651,9 +738,19 @@
       }
     },
     methods: {
-      closeTab: function (tab) {
-        console.log(`closeTab(${tab.name})`)
-        this.tabsLeftSide = this.tabsLeftSide.filter(t => t !== tab)
+      closeTab: function (tab, side) {
+        console.log(`closeTab(${tab.name}, ${side})`)
+        // TODO delete this case statement and replace with a component
+        switch (side) {
+          case 'left':
+            this.tabsLeftSide = this.tabsLeftSide.filter(t => t !== tab)
+            break
+          case 'right':
+            this.tabsRightSide = this.tabsRightSide.filter(t => t !== tab)
+            break
+          default:
+            throw new Error('Invalid value for "side" in case statement in closeTab(): ' + side)
+        }
       },
       onTabChosen: function (evt) {
         console.log('onTabChosen')
@@ -661,12 +758,24 @@
       tabDragStart: function (evt) {
         console.log('tabDragStart')
       },
-      tabDragEnd: function (evt) {
+      tabDragEnd: function (evt, side) {
         console.log('tabDragEnd')
         console.log(evt)
-        const newTab = this.tabsLeftSide[evt.newIndex]
-        const newTabId = `tab-${newTab.uuid}`
-        this.selectedTabLeftSide = newTabId
+        switch (side) {
+          case 'left':
+            const newTab = this.tabsLeftSide[evt.newIndex]
+            const newTabId = `tab-${newTab.uuid}`
+            this.selectedTabLeftSide = newTabId
+            break
+          case 'right':
+            // TODO delete this case statement and replace with a component
+            const newTabRight = this.tabsRightSide[evt.newIndex]
+            const newTabIdRight = `tab-${newTabRight.uuid}`
+            this.selectedTabRightSide = newTabIdRight
+            break
+          default:
+            throw new Error('Invalid value for "side" in case statement in tabDragEnd')
+        }
       },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
@@ -830,7 +939,7 @@
         logging.logVerbose('saveAptToFile()')
         const isAptEditorOpen = this.selectedTabLeftSide === 'tab-AptEditorTab'
         if (isAptEditorOpen) {
-          saveFileAs(this.apt, this.aptFilename);
+          saveFileAs(this.apt, this.aptFilename)
         } else {
           this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
         }
