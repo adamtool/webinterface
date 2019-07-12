@@ -381,14 +381,14 @@
 
 
 <script>
-  import { aptFileTreeSynthesis, aptFileTreeModelChecking } from './aptExamples'
+  import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
   import Vue from 'vue'
   import * as axios from 'axios'
-  import { debounce } from 'underscore'
+  import {debounce} from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   import Vuetify from 'vuetify'
@@ -410,14 +410,14 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from './logWebSocket'
-  import { saveFileAs } from './fileutilities'
+  import {saveFileAs} from './fileutilities'
 
   import Split from 'split.js'
 
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
 
   import draggable from 'vuedraggable'
 
@@ -654,6 +654,7 @@
       // "localhost:4567/..."
       restEndpoints: function () {
         const endpoints = [
+          'queueJob',
           'calculateExistsWinningStrategy',
           'calculateStrategyBDD',
           'calculateGraphStrategyBDD',
@@ -969,6 +970,13 @@
         })
         this.aptParseStatus = 'running'
       }, 200),
+      queueJob: function (petriGameId, jobType, jobParams) {
+        this.restEndpoints.queueJob({
+          petriGameId: petriGameId,
+          params: jobParams,
+          jobType: jobType
+        })
+      },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
         this.restEndpoints.calculateModelCheckingNet({
@@ -1026,69 +1034,13 @@
         })
       },
       calculateExistsWinningStrategy: function () {
+        this.queueJob(this.petriGame.uuid, 'EXISTS_WINNING_STRATEGY', {})
         logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')
-        this.restEndpoints.calculateExistsWinningStrategy({
-          petriGameId: this.petriGame.uuid,
-          params: {}
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.jobComplete) {
-              this.apt = response.data.jobKey.canonicalApt
-              this.petriGame.hasWinningStrategy = response.data.result
-              if (this.petriGame.hasWinningStrategy) {
-                // TODO consider displaying the info in a more persistent way, e.g. by colorizing the button "exists winning strategy".
-                logging.sendSuccessNotification('Yes, there is a winning strategy for this Petri Game.')
-                // We expect an updated petriGame here because there might have been partition annotations added.
-                // this.petriGame.net = response.data.petriGame
-              } else {
-                logging.sendErrorNotification('No, there is no winning strategy for this Petri Game.')
-              }
-            } else {
-              // The message from server will explain that the job has been enqueued.
-              // TODO Provide a notification after it is finished
-              logging.sendSuccessNotification(response.data.message)
-            }
-          })
-        }).catch(() => {
-          logging.logError('Network error in calculateExistsWinningStrategy')
-        })
       },
       calculateStrategyBDD: function () {
         this.$refs.menubar.deactivate()
+        this.queueJob(this.petriGame.uuid, 'WINNING_STRATEGY', {})
         logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
-        this.restEndpoints.calculateStrategyBDD({
-          petriGameId: this.petriGame.uuid,
-          params: {}
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            // Load the strategy BDD if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.jobComplete) {
-              // TODO Refactor into own method **
-              this.tabsRightSide.push({
-                name: 'Strategy BDD',
-                type: 'strategyBdd',
-                strategyBdd: response.data.result,
-                uuid: uuidv4(),
-                isCloseable: true
-                // TODO Memorize the canonicalApt of the petri game prior to running the job,
-                // so that we can mark the tab in case it no longer corresponds to the Petri Game
-                // in the editor.  The server should then send it to us along with the job's result.
-              })
-              // We expect an updated petriGame here because there might have been partition annotations added.
-              this.petriGame.net = response.data.petriGame
-              this.apt = response.data.jobKey.canonicalApt
-              logging.sendSuccessNotification(response.data.message)
-            } else {
-              // The message from server will explain that the job has been enqueued.
-              // TODO Provide a notification after it is finished, (and show the tab?)
-              logging.sendSuccessNotification(response.data.message)
-            }
-          })
-        }).catch((error) => {
-          logging.logError('Network error in calculateStrategyBDD')
-          logging.logObject(error)
-        })
       },
       calculateGraphStrategyBDD: function () {
         const uuid = this.petriGame.uuid
