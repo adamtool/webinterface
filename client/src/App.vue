@@ -19,9 +19,7 @@
             :jobListings="jobListings"
             :useModelChecking="useModelChecking"
             style="background-color: white;"
-            @getGraphGameBdd="getGraphGameBdd"
-            @getWinningStrategy="getWinningStrategy"
-            @getGraphStrategyBdd="getGraphStrategyBdd"
+            @addTab="addTab"
             @cancelJob="cancelJob"
             @deleteJob="deleteJob"/>
           <div
@@ -553,12 +551,6 @@
           },
           uuid: 'abcfakeuuid123'
         },
-        graphStrategyBDD: null,
-        graphGameBDD: null,
-        // This is a key in a map used on the server to store the Graph Game BDDs.
-        // It uniquely identifies our own graphGameBdd on the server.
-        graphGameJobKey: {},
-        modelCheckingNet: null,
         isLeftPaneVisible: true,
         isLogVisible: false,
         showPhysicsControls: false,
@@ -658,9 +650,6 @@
           'calculateStrategyBDD',
           'calculateGraphStrategyBDD',
           'calculateGraphGameBDD',
-          'getWinningStrategy',
-          'getGraphStrategyBDD',
-          'getGraphGameBDD',
           'getListOfJobs',
           'cancelJob',
           'deleteJob',
@@ -1123,61 +1112,10 @@
             this.jobListings = response.data.listings
           })
       },
-      // Load the Graph Game BDD corresponding to the given job key
-      getGraphGameBdd: function (jobKey) {
-        this.restEndpoints.getGraphGameBDD({
-          jobKey
-        }).then(response => {
-          switch (response.data.status) {
-            case 'error':
-              logging.sendErrorNotification(response.data.message)
-              break
-            case 'success':
-              this.apt = jobKey.canonicalApt
-              this.graphGameBDD = response.data.result
-              this.graphGameJobKey = jobKey
-              // TODO create a tab and switch to it
-              logging.sendSuccessNotification('Loaded Graph Game BDD')
-          }
-        })
-      },
-      getWinningStrategy: function (jobKey) {
-        this.restEndpoints.getWinningStrategy({
-          jobKey: jobKey
-        }).then(response => {
-          switch (response.data.status) {
-            case 'error':
-              logging.sendErrorNotification(response.data.message)
-              break
-            case 'success':
-              this.apt = jobKey.canonicalApt
-              // TODO refactor into own method.  See **
-              this.tabsRightSide.push({
-                name: 'Strategy BDD',
-                type: 'strategyBdd',
-                strategyBdd: response.data.result,
-                canonicalApt: jobKey.canonicalApt,
-                uuid: uuidv4(), // TODO put a UUID in the server
-                closeable: true
-              })
-              logging.sendSuccessNotification('Loaded Winning Strategy')
-          }
-        })
-      },
-      getGraphStrategyBdd: function (jobKey) {
-        this.restEndpoints.getGraphStrategyBDD({
-          jobKey
-        }).then(response => {
-          switch (response.data.status) {
-            case 'error':
-              logging.sendErrorNotification(response.data.message)
-              break
-            case 'success':
-              this.apt = jobKey.canonicalApt
-              this.graphStrategyBDD = response.data.result
-              // TODO create a tab and switch to it
-              logging.sendSuccessNotification('Loaded Graph Strategy BDD')
-          }
+      addTab: function (jobListing) {
+        this.tabsRightSide.push({
+          ...jobListing,
+          closeable: true
         })
       },
       cancelJob: function ({jobKey, type}) {

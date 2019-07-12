@@ -79,21 +79,9 @@
       </template>
 
       <!--Button to load the result of a job or cancel a pending job-->
-      <td v-if="listing.jobStatus === 'COMPLETED' && listing.type === 'GRAPH_GAME_BDD'"
+      <td v-if="listing.jobStatus === 'COMPLETED' && canBeDisplayedInTab(listing.type)"
           class="highlightable">
-        <button @click="$emit('getGraphGameBdd', listing.jobKey)">Load</button>
-      </td>
-      <td
-        v-else-if="listing.jobStatus === 'COMPLETED'
-                     && listing.type === 'WINNING_STRATEGY'"
-        class="highlightable">
-        <button @click="$emit('getWinningStrategy', listing.jobKey)">Load</button>
-      </td>
-      <td
-        v-else-if="listing.jobStatus === 'COMPLETED'
-                     && listing.type === 'GRAPH_STRATEGY_BDD'"
-        class="highlightable">
-        <button @click="$emit('getGraphStrategyBdd', listing.jobKey)">Load</button>
+        <button @click="$emit('addTab', listing)">Load</button>
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.jobStatus)"
           class="highlightable">
@@ -119,7 +107,7 @@
 </template>
 
 <script>
-  import {format} from 'date-fns'
+  import { format } from 'date-fns'
   import logging from '../logging'
 
   export default {
@@ -156,6 +144,10 @@
       }
     },
     methods: {
+      canBeDisplayedInTab (jobType) {
+        const displayableJobTypes = ['GRAPH_GAME_BDD', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD', 'MODEL_CHECKING_NET']
+        return displayableJobTypes.includes(jobType)
+      },
       formatDate (secondsSinceUnixEpoch) {
         if (secondsSinceUnixEpoch === 0) {
           return '-'
