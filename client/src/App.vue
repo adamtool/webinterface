@@ -16,7 +16,7 @@
         </v-card-title>
         <v-card-text>
           <JobList
-            :jobListings="availableBDDGraphListings"
+            :jobListings="jobListings"
             :useModelChecking="useModelChecking"
             style="background-color: white;"
             @getGraphGameBdd="getGraphGameBdd"
@@ -248,7 +248,6 @@
                          :shouldShowPartitions="showPartitions"
                          :repulsionStrengthDefault="360"
                          :linkStrengthDefault="0.086"/>
-            </GraphEditor>
             <AptEditor v-else-if="tab.type === 'aptEditor'"
                        :aptFromAdamParser='apt'
                        :aptParseStatus='aptParseStatus'
@@ -313,7 +312,6 @@
                          :shouldShowPartitions="showPartitions"
                          :repulsionStrengthDefault="360"
                          :linkStrengthDefault="0.086"/>
-            </GraphEditor>
             <AptEditor v-else-if="tab.type === 'aptEditor'"
                        :aptFromAdamParser='apt'
                        :aptParseStatus='aptParseStatus'
@@ -504,7 +502,7 @@
         showJobList: false,
         showAboutModal: false,
         // True iff the modal dialog with the list of jobs is visible
-        availableBDDGraphListings: [], // Listings for all enqueued/finished jobs
+        jobListings: [], // Listings for all enqueued/finished jobs
         // TODO Rename to just 'availableJobListings' or 'jobListings'
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
@@ -779,10 +777,8 @@
               logging.logServerMessage(messageParsed.message, messageParsed.level)
               break
             case 'jobStatusChanged':
-              logging.logVerbose('A job\'s status changed.  Polling job list.')
-              // logging.logObject('Key of job whose status changed:')
-              // logging.logObject(messageParsed.jobKey)
-              this.getListOfJobs()
+              logging.logVerbose('A job\'s status changed.  Updating job list.')
+              // TODO put new job listing into the map of job listings
               break
             case 'ping':
               logging.logVerbose('Got ping from server.  Sending pong')
@@ -837,7 +833,7 @@
           return
         }
         if (this.validateBrowserUuid(this.browserUuidEntry) === true) {
-          const noJobsAreListed = this.availableBDDGraphListings.length === 0
+          const noJobsAreListed = this.jobListings.length === 0
           if (noJobsAreListed || confirm(
             'Changing your browser\'s UUID will cause your current list of jobs to disappear.  ' +
             'The only way to get them back is to re-enter your current UUID (' + this.browserUuid +
@@ -1123,7 +1119,7 @@
       getListOfJobs: function () {
         this.restEndpoints.getListOfJobs()
           .then(response => {
-            this.availableBDDGraphListings = response.data.listings
+            this.jobListings = response.data.listings
           })
       },
       // Load the Graph Game BDD corresponding to the given job key
