@@ -9,7 +9,6 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import spark.Request;
 import spark.Response;
-import spark.Route;
 import uniol.apt.adt.pn.*;
 import uniol.apt.io.parser.ParseException;
 import uniol.apt.io.renderer.RenderException;
@@ -28,7 +27,6 @@ import uniolunisaar.adam.exceptions.logics.NotConvertableException;
 import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
 
@@ -64,7 +62,7 @@ public class App {
 
         post("/parseApt", this::handleParseApt);
 
-        post("/queueJob", this::handleQueueJob2);
+        post("/queueJob", this::handleQueueJob);
 
         postWithUserContext("/getListOfJobs", this::handleGetListOfJobs);
 
@@ -255,7 +253,7 @@ public class App {
     }
 
 
-    private Object handleQueueJob2(Request req, Response res) throws RenderException {
+    private Object handleQueueJob(Request req, Response res) throws RenderException {
         // Read request parameters.  Get the Petri Game that should be operated upon and the
         // UserContext of the client making the request.
         JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
