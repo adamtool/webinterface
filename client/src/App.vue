@@ -379,14 +379,14 @@
 
 
 <script>
-  import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
+  import { aptFileTreeSynthesis, aptFileTreeModelChecking } from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
   import Vue from 'vue'
   import * as axios from 'axios'
-  import {debounce} from 'underscore'
+  import { debounce } from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   import Vuetify from 'vuetify'
@@ -408,14 +408,14 @@
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from './logWebSocket'
-  import {saveFileAs} from './fileutilities'
+  import { saveFileAs } from './fileutilities'
 
   import Split from 'split.js'
 
   import logging from './logging'
   import AptEditor from './components/AptEditor'
 
-  import {format} from 'date-fns'
+  import { format } from 'date-fns'
 
   import draggable from 'vuedraggable'
 
