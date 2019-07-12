@@ -115,12 +115,20 @@ public class PetriNetD3 {
     /**
      * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
-    public static JsonElement ofPetriGame(PetriGame game) throws CouldNotFindSuitableConditionException {
-        return ofPetriGameWithXYCoordinates(game, new HashSet<>(), true);
+    public static JsonElement ofPetriGame(PetriGame game) throws SerializationException {
+        try {
+            return ofPetriGameWithXYCoordinates(game, new HashSet<>(), true);
+        } catch (CouldNotFindSuitableConditionException e) {
+            throw new SerializationException(e);
+        }
     }
 
-    public static JsonElement ofNetWithoutObjective(PetriGame game) throws CouldNotFindSuitableConditionException {
-        return ofPetriGameWithXYCoordinates(game, new HashSet<>(), false);
+    public static JsonElement ofNetWithoutObjective(PetriGame game) throws SerializationException {
+        try {
+            return ofPetriGameWithXYCoordinates(game, new HashSet<>(), false);
+        } catch (CouldNotFindSuitableConditionException e) {
+            throw new SerializationException(e);
+        }
     }
 
 

@@ -7,5 +7,6 @@ import com.google.gson.JsonElement;
  * class into a JSON representation that our browser client can work with.
  */
 public interface SerializerFunction<T> {
-    JsonElement apply(T t) throws Exception;
+    JsonElement apply(T t) throws SerializationException;
 }
+

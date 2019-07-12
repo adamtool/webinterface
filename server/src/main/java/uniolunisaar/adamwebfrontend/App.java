@@ -101,8 +101,13 @@ public class App {
         post("/calculateModelCheckingNet", handleQueueJob(
                 this::calculateModelCheckingNet,
                 JobType.MODEL_CHECKING_NET,
-                (PetriNet modelCheckingNet) ->
-                        PetriNetD3.ofPetriGame(new PetriGame(modelCheckingNet))
+                (PetriNet modelCheckingNet) -> {
+                    try {
+                        return PetriNetD3.ofPetriGame(new PetriGame(modelCheckingNet));
+                    } catch (NotSupportedGameException e) {
+                        throw new SerializationException(e);
+                    }
+                }
         ));
 
         post("/getWinningStrategy", handleGetJobResult(
