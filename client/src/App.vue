@@ -778,7 +778,8 @@
               break
             case 'jobStatusChanged':
               logging.logVerbose('A job\'s status changed.  Updating job list.')
-              // TODO put new job listing into the map of job listings
+              this.getListOfJobs()
+              // TODO Incrementally update list instead of polling and reloading the WHOLE list each time
               break
             case 'ping':
               logging.logVerbose('Got ping from server.  Sending pong')
