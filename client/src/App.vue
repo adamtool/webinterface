@@ -317,8 +317,8 @@
                        :aptParseErrorLineNumber='aptParseErrorLineNumber'
                        :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
                        @input='onAptEditorInput'/>
-            <GraphEditor v-else-if="tab.type === 'strategyBdd'"
-                         :graph="tab.strategyBdd"
+            <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
+                         :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
