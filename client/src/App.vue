@@ -321,7 +321,11 @@
                          :graph="tab.strategyBdd"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
             <div v-else>
-              Tab type not yet implemented: {{ tab.type }}
+              <div>Tab type not yet implemented: {{ tab.type }}</div>
+              <div>
+                Tab contents:
+                <div style="white-space: pre-wrap;">{{ tab }}</div>
+              </div>
             </div>
           </keep-alive>
         </v-tab-item>
@@ -570,6 +574,10 @@
       }
     },
     watch: {
+      tabsRightSide: function () {
+        console.log('Watcher tabsRightSide:')
+        console.log(this.tabsRightSide)
+      },
       selectedTabLeftSide: function (newTab, oldTab) {
         console.log(`selectedTabLeftSide: ${this.selectedTabLeftSide}`)
         if (oldTab !== newTab) {
@@ -1113,8 +1121,11 @@
           })
       },
       addTab: function (jobListing) {
+        console.log('addTab()')
         this.tabsRightSide.push({
           ...jobListing,
+          name: jobListing.type,
+          uuid: uuidv4(),
           closeable: true
         })
       },
