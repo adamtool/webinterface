@@ -52,11 +52,6 @@ public class App {
         new App().startServer();
     }
 
-    // TODO serialize the counterexample as well if it is present
-    private static JsonElement serializeModelCheckingResult(ModelCheckingResult result) {
-        return new JsonPrimitive(result.getSatisfied().toString());
-    }
-
     public void startServer() {
         webSocket("/log", LogWebSocket.class);
 
@@ -71,55 +66,34 @@ public class App {
 
         post("/calculateExistsWinningStrategy", handleQueueJob(
                 this::calculateExistsWinningStrategy,
-                JobType.EXISTS_WINNING_STRATEGY,
-                JsonPrimitive::new
+                JobType.EXISTS_WINNING_STRATEGY
         ));
 
         post("/calculateStrategyBDD", handleQueueJob(
                 this::calculateStrategyBDD,
-                JobType.WINNING_STRATEGY,
-                PetriNetD3::ofNetWithoutObjective
+                JobType.WINNING_STRATEGY
         ));
 
         post("/calculateGraphStrategyBDD", handleQueueJob(
                 this::calculateGraphStrategyBDD,
-                JobType.GRAPH_STRATEGY_BDD,
-                BDDGraphD3::ofWholeBddGraph
+                JobType.GRAPH_STRATEGY_BDD
         ));
 
         post("/calculateGraphGameBDD", handleQueueJob(
                 this::calculateGraphGameBDD,
-                JobType.GRAPH_GAME_BDD,
-                BDDGraphExplorer::getVisibleGraph));
+                JobType.GRAPH_GAME_BDD
+        ));
 
         // TODO rename to "checkLtlFormula" or something?
         post("/calculateModelCheckingResult", handleQueueJob(
                 this::calculateModelCheckingResult,
-                JobType.MODEL_CHECKING_RESULT,
-                App::serializeModelCheckingResult));
+                JobType.MODEL_CHECKING_RESULT
+        ));
 
         post("/calculateModelCheckingNet", handleQueueJob(
                 this::calculateModelCheckingNet,
-                JobType.MODEL_CHECKING_NET,
-                (PetriNet modelCheckingNet) -> {
-                    try {
-                        return PetriNetD3.ofPetriGame(new PetriGame(modelCheckingNet));
-                    } catch (NotSupportedGameException e) {
-                        throw new SerializationException(e);
-                    }
-                }
+                JobType.MODEL_CHECKING_NET
         ));
-
-        post("/getWinningStrategy", handleGetJobResult(
-                PetriNetD3::ofNetWithoutObjective
-        ));
-
-        post("/getGraphStrategyBDD", handleGetJobResult(
-                BDDGraphD3::ofWholeBddGraph
-        ));
-
-        post("/getGraphGameBDD", handleGetJobResult(
-                BDDGraphExplorer::getVisibleGraph));
 
         postWithUserContext("/getListOfJobs", this::handleGetListOfJobs);
 
@@ -363,21 +337,16 @@ public class App {
      * E.g. What is the winning strategy?  What does the "graph game BDD" look like?
      * What does the model checking net look like?
      * <p>
-     * When this route is called, we expect the client to give us two things: A Petri Game's UUID
-     * and a browser/user-session UUID.
      * We retrieve the corresponding Petri Game and queue up the requested job.
      *
      * @param jobFactory         A function that creates the Job that should be run
      * @param jobType            The result type of the job, used to save it in a
      *                           corresponding Map
-     * @param serializerFunction A function that will serialize the result of the job so it
-     *                           can be sent to the client.
      * @param <T>                The result type of the job
      * @return A Sparkjava Route
      */
     private <T> Route handleQueueJob(JobFactory<T> jobFactory,
-                                     JobType jobType,
-                                     SerializerFunction<T> serializerFunction) {
+                                     JobType jobType) {
         return (req, res) -> {
             // Read request parameters.  Get the Petri Game that should be operated upon and the
             // UserContext of the client making the request.
@@ -422,118 +391,10 @@ public class App {
                 LogWebSocket.queueWebsocketMessage(browserUuid, message);
             });
 
-            // If the job runs and completes immediately, send the result to the client.
-            // Otherwise, let them know that the job has been queued.
-            return tryToGetResultWithinFiveSeconds(
-                    job,
-                    serializerFunction,
-                    jobKey,
-                    petriGame
-            );
+            return successResponse(new JsonPrimitive("The job has been queued."));
         };
     }
 
-    /**
-     * When a user queues a job, the job might finish quickly, or it might take a
-     * while.
-     * If it's fast, then we want the UI to immediately open the result.
-     * Otherwise, a message should just be shown to let the user know that the job has been added
-     * to the job queue.
-     * This method is meant to handle that type of response.
-     *
-     * @param job              the job that has been queued just now
-     * @param resultSerializer A function to serialize the result of the job into JSON
-     *                         for the client to consume
-     * @param jobKey           A key containing all parameters needed to uniquely identify the job
-     * @param petriGame        The Petri Game that is being analyzed
-     * @param <T>              The result type of the job
-     * @return A JSON response with the result, if it is ready within five seconds.
-     * Otherwise, just a message that the job is still being calculated.
-     * @throws Exception if the serializer function throws an exception.
-     */
-    private static <T> Object tryToGetResultWithinFiveSeconds(Job<T> job,
-                                                              SerializerFunction<T> resultSerializer,
-                                                              JobKey jobKey,
-                                                              PetriGame petriGame) throws Exception {
-        try {
-            T result = job.getResult(5, TimeUnit.SECONDS);
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The job is finished.");
-            responseJson.add("jobKey", new Gson().toJsonTree(jobKey));
-            responseJson.addProperty("jobComplete", true);
-            responseJson.add("result", resultSerializer.apply(result));
-            responseJson.add("petriGame", PetriNetD3.ofPetriGame(petriGame));
-            return responseJson.toString();
-        } catch (TimeoutException e) {
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", "The job is taking more " +
-                    "than five seconds.  It will run in the background.");
-            responseJson.add("jobKey", new Gson().toJsonTree(jobKey));
-            responseJson.addProperty("jobComplete", false);
-            return responseJson.toString();
-        } catch (CancellationException e) {
-            return errorResponse("The job was canceled.");
-        } catch (InterruptedException e) {
-            return errorResponse("The job was interrupted.");
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            return errorResponse("The job failed with an exception: " +
-                    cause.getClass().getSimpleName() + ": " + cause.getMessage());
-        }
-    }
-
-    /**
-     * Retrieve the result of a job with a given key
-     */
-    private <T> Route handleGetJobResult(SerializerFunction<T> serializerFunction) {
-        return (req, res) -> {
-            JsonElement body = parser.parse(req.body());
-            System.out.println("body: " + body.toString());
-
-            // Deserialize the JobKey
-            Type type = new TypeToken<JobKey>() {
-            }.getType();
-            JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
-            JobKey jobKey = gson.fromJson(jobKeyJson, type);
-
-            // If there isn't a UserContext object for the given browserUuid, create one.
-            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
-            UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
-            }
-            UserContext userContext = userContextMap.get(browserUuid);
-
-            if (!userContext.hasJobWithKey(jobKey)) {
-                return errorResponse("The requested job was not found.");
-            }
-
-            Job<T> job = userContext.getJobFromKey(jobKey);
-            if (!job.isFinished()) {
-                return errorResponse("The requested job is not yet finished.  " +
-                        "Its status: " + job.getStatus());
-            }
-
-            T result;
-            try {
-                result = job.getResult();
-            } catch (InterruptedException e) {
-                return errorResponse("The requested job got canceled.");
-            } catch (ExecutionException e) {
-                return errorResponse(
-                        "The requested job failed with the following exception: " +
-                                e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage());
-            }
-
-            JsonElement resultJson = serializerFunction.apply(result);
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.add("result", resultJson);
-            return responseJson.toString();
-        };
-    }
 
     private Object handleCancelJob(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
