@@ -44,4 +44,12 @@ public class JobKey {
     public JobType getJobType() {
         return this.jobType;
     }
+
+    public String getApt() {
+        return this.canonicalApt;
+    }
+
+    public JsonObject getParams() {
+        return this.requestParams;
+    }
 }

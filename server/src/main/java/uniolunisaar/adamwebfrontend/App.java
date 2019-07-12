@@ -64,36 +64,7 @@ public class App {
 
         post("/parseApt", this::handleParseApt);
 
-        post("/calculateExistsWinningStrategy", handleQueueJob(
-                this::calculateExistsWinningStrategy,
-                JobType.EXISTS_WINNING_STRATEGY
-        ));
-
-        post("/calculateStrategyBDD", handleQueueJob(
-                this::calculateStrategyBDD,
-                JobType.WINNING_STRATEGY
-        ));
-
-        post("/calculateGraphStrategyBDD", handleQueueJob(
-                this::calculateGraphStrategyBDD,
-                JobType.GRAPH_STRATEGY_BDD
-        ));
-
-        post("/calculateGraphGameBDD", handleQueueJob(
-                this::calculateGraphGameBDD,
-                JobType.GRAPH_GAME_BDD
-        ));
-
-        // TODO rename to "checkLtlFormula" or something?
-        post("/calculateModelCheckingResult", handleQueueJob(
-                this::calculateModelCheckingResult,
-                JobType.MODEL_CHECKING_RESULT
-        ));
-
-        post("/calculateModelCheckingNet", handleQueueJob(
-                this::calculateModelCheckingNet,
-                JobType.MODEL_CHECKING_NET
-        ));
+        post("/queueJob", this::handleQueueJob2);
 
         postWithUserContext("/getListOfJobs", this::handleGetListOfJobs);
 
@@ -145,7 +116,7 @@ public class App {
     }
 
 
-    private static String exceptionToString(Exception exception) {
+    public static String exceptionToString(Exception exception) {
         String exceptionName = exception.getClass().getSimpleName();
         return exceptionName + ": " + exception.getMessage();
     }
@@ -283,118 +254,62 @@ public class App {
         return responseJson.toString();
     }
 
-    private Job<Boolean> calculateExistsWinningStrategy(PetriGame petriGame,
-                                                        JsonObject params) {
-        return new Job<>(() -> {
-            boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
-            return existsWinningStrategy;
-        }, petriGame.getName());
-    }
 
-    private Job<PetriGame> calculateStrategyBDD(PetriGame petriGame,
-                                                JsonObject params) {
-        return new Job<>(() -> {
-            PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
-            PetriGameTools.removeXAndYCoordinates(strategyBDD);
-            return strategyBDD;
-        }, petriGame.getName());
-    }
+    private Object handleQueueJob2(Request req, Response res) throws RenderException {
+        // Read request parameters.  Get the Petri Game that should be operated upon and the
+        // UserContext of the client making the request.
+        JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
+        String gameId = requestBody.get("petriGameId").getAsString();
+        JsonObject jobParams = requestBody.get("params").getAsJsonObject();
+        // This throws an exception if the Petri Game's not there
+        PetriGame petriGame = getPetriGame(gameId);
 
-    private Job<BDDGraph> calculateGraphStrategyBDD(PetriGame petriGame,
-                                                    JsonObject params) {
-        return new Job<>(() -> {
-            BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
-            return graphStrategyBDD;
-        }, petriGame.getName());
-    }
+        String jobTypeString = requestBody.get("jobType").getAsString();
+        JobType jobType = JobType.valueOf(jobTypeString);
 
-    private Job<BDDGraphExplorer> calculateGraphGameBDD(PetriGame petriGame,
-                                                        JsonObject params) {
-        // If there is an invalid condition annotation, we should throw an error right away instead
-        // of waiting until the job gets started (which might take a while if there is a
-        // queue).
-        try {
-            Adam.getCondition(petriGame);
-        } catch (CouldNotFindSuitableConditionException e) {
-            throw new IllegalArgumentException(exceptionToString(e));
+        // If there isn't a UserContext object for the given browserUuid, create one.
+        String browserUuidString = requestBody.get("browserUuid").getAsString();
+        UUID browserUuid = UUID.fromString(browserUuidString);
+        if (!userContextMap.containsKey(browserUuid)) {
+            userContextMap.put(browserUuid, new UserContext(browserUuid));
+        }
+        UserContext userContext = userContextMap.get(browserUuid);
+
+        PetriGame petriGameCopy = new PetriGame(petriGame);
+        JobKey jobKey = new JobKey(
+                Adam.getAPT(petriGameCopy),
+                jobParams,
+                jobType
+        );
+        // TODO refactor so the client just sends us APT?  (IE dont give the client
+        //  a reference to a specific PetriGame object on the server)
+        //  This would allow the client to simply send us a 'jobKey' by itself to queue a job.
+
+        // Check if this job has already been requested
+        if (userContext.hasJobWithKey(jobKey)) {
+            return errorResponse("An identical job has already been queued.  Its status: " +
+                    userContext.getJobFromKey(jobKey).getStatus());
         }
 
-        boolean shouldSolveStepwise = params.get("incremental").getAsBoolean();
-        return new Job<>(() -> {
-            if (shouldSolveStepwise) {
-                BDDGraphExplorerStepwise bddGraphExplorerStepwise =
-                        new BDDGraphExplorerStepwise(petriGame);
-                return bddGraphExplorerStepwise;
-            } else {
-                BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame);
-                return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
-            }
-        }, petriGame.getName());
+        // Create the job and queue it up in the user's job queue
+        Job job = jobType.makeJob(petriGame, jobParams);
+        userContext.queueJob(jobKey, job);
+
+        /*
+         When the job's status changes, a websocket message should be sent to the client,
+         which contains the updated job list entry for this job.
+         TODO Distinguish between different kinds of events (e.g. old status -> new status)
+         in order to provide nice notifications about specific jobs
+         */
+        job.addObserver((Job ignored) -> {
+            JsonObject message = new JsonObject();
+            message.addProperty("type", "jobStatusChanged");
+            message.add("jobListing", userContext.jobListEntry(job, jobKey));
+            LogWebSocket.queueWebsocketMessage(browserUuid, message);
+        });
+
+        return successResponse(new JsonPrimitive("The job has been queued."));
     }
-
-    /**
-     * Create a Route that allows queueing a job to calculate some attribute of a Petri Game.
-     * E.g. What is the winning strategy?  What does the "graph game BDD" look like?
-     * What does the model checking net look like?
-     * <p>
-     * We retrieve the corresponding Petri Game and queue up the requested job.
-     *
-     * @param jobFactory         A function that creates the Job that should be run
-     * @param jobType            The result type of the job, used to save it in a
-     *                           corresponding Map
-     * @param <T>                The result type of the job
-     * @return A Sparkjava Route
-     */
-    private <T> Route handleQueueJob(JobFactory<T> jobFactory,
-                                     JobType jobType) {
-        return (req, res) -> {
-            // Read request parameters.  Get the Petri Game that should be operated upon and the
-            // UserContext of the client making the request.
-            JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
-            String gameId = requestBody.get("petriGameId").getAsString();
-            JsonObject jobParams = requestBody.get("params").getAsJsonObject();
-            // This throws an exception if the Petri Game's not there
-            PetriGame petriGame = getPetriGame(gameId);
-
-            // If there isn't a UserContext object for the given browserUuid, create one.
-            String browserUuidString = requestBody.get("browserUuid").getAsString();
-            UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
-            }
-            UserContext userContext = userContextMap.get(browserUuid);
-
-            // Check if this job has already been requested
-            String canonicalApt = Adam.getAPT(petriGame);
-            JobKey jobKey = new JobKey(canonicalApt, jobParams, jobType);
-
-            if (userContext.hasJobWithKey(jobKey)) {
-                return errorResponse("An identical job has already been queued.  Its status: " +
-                        userContext.getJobFromKey(jobKey).getStatus());
-            }
-
-            // Create the job and queue it up in the user's job queue
-            Job<T> job = jobFactory.createJob(
-                    petriGame,
-                    jobParams);
-            userContext.queueJob(jobKey, job);
-            /*
-            When the job's status changes, a websocket message should be sent to the client,
-            which contains the updated job list entry for this job.
-            TODO Distinguish between different kinds of events (e.g. old status -> new status)
-                 in order to provide nice notifications about specific jobs
-            */
-            job.addObserver((Job ignored) -> {
-                JsonObject message = new JsonObject();
-                message.addProperty("type", "jobStatusChanged");
-                message.add("jobListing", userContext.jobListEntry(job, jobKey));
-                LogWebSocket.queueWebsocketMessage(browserUuid, message);
-            });
-
-            return successResponse(new JsonPrimitive("The job has been queued."));
-        };
-    }
-
 
     private Object handleCancelJob(Request req, Response res, UserContext uc) {
         JsonElement body = parser.parse(req.body());
@@ -730,26 +645,6 @@ public class App {
         }
     }
 
-    private Job<PetriNet> calculateModelCheckingNet(PetriGame petriGame, JsonObject params) {
-        String formula = params.get("formula").getAsString();
-        return new Job<>(() -> {
-            RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-            PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
-            return modelCheckingNet;
-        }, petriGame.getName());
-    }
-
-    private Job<ModelCheckingResult> calculateModelCheckingResult(
-            PetriGame petriGame,
-            JsonObject params) {
-        String formula = params.get("formula").getAsString();
-        return new Job<>(() -> {
-            RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-            ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
-            ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
-            return result;
-        }, petriGame.getName());
-    }
 
     // TODO delete (replace with job system)
     private Object handleCheckLtlFormula(Request req, Response res, PetriGame petriGame) throws ParseException, InterruptedException, NotConvertableException, ExternalToolException, ProcessNotStartedException, IOException {
