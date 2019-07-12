@@ -2,11 +2,8 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import uniol.apt.adt.pn.PetriNet;
-import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
-import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 import uniolunisaar.adam.tools.Logger;
 
 import java.io.PrintStream;
@@ -16,7 +13,6 @@ import java.util.concurrent.*;
 
 import static uniolunisaar.adamwebfrontend.JobStatus.COMPLETED;
 import static uniolunisaar.adamwebfrontend.JobStatus.FAILED;
-import static uniolunisaar.adamwebfrontend.JobType.*;
 
 /**
  * Stores data related to a single user session
@@ -72,27 +68,6 @@ public class UserContext {
         for (JobKey jobKey : this.jobsByKey.keySet()) {
             Job job = this.jobsByKey.get(jobKey);
             JsonObject entry = jobListEntry(job, jobKey);
-
-            // Add the results of special job types whose results can be shown in the list
-            if (job.getStatus() == COMPLETED) {
-                try {
-                    switch (jobKey.getJobType()) {
-                        case EXISTS_WINNING_STRATEGY:
-                            entry.addProperty("result", (boolean) job.getResult());
-                            break;
-                        case MODEL_CHECKING_RESULT:
-                            ModelCheckingResult result1 = (ModelCheckingResult) job.getResult();
-                            entry.addProperty( "result", result1.getSatisfied().toString());
-                            break;
-                        default:
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException("job.getResult() threw an exception, " +
-                            "although job.getStatus() == COMPLETED.  This is a bug.  " +
-                            "Please let Ann know about it. :)");
-                }
-            }
             jobListJson.add(entry);
         }
 
@@ -113,6 +88,19 @@ public class UserContext {
 
         int queuePosition = getQueuePosition(job);
         entry.addProperty("queuePosition", queuePosition);
+
+        if (job.getStatus() == COMPLETED) {
+            try {
+                Object jobResult = job.getResult();
+                JsonElement resultJson = jobKey.getJobType().serialize(jobResult);
+                entry.add("result", resultJson);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                throw new RuntimeException("job.getResult() threw an exception, " +
+                        "although job.getStatus() == COMPLETED.  This is a bug.  " +
+                        "Please let Ann know about it. :)");
+            }
+        }
         return entry;
     }
 
