@@ -74,8 +74,8 @@ public class UserContext {
         return jobListJson;
     }
 
-    private JsonObject jobListEntry(Job job,
-                                    JobKey jobKey) {
+    public JsonObject jobListEntry(Job job,
+                                   JobKey jobKey) {
         JsonObject entry = new JsonObject();
         entry.addProperty("type", jobKey.getJobType().toString()); // TODO delete.  this is redundant; the jobKey itself also contains the job type
         entry.add("jobKey", new Gson().toJsonTree(jobKey));

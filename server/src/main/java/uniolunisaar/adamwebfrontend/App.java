@@ -380,14 +380,14 @@ public class App {
             userContext.queueJob(jobKey, job);
             /*
             When the job's status changes, a websocket message should be sent to the client,
-            and the client should then poll the job list again to see what's new.
+            which contains the updated job list entry for this job.
             TODO Distinguish between different kinds of events (e.g. old status -> new status)
                  in order to provide nice notifications about specific jobs
             */
             job.addObserver((Job ignored) -> {
                 JsonObject message = new JsonObject();
                 message.addProperty("type", "jobStatusChanged");
-                message.add("jobKey", gson.toJsonTree(jobKey));
+                message.add("jobListing", userContext.jobListEntry(job, jobKey));
                 LogWebSocket.queueWebsocketMessage(browserUuid, message);
             });
 
