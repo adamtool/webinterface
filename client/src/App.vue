@@ -1070,7 +1070,7 @@
                 type: 'strategyBdd',
                 strategyBdd: response.data.result,
                 uuid: uuidv4(),
-                closeable: true
+                isCloseable: true
                 // TODO Memorize the canonicalApt of the petri game prior to running the job,
                 // so that we can mark the tab in case it no longer corresponds to the Petri Game
                 // in the editor.  The server should then send it to us along with the job's result.
@@ -1126,7 +1126,7 @@
           ...jobListing,
           name: jobListing.type,
           uuid: uuidv4(),
-          closeable: true
+          isCloseable: true
         })
       },
       cancelJob: function ({jobKey, type}) {
