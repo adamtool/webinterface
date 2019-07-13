@@ -261,7 +261,7 @@
       </v-tabs>
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide"
               v-model="selectedTabRightSide">
-        <draggable v-model="tabsRightSide" class="v-tabs__container"
+        <draggable v-model="visibleJobsRightSide" class="v-tabs__container"
                    @start="tabDragStart"
                    @end="(evt) => tabDragEnd(evt, 'right')"
                    @choose="onTabChosen">
@@ -707,7 +707,8 @@
             this.tabsLeftSide = this.tabsLeftSide.filter(t => t !== tab)
             break
           case 'right':
-            this.tabsRightSide = this.tabsRightSide.filter(t => t !== tab)
+            this.visibleJobsRightSide =
+              this.visibleJobsRightSide.filter(jobKey => jobKey !== tab.jobKey)
             break
           default:
             throw new Error('Invalid value for "side" in case statement in closeTab(): ' + side)
