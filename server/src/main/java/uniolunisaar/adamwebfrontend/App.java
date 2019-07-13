@@ -306,7 +306,9 @@ public class App {
             LogWebSocket.queueWebsocketMessage(browserUuid, message);
         });
 
-        return successResponse(new JsonPrimitive("The job has been queued."));
+        JsonObject responseJson = successResponseObject(gson.toJsonTree(jobKey));
+        responseJson.addProperty("message", "The job has been queued.");
+        return responseJson.toString();
     }
 
     private Object handleCancelJob(Request req, Response res, UserContext uc) {
