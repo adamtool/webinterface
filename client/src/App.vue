@@ -639,8 +639,6 @@
         return hideStyle + 'flex-grow: 1;'
       },
       shouldShowRightSide: function () {
-        // TODO delete
-        // return this.graphStrategyBDD || this.graphGameBDD || this.modelCheckingNet
         return this.tabsRightSide.length !== 0
       },
       splitRightSideStyle: function () {
@@ -1093,7 +1091,6 @@
           jobKey,
           stateId
         }).then(response => {
-          // TODO handle the result.  Probably this should be pushed via websocket as well
         })
       },
       toggleGraphGameStatePreset: function (stateId, jobKey) {
@@ -1101,7 +1098,6 @@
           jobKey,
           stateId
         }).then(response => {
-          // TODO handle the result.  Probably this should be pushed via websocket as well
         })
       },
       onAptEditorInput: function (apt) {
