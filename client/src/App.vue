@@ -273,7 +273,10 @@
           <v-tab v-for="(tab, index) in tabsRightSide"
                  :key="`${index}-${tab.uuid}`"
                  :href="`#tab-${tab.uuid}`">
-            {{ tab.name }}
+            {{ formatJobType(tab.type) }}
+            <!--TODO refactor into own method and apply to MODEL_CHECKING_RESULT as well-->
+            {{ tab.type === 'MODEL_CHECKING_NET' ? `for "${tab.jobKey.requestParams.formula}"` :
+            '' }}
             <v-icon standard right
                     v-if="tab.isCloseable"
                     @click="closeTab(tab, 'right')">
@@ -311,6 +314,11 @@
             <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
+            <div v-else-if="tab.type === 'MODEL_CHECKING_RESULT'">
+              <h2>Model checking result</h2>
+              <div>Formula: {{ tab.jobKey.requestParams.formula }}</div>
+              <div>Result: {{ tab.result }}</div>
+            </div>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
               <div>
@@ -384,6 +392,7 @@
   import {format} from 'date-fns'
 
   import draggable from 'vuedraggable'
+  import { formatJobType } from './jobType'
 
   const uuidv4 = require('uuid/v4')
 
@@ -700,6 +709,7 @@
       }
     },
     methods: {
+      formatJobType,
       closeTab: function (tab, side) {
         console.log(`closeTab(${tab.name}, ${side})`)
         // TODO delete this case statement and replace with a component
@@ -761,19 +771,6 @@
               logging.logVerbose('A job\'s status changed.  Updating job list.')
               // TODO Incrementally update list instead of polling and reloading the WHOLE list each time
               this.getListOfJobs()
-              // TODO Respond to model_checking_result in a reasonable way
-              // switch (response.data.result) {
-              //   case 'TRUE':
-              //     logging.sendSuccessNotification(
-              //       'The result of model checking is: ' + response.data.result)
-              //     break
-              //   case 'UNKNOWN':
-              //   case 'FALSE':
-              //   default:
-              //     logging.sendErrorNotification(
-              //       'The result of model checking is: ' + response.data.result)
-              //     break
-              // }
               break
             case 'ping':
               logging.logVerbose('Got ping from server.  Sending pong')
