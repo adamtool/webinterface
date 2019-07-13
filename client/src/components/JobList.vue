@@ -109,6 +109,7 @@
 <script>
   import { format } from 'date-fns'
   import logging from '../logging'
+  import { formatJobType } from '../jobType'
 
   export default {
     name: 'JobList',
@@ -155,24 +156,7 @@
         return format(secondsSinceUnixEpoch * 1000, 'HH:mm:ss')
         // You can add 'MMM Do' to get month and day
       },
-      formatJobType (jobType) {
-        switch (jobType) {
-          case 'GRAPH_GAME_BDD':
-            return 'Graph Game BDD'
-          case 'EXISTS_WINNING_STRATEGY':
-            return 'Exists winning strategy?'
-          case 'WINNING_STRATEGY':
-            return 'Winning Strategy'
-          case 'GRAPH_STRATEGY_BDD':
-            return 'Graph Strategy BDD'
-          case 'MODEL_CHECKING_RESULT':
-            return 'Model Checking Result'
-          case 'MODEL_CHECKING_NET':
-            return 'Model Checking Net'
-          default:
-            return jobType
-        }
-      },
+      formatJobType,
       modelCheckingResultColor (result) {
         switch (result) {
           case 'TRUE':
