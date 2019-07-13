@@ -574,14 +574,14 @@
             return {
               ...matchingJobListing,
               name: matchingJobListing.type,
-              uuid: uuidv4(),
+              uuid: JSON.stringify(jobKey),
               isCloseable: true
             }
           } else {
             return {
               name: 'Invalid job',
               type: 'errorMessage',
-              uuid: uuidv4(),
+              uuid: JSON.stringify(jobKey),
               isCloseable: true,
               message: 'The jobKey associated with this tab was not found in the list of jobs',
               jobKey
