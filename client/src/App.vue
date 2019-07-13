@@ -273,10 +273,7 @@
           <v-tab v-for="(tab, index) in tabsRightSide"
                  :key="`${index}-${tab.uuid}`"
                  :href="`#tab-${tab.uuid}`">
-            {{ formatJobType(tab.type) }}
-            <!--TODO refactor into own method and apply to MODEL_CHECKING_RESULT as well-->
-            {{ tab.type === 'MODEL_CHECKING_NET' ? `for "${tab.jobKey.requestParams.formula}"` :
-            '' }}
+            {{ formatTabTitle(tab) }}
             <v-icon standard right
                     v-if="tab.isCloseable"
                     @click="closeTab(tab, 'right')">
@@ -709,7 +706,13 @@
       }
     },
     methods: {
-      formatJobType,
+      formatTabTitle: function (tab) {
+        const typePrettyPrinted = formatJobType(tab.type)
+        const shouldIncludeFormula =
+          ['MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT'].includes(tab.type)
+        const formulaText = shouldIncludeFormula ? ` for "${tab.jobKey.requestParams.formula}"` : ''
+        return typePrettyPrinted.concat(formulaText)
+      },
       closeTab: function (tab, side) {
         console.log(`closeTab(${tab.name}, ${side})`)
         // TODO delete this case statement and replace with a component
