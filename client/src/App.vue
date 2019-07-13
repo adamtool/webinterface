@@ -19,7 +19,7 @@
             :jobListings="jobListings"
             :useModelChecking="useModelChecking"
             style="background-color: white;"
-            @loadJob="loadJob"
+            @loadJob="openOrAddTab"
             @cancelJob="cancelJob"
             @deleteJob="deleteJob"/>
           <div
@@ -575,7 +575,7 @@
         //     isCloseable: true
         //   }
         // ]
-        function jobKeyToTab(jobListings, jobKey) {
+        function jobKeyToTab (jobListings, jobKey) {
           const matchingJobListing = jobListings.find(listing => isEqual(listing.jobKey, jobKey))
           if (matchingJobListing) {
             return {
@@ -709,7 +709,7 @@
             break
           case 'right':
             this.visibleJobsRightSide =
-              this.visibleJobsRightSide.filter(jobKey => jobKey !== tab.jobKey)
+              this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
             break
           default:
             throw new Error('Invalid value for "side" in case statement in closeTab(): ' + side)
@@ -976,11 +976,18 @@
             case 'success':
               // Add a tab corresponding to the newly queued job
               // 'result' is the listing of the job that was queued
-              this.visibleJobsRightSide.push(response.data.result.jobKey)
+              this.openOrAddTab(response.data.result.jobKey)
               this.jobListings.push(response.data.result)
               break
             case 'error':
-              logging.sendErrorNotification(response.data.message)
+              if (response.data.errorType === 'JOB_ALREADY_QUEUED') {
+                logging.sendErrorNotification(
+                  response.data.message,
+                  'Show job',
+                  () => this.openOrAddTab(response.data.result.jobKey))
+              } else {
+                logging.sendErrorNotification(response.data.message)
+              }
               break
           }
         })
@@ -1025,8 +1032,8 @@
             this.jobListings = response.data.listings
           })
       },
-      loadJob: function (jobKey) {
-        console.log('loadJob()')
+      openOrAddTab: function (jobKey) {
+        console.log('openOrAddTab()')
         if (this.visibleJobsRightSide.find(visibleJobKey => isEqual(visibleJobKey, jobKey))) {
           console.log('Job already loaded')
           return

@@ -19,7 +19,7 @@
       <th>Delete</th>
     </tr>
     <tr v-for="listing in visibleJobListings"
-        :key="`${JSON.stringify(listing.jobKey)}%${listing.type}`">
+        :key="JSON.stringify(listing.jobKey)">
       <td>{{ listing.jobKey.canonicalApt.split('\n')[0] }}</td>
       <td>{{ formatJobType(listing.type) }}</td>
 
