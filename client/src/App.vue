@@ -655,10 +655,6 @@
       restEndpoints: function () {
         const endpoints = [
           'queueJob',
-          'calculateExistsWinningStrategy',
-          'calculateStrategyBDD',
-          'calculateGraphStrategyBDD',
-          'calculateGraphGameBDD',
           'getListOfJobs',
           'cancelJob',
           'deleteJob',
@@ -678,9 +674,7 @@
           'setIsSpecial',
           'fireTransition',
           'setInitialToken',
-          'setWinningCondition',
-          'calculateModelCheckingResult',
-          'calculateModelCheckingNet'
+          'setWinningCondition'
         ]
         const funs = {}
         endpoints.forEach(endpointName => {
@@ -776,8 +770,21 @@
               break
             case 'jobStatusChanged':
               logging.logVerbose('A job\'s status changed.  Updating job list.')
-              this.getListOfJobs()
               // TODO Incrementally update list instead of polling and reloading the WHOLE list each time
+              this.getListOfJobs()
+              // TODO Respond to model_checking_result in a reasonable way
+              // switch (response.data.result) {
+              //   case 'TRUE':
+              //     logging.sendSuccessNotification(
+              //       'The result of model checking is: ' + response.data.result)
+              //     break
+              //   case 'UNKNOWN':
+              //   case 'FALSE':
+              //   default:
+              //     logging.sendErrorNotification(
+              //       'The result of model checking is: ' + response.data.result)
+              //     break
+              // }
               break
             case 'ping':
               logging.logVerbose('Got ping from server.  Sending pong')
@@ -975,62 +982,18 @@
           petriGameId: petriGameId,
           params: jobParams,
           jobType: jobType
-        })
+        }) // TODO then add a tab for the job that is queued (using the jobKey sent by the server)
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
-        this.restEndpoints.calculateModelCheckingNet({
-          params: {
-            formula: this.$refs.graphEditorPetriGame[0].ltlFormula
-          },
-          petriGameId: this.petriGame.uuid
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.jobComplete) {
-              this.modelCheckingNet = net
-            } else {
-              // The message from server will explain that the job has been enqueued.
-              // TODO Provide a notification after it is finished
-              logging.sendSuccessNotification(response.data.message)
-            }
-          })
-        }).catch(() => {
-          logging.logError('Network error in calculateModelCheckingNet')
+        this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_NET', {
+          formula: this.$refs.graphEditorPetriGame[0].ltlFormula
         })
       },
       checkLtlFormula: function () {
         // this.$refs.menubar.deactivate()
-        this.restEndpoints.calculateModelCheckingResult({
-          params: {
-            formula: this.$refs.graphEditorPetriGame[0].ltlFormula
-          },
-          petriGameId: this.petriGame.uuid
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            // Show the result if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.jobComplete) {
-              this.apt = response.data.jobKey.canonicalApt
-              switch (response.data.result) {
-                case 'TRUE':
-                  logging.sendSuccessNotification(
-                    'The result of model checking is: ' + response.data.result)
-                  break
-                case 'UNKNOWN':
-                case 'FALSE':
-                default:
-                  logging.sendErrorNotification(
-                    'The result of model checking is: ' + response.data.result)
-                  break
-              }
-            } else {
-              // The message from server will explain that the job has been enqueued.
-              // TODO Provide a notification after it is finished
-              logging.sendSuccessNotification(response.data.message)
-            }
-          })
-        }).catch(() => {
-          logging.logError('Network error in calculateModelCheckingResult')
+        this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_RESULT', {
+          formula: this.$refs.graphEditorPetriGame[0].ltlFormula
         })
       },
       calculateExistsWinningStrategy: function () {
@@ -1043,28 +1006,14 @@
         logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
       },
       calculateGraphStrategyBDD: function () {
-        const uuid = this.petriGame.uuid
+        this.queueJob(this.petriGame.uuid, 'GRAPH_STRATEGY_BDD', {})
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Strategy BDD')
-        this.restEndpoints.calculateGraphStrategyBDD({
-          petriGameId: uuid,
-          params: {}
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            if (response.data.jobComplete) {
-              this.graphStrategyBDD = response.data.result
-              this.graphStrategyBDD.uuid = uuid
-              // We expect an updated petriGame here because there might have been partition annotations added.
-              this.petriGame.net = response.data.petriGame
-              // TODO create a tab and switch to it
-              this.apt = response.data.jobKey.canonicalApt
-              logging.sendSuccessNotification(response.data.message)
-            } else {
-              logging.sendSuccessNotification(response.data.message)
-            }
-          })
-        }).catch(() => {
-          logging.logError('Network error in calculateGraphStrategyBDD')
+      },
+      calculateGraphGameBDD: function (incremental) {
+        this.queueJob(this.petriGame.uuid, 'GRAPH_GAME_BDD', {
+          incremental
         })
+        logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
       },
       getListOfJobs: function () {
         this.restEndpoints.getListOfJobs()
@@ -1115,35 +1064,6 @@
                 ' ADAM.')
           }
         }).then(this.getListOfJobs)
-      },
-      calculateGraphGameBDD: function (incremental) {
-        const uuid = this.petriGame.uuid
-        logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
-        this.restEndpoints.calculateGraphGameBDD({
-          petriGameId: uuid,
-          params: {
-            incremental
-          }
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            // Load the graph game BDD if it is finished within 5-10 seconds.  Otherwise just show a message
-            if (response.data.jobComplete) {
-              this.apt = response.data.jobKey.canonicalApt
-              this.graphGameBDD = response.data.result
-              this.graphGameJobKey = response.data.jobKey
-              // TODO Get Petri Game from server in caes partition annotations have been added
-              // this.petriGame.net = response.data.petriGame
-              // TODO Create a tab and switch to it
-              logging.sendSuccessNotification(response.data.message)
-            } else {
-              // The message from server will explain that the job has been enqueued.
-              // TODO Provide a notification after it is finished
-              logging.sendSuccessNotification(response.data.message)
-            }
-          })
-        }).catch(() => {
-          logging.logError('Network error in calculateGraphGameBDD')
-        })
       },
       toggleGraphGameStatePostset: function (stateId) {
         this.restEndpoints.toggleGraphGameBDDNodePostset({
