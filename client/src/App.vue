@@ -320,6 +320,17 @@
             <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
+            <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
+                         :graph="tab.result"
+                         :shouldShowPhysicsControls="showPhysicsControls"/>
+            <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
+                         :graph='tab.result'
+                         v-on:toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
+                         v-on:toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
+                         :shouldShowPhysicsControls="showPhysicsControls"
+                         :repulsionStrengthDefault="415"
+                         :linkStrengthDefault="0.04"
+                         :gravityStrengthDefault="300"/>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
               <div>
@@ -331,26 +342,8 @@
         </v-tab-item>
 
         <!--TODO Maybe mark the tabs somehow if the Petri Game has been modified since the tabs were opened-->
-        <!--<v-tab v-if="graphStrategyBDD">Graph Strategy BDD</v-tab>-->
-        <!--<v-tab v-if="graphGameBDD">Graph Game BDD</v-tab>-->
         <!--<v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>-->
-        <!--<v-tab-item v-if="graphStrategyBDD">-->
-        <!--<GraphEditor :graph='graphStrategyBDD'-->
-        <!--:petriGameId='petriGame.uuid'-->
-        <!--ref='graphEditorGraphStrategyBDD'-->
-        <!--:shouldShowPhysicsControls="showPhysicsControls"/>-->
-        <!--</v-tab-item>-->
-        <!--<v-tab-item v-if="graphGameBDD">-->
-        <!--<GraphEditor :graph='graphGameBDD'-->
-        <!--:petriGameId='petriGame.uuid'-->
-        <!--ref='graphEditorGraphGameBDD'-->
-        <!--v-on:toggleStatePostset='toggleGraphGameStatePostset'-->
-        <!--v-on:toggleStatePreset='toggleGraphGameStatePreset'-->
-        <!--:shouldShowPhysicsControls="showPhysicsControls"-->
-        <!--:repulsionStrengthDefault="415"-->
-        <!--:linkStrengthDefault="0.04"-->
-        <!--:gravityStrengthDefault="300"/>-->
-        <!--</v-tab-item>-->
+
         <!--<v-tab-item v-if="modelCheckingNet">-->
         <!--<GraphEditor :graph="modelCheckingNet"-->
         <!--:petriGameId='petriGame.uuid'-->
@@ -1065,28 +1058,20 @@
           }
         }).then(this.getListOfJobs)
       },
-      toggleGraphGameStatePostset: function (stateId) {
+      toggleGraphGameStatePostset: function (stateId, jobKey) {
         this.restEndpoints.toggleGraphGameBDDNodePostset({
-          jobKey: this.graphGameJobKey,
-          stateId: stateId
+          jobKey,
+          stateId
         }).then(response => {
-          this.withErrorHandling(response, response => {
-            this.graphGameBDD = response.data.graphGameBDD
-          })
-        }).catch(() => {
-          logging.logError('Network error')
+          // TODO handle the result.  Probably this should be pushed via websocket as well
         })
       },
-      toggleGraphGameStatePreset: function (stateId) {
+      toggleGraphGameStatePreset: function (stateId, jobKey) {
         this.restEndpoints.toggleGraphGameBDDNodePreset({
-          jobKey: this.graphGameJobKey,
-          stateId: stateId
+          jobKey,
+          stateId
         }).then(response => {
-          this.withErrorHandling(response, response => {
-            this.graphGameBDD = response.data.graphGameBDD
-          })
-        }).catch(() => {
-          logging.logError('Network error')
+          // TODO handle the result.  Probably this should be pushed via websocket as well
         })
       },
       onAptEditorInput: function (apt) {
