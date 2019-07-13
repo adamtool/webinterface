@@ -287,7 +287,13 @@
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
-            <GraphEditor v-if="tab.type === 'WINNING_STRATEGY'"
+            <div v-if="tab.jobStatus !== 'COMPLETED'">
+              Job not completed.
+              <div>Job type: {{ tab.type }}</div>
+              <div>Job status: {{ tab.jobStatus }}</div>
+              <div>Queue position: {{ tab.queuePosition }}</div>
+            </div>
+            <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
             <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
@@ -963,7 +969,19 @@
           petriGameId: petriGameId,
           params: jobParams,
           jobType: jobType
-        }) // TODO then add a tab for the job that is queued (using the jobKey sent by the server)
+        }).then(response => {
+          switch (response.data.status) {
+            case 'success':
+              // Add a tab corresponding to the newly queued job
+              // 'result' is the listing of the job that was queued
+              this.visibleJobsRightSide.push(response.data.result.jobKey)
+              this.jobListings.push(response.data.result)
+              break
+            case 'error':
+              logging.sendErrorNotification(response.data.message)
+              break
+          }
+        })
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()

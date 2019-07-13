@@ -306,7 +306,8 @@ public class App {
             LogWebSocket.queueWebsocketMessage(browserUuid, message);
         });
 
-        JsonObject responseJson = successResponseObject(gson.toJsonTree(jobKey));
+        JsonObject jobListing = userContext.jobListEntry(job, jobKey);
+        JsonObject responseJson = successResponseObject(jobListing);
         responseJson.addProperty("message", "The job has been queued.");
         return responseJson.toString();
     }
