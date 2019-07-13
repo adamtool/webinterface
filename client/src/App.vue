@@ -113,8 +113,6 @@
               </v-card-text>
             </v-card>
           </v-dialog>
-          <hsc-menu-item label="Save Petri Game SVG to file" @click="saveSvgToFilePetriGame"/>
-          <!--TODO Save right pane as SVG-->
           <hsc-menu-item label="Load example">
             <hsc-menu-bar-directory :fileTreeNode="aptFileTree"
                                     :callback="onAptExampleSelected"/>
@@ -923,10 +921,6 @@
           this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
         }
       },
-      saveSvgToFilePetriGame: function () {
-        this.$refs.graphEditorPetriGame[0].saveGraph()
-      },
-      // TODO Implement saveSvgToFile for 'left side' / 'right side'
       switchToAptEditor: function () {
         this.selectedTabLeftSide = 'tab-AptEditorTab'
       },

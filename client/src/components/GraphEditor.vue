@@ -41,6 +41,7 @@
                     v-if="showEditorTools">Delete selected nodes
             </button>
             <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
+            <button v-on:click="saveGraph">Save as SVG</button>
           </div>
         </v-layout>
         <v-radio-group v-model="selectedTool" v-if="showEditorTools" row height="10px">
