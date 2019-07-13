@@ -287,7 +287,10 @@
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
-            <div v-if="tab.jobStatus !== 'COMPLETED'">
+            <div v-if="tab.type === 'errorMessage'">
+              Error: {{ tab.message }}
+            </div>
+            <div v-else-if="tab.jobStatus !== 'COMPLETED'">
               Job not completed.
               <div>Job type: {{ tab.type }}</div>
               <div>Job status: {{ tab.jobStatus }}</div>
@@ -707,6 +710,9 @@
     },
     methods: {
       formatTabTitle: function (tab) {
+        if (tab.type === 'errorMessage') {
+          return 'Error'
+        }
         const typePrettyPrinted = formatJobType(tab.type)
         const shouldIncludeFormula =
           ['MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT'].includes(tab.type)
@@ -1073,6 +1079,8 @@
               logging.sendErrorNotification(response.data.message)
               break
             case 'success':
+              this.visibleJobsRightSide = this.visibleJobsRightSide.filter(
+                visibleJobKey => !isEqual(visibleJobKey, jobKey))
               logging.sendSuccessNotification('Cancelled the job and deleted it from the ' +
                 'list of jobs.  Note: It might take a little while for the job to actually' +
                 ' stop if it was running.  This is a limitation of the libraries used by' +
