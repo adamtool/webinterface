@@ -287,39 +287,7 @@
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
-            <GraphEditor v-if="tab.type === 'petriGameEditor'"
-                         :graph='petriGame.net'
-                         :petriGameId='petriGame.uuid'
-                         ref='graphEditorPetriGame2'
-                         v-on:dragDropEnd='onDragDropEnd'
-                         v-on:insertNode='insertNode'
-                         v-on:createFlow='createFlow'
-                         v-on:createTokenFlow='createTokenFlow'
-                         v-on:deleteFlow='deleteFlow'
-                         v-on:deleteNode='deleteNode'
-                         v-on:renameNode='renameNode'
-                         v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
-                         v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
-                         v-on:setIsSpecial='setIsSpecial'
-                         v-on:fireTransition='fireTransition'
-                         v-on:setInitialToken='setInitialToken'
-                         v-on:setWinningCondition='setWinningCondition'
-                         showEditorTools
-                         :useModelChecking="useModelChecking"
-                         :useDistributedSynthesis="useDistributedSynthesis"
-                         :modelCheckingRoutes="modelCheckingRoutes"
-                         :shouldShowPhysicsControls="showPhysicsControls"
-                         :shouldShowPartitions="showPartitions"
-                         :repulsionStrengthDefault="360"
-                         :linkStrengthDefault="0.086"/>
-            <AptEditor v-else-if="tab.type === 'aptEditor'"
-                       :aptFromAdamParser='apt'
-                       :aptParseStatus='aptParseStatus'
-                       :aptParseError='aptParseError'
-                       :aptParseErrorLineNumber='aptParseErrorLineNumber'
-                       :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
-                       @input='onAptEditorInput'/>
-            <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
+            <GraphEditor v-if="tab.type === 'WINNING_STRATEGY'"
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
             <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
