@@ -292,6 +292,7 @@
               <div>Job type: {{ tab.type }}</div>
               <div>Job status: {{ tab.jobStatus }}</div>
               <div>Queue position: {{ tab.queuePosition }}</div>
+              <div v-if="tab.jobStatus === 'FAILED'">Failure reason: {{ tab.failureReason }}</div>
             </div>
             <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
                          :graph="tab.result"
