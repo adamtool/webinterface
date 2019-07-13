@@ -380,6 +380,7 @@ public class App {
         }
         BDDGraphExplorer bddGraphExplorer = job.getResult();
         bddGraphExplorer.toggleStatePostset(stateId);
+        job.fireJobStatusChanged();
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
@@ -410,6 +411,7 @@ public class App {
         }
         BDDGraphExplorer bddGraphExplorer = job.getResult();
         bddGraphExplorer.toggleStatePreset(stateId);
+        job.fireJobStatusChanged();
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");

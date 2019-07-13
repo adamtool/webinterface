@@ -33,7 +33,7 @@ public class Job<T> {
         observers.add(observer);
     }
 
-    private void fireJobStatusChanged() {
+    public void fireJobStatusChanged() {
         for (JobObserver observer : observers) {
             observer.onJobChange(this);
         }
