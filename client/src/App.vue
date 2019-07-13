@@ -345,7 +345,7 @@
   import JobList from './components/JobList'
   import Vue from 'vue'
   import * as axios from 'axios'
-  import {debounce} from 'underscore'
+  import {debounce, isEqual} from 'underscore'
   import * as modelCheckingRoutesFactory from './modelCheckingRoutes'
 
   import Vuetify from 'vuetify'
@@ -569,8 +569,7 @@
         //   }
         // ]
         function jobKeyToTab(jobListings, jobKey) {
-          // TODO use deep equals instead of reference comparison
-          const matchingJobListing = jobListings.find(listing => listing.jobKey === jobKey)
+          const matchingJobListing = jobListings.find(listing => isEqual(listing.jobKey, jobKey))
           if (matchingJobListing) {
             return {
               ...matchingJobListing,
@@ -971,12 +970,15 @@
         this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_NET', {
           formula: this.$refs.graphEditorPetriGame[0].ltlFormula
         })
+        logging.sendSuccessNotification('Sent a request to get the model checking net')
       },
       checkLtlFormula: function () {
         // this.$refs.menubar.deactivate()
+        const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
         this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_RESULT', {
-          formula: this.$refs.graphEditorPetriGame[0].ltlFormula
+          formula
         })
+        logging.sendSuccessNotification(`Sent a request to check the formula "${formula}"`)
       },
       calculateExistsWinningStrategy: function () {
         this.queueJob(this.petriGame.uuid, 'EXISTS_WINNING_STRATEGY', {})
@@ -1005,8 +1007,7 @@
       },
       loadJob: function (jobKey) {
         console.log('loadJob()')
-        // TODO make sure 'includes' works with value comparison, not reference comparison
-        if (this.visibleJobsRightSide.includes(jobKey)) {
+        if (this.visibleJobsRightSide.find(visibleJobKey => isEqual(visibleJobKey, jobKey))) {
           console.log('Job already loaded')
           return
         }
