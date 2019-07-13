@@ -131,6 +131,7 @@ public class UserContext {
     }
 
     public <T> void queueJob(JobKey jobKey, Job<T> job) {
+        assert(!jobsByKey.containsKey(jobKey));
         jobsByKey.put(jobKey, job);
         job.queue(this.executorService);
     }

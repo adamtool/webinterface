@@ -984,7 +984,7 @@
                 logging.sendErrorNotification(
                   response.data.message,
                   'Show job',
-                  () => this.openOrAddTab(response.data.result.jobKey))
+                  () => this.openOrAddTab(response.data.jobKey))
               } else {
                 logging.sendErrorNotification(response.data.message)
               }

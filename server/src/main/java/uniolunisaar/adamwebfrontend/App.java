@@ -285,8 +285,11 @@ public class App {
 
         // Check if this job has already been requested
         if (userContext.hasJobWithKey(jobKey)) {
-            return errorResponse("An identical job has already been queued.  Its status: " +
+            JsonObject response = errorResponseObject("An identical job has already been queued.  Its status: " +
                     userContext.getJobFromKey(jobKey).getStatus());
+            response.addProperty("errorType", "JOB_ALREADY_QUEUED");
+            response.add("jobKey", gson.toJsonTree(jobKey));
+            return response;
         }
 
         // Create the job and queue it up in the user's job queue
