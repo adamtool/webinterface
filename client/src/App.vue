@@ -1034,12 +1034,16 @@
       },
       openOrAddTab: function (jobKey) {
         console.log('openOrAddTab()')
-        if (this.visibleJobsRightSide.find(visibleJobKey => isEqual(visibleJobKey, jobKey))) {
-          console.log('Job already loaded')
-          return
+        const alreadyVisibleJob =
+          this.visibleJobsRightSide.find(visibleJobKey => isEqual(visibleJobKey, jobKey))
+        if (!alreadyVisibleJob) {
+          this.visibleJobsRightSide.push(jobKey)
         }
-        // TODO Switch to the newly added tab
-        this.visibleJobsRightSide.push(jobKey)
+        // Switch to the tab
+        // TODO why doesn't the 'selected tab display' update right away?  I thought I fixed this
+        //   but apparently it is being strange again.
+        const tabId = `tab-${JSON.stringify(jobKey)}`
+        this.selectedTabRightSide = tabId
       },
       cancelJob: function ({jobKey, type}) {
         logging.sendSuccessNotification('Sent request to cancel the job of ' + type)
