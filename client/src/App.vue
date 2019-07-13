@@ -19,7 +19,7 @@
             :jobListings="jobListings"
             :useModelChecking="useModelChecking"
             style="background-color: white;"
-            @addTab="addTab"
+            @loadJob="loadJob"
             @cancelJob="cancelJob"
             @deleteJob="deleteJob"/>
           <div
@@ -491,20 +491,7 @@
             isCloseable: false
           }
         ],
-        tabsRightSide: [
-          {
-            type: 'testTab',
-            name: 'Test',
-            uuid: 'oienwfoyujiehsrayltj32425125',
-            isCloseable: true
-          },
-          {
-            type: 'testTab',
-            name: 'Test 2',
-            uuid: 'oienwfoyujiehsrayltj32425126',
-            isCloseable: true
-          }
-        ],
+        visibleJobsRightSide: [],
         petriGame: {
           net: {
             links: [],
@@ -565,6 +552,44 @@
       }
     },
     computed: {
+      tabsRightSide: function () {
+        return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
+        // return [
+        //   {
+        //     type: 'testTab',
+        //     name: 'Test',
+        //     uuid: 'oienwfoyujiehsrayltj32425125',
+        //     isCloseable: true
+        //   },
+        //   {
+        //     type: 'testTab',
+        //     name: 'Test 2',
+        //     uuid: 'oienwfoyujiehsrayltj32425126',
+        //     isCloseable: true
+        //   }
+        // ]
+        function jobKeyToTab(jobListings, jobKey) {
+          // TODO use deep equals instead of reference comparison
+          const matchingJobListing = jobListings.find(listing => listing.jobKey === jobKey)
+          if (matchingJobListing) {
+            return {
+              ...matchingJobListing,
+              name: matchingJobListing.type,
+              uuid: uuidv4(),
+              isCloseable: true
+            }
+          } else {
+            return {
+              name: 'Invalid job',
+              type: 'errorMessage',
+              uuid: uuidv4(),
+              isCloseable: true,
+              message: 'The jobKey associated with this tab was not found in the list of jobs',
+              jobKey
+            }
+          }
+        }
+      },
       // This is the prefix used for all HTTP requests to the server.  An empty string means that
       // relative URLs will be used.
       baseUrl: function () {
@@ -978,14 +1003,15 @@
             this.jobListings = response.data.listings
           })
       },
-      addTab: function (jobListing) {
-        console.log('addTab()')
-        this.tabsRightSide.push({
-          ...jobListing,
-          name: jobListing.type,
-          uuid: uuidv4(),
-          isCloseable: true
-        })
+      loadJob: function (jobKey) {
+        console.log('loadJob()')
+        // TODO make sure 'includes' works with value comparison, not reference comparison
+        if (this.visibleJobsRightSide.includes(jobKey)) {
+          console.log('Job already loaded')
+          return
+        }
+        // TODO Switch to the newly added tab
+        this.visibleJobsRightSide.push(jobKey)
       },
       cancelJob: function ({jobKey, type}) {
         logging.sendSuccessNotification('Sent request to cancel the job of ' + type)

@@ -81,7 +81,7 @@
       <!--Button to load the result of a job or cancel a pending job-->
       <td v-if="listing.jobStatus === 'COMPLETED' && canBeDisplayedInTab(listing.type)"
           class="highlightable">
-        <button @click="$emit('addTab', listing)">Load</button>
+        <button @click="$emit('loadJob', listing.jobKey)">Load</button>
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.jobStatus)"
           class="highlightable">
