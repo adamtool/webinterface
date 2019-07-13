@@ -268,6 +268,8 @@
           <!--We include the tab's index in the key so that this component will re-render when
           the tabs' order changes.  That's necessary so that the 'current tab' indicator will
           update appropriately after a drag-drop.-->
+          <!--TODO Mark the tabs somehow if the Petri Game has been modified since the tabs were
+          opened-->
           <v-tab v-for="(tab, index) in tabsRightSide"
                  :key="`${index}-${tab.uuid}`"
                  :href="`#tab-${tab.uuid}`">
@@ -331,6 +333,9 @@
                          :repulsionStrengthDefault="415"
                          :linkStrengthDefault="0.04"
                          :gravityStrengthDefault="300"/>
+            <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
+                         :graph="tab.result"
+                         :shouldShowPhysicsControls="showPhysicsControls"/>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
               <div>
@@ -340,15 +345,6 @@
             </div>
           </keep-alive>
         </v-tab-item>
-
-        <!--TODO Maybe mark the tabs somehow if the Petri Game has been modified since the tabs were opened-->
-        <!--<v-tab v-if="modelCheckingNet">Model Checking Net</v-tab>-->
-
-        <!--<v-tab-item v-if="modelCheckingNet">-->
-        <!--<GraphEditor :graph="modelCheckingNet"-->
-        <!--:petriGameId='petriGame.uuid'-->
-        <!--:shouldShowPhysicsControls="showPhysicsControls"/>-->
-        <!--</v-tab-item>-->
       </v-tabs>
     </div>
     <div :style="`color: ${this.notificationColor}`">
