@@ -931,7 +931,7 @@
         this.restEndpoints.parseApt({
           params: {
             apt: apt,
-            netType:
+            netType: this.useModelChecking ? 'petriNetWithTransits' : 'petriGame'
           }
         }).then(response => {
           switch (response.data.status) {
