@@ -289,11 +289,31 @@
               Error: {{ tab.message }}
             </div>
             <div v-else-if="tab.jobStatus !== 'COMPLETED'">
-              Job not completed.
+              <div v-if="tab.jobStatus === 'FAILED'">
+                Job failed.
+              </div>
+              <div v-else>
+                Job not completed.
+              </div>
+
               <div>Job type: {{ tab.type }}</div>
               <div>Job status: {{ tab.jobStatus }}</div>
-              <div>Queue position: {{ tab.queuePosition }}</div>
+              <div v-if="tab.jobStatus !== 'FAILED'">Queue position: {{ tab.queuePosition }}</div>
               <div v-if="tab.jobStatus === 'FAILED'">Failure reason: {{ tab.failureReason }}</div>
+            </div>
+            <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
+              <template v-if="tab.result === true">
+                Yes, there is a winning strategy for this net.
+              </template>
+              <template v-else-if="tab.result === false">
+                No, there is no winning strategy for this net.
+              </template>
+              <template v-else>
+                Error: Invalid value for job result: {{ tab.result }}
+                <div>
+                  (This shouldn't happen.  Please file a bug.  :)
+                </div>
+              </template>
             </div>
             <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
                          :graph="tab.result"
