@@ -221,7 +221,7 @@
           <keep-alive>
             <GraphEditor v-if="tab.type === 'petriGameEditor'"
                          :graph='petriGame.net'
-                         :petriGameId='petriGame.uuid'
+                         :petriNetId='petriGame.uuid'
                          ref='graphEditorPetriGame'
                          v-on:dragDropEnd='onDragDropEnd'
                          v-on:insertNode='insertNode'
@@ -930,7 +930,8 @@
         logging.logVerbose('Sending APT source code to backend.')
         this.restEndpoints.parseApt({
           params: {
-            apt: apt
+            apt: apt,
+            netType:
           }
         }).then(response => {
           switch (response.data.status) {
@@ -964,9 +965,9 @@
         })
         this.aptParseStatus = 'running'
       }, 200),
-      queueJob: function (petriGameId, jobType, jobParams) {
+      queueJob: function (petriNetId, jobType, jobParams) {
         this.restEndpoints.queueJob({
-          petriGameId: petriGameId,
+          petriNetId: petriNetId,
           params: jobParams,
           jobType: jobType
         }).then(response => {
@@ -1115,7 +1116,7 @@
         // TODO Don't use a ref for this.  Put the function inside of here.
         const nodePositions = this.$refs.graphEditorPetriGame[0].getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1131,7 +1132,7 @@
       // TODO refactor 'withErrorHandling'. It's annoying to have to type 'return' twice.
       getAptOfPetriGame: function () {
         return this.restEndpoints.getAptOfPetriGame({
-          petriGameId: this.petriGame.uuid
+          petriNetId: this.petriGame.uuid
         }).then(response => {
           return this.withErrorHandling(response, response => {
             return response.data.apt
@@ -1149,7 +1150,7 @@
       createFlow: function (flowSpec) {
         console.log('processing createFlow event')
         this.restEndpoints.createFlow({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           source: flowSpec.source,
           destination: flowSpec.destination
         }).then(response => {
@@ -1163,7 +1164,7 @@
       createTokenFlow: function ({source, transition, postset}) {
         console.log('processing createTokenFlow event')
         this.restEndpoints.createTokenFlow({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           source,
           transition,
           postset
@@ -1178,7 +1179,7 @@
       deleteFlow: function ({sourceId, targetId}) {
         console.log('processing deleteFlow event')
         this.restEndpoints.deleteFlow({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           sourceId,
           targetId
         }).then(response => {
@@ -1192,7 +1193,7 @@
       deleteNode: function (nodeId) {
         console.log('processing deleteNode event for node id ' + nodeId)
         this.restEndpoints.deleteNode({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1206,7 +1207,7 @@
         console.log('processing renameNode event')
         console.log(`renaming node '${idOld}' to '${idNew}'`)
         this.restEndpoints.renameNode({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           nodeIdOld: idOld,
           nodeIdNew: idNew
         }).then(response => {
@@ -1227,7 +1228,7 @@
       toggleEnvironmentPlace: function (nodeId) {
         console.log('processing toggleEnvironmentPlace event')
         this.restEndpoints.toggleEnvironmentPlace({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1240,7 +1241,7 @@
       toggleIsInitialTokenFlow: function (nodeId) {
         console.log('processing toggleIsInitialTokenFlow event')
         this.restEndpoints.toggleIsInitialTokenFlow({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1253,7 +1254,7 @@
       setIsSpecial: function ({nodeId, newSpecialValue}) {
         console.log('processing setIsSpecial event')
         this.restEndpoints.setIsSpecial({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           nodeId,
           newSpecialValue
         }).then(response => {
@@ -1267,7 +1268,7 @@
       fireTransition: function (transitionId) {
         console.log('firing transition with ID ' + transitionId)
         this.restEndpoints.fireTransition({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           transitionId: transitionId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1281,7 +1282,7 @@
       setInitialToken: function ({nodeId, tokens}) {
         console.log('processing setInitialToken event')
         this.restEndpoints.setInitialToken({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           nodeId: nodeId,
           tokens: tokens
         }).then(response => {
@@ -1294,7 +1295,7 @@
       },
       setWinningCondition: function (winningCondition) {
         this.restEndpoints.setWinningCondition({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           winningCondition: winningCondition
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1307,7 +1308,7 @@
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
         this.restEndpoints.insertPlace({
-          petriGameId: this.petriGame.uuid,
+          petriNetId: this.petriGame.uuid,
           nodeType: nodeSpec.type,
           x: nodeSpec.x,
           y: nodeSpec.y

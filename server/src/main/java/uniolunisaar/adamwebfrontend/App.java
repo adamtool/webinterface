@@ -17,16 +17,11 @@ import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.IRunFormula;
-import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
-import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.exceptions.ExternalToolException;
-import uniolunisaar.adam.exceptions.ProcessNotStartedException;
-import uniolunisaar.adam.exceptions.logics.NotConvertableException;
+import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
-import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
 
@@ -42,9 +37,9 @@ public class App {
     // Map from clientside-generated browserUuid to browser-specific list of running Jobs
     private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
 
-    // Whenever we load a PetriGame from APT, we put it into this hashmap with a
-    // server-generated UUID as a key.
-    private final Map<String, PetriGame> petriGamesReadFromApt = new ConcurrentHashMap<>();
+    // Whenever we load a PetriGame or PetriNetWithTransits (in the model checking case) from APT,
+    // we put it into this hashmap with a server-generated UUID as a key.
+    private final Map<String, PetriNetWithTransits> petriGamesReadFromApt = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         new App().startServer();
@@ -74,36 +69,34 @@ public class App {
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
-        postWithPetriGame("/getAptOfPetriGame", this::handleGetAptOfPetriGame);
+        postWithPetriNetWithTransits("/getAptOfPetriGame", this::handleGetAptOfPetriGame);
 
-        postWithPetriGame("/updateXYCoordinates", this::handleUpdateXYCoordinates);
+        postWithPetriNetWithTransits("/updateXYCoordinates", this::handleUpdateXYCoordinates);
 
-        postWithPetriGame("/insertPlace", this::handleInsertPlace);
+        postWithPetriNetWithTransits("/insertPlace", this::handleInsertPlace);
 
-        postWithPetriGame("/deleteNode", this::handleDeleteNode);
+        postWithPetriNetWithTransits("/deleteNode", this::handleDeleteNode);
 
-        postWithPetriGame("/renameNode", this::handleRenameNode);
+        postWithPetriNetWithTransits("/renameNode", this::handleRenameNode);
 
-        postWithPetriGame("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
+        postWithPetriNetWithTransits("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
 
-        postWithPetriGame("/toggleIsInitialTokenFlow", this::handleToggleIsInitialTokenFlow);
+        postWithPetriNetWithTransits("/toggleIsInitialTokenFlow", this::handleToggleIsInitialTokenFlow);
 
-        postWithPetriGame("/setIsSpecial", this::handleSetIsSpecial);
+        postWithPetriNetWithTransits("/setIsSpecial", this::handleSetIsSpecial);
 
-        postWithPetriGame("/setInitialToken", this::handleSetInitialToken);
+        postWithPetriNetWithTransits("/setInitialToken", this::handleSetInitialToken);
 
-        postWithPetriGame("/setWinningCondition", this::handleSetWinningCondition);
-        postWithPetriGame("/createFlow", this::handleCreateFlow);
+        postWithPetriNetWithTransits("/setWinningCondition", this::handleSetWinningCondition);
+        postWithPetriNetWithTransits("/createFlow", this::handleCreateFlow);
 
-        postWithPetriGame("/deleteFlow", this::handleDeleteFlow);
+        postWithPetriNetWithTransits("/deleteFlow", this::handleDeleteFlow);
 
-        postWithPetriGame("/createTokenFlow", this::handleCreateTokenFlow);
+        postWithPetriNetWithTransits("/createTokenFlow", this::handleCreateTokenFlow);
 
-        postWithPetriGame("/parseLtlFormula", this::handleParseLtlFormula);
+        postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
-        postWithPetriGame("/checkLtlFormula", this::handleCheckLtlFormula);
-
-        postWithPetriGame("/fireTransition", this::handleFireTransition);
+        postWithPetriNetWithTransits("/fireTransition", this::handleFireTransition);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -117,6 +110,13 @@ public class App {
     public static String exceptionToString(Exception exception) {
         String exceptionName = exception.getClass().getSimpleName();
         return exceptionName + ": " + exception.getMessage();
+    }
+
+    public static PetriGame promoteToPetriGame(PetriNetWithTransits net) {
+        if (!(net instanceof PetriGame)) {
+            throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
+        }
+        return (PetriGame) net;
     }
 
     /**
@@ -139,22 +139,22 @@ public class App {
     }
 
     /**
-     * Register a POST route that operates upon a PetriGame.
-     * This wrapper handles the parsing of the petriGameId parameter from the request.
+     * Register a POST route that operates upon a PetriNetWithTransits.
+     * This wrapper handles the parsing of the petriNetId parameter from the request.
      */
-    private void postWithPetriGame(String path, RouteWithPetriGame handler) {
+    private void postWithPetriNetWithTransits(String path, RouteWithPetriNetWithTransits handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
-            String gameId = body.getAsJsonObject().get("petriGameId").getAsString();
-            PetriGame pg = getPetriGame(gameId);
+            String netId = body.getAsJsonObject().get("petriNetId").getAsString();
+            PetriNetWithTransits pg = getPetriNet(netId);
             Object answer = handler.handle(req, res, pg);
             return answer;
         });
     }
 
-    private PetriGame getPetriGame(String uuid) {
+    private PetriNetWithTransits getPetriNet(String uuid) {
         if (!petriGamesReadFromApt.containsKey(uuid)) {
-            throw new IllegalArgumentException("We have no PetriGame with the given UUID.  " +
+            throw new IllegalArgumentException("We have no PG/PetriNetWithTransits with the given UUID.  " +
                     "You might see this error if the server has been restarted after you opened the " +
                     "web UI.");
         }
@@ -220,12 +220,21 @@ public class App {
     private Object handleParseApt(Request req, Response res) throws CouldNotFindSuitableConditionException {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
-        String apt = body.getAsJsonObject().get("params").getAsJsonObject().get("apt").getAsString();
-        PetriGame petriGame;
+        JsonObject params = body.getAsJsonObject().get("params").getAsJsonObject();
+        String apt = params.get("apt").getAsString();
+        String netType = params.get("netType").getAsString();
+        PetriNetWithTransits net;
         try {
-            petriGame = AdamSynthesizer.getPetriGame(apt);
-            // TODO Use this to parse model checking APT
-            //            AdamModelChecker.getPetriNetWithTransits()
+            switch (netType) {
+                case "petriNetWithTransits":
+                    net = AdamModelChecker.getPetriNetWithTransits(apt);
+                    break;
+                case "petriGame":
+                    net = AdamSynthesizer.getPetriGame(apt);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unrecognized net type: " + netType);
+            }
         } catch (ParseException | NotSupportedGameException | IOException | CouldNotFindSuitableConditionException | CouldNotCalculateException e) {
             JsonObject errorResponse =
                     errorResponseObject(e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -239,28 +248,28 @@ public class App {
         }
 
         String petriGameUUID = UUID.randomUUID().toString();
-        petriGamesReadFromApt.put(petriGameUUID, petriGame);
+        petriGamesReadFromApt.put(petriGameUUID, net);
         System.out.println("Generated petri game with ID " + petriGameUUID);
 
         JsonElement petriNetD3Json =
-                PetriNetD3.ofPetriGameWithXYCoordinates(petriGame, petriGame.getNodes(), true);
-        JsonElement petriGameClient = PetriGameD3.of(petriNetD3Json, petriGameUUID);
+                PetriNetD3.ofPetriNetWithXYCoordinates(net, net.getNodes(), true);
+        JsonElement serializedNet = PetriGameD3.of(petriNetD3Json, petriGameUUID);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
-        responseJson.add("graph", petriGameClient);
+        responseJson.add("graph", serializedNet);
         return responseJson.toString();
     }
 
 
     private Object handleQueueJob(Request req, Response res) throws RenderException {
-        // Read request parameters.  Get the Petri Game that should be operated upon and the
+        // Read request parameters.  Get the Petri Net that should be operated upon and the
         // UserContext of the client making the request.
         JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
-        String gameId = requestBody.get("petriGameId").getAsString();
+        String netId = requestBody.get("petriNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
-        // This throws an exception if the Petri Game's not there
-        PetriGame petriGame = getPetriGame(gameId);
+        // This throws an exception if the Petri Net's not there
+        PetriNetWithTransits net = getPetriNet(netId);
 
         String jobTypeString = requestBody.get("jobType").getAsString();
         JobType jobType = JobType.valueOf(jobTypeString);
@@ -273,9 +282,9 @@ public class App {
         }
         UserContext userContext = userContextMap.get(browserUuid);
 
-        PetriGame petriGameCopy = new PetriGame(petriGame);
+        PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
         JobKey jobKey = new JobKey(
-                Adam.getAPT(petriGameCopy),
+                PNWTTools.getAPT(netCopy, true, true),
                 jobParams,
                 jobType
         );
@@ -293,7 +302,7 @@ public class App {
         }
 
         // Create the job and queue it up in the user's job queue
-        Job job = jobType.makeJob(petriGame, jobParams);
+        Job job = jobType.makeJob(net, jobParams);
         userContext.queueJob(jobKey, job);
 
         /*
@@ -419,11 +428,12 @@ public class App {
         return responseJson.toString();
     }
 
-    // Get the APT representation of a given Petri Game
-    private Object handleGetAptOfPetriGame(Request req, Response res, PetriGame petriGame)
+    // Get the APT representation of a given Petri Game/PetriNetWithTransits
+    private Object handleGetAptOfPetriGame(Request req, Response res, PetriNetWithTransits net)
             throws RenderException {
         JsonElement body = parser.parse(req.body());
-        String apt = Adam.getAPT(petriGame);
+
+        String apt = PNWTTools.getAPT(net, true, true);
         JsonElement aptJson = new JsonPrimitive(apt);
 
         JsonObject responseJson = new JsonObject();
@@ -434,22 +444,22 @@ public class App {
 
     // Update the X/Y coordinates of multiple nodes.  Send them back to the client to confirm it
     // worked
-    private Object handleUpdateXYCoordinates(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleUpdateXYCoordinates(Request req, Response res, PetriNetWithTransits petriNet) throws CouldNotFindSuitableConditionException {
         JsonElement body = parser.parse(req.body());
         JsonObject nodesXYCoordinatesJson =
                 body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
         Type type = new TypeToken<Map<String, NodePosition>>() {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
-        PetriGameTools.saveXYCoordinates(petriGame, nodePositions);
+        PetriGameTools.saveXYCoordinates(petriNet, nodePositions);
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGameWithXYCoordinates(
-                petriGame, new HashSet<>(petriGame.getNodes()), true);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithXYCoordinates(
+                petriNet, new HashSet<>(petriNet.getNodes()), true);
 
-        return successResponse(petriGameClient);
+        return successResponse(serializedNet);
     }
 
-    private Object handleInsertPlace(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleInsertPlace(Request req, Response res, PetriNetWithTransits net) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         double x = body.get("x").getAsDouble();
         double y = body.get("y").getAsDouble();
@@ -459,53 +469,63 @@ public class App {
         Node node = null;
         switch (graphNodeType) {
             case SYSPLACE:
-                node = petriGame.createPlace();
+                node = net.createPlace();
                 break;
             case ENVPLACE:
-                Place place = petriGame.createPlace();
-                petriGame.setEnvironment(place);
-                node = place;
-                break;
+                if (!(net instanceof PetriGame)) {
+                    throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
+                } else {
+                    PetriGame game = (PetriGame) net;
+                    Place place = game.createPlace();
+                    game.setEnvironment(place);
+                    node = place;
+                    break;
+                }
             case TRANSITION:
-                node = petriGame.createTransition();
+                node = net.createTransition();
                 break;
             case GRAPH_STRATEGY_BDD_STATE:
                 return errorResponse("You can't insert a GRAPH_STRATEGY_BDD_STATE into a Petri Game.");
         }
-        petriGame.setXCoord(node, x);
-        petriGame.setYCoord(node, y);
+        net.setXCoord(node, x);
+        net.setYCoord(node, y);
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGameWithXYCoordinates(
-                petriGame, new HashSet<>(Collections.singletonList(node)), true);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithXYCoordinates(
+                net, new HashSet<>(Collections.singletonList(node)), true);
 
-        return successResponse(petriGameClient);
+        return successResponse(serializedNet);
     }
 
-    private Object handleDeleteNode(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleDeleteNode(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
 
-        petriGame.removeNode(nodeId);
+        net.removeNode(nodeId);
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
-        return successResponse(petriGameClient);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        return successResponse(serializedNet);
     }
 
-    private Object handleRenameNode(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleRenameNode(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeIdOld = body.get("nodeIdOld").getAsString();
         String nodeIdNew = body.get("nodeIdNew").getAsString();
 
-        Node oldNode = petriGame.getNode(nodeIdOld);
-        petriGame.rename(oldNode, nodeIdNew);
+        Node oldNode = net.getNode(nodeIdOld);
+        net.rename(oldNode, nodeIdNew);
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
-        return successResponse(petriGameClient);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        return successResponse(serializedNet);
     }
 
-    private Object handleToggleEnvironmentPlace(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleToggleEnvironmentPlace(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
+
+        if (!(net instanceof PetriGame)) {
+            throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
+        }
+        PetriGame petriGame = (PetriGame) net;
 
         Place place = petriGame.getPlace(nodeId);
         boolean environment = petriGame.isEnvironment(place);
@@ -515,89 +535,89 @@ public class App {
             petriGame.setEnvironment(place);
         }
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
-        return successResponse(petriGameClient);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(petriGame);
+        return successResponse(serializedNet);
     }
 
-    private Object handleToggleIsInitialTokenFlow(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleToggleIsInitialTokenFlow(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
 
-        Place place = petriGame.getPlace(nodeId);
-        boolean isInitialTokenFlow = petriGame.isInitialTransit(place);
+        Place place = net.getPlace(nodeId);
+        boolean isInitialTokenFlow = net.isInitialTransit(place);
         if (isInitialTokenFlow) {
-            petriGame.removeInitialTokenflow(place);
+            net.removeInitialTokenflow(place);
         } else {
-            petriGame.setInitialTokenflow(place);
+            net.setInitialTokenflow(place);
         }
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
-        return successResponse(petriGameClient);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        return successResponse(serializedNet);
     }
 
-    private Object handleSetInitialToken(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleSetInitialToken(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
         int tokens = body.get("tokens").getAsInt();
 
-        Place place = petriGame.getPlace(nodeId);
+        Place place = net.getPlace(nodeId);
         place.setInitialToken(tokens);
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
-        return successResponse(petriGameClient);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        return successResponse(serializedNet);
     }
 
-    private Object handleSetIsSpecial(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleSetIsSpecial(Request req, Response res, PetriNetWithTransits net) throws CouldNotFindSuitableConditionException {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
         boolean special = body.get("newSpecialValue").getAsBoolean();
 
-        Place place = petriGame.getPlace(nodeId);
-        Condition.Objective condition = Adam.getCondition(petriGame);
+        Place place = net.getPlace(nodeId);
+        Condition.Objective condition = Adam.getCondition(net);
         if (special) {
-            petriGame.setSpecial(place, condition);
+            net.setSpecial(place, condition);
         } else {
-            petriGame.removeSpecial(place, condition);
+            net.removeSpecial(place, condition);
         }
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
-        return successResponse(petriGameClient);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        return successResponse(serializedNet);
     }
 
-    private Object handleSetWinningCondition(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleSetWinningCondition(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String winningCondition = body.get("winningCondition").getAsString();
 
         Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
-        PNWTTools.setConditionAnnotation(petriGame, objective);
+        PNWTTools.setConditionAnnotation(net, objective);
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
-        return successResponse(petriGameClient);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        return successResponse(serializedNet);
     }
 
-    private Object handleCreateFlow(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleCreateFlow(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String source = body.get("source").getAsString();
         String destination = body.get("destination").getAsString();
 
-        petriGame.createFlow(source, destination);
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
+        net.createFlow(source, destination);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
 
-        return successResponse(petriGameClient);
+        return successResponse(serializedNet);
     }
 
-    private Object handleDeleteFlow(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleDeleteFlow(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String source = body.get("sourceId").getAsString();
         String target = body.get("targetId").getAsString();
 
-        petriGame.removeFlow(source, target);
+        net.removeFlow(source, target);
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
-        return successResponse(petriGameClient);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        return successResponse(serializedNet);
     }
 
-    private Object handleCreateTokenFlow(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleCreateTokenFlow(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         Optional<String> sourceId = body.has("source") ?
                 Optional.of(body.get("source").getAsString()) :
@@ -610,39 +630,39 @@ public class App {
         });
 
         // Create flows if they don't already exist
-        Transition transition = petriGame.getTransition(transitionId);
+        Transition transition = net.getTransition(transitionId);
         sourceId.ifPresent(id -> {
-            Place source = petriGame.getPlace(id);
+            Place source = net.getPlace(id);
             if (!transition.getPreset().contains(source)) {
-                petriGame.createFlow(source, transition);
+                net.createFlow(source, transition);
             }
         });
         for (String postsetId : postsetIds) {
-            Place postPlace = petriGame.getPlace(postsetId);
+            Place postPlace = net.getPlace(postsetId);
             if (!transition.getPostset().contains(postPlace)) {
-                petriGame.createFlow(transition, postPlace);
+                net.createFlow(transition, postPlace);
             }
         }
 
         // Create a token flow.  It is an initial token flow if if has no source Place.
         String[] postsetArray = postsetIds.toArray(new String[postsetIds.size()]);
         if (sourceId.isPresent()) {
-            petriGame.createTransit(sourceId.get(), transitionId, postsetArray);
+            net.createTransit(sourceId.get(), transitionId, postsetArray);
         } else {
-            petriGame.createInitialTransit(transitionId, postsetArray);
+            net.createInitialTransit(transitionId, postsetArray);
         }
 
-        JsonElement petriGameClient = PetriNetD3.ofPetriGame(petriGame);
+        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
 
-        return successResponse(petriGameClient);
+        return successResponse(serializedNet);
     }
 
-    private Object handleParseLtlFormula(Request req, Response res, PetriGame petriGame) {
+    private Object handleParseLtlFormula(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String formula = body.get("formula").getAsString();
 
         try {
-            IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+            IRunFormula iRunFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
             return successResponse(new JsonPrimitive(true));
         } catch (ParseException e) {
             Throwable cause = e.getCause();
@@ -652,41 +672,14 @@ public class App {
     }
 
 
-    // TODO delete (replace with job system)
-    private Object handleCheckLtlFormula(Request req, Response res, PetriGame petriGame) throws ParseException, InterruptedException, NotConvertableException, ExternalToolException, ProcessNotStartedException, IOException {
-        JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String formula = body.get("formula").getAsString();
-
-        System.out.println("Checking flow LTL formula");
-        RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-        ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
-        ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
-
-        ModelCheckingResult.Satisfied satisfied = result.getSatisfied();
-        switch (satisfied) {
-            case TRUE:
-                return successResponse(new JsonPrimitive(true));
-            case FALSE:
-                JsonObject response = successResponseObject(new JsonPrimitive(false));
-                // TODO Serialize CounterExample and display it in the client
-//                CounterExample cex = result.getCex();
-//                response.addProperty("counterExample", );
-                return response;
-            case UNKNOWN:
-                return errorResponse("The Model Checker returned the result 'unknown'");
-            default:
-                return errorResponse("Missing switch branch in handleCheckLtlFormula: " + satisfied);
-        }
-    }
-
-    private Object handleFireTransition(Request req, Response res, PetriGame petriGame) throws CouldNotFindSuitableConditionException {
+    private Object handleFireTransition(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String transitionId = body.get("transitionId").getAsString();
 
-        Transition transition = petriGame.getTransition(transitionId);
-        Marking initialMarking = petriGame.getInitialMarking();
+        Transition transition = net.getTransition(transitionId);
+        Marking initialMarking = net.getInitialMarking();
         Marking newInitialMarking = transition.fire(initialMarking);
-        petriGame.setInitialMarking(newInitialMarking);
-        return successResponse(PetriNetD3.ofPetriGame(petriGame));
+        net.setInitialMarking(newInitialMarking);
+        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
     }
 }

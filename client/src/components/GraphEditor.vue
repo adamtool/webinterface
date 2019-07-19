@@ -202,7 +202,7 @@
         type: Object,
         required: true
       },
-      petriGameId: {
+      petriNetId: {
         type: String,
         required: false
       },
@@ -1090,7 +1090,7 @@
         this.ltlParseStatus = 'running'
         this.ltlParseErrors = []
         try {
-          const result = await this.modelCheckingRoutes.parseLtlFormula(this.petriGameId, this.ltlFormula)
+          const result = await this.modelCheckingRoutes.parseLtlFormula(this.petriNetId, this.ltlFormula)
           console.log(result)
           switch (result.data.status) {
             case 'success': {

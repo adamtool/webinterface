@@ -10,12 +10,13 @@ import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
+import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
 import static uniolunisaar.adamwebfrontend.App.exceptionToString;
+import static uniolunisaar.adamwebfrontend.App.promoteToPetriGame;
 
 /**
  * Different kinds of jobs that can be requested by the user to run on the server
@@ -26,8 +27,9 @@ public enum JobType {
             return new JsonPrimitive((boolean) result);
         }
 
-        Job<Boolean> makeJob(PetriGame petriGame,
+        Job<Boolean> makeJob(PetriNetWithTransits net,
                              JsonObject params) {
+            PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
                 return existsWinningStrategy;
@@ -38,8 +40,9 @@ public enum JobType {
             return PetriNetD3.ofNetWithoutObjective((PetriGame) result);
         }
 
-        Job<PetriGame> makeJob(PetriGame petriGame,
+        Job<PetriGame> makeJob(PetriNetWithTransits net,
                                JsonObject params) {
+            PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
                 PetriGameTools.removeXAndYCoordinates(strategyBDD);
@@ -52,8 +55,9 @@ public enum JobType {
             return BDDGraphD3.ofWholeBddGraph((BDDGraph) result);
         }
 
-        Job<BDDGraph> makeJob(PetriGame petriGame,
+        Job<BDDGraph> makeJob(PetriNetWithTransits net,
                               JsonObject params) {
+            PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
                 return graphStrategyBDD;
@@ -67,40 +71,41 @@ public enum JobType {
         }
 
         Job<ModelCheckingResult> makeJob(
-                PetriGame petriGame,
+                PetriNetWithTransits net,
                 JsonObject params) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
-                RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
+                RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
                 ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
-                ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(petriGame, modelCheckerFlowLTL, runFormula, "/tmp/", null);
+                ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula, "/tmp/", null);
                 return result;
-            }, petriGame.getName());
+            }, net.getName());
         }
     }, MODEL_CHECKING_NET {
         JsonElement serialize(Object result) {
-            try {
-                return PetriNetD3.ofPetriGame(new PetriGame((PetriNet) result));
-            } catch (NotSupportedGameException e) {
-                throw new SerializationException(e);
-            }
+            return PetriNetD3.ofPetriNetWithTransits(new PetriNetWithTransits((PetriNet) result));
         }
 
-        Job<PetriNet> makeJob(PetriGame petriGame, JsonObject params) {
+        Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
-                RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(petriGame, formula);
-                PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(petriGame, runFormula, false);
+                RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
+                PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(net, runFormula, false);
                 return modelCheckingNet;
-            }, petriGame.getName());
+            }, net.getName());
         }
     }, GRAPH_GAME_BDD {
         JsonElement serialize(Object result) {
             return ((BDDGraphExplorer) result).getVisibleGraph();
         }
 
-        Job<BDDGraphExplorer> makeJob(PetriGame petriGame,
+        Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
                                       JsonObject params) {
+            if (!(petriGame1 instanceof PetriGame)) {
+                throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
+            }
+            PetriGame petriGame = (PetriGame)petriGame1;
+
             // If there is an invalid condition annotation, we should throw an error right away instead
             // of waiting until the job gets started (which might take a while if there is a
             // queue).
@@ -126,6 +131,6 @@ public enum JobType {
 
     abstract JsonElement serialize(Object result) throws SerializationException;
 
-    abstract Job<?> makeJob(PetriGame petriGame, JsonObject params);
+    abstract Job<?> makeJob(PetriNetWithTransits net, JsonObject params);
 
 }

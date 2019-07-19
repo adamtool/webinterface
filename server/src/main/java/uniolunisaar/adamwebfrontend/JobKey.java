@@ -16,7 +16,7 @@ public class JobKey {
 
     /**
      * @param canonicalApt the 'canonical apt' representation of a Petri Game that the Job is
-     *                     based on.  Obtained using Adam.getApt(petriGame)
+     *                     based on.  Obtained using PNWTTools.getApt()
      * @param requestParams All other parameters related to the job
      * @param jobType What kind of job (e.g. winning strategy, model checking result, ...)
      */

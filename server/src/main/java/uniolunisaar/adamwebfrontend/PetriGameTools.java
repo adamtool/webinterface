@@ -1,9 +1,7 @@
 package uniolunisaar.adamwebfrontend;
 
 import uniol.apt.adt.pn.Node;
-import uniol.apt.io.renderer.RenderException;
-import uniolunisaar.adam.Adam;
-import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.util.AdamExtensions;
 
 import java.util.Map;
@@ -30,7 +28,7 @@ public class PetriGameTools {
      *
      * @param strategyBDD
      */
-    public static void removeXAndYCoordinates(PetriGame strategyBDD) {
+    public static void removeXAndYCoordinates(PetriNetWithTransits strategyBDD) {
         Set<Node> nodes = strategyBDD.getNodes();
         for (Node node : nodes) {
             if (strategyBDD.hasXCoord(node)) {
@@ -44,12 +42,10 @@ public class PetriGameTools {
 
 
     /**
-     * Update the x/y coordinate annotations of the given petri game.
+     * Update the x/y coordinate annotations of the given petri net.
      * There has to be an annotation for every node.
-     * @param petriGame
-     * @param nodePositions
      */
-    public static void saveXYCoordinates(PetriGame petriGame,
+    public static void saveXYCoordinates(PetriNetWithTransits petriGame,
                                          Map<String, NodePosition> nodePositions) {
         for (Node node : petriGame.getNodes()) {
             String nodeId = node.getId();

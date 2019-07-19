@@ -49,9 +49,9 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement ofPetriGameWithXYCoordinates(PetriGame net,
-                                                           Set<Node> shouldSendPositions,
-                                                           boolean shouldIncludeObjective) throws CouldNotFindSuitableConditionException {
+    public static JsonElement ofPetriNetWithXYCoordinates(PetriNetWithTransits net,
+                                                          Set<Node> shouldSendPositions,
+                                                          boolean shouldIncludeObjective) throws CouldNotFindSuitableConditionException {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -115,9 +115,9 @@ public class PetriNetD3 {
     /**
      * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
-    public static JsonElement ofPetriGame(PetriGame game) throws SerializationException {
+    public static JsonElement ofPetriNetWithTransits(PetriNetWithTransits net) throws SerializationException {
         try {
-            return ofPetriGameWithXYCoordinates(game, new HashSet<>(), true);
+            return ofPetriNetWithXYCoordinates(net, new HashSet<>(), true);
         } catch (CouldNotFindSuitableConditionException e) {
             throw new SerializationException(e);
         }
@@ -125,7 +125,7 @@ public class PetriNetD3 {
 
     public static JsonElement ofNetWithoutObjective(PetriGame game) throws SerializationException {
         try {
-            return ofPetriGameWithXYCoordinates(game, new HashSet<>(), false);
+            return ofPetriNetWithXYCoordinates(game, new HashSet<>(), false);
         } catch (CouldNotFindSuitableConditionException e) {
             throw new SerializationException(e);
         }
@@ -143,7 +143,7 @@ public class PetriNetD3 {
             this.tokenFlowHue = tokenFlowHue;
         }
 
-        static PetriNetLink of(Flow flow, PetriGame net, String arcLabel) {
+        static PetriNetLink of(Flow flow, PetriNetWithTransits net, String arcLabel) {
             String sourceId = flow.getSource().getId();
             String targetId = flow.getTarget().getId();
             Float tokenFlowHue = null;
@@ -190,29 +190,36 @@ public class PetriNetD3 {
             return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false, -1);
         }
 
-        static PetriNetNode of(PetriGame game, Place place) {
+        static PetriNetNode of(PetriNetWithTransits net, Place place) {
             String id = place.getId();
             String label = id;
-            boolean isEnvironment = game.isEnvironment(place);
-            boolean isBad = game.isBad(place);
+
+            boolean isEnvironment;
+            if (net instanceof PetriGame) {
+                PetriGame game1 = (PetriGame) net;
+                isEnvironment = game1.isEnvironment(place);
+            } else {
+                isEnvironment = false;
+            }
+            boolean isBad = net.isBad(place);
             long initialToken = place.getInitialToken().getValue();
 
             boolean isSpecial;
             try {
-                Condition.Objective objective = Adam.getCondition(game);
-                isSpecial = isSpecial(game, place, objective);
+                Condition.Objective objective = Adam.getCondition(net);
+                isSpecial = isSpecial(net, place, objective);
             } catch (CouldNotFindSuitableConditionException e) {
                 isSpecial = false;
             }
 
-            boolean isInitialTokenFlow = game.isInitialTransit(place);
+            boolean isInitialTokenFlow = net.isInitialTransit(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
 
-            int partition = game.hasPartition(place) ? game.getPartition(place) : -1;
+            int partition = net.hasPartition(place) ? net.getPartition(place) : -1;
             return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial, isInitialTokenFlow, partition);
         }
 
-        static boolean isSpecial(PetriGame game, Place place, Condition.Objective objective) {
+        static boolean isSpecial(PetriNetWithTransits game, Place place, Condition.Objective objective) {
             switch (objective) {
                 case A_REACHABILITY:
                 case E_REACHABILITY:
