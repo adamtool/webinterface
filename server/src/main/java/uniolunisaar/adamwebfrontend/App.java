@@ -39,7 +39,7 @@ public class App {
 
     // Whenever we load a PetriGame or PetriNetWithTransits (in the model checking case) from APT,
     // we put it into this hashmap with a server-generated UUID as a key.
-    private final Map<String, PetriNetWithTransits> petriGamesReadFromApt = new ConcurrentHashMap<>();
+    private final Map<String, PetriNetWithTransits> petriNets = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         new App().startServer();
@@ -153,12 +153,12 @@ public class App {
     }
 
     private PetriNetWithTransits getPetriNet(String uuid) {
-        if (!petriGamesReadFromApt.containsKey(uuid)) {
+        if (!petriNets.containsKey(uuid)) {
             throw new IllegalArgumentException("We have no PG/PetriNetWithTransits with the given UUID.  " +
                     "You might see this error if the server has been restarted after you opened the " +
                     "web UI.");
         }
-        return petriGamesReadFromApt.get(uuid);
+        return petriNets.get(uuid);
     }
 
     private static void enableCORS() {
@@ -247,13 +247,13 @@ public class App {
             return errorResponse;
         }
 
-        String petriGameUUID = UUID.randomUUID().toString();
-        petriGamesReadFromApt.put(petriGameUUID, net);
-        System.out.println("Generated petri game with ID " + petriGameUUID);
+        String netUuid = UUID.randomUUID().toString();
+        petriNets.put(netUuid, net);
+        System.out.println("Generated petri net with ID " + netUuid);
 
         JsonElement petriNetD3Json =
                 PetriNetD3.ofPetriNetWithXYCoordinates(net, net.getNodes(), true);
-        JsonElement serializedNet = PetriGameD3.of(petriNetD3Json, petriGameUUID);
+        JsonElement serializedNet = PetriGameD3.of(petriNetD3Json, netUuid);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
