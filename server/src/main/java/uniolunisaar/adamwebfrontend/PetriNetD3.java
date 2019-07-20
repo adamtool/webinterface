@@ -40,11 +40,11 @@ public class PetriNetD3 {
     /**
      * Extract all the information needed to display a PetriNet in our graph editor.
      *
-     * @param net                 - A PetriNet
-     * @param shouldSendPositions - We will send x/y coordinates for these nodes to the client.
-       @param shouldIncludeObjective - For Petri Games, we want to include the objective/winning
-       condition, but for other Petri Nets (e.g. those which represent winning strategies), the
-       annotation may not be present, and we shouldn't try to send it to the client.
+     * @param net                    - A PetriNet
+     * @param shouldSendPositions    - We will send x/y coordinates for these nodes to the client.
+     * @param shouldIncludeObjective - For Petri Games, we want to include the objective/winning
+     *                               condition, but for other Petri Nets (e.g. those which represent winning strategies), the
+     *                               annotation may not be present, and we shouldn't try to send it to the client.
      * @return A JSON object containing the relevant information from the PetriNet
      * <p>
      * See https://github.com/d3/d3-force
@@ -132,7 +132,6 @@ public class PetriNetD3 {
     }
 
 
-
     static class PetriNetLink extends GraphLink {
         private final String tokenFlow; // Null if there is no token flow given
         private final Float tokenFlowHue; // In the interval (0, 1].  Null if no color should be used.
@@ -189,10 +188,10 @@ public class PetriNetD3 {
             String id = t.getId();
             String label = t.getLabel();
             String fairness;
-            if (net.isWeakFair(t)) {
-                fairness = "weak";
-            } else if (net.isStrongFair(t)) {
+            if (net.isStrongFair(t)) {
                 fairness = "strong";
+            } else if (net.isWeakFair(t)) {
+                fairness = "weak";
             } else {
                 fairness = "none";
             }
