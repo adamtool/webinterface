@@ -441,10 +441,32 @@
         }
       },
       contextMenuItemsTransition: function () {
-        return [{
+        const setWeakFair = {
+          title: 'Set weak fair',
+          action: (d) => this.$emit('setFairness', {
+            transitionId: d.id,
+            fairness: 'weak'
+          })
+        }
+        const setStrongFair = {
+          title: 'Set strong fair',
+          action: (d) => this.$emit('setFairness', {
+            transitionId: d.id,
+            fairness: 'strong'
+          })
+        }
+        const removeFairness = {
+          title: 'Remove fairness',
+          action: (d) => this.$emit('setFairness', {
+            transitionId: d.id,
+            fairness: 'none'
+          })
+        }
+        const fireTransition = {
           title: 'Fire transition',
           action: this.fireTransition
-        }]
+        }
+        return [fireTransition, setWeakFair, setStrongFair, removeFairness]
       },
       contextMenuItemsSelection: function () {
         return [

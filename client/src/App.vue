@@ -236,6 +236,7 @@
                          v-on:fireTransition='fireTransition'
                          v-on:setInitialToken='setInitialToken'
                          v-on:setWinningCondition='setWinningCondition'
+                         v-on:setFairness='setFairness'
                          showEditorTools
                          :useModelChecking="useModelChecking"
                          :useDistributedSynthesis="useDistributedSynthesis"
@@ -687,7 +688,8 @@
           'setIsSpecial',
           'fireTransition',
           'setInitialToken',
-          'setWinningCondition'
+          'setWinningCondition',
+          'setFairness'
         ]
         const funs = {}
         endpoints.forEach(endpointName => {
@@ -1338,6 +1340,18 @@
           })
         }).catch(() => {
           logging.logError('Network error')
+        })
+      },
+      setFairness: function ({transitionId, fairness}) {
+        logging.logVerbose(`setFairness(${transitionId}, ${fairness})`)
+        this.restEndpoints.setFairness({
+          petriNetId: this.petriGame.uuid,
+          transitionId,
+          fairness
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
         })
       },
       onDragDropEnd: function (graph) {
