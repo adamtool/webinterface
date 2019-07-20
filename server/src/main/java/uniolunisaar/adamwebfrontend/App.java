@@ -114,7 +114,7 @@ public class App {
 
     public static PetriGame promoteToPetriGame(PetriNetWithTransits net) {
         if (!(net instanceof PetriGame)) {
-            throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
+            throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
         }
         return (PetriGame) net;
     }
