@@ -194,7 +194,7 @@ public class PetriNetD3 {
             } else if (net.isStrongFair(t)) {
                 fairness = "strong";
             } else {
-                fairness = "";
+                fairness = "none";
             }
             // Transitions are never bad or special and have no tokens
             return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false,
@@ -228,7 +228,7 @@ public class PetriNetD3 {
 
             int partition = net.hasPartition(place) ? net.getPartition(place) : -1;
 
-            String fairness = ""; // Places have no concept of fairness
+            String fairness = "none"; // Places have no concept of fairness
 
             return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial,
                     isInitialTokenFlow, partition, fairness);

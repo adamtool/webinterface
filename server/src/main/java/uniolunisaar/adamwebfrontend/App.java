@@ -98,6 +98,8 @@ public class App {
 
         postWithPetriNetWithTransits("/fireTransition", this::handleFireTransition);
 
+        postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
+
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
             String exceptionAsString = exceptionToString(exception);
@@ -105,7 +107,6 @@ public class App {
             response.body(responseBody);
         });
     }
-
 
     public static String exceptionToString(Exception exception) {
         String exceptionName = exception.getClass().getSimpleName();
@@ -682,4 +683,31 @@ public class App {
         net.setInitialMarking(newInitialMarking);
         return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
     }
+
+    private Object handleSetFairness(Request req, Response res, PetriNetWithTransits net) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String transitionId = body.get("transitionId").getAsString();
+        String fairness = body.get("fairness").getAsString();
+
+        Transition transition = net.getTransition(transitionId);
+        switch (fairness) {
+            case "weak":
+                net.removeStrongFair(transition);
+                net.setWeakFair(transition);
+                break;
+            case "strong":
+                net.removeWeakFair(transition);
+                net.setStrongFair(transition);
+                break;
+            case "none":
+                net.removeWeakFair(transition);
+                net.removeStrongFair(transition);
+                break;
+            default:
+                throw new IllegalArgumentException("Unrecognized value for 'fairness': " + fairness);
+        }
+        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
+    }
+
+
 }
