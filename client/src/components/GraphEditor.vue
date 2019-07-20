@@ -397,7 +397,7 @@
           if (this.selectedNodes.length > 1) {
             return this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
-            return this.contextMenuItemsNormal.concat(this.contextMenuItemsTransition)
+            return this.contextMenuItemsNormal.concat(this.contextMenuItemsTransition(d))
           } else {
             return this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
           }
@@ -440,34 +440,7 @@
           return itemsForSynthesis.concat(itemsForBothModes)
         }
       },
-      contextMenuItemsTransition: function () {
-        const setWeakFair = {
-          title: 'Set weak fair',
-          action: (d) => this.$emit('setFairness', {
-            transitionId: d.id,
-            fairness: 'weak'
-          })
-        }
-        const setStrongFair = {
-          title: 'Set strong fair',
-          action: (d) => this.$emit('setFairness', {
-            transitionId: d.id,
-            fairness: 'strong'
-          })
-        }
-        const removeFairness = {
-          title: 'Remove fairness',
-          action: (d) => this.$emit('setFairness', {
-            transitionId: d.id,
-            fairness: 'none'
-          })
-        }
-        const fireTransition = {
-          title: 'Fire transition',
-          action: this.fireTransition
-        }
-        return [fireTransition, setWeakFair, setStrongFair, removeFairness]
-      },
+      // TODO consider making these all methods?  And putting them next to contextMenuItemsTransition
       contextMenuItemsSelection: function () {
         return [
           {
@@ -2031,6 +2004,45 @@
           return this.calculateNodeHeight(data)
         } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
           return this.calculateNodeHeight(data)
+        }
+      },
+      contextMenuItemsTransition: function (transitionNode) {
+        const setWeakFair = {
+          title: 'Set weak fair',
+          action: (d) => this.$emit('setFairness', {
+            transitionId: d.id,
+            fairness: 'weak'
+          })
+        }
+        const setStrongFair = {
+          title: 'Set strong fair',
+          action: (d) => this.$emit('setFairness', {
+            transitionId: d.id,
+            fairness: 'strong'
+          })
+        }
+        const removeFairness = {
+          title: 'Remove fairness',
+          action: (d) => this.$emit('setFairness', {
+            transitionId: d.id,
+            fairness: 'none'
+          })
+        }
+        const fireTransition = {
+          title: 'Fire transition',
+          action: this.fireTransition
+        }
+        switch (transitionNode.fairness) {
+          case 'weak':
+            return [fireTransition, setStrongFair, removeFairness]
+          case 'strong':
+            return [fireTransition, setWeakFair, removeFairness]
+          case 'none':
+            return [fireTransition, setWeakFair, setStrongFair]
+          default:
+            throw new Error(
+              `Invalid value for fairness for the transition node ${transitionNode.id}:
+              ${transitionNode.fairness}`)
         }
       }
     }
