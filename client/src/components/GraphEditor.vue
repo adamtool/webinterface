@@ -1598,7 +1598,7 @@
         this.nodeElements
           .attr('fill', data => {
             if (this.selectedNodes.includes(data)) {
-              return '#5555FF'
+              return '#007700'
             } else if (this.shouldShowPartitions && data.partition !== -1) {
               return partitionColorForPlace(data)
             } else if (data.type === 'ENVPLACE') {
@@ -1608,7 +1608,14 @@
             } else if (data.type === 'SYSPLACE') {
               return 'lightgrey'
             } else if (data.type === 'TRANSITION') {
-              return 'white'
+              switch (data.fairness) {
+                case 'weak':
+                  return '#8888FF'
+                case 'strong':
+                  return '#3333FF'
+                default:
+                  return 'white'
+              }
             } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
               return data.isMcut ? 'white' : 'lightgrey'
             } else {
