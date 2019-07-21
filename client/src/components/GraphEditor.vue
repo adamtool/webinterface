@@ -2,11 +2,9 @@
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
     <div
-      style="position: absolute; background-color: #fafafa00"
+      style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
       ref="toolbarContainer">
-      <div class="graph-editor-toolbar"
-           style="z-index: 2; background-color: #fafafa"
-           v-if="shouldShowPhysicsControls">
+      <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
         <div>Repulsion Strength</div>
         <input type="range" min="30" max="1000" step="1"
                class="forceStrengthSlider"
@@ -26,8 +24,7 @@
 
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
       <v-container fluid
-                   style="z-index: 2; padding-top: 5px; padding-bottom: 0px; padding-left: 30px;
-                   padding-right: 0px; background-color: '#fafafa'>
+                   style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
         <v-layout row>
           <template v-if="useModelChecking">
             <v-select
@@ -55,12 +52,12 @@
           </template>
         </v-layout>
       </v-container>
-      <ToolPicker
-        style="z-index: 2; width: auto;"
-        :selectedTool="this.selectedTool"
-        @onPickTool="tool => this.selectedTool = tool"
-        :tools="this.toolPickerItems"/>
     </div>
+    <ToolPicker
+      style="position: absolute; z-index: 5; width: auto;"
+      :selectedTool="this.selectedTool"
+      @onPickTool="tool => this.selectedTool = tool"
+      :tools="this.toolPickerItems"/>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
