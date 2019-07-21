@@ -2,11 +2,10 @@
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
     <ToolPicker
-      style="position: absolute; z-index: 5;"
+      style="position: absolute; z-index: 5; width: auto;"
       :selectedTool="this.selectedTool"
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
-
     <div
       style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
       ref="toolbarContainer">
