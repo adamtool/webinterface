@@ -4,9 +4,9 @@
   <div class="container"
        :style="`grid-template-rows: repeat(${tools.length}, 20px [col-start])`">
     <div v-for="(tool, index) in tools"
-         @click="tool.action !== undefined ? tool.action() : () => {}"
+         @click="tool.type === 'action' ? tool.action() : () => {}"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
-      {{ tool.tool || tool.name }}
+      {{ tool.name }}
     </div>
   </div>
 
@@ -19,6 +19,12 @@
       tools: {
         type: Array,
         required: true
+      },
+      // TODO validate and make sure it's part of the 'tools' array
+      selectedTool: {
+        // type: Object,
+        // required: true,
+        // validator: tool => tools.includes(tool) && tool.tool !== undefined
       }
     },
     data: function () {

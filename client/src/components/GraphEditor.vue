@@ -3,6 +3,7 @@
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
     <ToolPicker
       style="position: absolute; z-index: 5;"
+      :selectedTool="this.selectedTool"
       :tools="this.toolPickerItems"/>
 
     <div
@@ -246,7 +247,8 @@
         drawTokenFlowPreviewPostset: [],
         // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
-        selectedTool: 'select',
+        // TODO figure out how to initialize.  Should be element of toolPickerItems
+        selectedTool: undefined,
         backgroundClickMode: 'cancelSelection',
         backgroundDragDropMode: 'selectNodes',
         leftClickMode: 'selectNode',
@@ -281,6 +283,8 @@
         linkStrength: this.linkStrengthDefault,
         gravityStrength: this.gravityStrengthDefault
       }
+    },
+    created: function () {
     },
     mounted: function () {
       this.nodes = []
@@ -325,6 +329,9 @@
       // eslint-disable-next-line no-new
       new ResizeSensor(parent, updateGraphEditorDimensions)
       Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
+
+      // TODO move to created() hook?
+      this.selectedTool = this.toolPickerItems[0]
     },
     beforeDestroy: function () {
       console.log('beforeDestroy() hook called for GraphEditor with uid ' + this._uid)
@@ -340,64 +347,79 @@
       toolPickerItems: function () {
         return [
           {
+            type: 'tool',
             icon: 'S',
-            tool: 'select'
+            name: 'select'
           },
           {
+            type: 'tool',
             icon: 'X',
-            tool: 'deleteNodesAndFlows'
+            name: 'deleteNodesAndFlows'
           },
           {
+            type: 'tool',
             icon: 'D',
-            tool: 'drawFlow'
+            name: 'drawFlow'
           },
           {
+            type: 'tool',
             icon: 'DX',
-            tool: 'drawTokenFlow'
+            name: 'drawTokenFlow'
           },
           {
+            type: 'tool',
             icon: 'SYS',
-            tool: 'insertSysPlace'
+            name: 'insertSysPlace'
           },
           {
+            type: 'tool',
             icon: 'ENV',
-            tool: 'insertEnvPlace'
+            name: 'insertEnvPlace'
           },
           {
+            type: 'tool',
             icon: 'T',
-            tool: 'insertTransition'
+            name: 'insertTransition'
           },
           {
+            type: 'action',
             name: 'autoLayout',
             action: this.autoLayout
           },
           {
+            type: 'action',
             name: 'zoomToFitAllNodes',
             action: this.zoomToFitAllNodes
           },
           {
+            type: 'action',
             name: 'moveAllNodesToVisibleArea',
             action: this.moveNodesToVisibleArea
           },
           {
+            type: 'action',
             name: 'freezeAllNodes',
             action: this.freezeAllNodes
           },
           {
+            type: 'action',
             name: 'unfreezeAllNodes',
             action: this.unfreezeAllNodes
           },
           {
+            type: 'action',
             name: 'deleteSelectedNodes',
             action: this.deleteSelectedNodes,
             visible: this.showEditorTools
           },
           {
+            type: 'action',
             name: 'invertSelection',
             action: this.invertSelection,
             visible: this.showEditorTools
           },
           {
+            type: 'action',
             name: 'saveAsSVG',
             action: this.saveGraph
           }
@@ -1023,10 +1045,10 @@
       selectedTool: function (tool) {
         // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
         // That would be more declarative and Vue-like, I think.  -Ann
-        if (tool !== 'drawTokenFlow') {
+        if (tool.name !== 'drawTokenFlow') {
           this.drawTokenFlowHandler.reset()
         }
-        switch (tool) {
+        switch (tool.name) {
           case 'select': {
             this.backgroundClickMode = 'cancelSelection'
             this.backgroundDragDropMode = 'selectNodes'
