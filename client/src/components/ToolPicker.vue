@@ -51,7 +51,6 @@
           default:
             throw new Error(`Unrecognized tool type '${tool.type}' for tool named '${tool.name}'`)
         }
-        tool.type === 'action' ? tool.action() : () => {}
       }
     }
   }
