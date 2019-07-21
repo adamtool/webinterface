@@ -335,6 +335,7 @@
           {
             type: 'tool',
             icon: 'S',
+            visible: this.showEditorTools,
             name: 'select'
           },
           {
