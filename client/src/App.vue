@@ -221,7 +221,7 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;"
                  v-if="tab.type === 'petriGameEditor'">
-              <ToolPicker style="position: absolute; z-index: 5; width: 5%; display: none;"/>
+              <!--<ToolPicker style="position: absolute; z-index: 5; width: 5%; display: none;"/>-->
               <GraphEditor :graph='petriGame.net'
                            :petriNetId='petriGame.uuid'
                            ref='graphEditorPetriGame'
