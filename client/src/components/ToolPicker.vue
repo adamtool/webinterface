@@ -21,11 +21,10 @@
         type: Array,
         required: true
       },
-      // TODO validate and make sure it's part of the 'tools' array
       selectedTool: {
-        // type: Object,
-        // required: true,
-        // validator: tool => tools.includes(tool) && tool.tool !== undefined
+        type: Object,
+        required: true,
+        validator: tool => tools.includes(tool) && tool.type === 'tool'
       }
     },
     data: function () {
