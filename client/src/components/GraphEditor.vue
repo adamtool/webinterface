@@ -22,28 +22,11 @@
         <div class="forceStrengthNumber">{{gravityStrength}}</div>
       </div>
 
+      <ToolPicker
+        :tools="this.toolPickerItems"/>
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
       <v-container fluid
                    style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
-        <v-layout row>
-          <div class="graph-editor-toolbar">
-            <button v-on:click="autoLayout">Auto-Layout</button>
-            <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
-              Zoom to fit all nodes
-            </button>
-            <button style="margin-left: auto" v-on:click="moveNodesToVisibleArea">
-              Move all nodes to visible area
-            </button>
-            <button style="display: none;" v-on:click="updateD3">Update D3</button>
-            <button v-on:click="freezeAllNodes">Freeze all nodes</button>
-            <button v-on:click="unfreezeAllNodes">Unfreeze all nodes</button>
-            <button v-on:click="deleteSelectedNodes"
-                    v-if="showEditorTools">Delete selected nodes
-            </button>
-            <button v-on:click="invertSelection" v-if="showEditorTools">Invert selection</button>
-            <button v-on:click="saveGraph">Save as SVG</button>
-          </div>
-        </v-layout>
         <v-radio-group v-model="selectedTool" v-if="showEditorTools" row height="10px">
           <v-radio label="select" value="select"/>
           <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
@@ -191,12 +174,15 @@
 
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
+  import ToolPicker from './ToolPicker'
 
   import logging from '../logging'
 
   export default {
     name: 'graph-editor',
-    components: {},
+    components: {
+      ToolPicker
+    },
     props: {
       graph: {
         type: Object,
@@ -244,6 +230,70 @@
     },
     data () {
       return {
+        toolPickerItems: [
+          {
+            icon: 'S',
+            tool: 'select'
+          },
+          {
+            icon: 'X',
+            tool: 'deleteNodesAndFlows'
+          },
+          {
+            icon: 'D',
+            tool: 'drawFlow'
+          },
+          {
+            icon: 'DX',
+            tool: 'drawTokenFlow'
+          },
+          {
+            icon: 'SYS',
+            tool: 'insertSysPlace'
+          },
+          {
+            icon: 'ENV',
+            tool: 'insertEnvPlace'
+          },
+          {
+            icon: 'T',
+            tool: 'insertTransition'
+          },
+          {
+            name: 'autoLayout',
+            action: this.autoLayout
+          },
+          {
+            name: 'zoomToFitAllNodes',
+            action: this.zoomToFitAllNodes
+          },
+          {
+            name: 'moveAllNodesToVisibleArea',
+            action: this.moveNodesToVisibleArea
+          },
+          {
+            name: 'freezeAllNodes',
+            action: this.freezeAllNodes
+          },
+          {
+            name: 'unfreezeAllNodes',
+            action: this.unfreezeAllNodes
+          },
+          {
+            name: 'deleteSelectedNodes',
+            action: this.deleteSelectedNodes,
+            visible: this.showEditorTools
+          },
+          {
+            name: 'invertSelection',
+            action: this.invertSelection,
+            visible: this.showEditorTools
+          },
+          {
+            name: 'saveAsSVG',
+            action: this.saveGraph
+          }
+        ],
         dimensions: {
           width: 0,
           height: 0

@@ -4,8 +4,9 @@
   <div class="container"
        :style="`grid-template-rows: repeat(${tools.length}, 20px [col-start])`">
     <div v-for="(tool, index) in tools"
+         @click="tool.action !== undefined ? tool.action() : () => {}"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
-      {{ tool.icon || tool.tool }}
+      {{ tool.icon || tool.name }}
     </div>
   </div>
 
@@ -14,62 +15,14 @@
 <script>
   export default {
     name: 'ToolPicker',
+    props: {
+      tools: {
+        type: Array,
+        required: true
+      }
+    },
     data: function () {
       return {
-        tools: [
-          {
-            icon: 'S',
-            tool: 'select'
-          },
-          {
-            icon: 'X',
-            tool: 'deleteNodesAndFlows'
-          },
-          {
-            icon: 'D',
-            tool: 'drawFlow'
-          },
-          {
-            icon: 'DX',
-            tool: 'drawTokenFlow'
-          },
-          {
-            icon: 'SYS',
-            tool: 'insertSysPlace'
-          },
-          {
-            icon: 'ENV',
-            tool: 'insertEnvPlace'
-          },
-          {
-            icon: 'T',
-            tool: 'insertTransition'
-          },
-          {
-            tool: 'autoLayout'
-          },
-          {
-            tool: 'zoomToFitAllNodes'
-          },
-          {
-            tool: 'moveAllNodesToVisibleArea'
-          },
-          {
-            tool: 'freezeAllNodes'
-          },
-          {
-            tool: 'unfreezeAllNodes'
-          },
-          {
-            tool: 'deleteSelectedNodes'
-          },
-          {
-            tool: 'invertSelection'
-          },
-          {
-            tool: 'saveAsSVG'
-          }
-        ]
       }
     }
   }
