@@ -1,6 +1,10 @@
 <template>
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
+    <ToolPicker
+      style="position: absolute; z-index: 5;"
+      :tools="this.toolPickerItems"/>
+
     <div
       style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
       ref="toolbarContainer">
@@ -22,8 +26,6 @@
         <div class="forceStrengthNumber">{{gravityStrength}}</div>
       </div>
 
-      <ToolPicker
-        :tools="this.toolPickerItems"/>
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
       <v-container fluid
                    style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
@@ -128,8 +130,7 @@
     height: 100%;
     width: 100%;
     max-width: 100%;
-    display: flex;
-    flex-direction: column;
+    display: relative;
   }
 
   .graph {
@@ -230,70 +231,6 @@
     },
     data () {
       return {
-        toolPickerItems: [
-          {
-            icon: 'S',
-            tool: 'select'
-          },
-          {
-            icon: 'X',
-            tool: 'deleteNodesAndFlows'
-          },
-          {
-            icon: 'D',
-            tool: 'drawFlow'
-          },
-          {
-            icon: 'DX',
-            tool: 'drawTokenFlow'
-          },
-          {
-            icon: 'SYS',
-            tool: 'insertSysPlace'
-          },
-          {
-            icon: 'ENV',
-            tool: 'insertEnvPlace'
-          },
-          {
-            icon: 'T',
-            tool: 'insertTransition'
-          },
-          {
-            name: 'autoLayout',
-            action: this.autoLayout
-          },
-          {
-            name: 'zoomToFitAllNodes',
-            action: this.zoomToFitAllNodes
-          },
-          {
-            name: 'moveAllNodesToVisibleArea',
-            action: this.moveNodesToVisibleArea
-          },
-          {
-            name: 'freezeAllNodes',
-            action: this.freezeAllNodes
-          },
-          {
-            name: 'unfreezeAllNodes',
-            action: this.unfreezeAllNodes
-          },
-          {
-            name: 'deleteSelectedNodes',
-            action: this.deleteSelectedNodes,
-            visible: this.showEditorTools
-          },
-          {
-            name: 'invertSelection',
-            action: this.invertSelection,
-            visible: this.showEditorTools
-          },
-          {
-            name: 'saveAsSVG',
-            action: this.saveGraph
-          }
-        ],
         dimensions: {
           width: 0,
           height: 0
@@ -400,6 +337,72 @@
       this.isDestroyed = true
     },
     computed: {
+      toolPickerItems: function () {
+        return [
+          {
+            icon: 'S',
+            tool: 'select'
+          },
+          {
+            icon: 'X',
+            tool: 'deleteNodesAndFlows'
+          },
+          {
+            icon: 'D',
+            tool: 'drawFlow'
+          },
+          {
+            icon: 'DX',
+            tool: 'drawTokenFlow'
+          },
+          {
+            icon: 'SYS',
+            tool: 'insertSysPlace'
+          },
+          {
+            icon: 'ENV',
+            tool: 'insertEnvPlace'
+          },
+          {
+            icon: 'T',
+            tool: 'insertTransition'
+          },
+          {
+            name: 'autoLayout',
+            action: this.autoLayout
+          },
+          {
+            name: 'zoomToFitAllNodes',
+            action: this.zoomToFitAllNodes
+          },
+          {
+            name: 'moveAllNodesToVisibleArea',
+            action: this.moveNodesToVisibleArea
+          },
+          {
+            name: 'freezeAllNodes',
+            action: this.freezeAllNodes
+          },
+          {
+            name: 'unfreezeAllNodes',
+            action: this.unfreezeAllNodes
+          },
+          {
+            name: 'deleteSelectedNodes',
+            action: this.deleteSelectedNodes,
+            visible: this.showEditorTools
+          },
+          {
+            name: 'invertSelection',
+            action: this.invertSelection,
+            visible: this.showEditorTools
+          },
+          {
+            name: 'saveAsSVG',
+            action: this.saveGraph
+          }
+        ]
+      },
       winningConditions: function () {
         if (this.useModelChecking) {
           return [

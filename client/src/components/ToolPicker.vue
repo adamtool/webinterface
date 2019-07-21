@@ -6,7 +6,7 @@
     <div v-for="(tool, index) in tools"
          @click="tool.action !== undefined ? tool.action() : () => {}"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
-      {{ tool.icon || tool.name }}
+      {{ tool.tool || tool.name }}
     </div>
   </div>
 
