@@ -4,7 +4,8 @@
   <div class="container"
        :style="`grid-template-rows: repeat(${tools.length}, 20px [col-start])`">
     <div v-for="(tool, index) in tools"
-         @click="tool.type === 'action' ? tool.action() : () => {}"
+         @click="onClick(tool)"
+         :class="selectedTool === tool ? 'selected-tool' : ''"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
       {{ tool.name }}
     </div>
@@ -30,6 +31,21 @@
     data: function () {
       return {
       }
+    },
+    methods: {
+      onClick: function (tool) {
+        switch (tool.type) {
+          case 'action':
+            tool.action()
+            break
+          case 'tool':
+            this.$emit('onPickTool', tool)
+            break
+          default:
+            throw new Error(`Unrecognized tool type '${tool.type}' for tool named '${tool.name}'`)
+        }
+        tool.type === 'action' ? tool.action() : () => {}
+      }
     }
   }
 </script>
@@ -37,6 +53,10 @@
 <style scoped>
   .container {
     display: grid;
+  }
+
+  .selected-tool {
+    background-color: '#77FF77'
   }
 
 </style>
