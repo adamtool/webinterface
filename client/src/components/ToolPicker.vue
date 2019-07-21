@@ -32,6 +32,13 @@
       return {
       }
     },
+    watch: {
+      selectedTool: function () {
+        console.log('selectedTool:')
+        console.log(this.selectedTool)
+        console.log(`is selectedTool a member of tools? ${this.tools.includes(this.selectedTool)}`)
+      }
+    },
     methods: {
       onClick: function (tool) {
         switch (tool.type) {
@@ -56,7 +63,7 @@
   }
 
   .selected-tool {
-    background-color: '#77FF77'
+    border: 1px solid lightgray;
   }
 
 </style>
