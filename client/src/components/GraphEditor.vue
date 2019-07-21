@@ -27,7 +27,7 @@
                    style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
         <v-layout row>
           <div class="graph-editor-toolbar">
-            <button v-on:click="autoLayout(); freezeAllNodes()">Auto-Layout</button>
+            <button v-on:click="autoLayout">Auto-Layout</button>
             <button style="margin-left: auto" v-on:click="zoomToFitAllNodes">
               Zoom to fit all nodes
             </button>
@@ -1249,6 +1249,7 @@
         const maxY = transform.invertY(boundingRect.bottom)
         const positionsPromise = layoutNodes(this.nodes, this.links, 0.15, minX, maxX, minY, maxY)
         positionsPromise.then(positions => {
+          this.freezeAllNodes()
           this.nodes.forEach(node => {
             const position = positions[node.id]
             if (node.fx === node.x) {
