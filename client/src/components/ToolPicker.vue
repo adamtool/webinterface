@@ -2,8 +2,8 @@
  a time to be the active tool.  This component is like that.-->
 <template>
   <div class="container"
-       :style="`grid-template-rows: repeat(${tools.length}, 20px [col-start])`">
-    <div v-for="(tool, index) in tools"
+       :style="`grid-template-rows: repeat(${visibleTools.length}, 20px [col-start])`">
+    <div v-for="(tool, index) in visibleTools"
          @click="onClick(tool)"
          :class="selectedTool === tool ? 'selected-tool' : ''"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
@@ -21,14 +21,20 @@
         type: Array,
         required: true
       },
+      // TODO figure out initialization in App so that this validator can be used
       selectedTool: {
-        type: Object,
-        required: true,
-        validator: tool => tools.includes(tool) && tool.type === 'tool'
+        // type: Object,
+        // required: true,
+        // validator: tool => tools.includes(tool) && tool.type === 'tool'
       }
     },
     data: function () {
       return {
+      }
+    },
+    computed: {
+      visibleTools: function () {
+        return this.tools.filter(tool => tool.visible !== false)
       }
     },
     watch: {

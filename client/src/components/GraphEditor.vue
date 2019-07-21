@@ -340,31 +340,37 @@
           {
             type: 'tool',
             icon: 'X',
+            visible: this.showEditorTools,
             name: 'deleteNodesAndFlows'
           },
           {
             type: 'tool',
             icon: 'D',
+            visible: this.showEditorTools,
             name: 'drawFlow'
           },
           {
             type: 'tool',
             icon: 'DX',
+            visible: this.showEditorTools,
             name: 'drawTokenFlow'
           },
           {
             type: 'tool',
             icon: 'SYS',
+            visible: this.showEditorTools,
             name: 'insertSysPlace'
           },
           {
             type: 'tool',
             icon: 'ENV',
+            visible: this.showEditorTools,
             name: 'insertEnvPlace'
           },
           {
             type: 'tool',
             icon: 'T',
+            visible: this.showEditorTools,
             name: 'insertTransition'
           },
           {
