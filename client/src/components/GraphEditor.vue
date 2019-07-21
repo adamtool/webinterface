@@ -1,11 +1,6 @@
 <template>
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
-    <ToolPicker
-      style="position: absolute; z-index: 5; width: auto;"
-      :selectedTool="this.selectedTool"
-      @onPickTool="tool => this.selectedTool = tool"
-      :tools="this.toolPickerItems"/>
     <div
       style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
       ref="toolbarContainer">
@@ -30,21 +25,6 @@
       <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
       <v-container fluid
                    style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
-        <v-radio-group v-model="selectedTool" v-if="showEditorTools" row height="10px">
-          <v-radio label="select" value="select"/>
-          <v-radio label="delete nodes/flows" value="deleteNodesAndFlows"/>
-          <v-radio label="draw flows" value="drawFlow"/>
-          <v-radio label="draw token flows" value="drawTokenFlow"/>
-          <!--Model checking has only one kind of place.  No system/environment distinction-->
-          <template v-if="useModelChecking">
-            <v-radio label="insert place" value="insertSysPlace"/>
-          </template>
-          <template v-else>
-            <v-radio label="insert sysplace" value="insertSysPlace"/>
-            <v-radio label="insert envplace" value="insertEnvPlace"/>
-          </template>
-          <v-radio label="insert transition" value="insertTransition"/>
-        </v-radio-group>
         <v-layout row>
           <template v-if="useModelChecking">
             <v-select
@@ -73,6 +53,11 @@
         </v-layout>
       </v-container>
     </div>
+    <ToolPicker
+      style="position: absolute; z-index: 5; width: auto;"
+      :selectedTool="this.selectedTool"
+      @onPickTool="tool => this.selectedTool = tool"
+      :tools="this.toolPickerItems"/>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
