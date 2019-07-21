@@ -60,6 +60,7 @@
 <style scoped>
   .container {
     display: grid;
+    width: auto;
   }
 
   .selected-tool {
