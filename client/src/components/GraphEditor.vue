@@ -54,7 +54,8 @@
       </v-container>
     </div>
     <ToolPicker
-      style="position: absolute; top: 50%; transform: translate(0, -50%); z-index: 5;"
+      style="position: absolute; top: 25%; transform: translate(0, -25%); z-index: 5;
+      background-color: #ffffff;"
       :selectedTool="this.selectedTool"
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
