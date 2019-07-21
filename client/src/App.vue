@@ -219,32 +219,35 @@
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
-            <GraphEditor v-if="tab.type === 'petriGameEditor'"
-                         :graph='petriGame.net'
-                         :petriNetId='petriGame.uuid'
-                         ref='graphEditorPetriGame'
-                         v-on:dragDropEnd='onDragDropEnd'
-                         v-on:insertNode='insertNode'
-                         v-on:createFlow='createFlow'
-                         v-on:createTokenFlow='createTokenFlow'
-                         v-on:deleteFlow='deleteFlow'
-                         v-on:deleteNode='deleteNode'
-                         v-on:renameNode='renameNode'
-                         v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
-                         v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
-                         v-on:setIsSpecial='setIsSpecial'
-                         v-on:fireTransition='fireTransition'
-                         v-on:setInitialToken='setInitialToken'
-                         v-on:setWinningCondition='setWinningCondition'
-                         v-on:setFairness='setFairness'
-                         showEditorTools
-                         :useModelChecking="useModelChecking"
-                         :useDistributedSynthesis="useDistributedSynthesis"
-                         :modelCheckingRoutes="modelCheckingRoutes"
-                         :shouldShowPhysicsControls="showPhysicsControls"
-                         :shouldShowPartitions="showPartitions"
-                         :repulsionStrengthDefault="360"
-                         :linkStrengthDefault="0.086"/>
+            <div style="position: relative; height: 100%; width: 100%;"
+                 v-if="tab.type === 'petriGameEditor'">
+              <ToolPicker style="position: absolute; z-index: 5; width: 5%;"/>
+              <GraphEditor :graph='petriGame.net'
+                           :petriNetId='petriGame.uuid'
+                           ref='graphEditorPetriGame'
+                           v-on:dragDropEnd='onDragDropEnd'
+                           v-on:insertNode='insertNode'
+                           v-on:createFlow='createFlow'
+                           v-on:createTokenFlow='createTokenFlow'
+                           v-on:deleteFlow='deleteFlow'
+                           v-on:deleteNode='deleteNode'
+                           v-on:renameNode='renameNode'
+                           v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
+                           v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                           v-on:setIsSpecial='setIsSpecial'
+                           v-on:fireTransition='fireTransition'
+                           v-on:setInitialToken='setInitialToken'
+                           v-on:setWinningCondition='setWinningCondition'
+                           v-on:setFairness='setFairness'
+                           showEditorTools
+                           :useModelChecking="useModelChecking"
+                           :useDistributedSynthesis="useDistributedSynthesis"
+                           :modelCheckingRoutes="modelCheckingRoutes"
+                           :shouldShowPhysicsControls="showPhysicsControls"
+                           :shouldShowPartitions="showPartitions"
+                           :repulsionStrengthDefault="360"
+                           :linkStrengthDefault="0.086"/>
+            </div>
             <AptEditor v-else-if="tab.type === 'aptEditor'"
                        :aptFromAdamParser='apt'
                        :aptParseStatus='aptParseStatus'
@@ -312,7 +315,7 @@
               <template v-else>
                 Error: Invalid value for job result: {{ tab.result }}
                 <div>
-                  (This shouldn't happen.  Please file a bug.  :)
+                  (This shouldn't happen. Please file a bug. :)
                 </div>
               </template>
             </div>
@@ -377,6 +380,7 @@
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
+  import ToolPicker from './components/ToolPicker'
   import Vue from 'vue'
   import * as axios from 'axios'
   import {debounce, isEqual} from 'underscore'
@@ -411,7 +415,7 @@
   import {format} from 'date-fns'
 
   import draggable from 'vuedraggable'
-  import { formatJobType } from './jobType'
+  import {formatJobType} from './jobType'
 
   const uuidv4 = require('uuid/v4')
 
@@ -435,6 +439,7 @@
       LogViewer,
       AptEditor,
       JobList,
+      ToolPicker,
       AboutAdamWeb
     },
     created: function () {
