@@ -4,6 +4,7 @@
     <ToolPicker
       style="position: absolute; z-index: 5;"
       :selectedTool="this.selectedTool"
+      @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
 
     <div
