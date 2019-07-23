@@ -334,54 +334,56 @@
         return [
           {
             type: 'tool',
-            icon: 'S',
+            icon: 'mouse',
             visible: this.showEditorTools,
             name: 'select'
           },
           {
             type: 'tool',
-            icon: 'X',
+            icon: 'delete',
             visible: this.showEditorTools,
             name: 'deleteNodesAndFlows'
           },
           {
             type: 'tool',
-            icon: 'D',
+            icon: 'create',
             visible: this.showEditorTools,
             name: 'drawFlow'
           },
           {
             type: 'tool',
-            icon: 'DX',
+            icon: 'create',
             visible: this.showEditorTools,
             name: 'drawTokenFlow'
           },
           {
             type: 'tool',
-            icon: 'SYS',
+            icon: 'add',
             visible: this.showEditorTools,
             name: 'insertSysPlace'
           },
           {
             type: 'tool',
-            icon: 'ENV',
+            icon: 'add',
             visible: this.showEditorTools,
             name: 'insertEnvPlace'
           },
           {
             type: 'tool',
-            icon: 'T',
+            icon: 'add',
             visible: this.showEditorTools,
             name: 'insertTransition'
           },
           {
             type: 'action',
             name: 'autoLayout',
+            icon: 'reorder',
             action: this.autoLayout
           },
           {
             type: 'action',
             name: 'zoomToFitAllNodes',
+            icon: 'zoom_out_map',
             action: this.zoomToFitAllNodes
           },
           {
@@ -392,28 +394,33 @@
           {
             type: 'action',
             name: 'freezeAllNodes',
+            icon: 'leak_remove',
             action: this.freezeAllNodes
           },
           {
             type: 'action',
             name: 'unfreezeAllNodes',
+            icon: 'leak_add',
             action: this.unfreezeAllNodes
           },
           {
             type: 'action',
             name: 'deleteSelectedNodes',
+            icon: 'delete_sweep',
             action: this.deleteSelectedNodes,
             visible: this.showEditorTools
           },
           {
             type: 'action',
             name: 'invertSelection',
+            icon: 'invert_colors',
             action: this.invertSelection,
             visible: this.showEditorTools
           },
           {
             type: 'action',
             name: 'saveAsSVG',
+            icon: 'save_alt',
             action: this.saveGraph
           }
         ]

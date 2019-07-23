@@ -7,7 +7,12 @@
          @click="onClick(tool)"
          :class="selectedTool === tool ? 'selected-tool' : ''"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
-      {{ tool.name }}
+      <v-icon v-if="tool.icon">
+        {{ tool.icon }}
+      </v-icon>
+      <div v-else>
+        {{ tool.name }}
+      </div>
     </div>
   </div>
 
