@@ -2,12 +2,14 @@
  a time to be the active tool.  This component is like that.-->
 <template>
   <div class="container"
-       :style="`grid-template-rows: repeat(${visibleTools.length}, 20px [col-start])`">
+       :style="`grid-template-rows: repeat(${visibleTools.length}, auto [col-start])`">
     <div v-for="(tool, index) in visibleTools"
          @click="onClick(tool)"
          :class="selectedTool === tool ? 'selected-tool' : ''"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
-      <v-icon v-if="tool.icon">
+      <v-icon
+        large
+        v-if="tool.icon">
         {{ tool.icon }}
       </v-icon>
       {{ tool.name }}
