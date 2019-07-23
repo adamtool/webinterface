@@ -5,7 +5,7 @@
        :style="`grid-template-rows: repeat(${visibleTools.length}, auto [col-start])`">
     <div v-for="(tool, index) in visibleTools"
          @click="onClick(tool)"
-         :class="selectedTool === tool ? 'selected-tool' : ''"
+         :class="selectedTool === tool ? 'toolbar-row selected-tool' : 'toolbar-row'"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
       <v-btn
         small
@@ -14,10 +14,10 @@
           v-if="tool.icon">
           {{ tool.icon }}
         </v-icon>
-        <!--<div class="tool-name">-->
-        <!--{{ tool.name }}-->
-        <!--</div>-->
       </v-btn>
+      <div class="tool-name">
+      {{ tool.name }}
+      </div>
     </div>
   </div>
 
@@ -78,6 +78,14 @@
 
   .selected-tool {
     border: 1px solid lightgray;
+  }
+
+  .toolbar-row > .tool-name {
+    display: none;
+  }
+
+  .toolbar-row:hover > .tool-name {
+    display: block !important;
   }
 
 </style>
