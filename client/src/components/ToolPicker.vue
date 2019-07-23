@@ -85,7 +85,7 @@
   }
 
   .toolbar-row:hover > .tool-name {
-    display: block;
+    display: inline-block;
   }
 
 </style>
