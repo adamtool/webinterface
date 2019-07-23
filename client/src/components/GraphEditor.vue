@@ -382,6 +382,13 @@
           },
           {
             type: 'action',
+            name: 'Delete selected nodes',
+            icon: 'delete_sweep',
+            action: this.deleteSelectedNodes,
+            visible: this.showEditorTools
+          },
+          {
+            type: 'action',
             name: 'Auto-Layout',
             icon: 'reorder',
             action: this.autoLayout
@@ -409,13 +416,6 @@
             name: 'Unfreeze all nodes',
             icon: 'leak_add',
             action: this.unfreezeAllNodes
-          },
-          {
-            type: 'action',
-            name: 'Delete selected nodes',
-            icon: 'delete_sweep',
-            action: this.deleteSelectedNodes,
-            visible: this.showEditorTools
           },
           {
             type: 'action',
