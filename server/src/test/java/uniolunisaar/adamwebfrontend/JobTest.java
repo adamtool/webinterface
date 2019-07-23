@@ -62,14 +62,15 @@ public class JobTest {
 
         stringJob.queue(executorService);
         int timeWaited = 0;
-        while (!stringJob.isFinished()) {
+        boolean didWeCallCanceledYet = false;
+        while (timeWaited < 1500) {
             Thread.sleep(100);
             timeWaited += 100;
             System.out.println("Waiting... (" + timeWaited + " ms)");
 
-            if (timeWaited >= 500) {
+            if (timeWaited >= 500 && !didWeCallCanceledYet) {
                 stringJob.cancel();
-                break;
+                didWeCallCanceledYet = true;
             }
         }
 
