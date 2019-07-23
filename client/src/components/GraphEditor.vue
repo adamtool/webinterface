@@ -336,90 +336,98 @@
             type: 'tool',
             icon: 'mouse',
             visible: this.showEditorTools,
-            name: 'select'
+            toolEnumName: 'select',
+            name: 'Select'
           },
           {
             type: 'tool',
             icon: 'delete',
             visible: this.showEditorTools,
-            name: 'deleteNodesAndFlows'
+            toolEnumName: 'deleteNodesAndFlows',
+            name: 'Delete'
           },
           {
             type: 'tool',
             icon: 'create',
             visible: this.showEditorTools,
-            name: 'drawFlow'
+            toolEnumName: 'drawFlow',
+            name: 'Draw Flow'
           },
           {
             type: 'tool',
             icon: 'create',
             visible: this.showEditorTools,
-            name: 'drawTokenFlow'
+            toolEnumName: 'drawTokenFlow',
+            name: 'Draw Token Flow'
           },
           {
             type: 'tool',
             icon: 'add',
             visible: this.showEditorTools,
-            name: 'insertSysPlace'
+            toolEnumName: 'insertSysPlace',
+            name: 'Add System Place'
           },
           {
             type: 'tool',
             icon: 'add',
             visible: this.showEditorTools,
-            name: 'insertEnvPlace'
+            toolEnumName: 'insertEnvPlace',
+            name: 'Add Environment Place'
           },
           {
             type: 'tool',
             icon: 'add',
             visible: this.showEditorTools,
-            name: 'insertTransition'
+            toolEnumName: 'insertTransition',
+            name: 'Add Transition'
           },
           {
             type: 'action',
-            name: 'autoLayout',
+            name: 'Auto-Layout',
             icon: 'reorder',
             action: this.autoLayout
           },
           {
             type: 'action',
-            name: 'zoomToFitAllNodes',
+            name: 'Zoom to fit',
             icon: 'zoom_out_map',
             action: this.zoomToFitAllNodes
           },
           {
             type: 'action',
-            name: 'moveAllNodesToVisibleArea',
+            name: 'Move all nodes to the visible area',
+            icon: 'fullscreen_exit',
             action: this.moveNodesToVisibleArea
           },
           {
             type: 'action',
-            name: 'freezeAllNodes',
+            name: 'Freeze all nodes',
             icon: 'leak_remove',
             action: this.freezeAllNodes
           },
           {
             type: 'action',
-            name: 'unfreezeAllNodes',
+            name: 'Unfreeze all nodes',
             icon: 'leak_add',
             action: this.unfreezeAllNodes
           },
           {
             type: 'action',
-            name: 'deleteSelectedNodes',
+            name: 'Delete selected nodes',
             icon: 'delete_sweep',
             action: this.deleteSelectedNodes,
             visible: this.showEditorTools
           },
           {
             type: 'action',
-            name: 'invertSelection',
+            name: 'Invert selection',
             icon: 'invert_colors',
             action: this.invertSelection,
             visible: this.showEditorTools
           },
           {
             type: 'action',
-            name: 'saveAsSVG',
+            name: 'Save as SVG',
             icon: 'save_alt',
             action: this.saveGraph
           }
@@ -1045,10 +1053,10 @@
       selectedTool: function (tool) {
         // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
         // That would be more declarative and Vue-like, I think.  -Ann
-        if (tool.name !== 'drawTokenFlow') {
+        if (tool.toolEnumName !== 'drawTokenFlow') {
           this.drawTokenFlowHandler.reset()
         }
-        switch (tool.name) {
+        switch (tool.toolEnumName) {
           case 'select': {
             this.backgroundClickMode = 'cancelSelection'
             this.backgroundDragDropMode = 'selectNodes'

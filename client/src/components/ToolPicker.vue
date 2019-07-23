@@ -10,9 +10,7 @@
       <v-icon v-if="tool.icon">
         {{ tool.icon }}
       </v-icon>
-      <div v-else>
-        {{ tool.name }}
-      </div>
+      {{ tool.name }}
     </div>
   </div>
 
@@ -34,8 +32,7 @@
       }
     },
     data: function () {
-      return {
-      }
+      return {}
     },
     computed: {
       visibleTools: function () {
