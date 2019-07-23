@@ -428,7 +428,7 @@
           {
             type: 'action',
             name: 'Save as SVG',
-            icon: 'save_alt',
+            icon: 'save',
             action: this.saveGraph
           }
         ]
