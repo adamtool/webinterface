@@ -364,12 +364,12 @@
             icon: 'add',
             visible: this.showEditorTools,
             toolEnumName: 'insertSysPlace',
-            name: 'Add System Place'
+            name: this.useModelChecking ? 'Add Place' : 'Add System Place'
           },
           {
             type: 'tool',
             icon: 'add',
-            visible: this.showEditorTools,
+            visible: this.showEditorTools && !this.useModelChecking,
             toolEnumName: 'insertEnvPlace',
             name: 'Add Environment Place'
           },
