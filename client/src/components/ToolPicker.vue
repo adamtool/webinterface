@@ -80,11 +80,11 @@
     border: 1px solid lightgray;
   }
 
-  .toolbar-row > .tool-name {
+  .container > .toolbar-row > .tool-name {
     display: none;
   }
 
-  .toolbar-row:hover > .tool-name {
+  .container:hover > .toolbar-row > .tool-name {
     display: inline-block;
   }
 
