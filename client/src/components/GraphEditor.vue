@@ -1,26 +1,32 @@
 <template>
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
-    <!--<div-->
-    <!--style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"-->
-    <!--ref="toolbarContainer">-->
-    <!--<div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">-->
-    <!--<div>Repulsion Strength</div>-->
-    <!--<input type="range" min="30" max="1000" step="1"-->
-    <!--class="forceStrengthSlider"-->
-    <!--v-model="repulsionStrength">-->
-    <!--<div class="forceStrengthNumber">{{repulsionStrength}}</div>-->
-    <!--<div>Link strength</div>-->
-    <!--<input type="range" min="0" max="0.2" step="0.001"-->
-    <!--class="forceStrengthSlider"-->
-    <!--v-model="linkStrength">-->
-    <!--<div class="forceStrengthNumber">{{linkStrength}}</div>-->
-    <!--<div>Gravity strength</div>-->
-    <!--<input type="range" min="0" max="800" step="1"-->
-    <!--class="forceStrengthSlider"-->
-    <!--v-model="gravityStrength">-->
-    <!--<div class="forceStrengthNumber">{{gravityStrength}}</div>-->
-    <!--</div>-->
+    <!--Physics controls toolbar.  Normally hidden.-->
+    <div
+      style="position: absolute;
+      width: 100%;
+      padding-right: 20px;
+      z-index: 6;
+      background-color: #fafafa"
+    >
+      <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
+        <div>Repulsion Strength</div>
+        <input type="range" min="30" max="1000" step="1"
+               class="forceStrengthSlider"
+               v-model="repulsionStrength">
+        <div class="forceStrengthNumber">{{repulsionStrength}}</div>
+        <div>Link strength</div>
+        <input type="range" min="0" max="0.2" step="0.001"
+               class="forceStrengthSlider"
+               v-model="linkStrength">
+        <div class="forceStrengthNumber">{{linkStrength}}</div>
+        <div>Gravity strength</div>
+        <input type="range" min="0" max="800" step="1"
+               class="forceStrengthSlider"
+               v-model="gravityStrength">
+        <div class="forceStrengthNumber">{{gravityStrength}}</div>
+      </div>
+    </div>
 
     <!--&lt;!&ndash;TODO Provide visual feedback when HTTP request is in progress, similar to APT editor&ndash;&gt;-->
     <!--<v-container fluid-->
@@ -148,7 +154,6 @@
     flex-direction: row;
     align-items: center;
     padding: 5px;
-    font-size: 20px;
   }
 
   .graph-editor-toolbar button,
@@ -449,7 +454,7 @@
             name: 'Unfreeze all nodes',
             icon: 'leak_add',
             action: this.unfreezeAllNodes
-          },
+          }
         ]
       },
       winningConditions: function () {
