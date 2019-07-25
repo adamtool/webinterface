@@ -1,63 +1,79 @@
 <template>
   <!--The attribute tabIndex is here to allow the div to receive keyboard focus.-->
   <div class="graph-editor" :id="rootElementId" ref="rootElement" :tabIndex="-1">
-    <div
-      style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"
-      ref="toolbarContainer">
-      <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
-        <div>Repulsion Strength</div>
-        <input type="range" min="30" max="1000" step="1"
-               class="forceStrengthSlider"
-               v-model="repulsionStrength">
-        <div class="forceStrengthNumber">{{repulsionStrength}}</div>
-        <div>Link strength</div>
-        <input type="range" min="0" max="0.2" step="0.001"
-               class="forceStrengthSlider"
-               v-model="linkStrength">
-        <div class="forceStrengthNumber">{{linkStrength}}</div>
-        <div>Gravity strength</div>
-        <input type="range" min="0" max="800" step="1"
-               class="forceStrengthSlider"
-               v-model="gravityStrength">
-        <div class="forceStrengthNumber">{{gravityStrength}}</div>
-      </div>
+    <!--<div-->
+    <!--style="position: absolute; width: 100%; padding-right: 20px; z-index: 2; background-color: #fafafa"-->
+    <!--ref="toolbarContainer">-->
+    <!--<div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">-->
+    <!--<div>Repulsion Strength</div>-->
+    <!--<input type="range" min="30" max="1000" step="1"-->
+    <!--class="forceStrengthSlider"-->
+    <!--v-model="repulsionStrength">-->
+    <!--<div class="forceStrengthNumber">{{repulsionStrength}}</div>-->
+    <!--<div>Link strength</div>-->
+    <!--<input type="range" min="0" max="0.2" step="0.001"-->
+    <!--class="forceStrengthSlider"-->
+    <!--v-model="linkStrength">-->
+    <!--<div class="forceStrengthNumber">{{linkStrength}}</div>-->
+    <!--<div>Gravity strength</div>-->
+    <!--<input type="range" min="0" max="800" step="1"-->
+    <!--class="forceStrengthSlider"-->
+    <!--v-model="gravityStrength">-->
+    <!--<div class="forceStrengthNumber">{{gravityStrength}}</div>-->
+    <!--</div>-->
 
-      <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
-      <v-container fluid
-                   style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">
-        <v-layout row>
-          <template v-if="useModelChecking">
-            <v-select
-              style="flex: 0 0 200px"
-              v-if="showEditorTools"
-              v-model="selectedWinningCondition"
-              :items="winningConditions"
-              label="Condition"/>
-            <v-text-field
-              style="flex: 1 1 0"
-              :disabled="selectedWinningCondition !== 'LTL'"
-              v-if="showEditorTools && useModelChecking"
-              v-model="ltlFormula"
-              :prepend-inner-icon="ltlParseStatusIcon"
-              :error-messages="ltlParseErrors"
-              placeholder="Enter a LTL formula here"
-              label="LTL Formula"/>
-          </template>
-          <template v-else>
-            <v-select
-              v-if="showEditorTools"
-              v-model="selectedWinningCondition"
-              :items="winningConditions"
-              label="Winning Condition"/>
-          </template>
-        </v-layout>
-      </v-container>
-    </div>
+    <!--&lt;!&ndash;TODO Provide visual feedback when HTTP request is in progress, similar to APT editor&ndash;&gt;-->
+    <!--<v-container fluid-->
+    <!--style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">-->
+    <!--<v-layout row>-->
+    <!--<template v-if="useModelChecking">-->
+    <!--<v-select-->
+    <!--style="flex: 0 0 200px"-->
+    <!--v-if="showEditorTools"-->
+    <!--v-model="selectedWinningCondition"-->
+    <!--:items="winningConditions"-->
+    <!--label="Condition"/>-->
+    <!--<v-text-field-->
+    <!--style="flex: 1 1 0"-->
+    <!--:disabled="selectedWinningCondition !== 'LTL'"-->
+    <!--v-if="showEditorTools && useModelChecking"-->
+    <!--v-model="ltlFormula"-->
+    <!--:prepend-inner-icon="ltlParseStatusIcon"-->
+    <!--:error-messages="ltlParseErrors"-->
+    <!--placeholder="Enter a LTL formula here"-->
+    <!--label="LTL Formula"/>-->
+    <!--</template>-->
+    <!--<template v-else>-->
+    <!--<v-select-->
+    <!--v-if="showEditorTools"-->
+    <!--v-model="selectedWinningCondition"-->
+    <!--:items="winningConditions"-->
+    <!--label="Winning Condition"/>-->
+    <!--</template>-->
+    <!--</v-layout>-->
+    <!--</v-container>-->
+    <!--</div>-->
     <ToolPicker
       style="position: absolute; top: 100px; z-index: 5; background-color: #ffffff;"
       :selectedTool="this.selectedTool"
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
+
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on }">
+        <v-btn
+          icon
+          color="blue"
+          large
+          light
+          style="position: absolute; right: 20px; top: 20px; z-index: 5;"
+          @click="saveGraph"
+          v-on="on">
+          <v-icon>save</v-icon>
+        </v-btn>
+      </template>
+      Save as SVG
+    </v-tooltip>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
