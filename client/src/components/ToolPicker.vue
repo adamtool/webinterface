@@ -23,7 +23,9 @@
       </template>
       <!--Separators-->
       <template v-else>
-        <div style="background: black; height: 5px;"></div>
+        <div style="background: black; height: 4px;
+        margin-top: 6px;
+        margin-bottom: 6px;"></div>
       </template>
 
     </div>
@@ -47,11 +49,37 @@
       }
     },
     data: function () {
-      return {}
+      return {
+        collapsed: false
+      }
     },
     computed: {
       visibleTools: function () {
-        return this.tools.filter(tool => tool.visible !== false)
+        if (this.collapsed && this.selectedTool.visible) {
+          return [
+            this.collapseButton,
+            {type: 'separator'},
+            this.selectedTool
+          ]
+        } else if (this.collapsed && !this.selectedTool.visible) {
+          return [
+            this.collapseButton
+          ]
+        } else {
+          return [
+            this.collapseButton,
+            {type: 'separator'},
+            ...this.tools.filter(tool => tool.visible !== false)
+          ]
+        }
+      },
+      collapseButton: function () {
+        return {
+          type: 'action',
+          action: () => this.collapsed = !this.collapsed,
+          icon: this.collapsed ? 'visibility' : 'visibility_off',
+          name: this.collapsed ? 'Expand toolbar' : 'Collapse toolbar'
+        }
       }
     },
     watch: {
