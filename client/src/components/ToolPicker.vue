@@ -85,7 +85,8 @@
   }
 
   .selected-tool {
-    border: 1px solid lightgray;
+    border: 1px solid #aaaaaa;
+    border-radius: 10px;
   }
 
   .container > .toolbar-row > .tool-name {
