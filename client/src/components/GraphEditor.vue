@@ -381,10 +381,25 @@
             name: 'Add Transition'
           },
           {
+            type: 'separator',
+            visible: this.showEditorTools
+          },
+          {
+            type: 'action',
+            name: 'Invert selection',
+            icon: 'invert_colors',
+            action: this.invertSelection,
+            visible: this.showEditorTools
+          },
+          {
             type: 'action',
             name: 'Delete selected nodes',
             icon: 'delete_sweep',
             action: this.deleteSelectedNodes,
+            visible: this.showEditorTools
+          },
+          {
+            type: 'separator',
             visible: this.showEditorTools
           },
           {
@@ -418,11 +433,7 @@
             action: this.unfreezeAllNodes
           },
           {
-            type: 'action',
-            name: 'Invert selection',
-            icon: 'invert_colors',
-            action: this.invertSelection,
-            visible: this.showEditorTools
+            type: 'separator'
           },
           {
             type: 'action',

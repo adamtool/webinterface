@@ -7,17 +7,25 @@
          @click="onClick(tool)"
          :class="selectedTool === tool ? 'toolbar-row selected-tool' : 'toolbar-row'"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
-      <v-btn
-        small
-        icon>
-        <v-icon
-          v-if="tool.icon">
-          {{ tool.icon }}
-        </v-icon>
-      </v-btn>
-      <div class="tool-name">
-      {{ tool.name }}
-      </div>
+      <!--Normal rows in the grid-->
+      <template v-if="tool.type === 'tool' || tool.type === 'action'">
+        <v-btn
+          small
+          icon>
+          <v-icon
+            v-if="tool.icon">
+            {{ tool.icon }}
+          </v-icon>
+        </v-btn>
+        <div class="tool-name">
+          {{ tool.name }}
+        </div>
+      </template>
+      <!--Separators-->
+      <template v-else>
+        <div style="background: black; height: 5px;"></div>
+      </template>
+
     </div>
   </div>
 
