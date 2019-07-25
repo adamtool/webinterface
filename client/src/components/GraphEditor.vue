@@ -1411,11 +1411,12 @@
         const containerCenter = [
           bbox.x + bbox.width / 2,
           bbox.y + bbox.height / 2]
-        const scale = 0.9 / Math.max(bbox.width / svgWidth, bbox.height / svgHeight)
+        const scale = 0.8 / Math.max(bbox.width / svgWidth, bbox.height / svgHeight)
         const translate = [
           // Add 40 to account for the vertical toolbar on the left side of the screen
+          // and the 'ltl formula' / 'winning condition' input
           svgWidth / 2 - scale * containerCenter[0] + 40,
-          svgHeight / 2 - scale * containerCenter[1]
+          svgHeight / 2 - scale * containerCenter[1] + 40
         ]
         this.svg.transition().duration(300).call(this.zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale))
       },
@@ -1503,6 +1504,9 @@
         }
         this.zoom = d3.zoom()
           .on('zoom', onZoom)
+          .wheelDelta(() => {
+            return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 1500;
+          })
           .filter(() => {
             const isWheel = d3.event instanceof WheelEvent
             if (isWheel) {
