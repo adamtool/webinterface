@@ -44,7 +44,7 @@
               :items="winningConditions"
               label="Condition"/>
           </v-flex>
-          <v-flex xs6 sm8>
+          <v-flex xs4 sm7>
             <v-text-field
               style="flex: 1 1 auto;"
               :disabled="selectedWinningCondition !== 'LTL'"
