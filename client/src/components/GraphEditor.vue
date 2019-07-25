@@ -1392,15 +1392,15 @@
       zoomToFitAllNodes: function () {
         const bbox = this.container.node().getBBox()
         const svgWidth = this.svgWidth()
-        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
-        const svgHeight = this.svgHeight() - toolbarHeight
+        const svgHeight = this.svgHeight()
         const containerCenter = [
           bbox.x + bbox.width / 2,
           bbox.y + bbox.height / 2]
         const scale = 0.9 / Math.max(bbox.width / svgWidth, bbox.height / svgHeight)
         const translate = [
-          svgWidth / 2 - scale * containerCenter[0],
-          svgHeight / 2 - scale * containerCenter[1] + toolbarHeight]
+          svgWidth / 2 - scale * containerCenter[0] + 40,
+          svgHeight / 2 - scale * containerCenter[1]
+        ]
         this.svg.transition().duration(300).call(this.zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale))
       },
       // Sometimes nodes might get lost outside the borders of the screen.
