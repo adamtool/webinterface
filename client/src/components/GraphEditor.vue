@@ -28,39 +28,49 @@
       </div>
     </div>
 
-    <!--&lt;!&ndash;TODO Provide visual feedback when HTTP request is in progress, similar to APT editor&ndash;&gt;-->
-    <!--<v-container fluid-->
-    <!--style="padding-top: 5px; padding-bottom: 0px; padding-left: 30px; padding-right: 0px;">-->
-    <!--<v-layout row>-->
-    <!--<template v-if="useModelChecking">-->
-    <!--<v-select-->
-    <!--style="flex: 0 0 200px"-->
-    <!--v-if="showEditorTools"-->
-    <!--v-model="selectedWinningCondition"-->
-    <!--:items="winningConditions"-->
-    <!--label="Condition"/>-->
-    <!--<v-text-field-->
-    <!--style="flex: 1 1 0"-->
-    <!--:disabled="selectedWinningCondition !== 'LTL'"-->
-    <!--v-if="showEditorTools && useModelChecking"-->
-    <!--v-model="ltlFormula"-->
-    <!--:prepend-inner-icon="ltlParseStatusIcon"-->
-    <!--:error-messages="ltlParseErrors"-->
-    <!--placeholder="Enter a LTL formula here"-->
-    <!--label="LTL Formula"/>-->
-    <!--</template>-->
-    <!--<template v-else>-->
-    <!--<v-select-->
-    <!--v-if="showEditorTools"-->
-    <!--v-model="selectedWinningCondition"-->
-    <!--:items="winningConditions"-->
-    <!--label="Winning Condition"/>-->
-    <!--</template>-->
-    <!--</v-layout>-->
-    <!--</v-container>-->
-    <!--</div>-->
+    <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
+    <v-container fluid
+                 style="
+                 z-index: 5;
+                 position: absolute;
+                 padding-top: 5px;"
+    >
+      <v-layout justify-center>
+        <template v-if="useModelChecking">
+          <v-flex xs2>
+            <v-select
+              v-if="showEditorTools"
+              v-model="selectedWinningCondition"
+              :items="winningConditions"
+              label="Condition"/>
+          </v-flex>
+          <v-flex xs6 sm8>
+            <v-text-field
+              style="flex: 1 1 auto;"
+              :disabled="selectedWinningCondition !== 'LTL'"
+              v-if="showEditorTools && useModelChecking"
+              v-model="ltlFormula"
+              :prepend-inner-icon="ltlParseStatusIcon"
+              :error-messages="ltlParseErrors"
+              placeholder="Enter a LTL formula here"
+              label="LTL Formula"/>
+          </v-flex>
+        </template>
+        <template v-else>
+            <v-flex xs6 sm5 offset-sm1 md4 offset-md2>
+              <v-select
+                v-if="showEditorTools"
+                v-model="selectedWinningCondition"
+                :items="winningConditions"
+                label="Winning Condition"/>
+            </v-flex>
+            <v-flex xs6 sm1 md2></v-flex>
+        </template>
+      </v-layout>
+    </v-container>
+
     <ToolPicker
-      style="position: absolute; top: 20px; left: 3px; z-index: 5;
+      style="position: absolute; top: 60px; left: 3px; z-index: 5;
       background: #ffffffee;
       border-radius: 40px;"
       :selectedTool="this.selectedTool"
