@@ -1398,6 +1398,7 @@
           bbox.y + bbox.height / 2]
         const scale = 0.9 / Math.max(bbox.width / svgWidth, bbox.height / svgHeight)
         const translate = [
+          // Add 40 to account for the vertical toolbar on the left side of the screen
           svgWidth / 2 - scale * containerCenter[0] + 40,
           svgHeight / 2 - scale * containerCenter[1]
         ]
@@ -1406,16 +1407,16 @@
       // Sometimes nodes might get lost outside the borders of the screen.
       // This procedure places them back within the visible area.
       moveNodesToVisibleArea: function () {
-        const margin = 45
+        const margin = 70
         const boundingRect = this.svg.node().getBoundingClientRect()
-        const toolbarHeight = this.$refs.toolbarContainer.clientHeight
         // There is a transformation applied to the SVG container using d3-zoom.
         // Calculate the actual visible area's margins using the inverse of the transform.
         const transform = d3.zoomTransform(this.svg.node())
 
-        const minX = transform.invertX(margin)
+        // Add 40 to account for the vertical toolbar on the left side of the screen
+        const minX = transform.invertX(margin + 40)
         const maxX = transform.invertX(boundingRect.width - margin)
-        const minY = transform.invertY(margin + toolbarHeight)
+        const minY = transform.invertY(margin)
         const maxY = transform.invertY(boundingRect.height - margin)
         this.nodes.forEach(node => {
           let nodeHasBeenMoved = false
