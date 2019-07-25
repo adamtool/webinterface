@@ -448,15 +448,6 @@
             icon: 'leak_add',
             action: this.unfreezeAllNodes
           },
-          {
-            type: 'separator'
-          },
-          {
-            type: 'action',
-            name: 'Save as SVG',
-            icon: 'save',
-            action: this.saveGraph
-          }
         ]
       },
       winningConditions: function () {
