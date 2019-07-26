@@ -64,8 +64,13 @@
     },
     data: function () {
       return {
-        collapsed: false
+        collapsed: false,
+        // TODO use a resize watcher to keep this up to date when window resizes
+        reactiveClientHeight: 0
       }
+    },
+    mounted: function () {
+      this.reactiveClientHeight = this.$refs.container.clientHeight
     },
     computed: {
       visibleTools: function () {
@@ -106,10 +111,10 @@
     methods: {
       // Truncate menuItems with an ellipsis in case there are too many to fit on screen
       withResponsiveEllipsis: function (menuItems) {
-        let availableHeight = this.$refs.container.clientHeight
+        let availableHeight = this.reactiveClientHeight
         let lastItemIndex = 0
         menuItems.forEach(menuItem => {
-          const heightNeeded = heightOfItem(menuItem)
+          const heightNeeded = heightOfItem(menuItem) + 20 // 20 is a guess
           if (availableHeight < heightNeeded) {
             return
           }
