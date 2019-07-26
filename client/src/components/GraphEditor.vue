@@ -70,7 +70,7 @@
     </v-container>
 
     <ToolPicker
-      style="position: absolute; top: 60px; left: 3px; z-index: 5;
+      style="position: absolute; top: 75px; left: 3px; z-index: 5;
       background: #ffffffee;
       padding: 12px;
       border-radius: 40px;"
