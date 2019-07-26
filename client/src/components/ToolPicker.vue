@@ -160,7 +160,7 @@
           type: 'action',
           action: () => this.collapse = !this.collapse,
           icon: this.collapse ? 'visibility' : 'visibility_off',
-          name: this.collapse ? 'Expand toolbar' : 'Collapse toolbar'
+          name: this.collapse ? 'Always show' : 'Collapse'
         }
       }
     },
