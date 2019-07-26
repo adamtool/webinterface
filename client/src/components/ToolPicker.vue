@@ -48,6 +48,7 @@
 </template>
 
 <script>
+  const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   export default {
     name: 'ToolPicker',
     props: {
@@ -71,6 +72,11 @@
     },
     mounted: function () {
       this.reactiveClientHeight = this.$refs.container.clientHeight
+
+      const onContainerResize = () => {
+        this.reactiveClientHeight = this.$refs.container.clientHeight
+      }
+      new ResizeSensor(this.$refs.container, onContainerResize)
     },
     computed: {
       visibleTools: function () {
