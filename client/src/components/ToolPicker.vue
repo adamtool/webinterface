@@ -22,12 +22,11 @@
           {{ tool.name }}
         </div>
       </template>
-      <!--Separators-->
-      <template v-else-if="tool.type === 'divider'">
-        <div style="background: black; height: 4px;
-        margin-top: 6px;
-        margin-bottom: 6px;"></div>
-      </template>
+      <!--Dividers-->
+      <v-divider
+        v-else-if="tool.type === 'divider'"
+        class="divider"
+      />
       <!--Ellipsis to show overflow on small screens-->
       <template v-else-if="tool.type === 'ellipsis'">
         <v-menu>
@@ -192,7 +191,7 @@
             case 'action':
               return 40
             case 'divider':
-              return 16
+              return 13
             default:
               throw new Error('Unrecognized item type: ' + item.type)
           }
@@ -226,6 +225,11 @@
   .selected-tool {
     border: 1px solid #aaaaaa;
     border-radius: 10px;
+  }
+
+  .divider {
+    margin-top: 6px;
+    margin-bottom: 6px;
   }
 
   .container > .toolbar-row > .tool-name {
