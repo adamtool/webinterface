@@ -23,7 +23,7 @@
         </div>
       </template>
       <!--Separators-->
-      <template v-else-if="tool.type === 'separator'">
+      <template v-else-if="tool.type === 'divider'">
         <div style="background: black; height: 4px;
         margin-top: 6px;
         margin-bottom: 6px;"></div>
@@ -71,7 +71,7 @@
                 </v-list-tile-content>
               </v-list-tile>
               <v-divider
-                v-else-if="hiddenItem.type === 'separator'"
+                v-else-if="hiddenItem.type === 'divider'"
                 :key="index"
               />
               <div
@@ -131,7 +131,7 @@
         if (this.collapsed && this.selectedTool.visible) {
           return [
             this.collapseButton,
-            {type: 'separator'},
+            {type: 'divider'},
             this.selectedTool
           ]
         } else if (this.collapsed && !this.selectedTool.visible) {
@@ -141,7 +141,7 @@
         } else {
           return this.withResponsiveEllipsis([
             this.collapseButton,
-            {type: 'separator'},
+            {type: 'divider'},
             ...this.tools.filter(tool => tool.visible !== false)
           ])
         }
@@ -191,7 +191,7 @@
             case 'tool':
             case 'action':
               return 40
-            case 'separator':
+            case 'divider':
               return 16
             default:
               throw new Error('Unrecognized item type: ' + item.type)
@@ -206,7 +206,7 @@
           case 'tool':
             this.$emit('onPickTool', tool)
             break
-          case 'separator':
+          case 'divider':
           case 'ellipsis':
             break
           default:

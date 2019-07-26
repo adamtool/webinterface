@@ -414,7 +414,7 @@
             name: 'Add Transition'
           },
           {
-            type: 'separator',
+            type: 'divider',
             visible: this.showEditorTools
           },
           {
@@ -432,7 +432,7 @@
             visible: this.showEditorTools
           },
           {
-            type: 'separator',
+            type: 'divider',
             visible: this.showEditorTools
           },
           {
