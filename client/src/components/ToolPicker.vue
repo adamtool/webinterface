@@ -1,62 +1,65 @@
 <!--You know Microsoft Paint's tool picker?  It's a grid of icons and you can pick one of them at
  a time to be the active tool.  This component is like that.-->
 <template>
-  <div class="container"
-       ref="container"
-       :style="`grid-template-rows: repeat(${visibleTools.length}, auto [col-start])`">
-    <div v-for="(tool, index) in visibleTools"
-         @click="onClick(tool)"
-         :class="selectedTool === tool ? 'toolbar-row selected-tool' : 'toolbar-row'"
-         :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
-      <!--Normal rows in the grid-->
-      <template v-if="tool.type === 'tool' || tool.type === 'action'">
-        <v-btn
-          small
-          icon>
-          <v-icon
-            v-if="tool.icon">
-            {{ tool.icon }}
-          </v-icon>
-        </v-btn>
-        <div class="tool-name">
-          {{ tool.name }}
-        </div>
-      </template>
-      <!--Separators-->
-      <template v-else-if="tool.type === 'separator'">
-        <div style="background: black; height: 4px;
+  <div ref="rootElement">
+    <div class="container"
+         :style="`grid-template-rows: repeat(${visibleTools.length}, auto [col-start]);
+         border-radius: ${borderRadius};
+         background: ${background};`">
+      <div v-for="(tool, index) in visibleTools"
+           @click="onClick(tool)"
+           :class="selectedTool === tool ? 'toolbar-row selected-tool' : 'toolbar-row'"
+           :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
+        <!--Normal rows in the grid-->
+        <template v-if="tool.type === 'tool' || tool.type === 'action'">
+          <v-btn
+            small
+            icon>
+            <v-icon
+              v-if="tool.icon">
+              {{ tool.icon }}
+            </v-icon>
+          </v-btn>
+          <div class="tool-name">
+            {{ tool.name }}
+          </div>
+        </template>
+        <!--Separators-->
+        <template v-else-if="tool.type === 'separator'">
+          <div style="background: black; height: 4px;
         margin-top: 6px;
         margin-bottom: 6px;"></div>
-      </template>
-      <!--Ellipsis to show overflow on small screens-->
-      <template v-else-if="tool.type === 'ellipsis'">
-        <v-menu>
-          <template v-slot:activator="{ on }">
-            <v-btn
-              small
-              icon
-              v-on="on"
-            >
-              <v-icon>more_horiz</v-icon>
-            </v-btn>
-            <div class="tool-name">
-              More
-            </div>
-          </template>
-          <v-list>
-            <v-list-tile
-              v-for="(hiddenItem, index) in tool.hiddenItems"
-              :key="index"
-              @click=""
-            >
-              <v-list-tile-title>{{ hiddenItem.name }}</v-list-tile-title>
-            </v-list-tile>
-          </v-list>
-        </v-menu>
-      </template>
-      <template v-else>
-        <v-icon>error</v-icon>
-      </template>
+        </template>
+        <!--Ellipsis to show overflow on small screens-->
+        <template v-else-if="tool.type === 'ellipsis'">
+          <v-menu>
+            <template v-slot:activator="{ on }">
+              <v-btn
+                small
+                icon
+                v-on="on"
+              >
+                <v-icon>more_horiz</v-icon>
+              </v-btn>
+              <div class="tool-name">
+                More
+              </div>
+            </template>
+            <v-list>
+              <v-list-tile
+                v-for="(hiddenItem, index) in tool.hiddenItems"
+                :key="index"
+                @click=""
+              >
+                <v-list-tile-title>{{ hiddenItem.name }}</v-list-tile-title>
+              </v-list-tile>
+            </v-list>
+          </v-menu>
+        </template>
+        <template v-else>
+          <v-icon>error</v-icon>
+        </template>
+      </div>
     </div>
   </div>
 
@@ -66,9 +69,12 @@
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
   import Vuetify from 'vuetify'
+
   export default {
     name: 'ToolPicker',
     props: {
+      borderRadius: {},
+      background: {},
       tools: {
         type: Array,
         required: true
@@ -88,12 +94,12 @@
       }
     },
     mounted: function () {
-      this.reactiveClientHeight = this.$refs.container.clientHeight
+      this.reactiveClientHeight = this.$refs.rootElement.clientHeight
 
-      const onContainerResize = () => {
-        this.reactiveClientHeight = this.$refs.container.clientHeight
+      const onRootElementResize = () => {
+        this.reactiveClientHeight = this.$refs.rootElement.clientHeight
       }
-      new ResizeSensor(this.$refs.container, onContainerResize)
+      new ResizeSensor(this.$refs.rootElement, onRootElementResize)
     },
     computed: {
       visibleTools: function () {
