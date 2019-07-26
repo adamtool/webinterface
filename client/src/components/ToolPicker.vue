@@ -106,7 +106,38 @@
     methods: {
       // Truncate menuItems with an ellipsis in case there are too many to fit on screen
       withResponsiveEllipsis: function (menuItems) {
-        return [...menuItems, { type: 'ellipsis' }]
+        let availableHeight = this.$refs.container.clientHeight
+        let lastItemIndex = 0
+        menuItems.forEach(menuItem => {
+          const heightNeeded = heightOfItem(menuItem)
+          if (availableHeight < heightNeeded) {
+            return
+          }
+          lastItemIndex = lastItemIndex + 1
+          availableHeight = availableHeight - heightNeeded
+        })
+        const visibleItems = menuItems.slice(0, lastItemIndex)
+        const hiddenItems = menuItems.slice(lastItemIndex)
+
+        return [
+          ...visibleItems,
+          {
+            type: 'ellipsis',
+            hiddenItems
+          }
+        ]
+
+        function heightOfItem(item) {
+          switch (item.type) {
+            case 'tool':
+            case 'action':
+              return 40
+            case 'separator':
+              return 16
+            default:
+              throw new Error('Unrecognized item type: ' + item.type)
+          }
+        }
       },
       onClick: function (tool) {
         switch (tool.type) {
