@@ -32,7 +32,9 @@
       />
       <!--Ellipsis to show overflow on small screens-->
       <template v-else-if="tool.type === 'ellipsis'">
-        <v-menu>
+        <v-menu
+          v-model="isOverflowMenuOpen"
+        >
           <template v-slot:activator="{ on }">
             <v-btn
               small
@@ -117,6 +119,7 @@
       return {
         collapse: false,
         hover: false,
+        isOverflowMenuOpen: false,
         // TODO use a resize watcher to keep this up to date when window resizes
         reactiveParentHeight: 0
       }
@@ -131,7 +134,7 @@
     },
     computed: {
       shouldActCollapsed: function () {
-        return this.collapse && !this.hover
+        return this.collapse && !this.hover && !this.isOverflowMenuOpen
       },
       visibleTools: function () {
         if (this.shouldActCollapsed && this.selectedTool.visible) {
