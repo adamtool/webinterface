@@ -1,7 +1,7 @@
 <!--You know Microsoft Paint's tool picker?  It's a grid of icons and you can pick one of them at
  a time to be the active tool.  This component is like that.-->
 <template>
-  <div class="container"
+  <div class="toolpicker-root-el"
        ref="container"
        :style="`grid-template-rows: repeat(${visibleTools.length}, auto [col-start])`">
     <div v-for="(tool, index) in visibleTools"
@@ -217,7 +217,7 @@
 </script>
 
 <style scoped>
-  .container {
+  .toolpicker-root-el {
     display: grid;
     width: auto;
   }
@@ -232,11 +232,11 @@
     margin-bottom: 6px;
   }
 
-  .container > .toolbar-row > .tool-name {
+  .toolpicker-root-el > .toolbar-row > .tool-name {
     display: none;
   }
 
-  .container:hover > .toolbar-row > .tool-name {
+  .toolpicker-root-el:hover > .toolbar-row > .tool-name {
     display: inline-block;
   }
 

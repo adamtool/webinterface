@@ -72,6 +72,7 @@
     <ToolPicker
       style="position: absolute; top: 60px; left: 3px; z-index: 5;
       background: #ffffffee;
+      padding: 12px;
       border-radius: 40px;"
       :selectedTool="this.selectedTool"
       @onPickTool="tool => this.selectedTool = tool"
