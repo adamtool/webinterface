@@ -88,12 +88,12 @@
       }
     },
     mounted: function () {
-      this.reactiveClientHeight = this.$refs.container.clientHeight
+      this.reactiveClientHeight = this.$refs.container.parentElement.clientHeight - 100
 
       const onContainerResize = () => {
-        this.reactiveClientHeight = this.$refs.container.clientHeight
+        this.reactiveClientHeight = this.$refs.container.parentElement.clientHeight - 100
       }
-      new ResizeSensor(this.$refs.container, onContainerResize)
+      new ResizeSensor(this.$refs.container.parentElement, onContainerResize)
     },
     computed: {
       visibleTools: function () {

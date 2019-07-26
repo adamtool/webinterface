@@ -71,8 +71,6 @@
 
     <ToolPicker
       style="position: absolute; top: 60px; left: 3px; z-index: 5;
-      max-height: calc(100% - 100px);
-      min-height: calc(100% - 100px);
       background: #ffffffee;
       border-radius: 40px;"
       :selectedTool="this.selectedTool"
