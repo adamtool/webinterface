@@ -3,7 +3,10 @@
 <template>
   <div class="toolpicker-root-el"
        ref="container"
-       :style="`grid-template-rows: repeat(${visibleTools.length}, auto [col-start])`">
+       :style="`grid-template-rows: repeat(${visibleTools.length}, auto [col-start])`"
+       @mouseover="hover = true"
+       @mouseleave="hover = false"
+  >
     <div v-for="(tool, index) in visibleTools"
          @click="onClick(tool)"
          :class="selectedTool === tool ? 'toolbar-row selected-tool' : 'toolbar-row'"
@@ -112,7 +115,8 @@
     },
     data: function () {
       return {
-        collapsed: false,
+        collapse: false,
+        hover: false,
         // TODO use a resize watcher to keep this up to date when window resizes
         reactiveParentHeight: 0
       }
@@ -126,14 +130,17 @@
       new ResizeSensor(this.$refs.container.parentElement, onContainerResize)
     },
     computed: {
+      shouldActCollapsed: function () {
+        return this.collapse && !this.hover
+      },
       visibleTools: function () {
-        if (this.collapsed && this.selectedTool.visible) {
+        if (this.shouldActCollapsed && this.selectedTool.visible) {
           return [
             this.collapseButton,
             {type: 'divider'},
             this.selectedTool
           ]
-        } else if (this.collapsed && !this.selectedTool.visible) {
+        } else if (this.shouldActCollapsed && !this.selectedTool.visible) {
           return [
             this.collapseButton
           ]
@@ -148,9 +155,9 @@
       collapseButton: function () {
         return {
           type: 'action',
-          action: () => this.collapsed = !this.collapsed,
-          icon: this.collapsed ? 'visibility' : 'visibility_off',
-          name: this.collapsed ? 'Expand toolbar' : 'Collapse toolbar'
+          action: () => this.collapse = !this.collapse,
+          icon: this.collapse ? 'visibility' : 'visibility_off',
+          name: this.collapse ? 'Expand toolbar' : 'Collapse toolbar'
         }
       }
     },
