@@ -43,14 +43,44 @@
               More
             </div>
           </template>
-          <v-list>
-            <v-list-tile
+          <v-list
+            dense
+          >
+            <template
               v-for="(hiddenItem, index) in tool.hiddenItems"
-              :key="index"
-              @click="onClick(hiddenItem)"
             >
-              <v-list-tile-title>{{ hiddenItem.name }}</v-list-tile-title>
-            </v-list-tile>
+              <v-list-tile
+                v-if="hiddenItem.type === 'tool' || hiddenItem.type === 'action'"
+                @click="onClick(hiddenItem)"
+                :key="index"
+              >
+                <v-list-tile-content>
+                  <span>
+                  <v-btn
+                    small
+                    icon>
+                    <v-icon
+                      v-if="hiddenItem.icon">
+                      {{ hiddenItem.icon }}
+                    </v-icon>
+                  </v-btn>
+                  <span class="tool-name">
+                    {{ hiddenItem.name }}
+                  </span>
+                  </span>
+                </v-list-tile-content>
+              </v-list-tile>
+              <v-divider
+                v-else-if="hiddenItem.type === 'separator'"
+                :key="index"
+              />
+              <div
+                v-else
+                :key="index"
+              >
+                Error: Unknown item type: {{ hiddenItem.type }}
+              </div>
+            </template>
           </v-list>
         </v-menu>
       </template>
@@ -66,6 +96,7 @@
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
   import Vue from 'vue'
   import Vuetify from 'vuetify'
+
   export default {
     name: 'ToolPicker',
     props: {
