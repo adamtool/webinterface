@@ -47,7 +47,7 @@
             <v-list-tile
               v-for="(hiddenItem, index) in tool.hiddenItems"
               :key="index"
-              @click=""
+              @click="onClick(hiddenItem)"
             >
               <v-list-tile-title>{{ hiddenItem.name }}</v-list-tile-title>
             </v-list-tile>
