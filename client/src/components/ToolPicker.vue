@@ -181,6 +181,11 @@
           lastItemIndex = lastItemIndex + 1
           availableHeight = availableHeight - heightNeeded
         })
+
+        if (lastItemIndex === menuItems.length) {
+          return menuItems
+        }
+
         const visibleItems = menuItems.slice(0, lastItemIndex)
         const hiddenItems = menuItems.slice(lastItemIndex)
 
