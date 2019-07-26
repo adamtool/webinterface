@@ -2,6 +2,7 @@
  a time to be the active tool.  This component is like that.-->
 <template>
   <div class="container"
+       ref="container"
        :style="`grid-template-rows: repeat(${visibleTools.length}, auto [col-start])`">
     <div v-for="(tool, index) in visibleTools"
          @click="onClick(tool)"
@@ -22,12 +23,25 @@
         </div>
       </template>
       <!--Separators-->
-      <template v-else>
+      <template v-else-if="tool.type === 'separator'">
         <div style="background: black; height: 4px;
         margin-top: 6px;
         margin-bottom: 6px;"></div>
       </template>
-
+      <!--Ellipsis to show overflow on small screens-->
+      <template v-else-if="tool.type === 'ellipsis'">
+        <v-btn
+          small
+          icon>
+          <v-icon>more_horiz</v-icon>
+        </v-btn>
+        <div class="tool-name">
+          More
+        </div>
+      </template>
+      <template v-else>
+        <v-icon>error</v-icon>
+      </template>
     </div>
   </div>
 
@@ -66,11 +80,11 @@
             this.collapseButton
           ]
         } else {
-          return [
+          return this.withResponsiveEllipsis([
             this.collapseButton,
             {type: 'separator'},
             ...this.tools.filter(tool => tool.visible !== false)
-          ]
+          ])
         }
       },
       collapseButton: function () {
@@ -90,6 +104,10 @@
       }
     },
     methods: {
+      // Truncate menuItems with an ellipsis in case there are too many to fit on screen
+      withResponsiveEllipsis: function (menuItems) {
+        return [...menuItems, { type: 'ellipsis' }]
+      },
       onClick: function (tool) {
         switch (tool.type) {
           case 'action':
@@ -97,6 +115,9 @@
             break
           case 'tool':
             this.$emit('onPickTool', tool)
+            break
+          case 'separator':
+          case 'ellipsis':
             break
           default:
             throw new Error(`Unrecognized tool type '${tool.type}' for tool named '${tool.name}'`)
