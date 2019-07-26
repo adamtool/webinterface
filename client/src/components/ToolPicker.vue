@@ -30,14 +30,27 @@
       </template>
       <!--Ellipsis to show overflow on small screens-->
       <template v-else-if="tool.type === 'ellipsis'">
-        <v-btn
-          small
-          icon>
-          <v-icon>more_horiz</v-icon>
-        </v-btn>
-        <div class="tool-name">
-          More
-        </div>
+        <v-menu>
+          <template v-slot:activator="{ on }">
+            <v-btn
+              small
+              icon>
+              <v-icon>more_horiz</v-icon>
+            </v-btn>
+            <div class="tool-name">
+              More
+            </div>
+          </template>
+          <v-list>
+            <v-list-item
+              v-for="(hiddenItem, index) in tool.hiddenItems"
+              :key="index"
+              @click=""
+            >
+              <v-list-item-title>{{ hiddenItem.name }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </template>
       <template v-else>
         <v-icon>error</v-icon>
@@ -49,6 +62,8 @@
 
 <script>
   const ResizeSensor = require('css-element-queries/src/ResizeSensor')
+  import Vue from 'vue'
+  import Vuetify from 'vuetify'
   export default {
     name: 'ToolPicker',
     props: {
@@ -138,7 +153,7 @@
           }
         ]
 
-        function heightOfItem(item) {
+        function heightOfItem (item) {
           switch (item.type) {
             case 'tool':
             case 'action':
