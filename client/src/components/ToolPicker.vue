@@ -34,7 +34,9 @@
           <template v-slot:activator="{ on }">
             <v-btn
               small
-              icon>
+              icon
+              v-on="on"
+            >
               <v-icon>more_horiz</v-icon>
             </v-btn>
             <div class="tool-name">
@@ -42,13 +44,13 @@
             </div>
           </template>
           <v-list>
-            <v-list-item
+            <v-list-tile
               v-for="(hiddenItem, index) in tool.hiddenItems"
               :key="index"
               @click=""
             >
-              <v-list-item-title>{{ hiddenItem.name }}</v-list-item-title>
-            </v-list-item>
+              <v-list-tile-title>{{ hiddenItem.name }}</v-list-tile-title>
+            </v-list-tile>
           </v-list>
         </v-menu>
       </template>

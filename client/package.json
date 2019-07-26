@@ -28,7 +28,7 @@
     "vue": "^2.6.8",
     "vue-router": "^2.6.0",
     "vuedraggable": "^2.23.0",
-    "vuetify": "^1.5.5"
+    "vuetify": "^1.5.16"
   },
   "devDependencies": {
     "@babel/core": "^7.3.4",
