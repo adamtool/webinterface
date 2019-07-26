@@ -114,14 +114,14 @@
       return {
         collapsed: false,
         // TODO use a resize watcher to keep this up to date when window resizes
-        reactiveClientHeight: 0
+        reactiveParentHeight: 0
       }
     },
     mounted: function () {
-      this.reactiveClientHeight = this.$refs.container.parentElement.clientHeight - 100
+      this.reactiveParentHeight = this.$refs.container.parentElement.clientHeight
 
       const onContainerResize = () => {
-        this.reactiveClientHeight = this.$refs.container.parentElement.clientHeight - 100
+        this.reactiveParentHeight = this.$refs.container.parentElement.clientHeight
       }
       new ResizeSensor(this.$refs.container.parentElement, onContainerResize)
     },
@@ -164,10 +164,10 @@
     methods: {
       // Truncate menuItems with an ellipsis in case there are too many to fit on screen
       withResponsiveEllipsis: function (menuItems) {
-        let availableHeight = this.reactiveClientHeight
+        let availableHeight = this.reactiveParentHeight - 200
         let lastItemIndex = 0
         menuItems.forEach(menuItem => {
-          const heightNeeded = heightOfItem(menuItem) + 20 // 20 is a guess
+          const heightNeeded = heightOfItem(menuItem)
           if (availableHeight < heightNeeded) {
             return
           }
