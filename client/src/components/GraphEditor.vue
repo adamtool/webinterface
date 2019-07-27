@@ -512,13 +512,44 @@
       },
       contextMenuItems: function () {
         return (d) => {
-          if (this.selectedNodes.length > 1) {
+          if (d.type === 'petriNetLink') {
+            return this.contextMenuItemsFlow
+          } else if (this.selectedNodes.length > 1) {
             return this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
             return this.contextMenuItemsNormal.concat(this.contextMenuItemsTransition(d))
           } else {
             return this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
           }
+        }
+      },
+      contextMenuItemsFlow: function () {
+        const deleteFlow = {
+          title: 'Delete Flow',
+          action: (d) => {
+            this.$emit('deleteFlow', {
+              sourceId: d.source.id,
+              targetId: d.target.id
+            })
+          }
+        }
+        const setInhibitorArc = {
+          title: (d) => d.isInhibitorArc ? 'Set not inhibitor arc' : 'Set inhibitor arc',
+          action: (d) => {
+            this.$emit('setInhibitorArc', {
+              sourceId: d.source.id,
+              targetId: d.target.id,
+              isInhibitorArc: !d.isInhibitorArc
+            })
+          }
+        }
+        const title = {
+          title: (d) => `Flow ${d.source.id} -> ${d.target.id}`
+        }
+        if (this.useModelChecking) {
+          return [title, deleteFlow, setInhibitorArc]
+        } else {
+          return [title, deleteFlow]
         }
       },
       contextMenuItemsPlace: function () {
@@ -623,6 +654,7 @@
       applyLinkEventHandler: function () {
         return selection => {
           selection.on('click', this.onLinkClick)
+          selection.on('contextmenu',this.onLinkRightClick)
         }
       },
       onLinkClick: function () {
@@ -639,6 +671,11 @@
             default:
               console.log(`onLinkClick: linkClickMode === ${this.linkClickMode}; Doing nothing`)
           }
+        }
+      },
+      onLinkRightClick: function () {
+        return (d) => {
+          this.openContextMenu(d)
         }
       },
       // Given a d3 selection of node elements, apply to it all of the event handlers that we want nodes to have.
@@ -1773,6 +1810,13 @@
               return getTokenFlowColor(link)
             } else {
               return '#E5E5E5'
+            }
+          })
+          .attr('stroke-dasharray', d => {
+            if (d.isInhibitorArc) {
+              return '20,10'
+            } else {
+              return ''
             }
           })
           .attr('marker-end', 'url(#' + this.arrowheadId + ')')

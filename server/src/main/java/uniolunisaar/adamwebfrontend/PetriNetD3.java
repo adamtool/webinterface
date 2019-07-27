@@ -133,18 +133,22 @@ public class PetriNetD3 {
 
 
     static class PetriNetLink extends GraphLink {
+        private final String type = "petriNetLink";
         private final String tokenFlow; // Null if there is no token flow given
         private final Float tokenFlowHue; // In the interval (0, 1].  Null if no color should be used.
+        private final boolean isInhibitorArc; // Is it an inhibitor arc?
 
-        private PetriNetLink(String sourceId, String targetId, String tokenFlow, Float tokenFlowHue) {
+        private PetriNetLink(String sourceId, String targetId, String tokenFlow, Float tokenFlowHue, boolean isInhibitorArc) {
             super(sourceId, targetId);
             this.tokenFlow = tokenFlow;
             this.tokenFlowHue = tokenFlowHue;
+            this.isInhibitorArc = isInhibitorArc;
         }
 
         static PetriNetLink of(Flow flow, PetriNetWithTransits net, String arcLabel) {
             String sourceId = flow.getSource().getId();
             String targetId = flow.getTarget().getId();
+            boolean isInhibitorArc = net.isInhibitor(flow);
             Float tokenFlowHue = null;
 
             if (!arcLabel.equals("")) {
@@ -159,7 +163,7 @@ public class PetriNetD3 {
                 }
             }
 
-            return new PetriNetLink(sourceId, targetId, arcLabel, tokenFlowHue);
+            return new PetriNetLink(sourceId, targetId, arcLabel, tokenFlowHue, isInhibitorArc);
         }
     }
 

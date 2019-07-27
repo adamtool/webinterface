@@ -100,6 +100,8 @@ public class App {
 
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
 
+        postWithPetriNetWithTransits("/setInhibitorArc", this::handleSetInhibitorArc);
+
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
             String exceptionAsString = exceptionToString(exception);
@@ -709,5 +711,19 @@ public class App {
         return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
     }
 
+    private Object handleSetInhibitorArc(Request req, Response response, PetriNetWithTransits net) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String sourceId = body.get("sourceId").getAsString();
+        String targetId = body.get("targetId").getAsString();
+        boolean isInhibitorArc = body.get("isInhibitorArc").getAsBoolean();
+
+        Flow flow = net.getFlow(sourceId, targetId);
+        if (isInhibitorArc) {
+            net.setInhibitor(flow);
+        } else {
+            net.removeInhibitor(flow);
+        }
+        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
+    }
 
 }

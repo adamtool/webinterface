@@ -239,6 +239,7 @@
                            v-on:setInitialToken='setInitialToken'
                            v-on:setWinningCondition='setWinningCondition'
                            v-on:setFairness='setFairness'
+                           v-on:setInhibitorArc='setInhibitorArc'
                            showEditorTools
                            :useModelChecking="useModelChecking"
                            :useDistributedSynthesis="useDistributedSynthesis"
@@ -694,7 +695,8 @@
           'fireTransition',
           'setInitialToken',
           'setWinningCondition',
-          'setFairness'
+          'setFairness',
+          'setInhibitorArc'
         ]
         const funs = {}
         endpoints.forEach(endpointName => {
@@ -1353,6 +1355,19 @@
           petriNetId: this.petriGame.uuid,
           transitionId,
           fairness
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.petriGame.net = response.data.result
+          })
+        })
+      },
+      setInhibitorArc: function ({sourceId, targetId, isInhibitorArc}) {
+        logging.logVerbose(`setInhibitorArc(${sourceId}, ${targetId}, ${isInhibitorArc})`)
+        this.restEndpoints.setInhibitorArc({
+          petriNetId: this.petriGame.uuid,
+          sourceId,
+          targetId,
+          isInhibitorArc
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.petriGame.net = response.data.result
