@@ -1,0 +1,44 @@
+.name "sdn"
+.type LPN
+
+.places
+p0
+pOut
+sw000
+sw000fwdTosw001
+sw000fwdTosw002
+sw000fwdTosw003
+sw001fwdTosw000
+sw001fwdTosw002
+sw002
+sw002fwdTosw000
+sw002fwdTosw001
+sw003
+sw003fwdTosw000
+updateStart
+
+.transitions
+fwdsw000tosw001[label="fwdsw000tosw001", weakFair="true", tfl="sw000 -> {pOut},pOut -> {pOut}"]
+fwdsw000tosw002[label="fwdsw000tosw002", weakFair="true", tfl="sw002 -> {sw002},sw000 -> {sw002}"]
+fwdsw000tosw003[label="fwdsw000tosw003", weakFair="true", tfl="sw003 -> {sw003},sw000 -> {sw003}"]
+fwdsw001tosw000[label="fwdsw001tosw000", weakFair="true", tfl="sw000 -> {sw000},pOut -> {sw000}"]
+fwdsw001tosw002[label="fwdsw001tosw002", weakFair="true", tfl="sw002 -> {sw002},pOut -> {sw002}"]
+fwdsw002tosw000[label="fwdsw002tosw000", weakFair="true", tfl="sw002 -> {sw000},sw000 -> {sw000}"]
+fwdsw002tosw001[label="fwdsw002tosw001", weakFair="true", tfl="sw002 -> {pOut},pOut -> {pOut}"]
+fwdsw003tosw000[label="fwdsw003tosw000", weakFair="true", tfl="sw003 -> {sw000},sw000 -> {sw000}"]
+ingresssw002[label="ingresssw002", weakFair="true", tfl="sw002 -> {sw002},> -> {sw002}"]
+t0[label="t0", weakFair="true"]
+
+.flows
+fwdsw000tosw001: {1*sw000fwdTosw001, 1*pOut, 1*sw000} -> {1*pOut, 1*sw000fwdTosw001, 1*sw000}
+fwdsw000tosw002: {1*sw000fwdTosw002, 1*sw002, 1*sw000} -> {1*sw000fwdTosw002, 1*sw002, 1*sw000}
+fwdsw000tosw003: {1*sw000fwdTosw003, 1*sw000, 1*sw003} -> {1*sw003, 1*sw000fwdTosw003, 1*sw000}
+fwdsw001tosw000: {1*pOut, 1*sw001fwdTosw000, 1*sw000} -> {1*pOut, 1*sw000, 1*sw001fwdTosw000}
+fwdsw001tosw002: {1*sw002, 1*pOut, 1*sw001fwdTosw002} -> {1*sw002, 1*sw001fwdTosw002, 1*pOut}
+fwdsw002tosw000: {1*sw000, 1*sw002, 1*sw002fwdTosw000} -> {1*sw002, 1*sw000, 1*sw002fwdTosw000}
+fwdsw002tosw001: {1*sw002, 1*sw002fwdTosw001, 1*pOut} -> {1*pOut, 1*sw002, 1*sw002fwdTosw001}
+fwdsw003tosw000: {1*sw003fwdTosw000, 1*sw003, 1*sw000} -> {1*sw000, 1*sw003, 1*sw003fwdTosw000}
+ingresssw002: {1*sw002} -> {1*sw002}
+t0: {1*sw002fwdTosw000, 1*updateStart} -> {1*sw002fwdTosw001, 1*p0}
+
+.initial_marking {1*pOut, 1*sw000, 1*sw000fwdTosw001, 1*sw002, 1*sw002fwdTosw000, 1*sw003, 1*updateStart}

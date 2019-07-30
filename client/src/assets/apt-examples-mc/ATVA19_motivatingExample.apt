@@ -1,0 +1,55 @@
+.name "Simple Example"
+.description "A very small APT example to reduce CPU load during development and show all the different ways that nodes in a graph can look"
+.type LPN
+.options
+condition="LTL"
+
+.places
+A[yCoord=930.0, xCoord=690.0]
+C[yCoord=750.0, xCoord=1290.0]
+L[yCoord=930.0, xCoord=1770.0]
+P[yCoord=510.0, xCoord=1770.0]
+S[yCoord=510.0, xCoord=690.0]
+p10[yCoord=990.0, xCoord=990.0]
+p11[yCoord=450.0, xCoord=990.0]
+p12[yCoord=736.84, xCoord=544.2]
+p13[yCoord=1230.0, xCoord=450.0]
+p14[yCoord=1230.0, xCoord=2070.0]
+p16[yCoord=330.0, xCoord=450.0]
+p17[yCoord=750.0, xCoord=2070.0]
+p18[yCoord=329.65, xCoord=2072.3]
+p5[yCoord=1350.0, xCoord=1290.0]
+p6[yCoord=704.92, xCoord=1590.0]
+p7[yCoord=1110.0, xCoord=1470.0]
+p8[yCoord=750.0, xCoord=1890.0]
+p9[yCoord=450.0, xCoord=1530.0]
+
+.transitions
+ingress[label="ingress", yCoord=510.0, xCoord=570.0, tfl="S -> {S},> -> {S}"]
+t0[label="t0", yCoord=630.0, xCoord=990.0, tfl="S -> {C},C -> {C}", weakFair="true"]
+t1[label="t1", yCoord=726.0, xCoord=685.0, tfl="S -> {A},A -> {A}", weakFair="true"]
+t10[label="t10", yCoord=1110.0, xCoord=2070.0, weakFair="true"]
+t11[label="t11", yCoord=450.0, xCoord=2070.0, weakFair="true"]
+t2[label="t2", yCoord=870.0, xCoord=990.0, tfl="A -> {C},C -> {C}", weakFair="true"]
+t3[label="t3", yCoord=750.0, xCoord=1769.0, tfl="P -> {P},L -> {P}", weakFair="true"]
+t4[label="t4", yCoord=630.0, xCoord=1530.0, tfl="P -> {P},C -> {P}", weakFair="true"]
+t5[label="t5", yCoord=810.0, xCoord=1590.0, tfl="C -> {C},L -> {C}", weakFair="true"]
+t6[label="t6", yCoord=990.0, xCoord=1470.0, tfl="C -> {L},L -> {L}", weakFair="true"]
+t7[label="t7", yCoord=1230.0, xCoord=1290.0]
+t9[label="t9", yCoord=450.0, xCoord=450.0, weakFair="true"]
+
+.flows
+ingress: {1*S} -> {1*S}
+t0: {1*p11, 1*S, 1*C} -> {1*p11, 1*C, 1*S}
+t1: {1*p12, 1*A, 1*S} -> {1*A, 1*S, 1*p12}
+t10: {1*p14, 1*p6} -> {1*p17, 1*p7}
+t11: {1*p9, 1*p17} -> {1*p18, 1*p8}
+t2: {1*p10, 1*A, 1*C} -> {1*C, 1*p10, 1*A}
+t3: {1*P, 1*L, 1*p8} -> {1*p8, 1*L, 1*P}
+t4: {1*p9, 1*C, 1*P} -> {1*p9, 1*P, 1*C}
+t5: {1*p6, 1*L, 1*C} -> {1*L, 1*p6, 1*C}
+t6: {1*C, 1*p7, 1*L} -> {1*C, 1*p7, 1*L}
+t7: {1*p5} -> {1*p13, 1*p14}
+t9: {1*p13, 1*p12} -> {1*p16, 1*p11}
+
+.initial_marking {1*A, 1*C, 1*L, 1*P, 1*S, 1*p10, 1*p12, 1*p5, 1*p6, 1*p9}

@@ -1,0 +1,88 @@
+.name "officeSmall"
+.type LPN
+.options
+condition="LTL"
+
+.places
+CONTROLhrATburTOhrATcor
+CONTROLhrATcorTOhrATbur
+CONTROLhrATcorTOhrATlob
+CONTROLhrATcorTOhrATmr
+CONTROLhrATcorTOhrATout
+CONTROLhrATlobTOhrATcor
+CONTROLhrATlobTOhrATout
+CONTROLhrATmrTOhrATcor
+CONTROLhrAToutTOhrATcor
+CONTROLhrAToutTOhrATlob
+CONTROLvisitorATburTOvisitorATcor
+CONTROLvisitorATcorTOvisitorATbur
+CONTROLvisitorATcorTOvisitorATlob
+CONTROLvisitorATcorTOvisitorATmr
+CONTROLvisitorATcorTOvisitorATout
+CONTROLvisitorATlobTOvisitorATcor
+CONTROLvisitorATlobTOvisitorATout
+CONTROLvisitorATmrTOvisitorATcor
+CONTROLvisitorAToutTOvisitorATcor
+CONTROLvisitorAToutTOvisitorATlob
+CREATECHAINhrATout
+CREATECHAINvisitorATout
+hrATbur
+hrATcor
+hrATlob
+hrATmr
+hrATout
+visitorATbur
+visitorATcor
+visitorATlob
+visitorATmr
+visitorATout
+
+.transitions
+DOORhrATburTOhrATcor[label="DOORhrATburTOhrATcor", tfl="hrATbur -> {hrATcor}"]
+DOORhrATcorTOhrATbur[label="DOORhrATcorTOhrATbur", tfl="hrATcor -> {hrATbur}"]
+DOORhrATcorTOhrATlob[label="DOORhrATcorTOhrATlob", tfl="hrATcor -> {hrATlob}"]
+DOORhrATcorTOhrATmr[label="DOORhrATcorTOhrATmr", tfl="hrATcor -> {hrATmr}"]
+DOORhrATcorTOhrATout[label="DOORhrATcorTOhrATout", tfl="hrATcor -> {hrATout}"]
+DOORhrATlobTOhrATcor[label="DOORhrATlobTOhrATcor", tfl="hrATlob -> {hrATcor}"]
+DOORhrATlobTOhrATout[label="DOORhrATlobTOhrATout", tfl="hrATlob -> {hrATout}"]
+DOORhrATmrTOhrATcor[label="DOORhrATmrTOhrATcor", tfl="hrATmr -> {hrATcor}"]
+DOORhrAToutTOhrATcor[label="DOORhrAToutTOhrATcor", tfl="hrATout -> {hrATcor}"]
+DOORhrAToutTOhrATlob[label="DOORhrAToutTOhrATlob", tfl="hrATout -> {hrATlob}"]
+DOORvisitorATburTOvisitorATcor[label="DOORvisitorATburTOvisitorATcor", tfl="visitorATbur -> {visitorATcor}"]
+DOORvisitorATcorTOvisitorATbur[label="DOORvisitorATcorTOvisitorATbur", tfl="visitorATcor -> {visitorATbur}"]
+DOORvisitorATcorTOvisitorATlob[label="DOORvisitorATcorTOvisitorATlob", tfl="visitorATcor -> {visitorATlob}"]
+DOORvisitorATcorTOvisitorATmr[label="DOORvisitorATcorTOvisitorATmr", tfl="visitorATcor -> {visitorATmr}"]
+DOORvisitorATcorTOvisitorATout[label="DOORvisitorATcorTOvisitorATout", tfl="visitorATcor -> {visitorATout}"]
+DOORvisitorATlobTOvisitorATcor[label="DOORvisitorATlobTOvisitorATcor", tfl="visitorATlob -> {visitorATcor}"]
+DOORvisitorATlobTOvisitorATout[label="DOORvisitorATlobTOvisitorATout", tfl="visitorATlob -> {visitorATout}"]
+DOORvisitorATmrTOvisitorATcor[label="DOORvisitorATmrTOvisitorATcor", tfl="visitorATmr -> {visitorATcor}"]
+DOORvisitorAToutTOvisitorATcor[label="DOORvisitorAToutTOvisitorATcor", tfl="visitorATout -> {visitorATcor}"]
+DOORvisitorAToutTOvisitorATlob[label="DOORvisitorAToutTOvisitorATlob", tfl="visitorATout -> {visitorATlob}"]
+FLOWCREATECHAINhrATout[label="FLOWCREATECHAINhrATout", tfl="> -> {hrATout}"]
+FLOWCREATECHAINvisitorATout[label="FLOWCREATECHAINvisitorATout", tfl="> -> {visitorATout}"]
+
+.flows
+DOORhrATburTOhrATcor: {1*hrATbur, 1*CONTROLhrATburTOhrATcor} -> {1*hrATcor, 1*CONTROLhrATburTOhrATcor}
+DOORhrATcorTOhrATbur: {1*hrATcor, 1*CONTROLhrATcorTOhrATbur} -> {1*hrATbur, 1*CONTROLhrATcorTOhrATbur}
+DOORhrATcorTOhrATlob: {1*hrATcor, 1*CONTROLhrATcorTOhrATlob} -> {1*hrATlob, 1*CONTROLhrATcorTOhrATlob}
+DOORhrATcorTOhrATmr: {1*hrATcor, 1*CONTROLhrATcorTOhrATmr} -> {1*hrATmr, 1*CONTROLhrATcorTOhrATmr}
+DOORhrATcorTOhrATout: {1*CONTROLhrATcorTOhrATout, 1*hrATcor} -> {1*CONTROLhrATcorTOhrATout, 1*hrATout}
+DOORhrATlobTOhrATcor: {1*CONTROLhrATlobTOhrATcor, 1*hrATlob} -> {1*CONTROLhrATlobTOhrATcor, 1*hrATcor}
+DOORhrATlobTOhrATout: {1*hrATlob, 1*CONTROLhrATlobTOhrATout} -> {1*CONTROLhrATlobTOhrATout, 1*hrATout}
+DOORhrATmrTOhrATcor: {1*hrATmr, 1*CONTROLhrATmrTOhrATcor} -> {1*hrATcor, 1*CONTROLhrATmrTOhrATcor}
+DOORhrAToutTOhrATcor: {1*hrATout, 1*CONTROLhrAToutTOhrATcor} -> {1*CONTROLhrAToutTOhrATcor, 1*hrATcor}
+DOORhrAToutTOhrATlob: {1*hrATout, 1*CONTROLhrAToutTOhrATlob} -> {1*CONTROLhrAToutTOhrATlob, 1*hrATlob}
+DOORvisitorATburTOvisitorATcor: {1*CONTROLvisitorATburTOvisitorATcor, 1*visitorATbur} -> {1*CONTROLvisitorATburTOvisitorATcor, 1*visitorATcor}
+DOORvisitorATcorTOvisitorATbur: {1*visitorATcor, 1*CONTROLvisitorATcorTOvisitorATbur} -> {1*visitorATbur, 1*CONTROLvisitorATcorTOvisitorATbur}
+DOORvisitorATcorTOvisitorATlob: {1*visitorATcor, 1*CONTROLvisitorATcorTOvisitorATlob} -> {1*CONTROLvisitorATcorTOvisitorATlob, 1*visitorATlob}
+DOORvisitorATcorTOvisitorATmr: {1*visitorATcor, 1*CONTROLvisitorATcorTOvisitorATmr} -> {1*visitorATmr, 1*CONTROLvisitorATcorTOvisitorATmr}
+DOORvisitorATcorTOvisitorATout: {1*visitorATcor, 1*CONTROLvisitorATcorTOvisitorATout} -> {1*CONTROLvisitorATcorTOvisitorATout, 1*visitorATout}
+DOORvisitorATlobTOvisitorATcor: {1*visitorATlob, 1*CONTROLvisitorATlobTOvisitorATcor} -> {1*CONTROLvisitorATlobTOvisitorATcor, 1*visitorATcor}
+DOORvisitorATlobTOvisitorATout: {1*CONTROLvisitorATlobTOvisitorATout, 1*visitorATlob} -> {1*CONTROLvisitorATlobTOvisitorATout, 1*visitorATout}
+DOORvisitorATmrTOvisitorATcor: {1*CONTROLvisitorATmrTOvisitorATcor, 1*visitorATmr} -> {1*visitorATcor, 1*CONTROLvisitorATmrTOvisitorATcor}
+DOORvisitorAToutTOvisitorATcor: {1*visitorATout, 1*CONTROLvisitorAToutTOvisitorATcor} -> {1*CONTROLvisitorAToutTOvisitorATcor, 1*visitorATcor}
+DOORvisitorAToutTOvisitorATlob: {1*visitorATout, 1*CONTROLvisitorAToutTOvisitorATlob} -> {1*CONTROLvisitorAToutTOvisitorATlob, 1*visitorATlob}
+FLOWCREATECHAINhrATout: {1*CREATECHAINhrATout} -> {1*hrATout}
+FLOWCREATECHAINvisitorATout: {1*CREATECHAINvisitorATout} -> {1*visitorATout}
+
+.initial_marking {1*CONTROLhrATburTOhrATcor, 1*CONTROLhrATcorTOhrATbur, 1*CONTROLhrATcorTOhrATlob, 1*CONTROLhrATcorTOhrATmr, 1*CONTROLhrATcorTOhrATout, 1*CONTROLhrATlobTOhrATcor, 1*CONTROLhrATlobTOhrATout, 1*CONTROLhrATmrTOhrATcor, 1*CONTROLhrAToutTOhrATcor, 1*CONTROLhrAToutTOhrATlob, 1*CONTROLvisitorATburTOvisitorATcor, 1*CONTROLvisitorATcorTOvisitorATlob, 1*CONTROLvisitorATcorTOvisitorATmr, 1*CONTROLvisitorATcorTOvisitorATout, 1*CONTROLvisitorATlobTOvisitorATcor, 1*CONTROLvisitorATlobTOvisitorATout, 1*CONTROLvisitorATmrTOvisitorATcor, 1*CONTROLvisitorAToutTOvisitorATlob, 1*CREATECHAINhrATout, 1*CREATECHAINvisitorATout}

@@ -1,0 +1,50 @@
+.name "officeVerySmall"
+.type LPN
+.options
+condition="LTL"
+
+.places
+CONTROLhrATin2TOhrATin3
+CONTROLhrATin3TOhrATout
+CONTROLhrAToutTOhrATin1
+CONTROLhrAToutTOhrATin2
+CONTROLvisitorATin2TOvisitorATin3
+CONTROLvisitorATin3TOvisitorATout
+CONTROLvisitorAToutTOvisitorATin1
+CONTROLvisitorAToutTOvisitorATin2
+CREATECHAINhrATout
+CREATECHAINvisitorATout
+hrATin1
+hrATin2
+hrATin3
+hrATout
+visitorATin1
+visitorATin2
+visitorATin3
+visitorATout
+
+.transitions
+DOORhrATin2TOhrATin3[label="DOORhrATin2TOhrATin3", tfl="hrATin2 -> {hrATin3}"]
+DOORhrATin3TOhrATout[label="DOORhrATin3TOhrATout", tfl="hrATin3 -> {hrATout}"]
+DOORhrAToutTOhrATin1[label="DOORhrAToutTOhrATin1", tfl="hrATout -> {hrATin1}"]
+DOORhrAToutTOhrATin2[label="DOORhrAToutTOhrATin2", tfl="hrATout -> {hrATin2}"]
+DOORvisitorATin2TOvisitorATin3[label="DOORvisitorATin2TOvisitorATin3", tfl="visitorATin2 -> {visitorATin3}"]
+DOORvisitorATin3TOvisitorATout[label="DOORvisitorATin3TOvisitorATout", tfl="visitorATin3 -> {visitorATout}"]
+DOORvisitorAToutTOvisitorATin1[label="DOORvisitorAToutTOvisitorATin1", tfl="visitorATout -> {visitorATin1}"]
+DOORvisitorAToutTOvisitorATin2[label="DOORvisitorAToutTOvisitorATin2", tfl="visitorATout -> {visitorATin2}"]
+FLOWCREATECHAINhrATout[label="FLOWCREATECHAINhrATout", tfl="> -> {hrATout}"]
+FLOWCREATECHAINvisitorATout[label="FLOWCREATECHAINvisitorATout", tfl="> -> {visitorATout}"]
+
+.flows
+DOORhrATin2TOhrATin3: {1*hrATin2, 1*CONTROLhrATin2TOhrATin3} -> {1*hrATin3, 1*CONTROLhrATin2TOhrATin3}
+DOORhrATin3TOhrATout: {1*CONTROLhrATin3TOhrATout, 1*hrATin3} -> {1*hrATout, 1*CONTROLhrATin3TOhrATout}
+DOORhrAToutTOhrATin1: {1*hrATout, 1*CONTROLhrAToutTOhrATin1} -> {1*CONTROLhrAToutTOhrATin1, 1*hrATin1}
+DOORhrAToutTOhrATin2: {1*CONTROLhrAToutTOhrATin2, 1*hrATout} -> {1*CONTROLhrAToutTOhrATin2, 1*hrATin2}
+DOORvisitorATin2TOvisitorATin3: {1*visitorATin2, 1*CONTROLvisitorATin2TOvisitorATin3} -> {1*visitorATin3, 1*CONTROLvisitorATin2TOvisitorATin3}
+DOORvisitorATin3TOvisitorATout: {1*CONTROLvisitorATin3TOvisitorATout, 1*visitorATin3} -> {1*CONTROLvisitorATin3TOvisitorATout, 1*visitorATout}
+DOORvisitorAToutTOvisitorATin1: {1*visitorATout, 1*CONTROLvisitorAToutTOvisitorATin1} -> {1*CONTROLvisitorAToutTOvisitorATin1, 1*visitorATin1}
+DOORvisitorAToutTOvisitorATin2: {1*visitorATout, 1*CONTROLvisitorAToutTOvisitorATin2} -> {1*visitorATin2, 1*CONTROLvisitorAToutTOvisitorATin2}
+FLOWCREATECHAINhrATout: {1*CREATECHAINhrATout} -> {1*hrATout}
+FLOWCREATECHAINvisitorATout: {1*CREATECHAINvisitorATout} -> {1*visitorATout}
+
+.initial_marking {1*CONTROLhrATin2TOhrATin3, 1*CONTROLhrATin3TOhrATout, 1*CONTROLhrAToutTOhrATin1, 1*CONTROLhrAToutTOhrATin2, 1*CONTROLvisitorATin2TOvisitorATin3, 1*CONTROLvisitorATin3TOvisitorATout, 1*CONTROLvisitorAToutTOvisitorATin2, 1*CREATECHAINhrATout, 1*CREATECHAINvisitorATout}
