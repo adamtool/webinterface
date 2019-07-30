@@ -120,17 +120,20 @@
         collapse: false,
         hover: false,
         isOverflowMenuOpen: false,
-        // TODO use a resize watcher to keep this up to date when window resizes
         reactiveParentHeight: 0
       }
     },
     mounted: function () {
       this.reactiveParentHeight = this.$refs.container.parentElement.clientHeight
 
-      const onContainerResize = () => {
+      this.onContainerResize = () => {
         this.reactiveParentHeight = this.$refs.container.parentElement.clientHeight
       }
-      new ResizeSensor(this.$refs.container.parentElement, onContainerResize)
+      new ResizeSensor(this.$refs.container.parentElement, this.onContainerResize)
+      window.addEventListener('resize', this.onContainerResize)
+    },
+    destroy: function () {
+      window.removeEventListener('resize', this.onContainerResize)
     },
     computed: {
       shouldActCollapsed: function () {
