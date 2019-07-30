@@ -3,11 +3,11 @@
     <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
       APT Editor
     </div>
-    <div class='apt-input-field'
-         contenteditable
-         style="flex: 1 1 0; white-space: pre-wrap; overflow: scroll; min-height: 0;"
-         @input="onAptInput"
-         ref="theInputField"/>
+    <textarea class='apt-input-field'
+              style="flex: 1 1 0; white-space: pre-wrap; overflow: scroll; min-height: 0;"
+              @input="onAptInput"
+              v-model="apt"
+              ref="theInputField"/>
     <div style="color: red;">{{ aptParseError }}
     </div>
   </div>
@@ -20,10 +20,7 @@
     name: 'AptEditor',
     data: function () {
       return {
-        apt: '',
-        // Stack of previous states.  [[aptA, restoreCaretA()], [aptB, restoreCaretB()], ...]
-        undoHistory: [],
-        redoHistory: []
+        apt: ''
       }
     },
     props: {
@@ -57,171 +54,20 @@
       }
     },
     created: function () {
-      // Workaround to make sure the contents of editor don't disappear when the component is
-      // re-rendered (e.g. when the APT Editor tab gets moved around).  See also (*)
-      this.apt = this.aptFromAdamParser
     },
     mounted: function () {
-      // (*) Workaround to make sure the contents of editor don't disappear
-      this.$refs.theInputField.innerHTML = this.formatAptWithHighlightedError(this.apt)
-
-      this.$refs.theInputField.addEventListener('keydown', (event) => {
-        if (typeof event.which === 'number' && event.which > 0 && !event.ctrlKey) {
-          this.undoHistory.push(this.currentHistoryPoint())
-          this.redoHistory = []
-        }
-        if (event.key === 'Return' || event.key === 'Enter') {
-          // Insert only newlines rather than <br> or <div> elements when pressing enter
-          document.execCommand('insertHTML', false, '\n')
-          event.preventDefault()
-        }
-        if (event.ctrlKey && event.key === 'z') {
-          this.onUndo()
-          event.preventDefault()
-        }
-        if (event.ctrlKey && event.key === 'y') {
-          this.onRedo()
-          event.preventDefault()
-        }
-      })
     },
     methods: {
-      onUndo: function () {
-        if (this.undoHistory.length === 0) {
-          console.log('undo stack empty')
-          return
-        }
-        logging.logVerbose('undo')
-        this.redoHistory.push(this.currentHistoryPoint())
-        const historyPoint = this.undoHistory.pop()
-        this.restoreHistoryPoint(historyPoint)
-      },
-      onRedo: function () {
-        if (this.redoHistory.length === 0) {
-          console.log('redo stack empty')
-          return
-        }
-        logging.logVerbose('redo')
-        this.undoHistory.push(this.currentHistoryPoint())
-        const historyPoint = this.redoHistory.pop()
-        this.restoreHistoryPoint(historyPoint)
-      },
-      restoreHistoryPoint: function ([apt, restoreCaret]) {
-        this.apt = apt
-        this.$refs.theInputField.innerHTML = this.formatAptWithHighlightedError(this.apt)
-        this.$emit('input', this.getPureAptFromInputField())
-        restoreCaret()
-      },
-      currentHistoryPoint: function () {
-        return [this.apt, this.saveCaretPosition(this.$refs.theInputField)]
-      },
       onAptInput: function () {
-        this.apt = this.getPureAptFromInputField()
-        this.$emit('input', this.getPureAptFromInputField())
-      },
-      // Our editor is full of HTML, and we want to clean it up and just get the plain text inside.
-      getPureAptFromInputField: function () {
-        // Decode escaped strings
-        const unescapedText = this.htmlDecode(this.$refs.theInputField.innerHTML)
-        // Clean up highlighting annotations
-        const textWithoutHighlights = unescapedText.replace(`<span style='color: red;'>`, '')
-        const textWithoutHighlights2 = textWithoutHighlights.replace(`</span>`, '')
-        return textWithoutHighlights2
-      },
-      // Un-escape innerHTML strings so that escape strings get converted to the actual
-      // characters they represent (e.g. '&lt;' gets converted to '<') to be sent to the server.
-      // See https://stackoverflow.com/a/34064434
-      htmlDecode: function (input) {
-        const doc = new DOMParser().parseFromString(input, 'text/html')
-        return doc.documentElement.textContent
-      },
-      // Return an innerHTML for the apt editor that has the appropriate line/column highlighted
-      formatAptWithHighlightedError: function (aptString) {
-        if (this.aptParseStatus !== 'error' || !this.isParseErrorHighlightingInfoPresent) {
-          return aptString
-        }
-        const aptLines = aptString.split('\n')
-        aptLines[this.aptParseErrorLineNumber - 1] =
-          `<span style='color: red;'>${aptLines[this.aptParseErrorLineNumber - 1]}</span>`
-        return aptLines.join('\n')
-      },
-      // Save the position of the cursor (caret) in the text field so it can later be restored
-      // We have to do this because we edit the innerHTML in order to provide highlighting,
-      // and that loses the caret position.
-      // See https://stackoverflow.com/a/38479462
-      saveCaretPosition: function (context) {
-        var selection = window.getSelection()
-        if (!selection || selection.rangeCount === 0) {
-          return function restore () {
-          } // There is no caret position to restore
-        }
-        var range = selection.getRangeAt(0).cloneRange()
-        range.setStart(context, 0)
-        var len = range.toString().length
-
-        return function restore () {
-          var pos = getTextNodeAtPosition(context, len)
-          // TODO handle insertion of text at the start of the text field (edge case)
-          if (pos.endOfInputField) {
-            // Set cursor to the end of the text input field.  (edge case)
-            // Code borrowed from https://stackoverflow.com/a/3866442/7359454
-            range = document.createRange()
-            // Create a range (a range is a like the selection but invisible)
-            range.selectNodeContents(context)
-            // Select the entire contents of the element with the range
-            range.collapse(false) // collapse the range to the end point. false means collapse to end rather than the start
-            selection = window.getSelection() // get the selection object (allows you to change selection)
-            selection.removeAllRanges() // remove any selections already made
-            selection.addRange(range) // make the range you have just created the visible selection
-            return
-          }
-          // The caret will not be at the end of the input field
-          selection.removeAllRanges()
-          var range = new Range()
-          range.setStart(pos.node, pos.position)
-          selection.addRange(range)
-        }
-
-        function getTextNodeAtPosition (root, index) {
-          let lastNode = null
-          var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, function next (elem) {
-            lastNode = elem
-            if (index >= elem.textContent.length) {
-              index -= elem.textContent.length
-              return NodeFilter.FILTER_REJECT
-            }
-            return NodeFilter.FILTER_ACCEPT
-          })
-          var c = treeWalker.nextNode()
-          return {
-            node: c ? c : root,
-            position: c ? index : 0,
-            endOfInputField: c ? false : true
-          }
-        }
+        this.$emit('input', this.apt)
       }
     },
     watch: {
-      // undoHistory: function () {
-      //   console.log(`Undo history depth: ${this.undoHistory.length}`)
-      //   console.log(`Redo history depth: ${this.redoHistory.length}`)
-      // },
-      // redoHistory: function () {
-      //   console.log(`Undo history depth: ${this.undoHistory.length}`)
-      //   console.log(`Redo history depth: ${this.redoHistory.length}`)
-      // },
       aptFromAdamParser: function (newApt) {
-        if (newApt !== this.apt) {
-          this.undoHistory.push(this.currentHistoryPoint())
-          this.redoHistory = []
-          this.apt = newApt
-        }
+        this.apt = newApt
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
-        const restore = this.saveCaretPosition(this.$refs.theInputField)
-        this.$refs.theInputField.innerHTML = this.formatAptWithHighlightedError(this.apt)
-        restore()
       }
     },
     computed: {
