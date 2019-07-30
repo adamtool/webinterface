@@ -339,6 +339,11 @@
       this.updateGraphEditorDimensions = () => {
         const width = parent.clientWidth
         const height = parent.clientHeight
+        if (width === 0 || height === 0) {
+          return // Ignore spurious resizes that lead to the graph editor vanishing
+          // TODO this seems to be a bug in the css-element-queries library?
+          // Or we are doing something strange and unsupported, maybe
+        }
         this.dimensions = {
           width: width,
           height: height
