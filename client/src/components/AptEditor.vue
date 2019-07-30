@@ -7,7 +7,7 @@
               style="flex: 1 1 0; white-space: pre-wrap; overflow: scroll; min-height: 0;"
               @input="onAptInput"
               v-model="apt"
-              ref="theInputField"/>
+              ref="theTextArea"/>
     <div style="color: red;">{{ aptParseError }}
     </div>
   </div>
@@ -15,6 +15,7 @@
 
 <script>
   import logging from '../logging'
+  import { HighlightWithinTextarea } from 'highlight-within-textarea-unjquery'
 
   export default {
     name: 'AptEditor',
@@ -54,8 +55,12 @@
       }
     },
     created: function () {
+      this.apt = this.aptFromAdamParser
     },
     mounted: function () {
+      const highlighter = new HighlightWithinTextarea(this.$refs.theTextArea, {
+        highlight: [2, 6]
+      })
     },
     methods: {
       onAptInput: function () {
