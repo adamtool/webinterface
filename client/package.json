@@ -22,6 +22,7 @@
     "d3": "^4.10.0",
     "d3-context-menu": "^1.0.2",
     "date-fns": "^1.29.0",
+    "highlight-within-textarea-unjquery": "file:./vendor/highlight-within-textarea",
     "split.js": "^1.3.5",
     "underscore": "^1.8.3",
     "uuid": "^3.3.2",

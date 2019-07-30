@@ -1,0 +1,17 @@
+{
+  "name": "highlight-within-textarea-unjquery",
+  "version": "1.0.0",
+  "description": "Highlight bits of text within a textarea.",
+  "main": "highlight-within-textarea.js",
+  "repository": "https://github.com/MattX/highlight-within-textarea.git",
+  "keywords": [
+    "highlight",
+    "textarea",
+    "search"
+  ],
+  "contributors": [
+    "Will Boyd <will@codersblock.com> (https://codersblock.com)",
+    "Matthieu Felix <matthieufelix@gmail.com>"
+  ],
+  "license": "MIT"
+}
