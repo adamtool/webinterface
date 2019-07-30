@@ -4,7 +4,7 @@
       APT Editor
     </div>
     <textarea class='apt-input-field'
-              style="flex: 1 1 0; white-space: pre-wrap; overflow: scroll; min-height: 0;"
+              style="white-space: pre-wrap; overflow: scroll; min-height: 0;"
               @input="onAptInput"
               v-model="apt"
               ref="theTextArea"/>
@@ -16,6 +16,7 @@
 <script>
   import logging from '../logging'
   import { HighlightWithinTextarea } from 'highlight-within-textarea-unjquery'
+  import 'highlight-within-textarea-unjquery/highlight-within-textarea.css'
 
   export default {
     name: 'AptEditor',
@@ -111,7 +112,11 @@
 </script>
 
 <style scoped>
+  .hwt-container {
+    flex: 1 1 0;
+  }
   .apt-input-field {
+    height: 100%;
     background: white;
     box-sizing: border-box;
     width: 100%;
