@@ -58,8 +58,8 @@
       this.apt = this.aptFromAdamParser
     },
     mounted: function () {
-      const highlighter = new HighlightWithinTextarea(this.$refs.theTextArea, {
-        highlight: [2, 6]
+      this.highlighter = new HighlightWithinTextarea(this.$refs.theTextArea, {
+        highlight: false
       })
     },
     methods: {
@@ -73,9 +73,24 @@
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
       aptParseStatus: function (status) {
+      },
+      errorLocation: function () {
+        if (this.isParseErrorHighlightingInfoPresent) {
+          this.highlighter.highlight = [2, 6]
+        } else {
+          this.highlighter.highlight = false
+        }
+        this.highlighter.handleInput()
       }
     },
     computed: {
+      // TODO consider consolidating line number and column number properties in this format?
+      errorLocation: function () {
+        return {
+          column: this.aptParseErrorColumnNumber,
+          line: this.aptParseErrorLineNumber
+        }
+      },
       isParseErrorHighlightingInfoPresent: function () {
         const isLineNumberValid = this.aptParseErrorLineNumber !== -1 && this.aptParseErrorLineNumber !== undefined
         const isColumnNumberValid = this.aptParseErrorColumnNumber !== -1 && this.aptParseErrorColumnNumber !== undefined
