@@ -336,7 +336,7 @@
         }
       })
       const parent = this.$refs.rootElement.parentElement
-      const updateGraphEditorDimensions = () => {
+      this.updateGraphEditorDimensions = () => {
         const width = parent.clientWidth
         const height = parent.clientHeight
         this.dimensions = {
@@ -345,9 +345,13 @@
         }
         // console.log(`Graph editor dimensions: ${width}, ${height}`)
       }
+      // Resize the SVG when the graph editor pane gets resized
       // eslint-disable-next-line no-new
-      new ResizeSensor(parent, updateGraphEditorDimensions)
-      Vue.nextTick(updateGraphEditorDimensions) // Get correct dimensions after flexbox is rendered
+      new ResizeSensor(parent, this.updateGraphEditorDimensions)
+      // Also detect zooming in/out
+      window.addEventListener('resize', this.updateGraphEditorDimensions)
+      // It needs to get resized once immediately after mounting
+      Vue.nextTick(this.updateGraphEditorDimensions)
 
       // TODO move to created() hook?
       this.selectedTool = this.toolPickerItems[0]
@@ -360,6 +364,8 @@
       // development.
       console.log('Stopping forceSimulation')
       this.simulation.stop()
+      console.log('Removing resize event listener')
+      window.removeEventListener('resize', this.updateGraphEditorDimensions)
       this.isDestroyed = true
     },
     computed: {
