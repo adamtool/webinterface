@@ -3,7 +3,7 @@
     <div style="text-align: center; flex: 0 0 58px; line-height: 58px; font-size: 18pt;">
       APT Editor
     </div>
-    <textarea class='apt-input-field'
+    <textarea class='hwt-content'
               style="white-space: pre-wrap; overflow: scroll; min-height: 0;"
               @input="onAptInput"
               v-model="apt"
@@ -65,6 +65,16 @@
     methods: {
       onAptInput: function () {
         this.$emit('input', this.apt)
+      },
+      // Return the index of the nth occurrence of pat in str
+      // See https://stackoverflow.com/a/14482123/7359454
+      nthIndexOf: function (str, pat, n) {
+        var L = str.length, i = -1
+        while (n-- && i++ < L) {
+          i = str.indexOf(pat, i)
+          if (i < 0) break
+        }
+        return i
       }
     },
     watch: {
@@ -76,7 +86,10 @@
       },
       errorLocation: function () {
         if (this.isParseErrorHighlightingInfoPresent) {
-          this.highlighter.highlight = [2, 6]
+          this.highlighter.highlight = [
+            this.syntaxErrorCharacterIndex,
+            this.syntaxErrorCharacterIndex + 1
+          ]
         } else {
           this.highlighter.highlight = false
         }
@@ -84,6 +97,13 @@
       }
     },
     computed: {
+      syntaxErrorCharacterIndex: function () {
+        if (!this.isParseErrorHighlightingInfoPresent) {
+          return -1
+        }
+        const lineIndex = this.nthIndexOf(this.apt, '\n', this.aptParseErrorLineNumber)
+        return lineIndex + this.aptParseErrorColumnNumber
+      },
       // TODO consider consolidating line number and column number properties in this format?
       errorLocation: function () {
         return {
@@ -126,15 +146,6 @@
 </script>
 
 <style scoped>
-  .apt-input-field {
-    height: 100%;
-    background: white;
-    box-sizing: border-box;
-    width: 100%;
-    padding-left: 10px;
-    resize: none;
-    font-size: 18px;
-  }
 </style>
 
 <!--Global, unscoped styles necessary for the library highlight-within-textfield to work-->
@@ -182,6 +193,14 @@
   .hwt-content {
     border: 1px solid;
     background: none transparent !important;
+    font-family: monospace;
+    height: 100%;
+    background: white;
+    box-sizing: border-box;
+    width: 100%;
+    padding-left: 10px;
+    resize: none;
+    font-size: 18px;
   }
 
   .hwt-content mark {
