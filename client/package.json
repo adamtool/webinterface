@@ -17,7 +17,7 @@
     "@hscmap/vue-menu": "^1.5.0",
     "@hscmap/vue-window": "^2.2.7",
     "axios": "^0.16.2",
-    "css-element-queries": "^1.0.2",
+    "css-element-queries": "^1.2.1",
     "cytoscape": "^3.2.9",
     "d3": "^4.10.0",
     "d3-context-menu": "^1.0.2",
