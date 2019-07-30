@@ -86,9 +86,24 @@
       },
       errorLocation: function () {
         if (this.isParseErrorHighlightingInfoPresent) {
+          const endOfLineIndex = this.apt.indexOf('\n', this.syntaxErrorLineIndex + 1)
+          console.log('startOfLineIndex: ' + this.syntaxErrorLineIndex)
+          console.log('endOfLineIndex: ' + endOfLineIndex)
           this.highlighter.highlight = [
-            this.syntaxErrorCharacterIndex,
-            this.syntaxErrorCharacterIndex + 1
+            {
+              highlight: [
+                this.syntaxErrorCharacterIndex,
+                this.syntaxErrorCharacterIndex + 1
+              ],
+              className: 'error-position'
+            },
+            {
+              highlight: [
+                this.syntaxErrorLineIndex,
+                endOfLineIndex
+              ],
+              className: 'error-line'
+            }
           ]
         } else {
           this.highlighter.highlight = false
@@ -97,12 +112,22 @@
       }
     },
     computed: {
+      syntaxErrorLineIndex: function () {
+        if (!this.isParseErrorHighlightingInfoPresent) {
+          return null
+        }
+        if (this.aptParseErrorLineNumber === 1) {
+          return 0
+        } else {
+          return this.nthIndexOf(this.apt, '\n', this.aptParseErrorLineNumber - 1)
+        }
+      },
       syntaxErrorCharacterIndex: function () {
         if (!this.isParseErrorHighlightingInfoPresent) {
-          return -1
+          return null
         }
-        const lineIndex = this.nthIndexOf(this.apt, '\n', this.aptParseErrorLineNumber)
-        return lineIndex + this.aptParseErrorColumnNumber
+        return this.syntaxErrorLineIndex + this.aptParseErrorColumnNumber +
+          (this.aptParseErrorLineNumber === 1 ? 0 : 1)
       },
       // TODO consider consolidating line number and column number properties in this format?
       errorLocation: function () {
@@ -206,5 +231,12 @@
   .hwt-content mark {
     padding: 0 !important;
     color: inherit;
+  }
+
+  .hwt-content mark.error-position {
+    background-color: #ff7777
+  }
+  .hwt-content mark.error-line {
+    background-color: #ffcccc
   }
 </style>
