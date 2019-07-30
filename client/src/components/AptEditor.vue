@@ -15,8 +15,7 @@
 
 <script>
   import logging from '../logging'
-  import { HighlightWithinTextarea } from 'highlight-within-textarea-unjquery'
-  import 'highlight-within-textarea-unjquery/highlight-within-textarea.css'
+  import {HighlightWithinTextarea} from 'highlight-within-textarea-unjquery'
 
   export default {
     name: 'AptEditor',
@@ -112,9 +111,6 @@
 </script>
 
 <style scoped>
-  .hwt-container {
-    flex: 1 1 0;
-  }
   .apt-input-field {
     height: 100%;
     background: white;
@@ -123,5 +119,58 @@
     padding-left: 10px;
     resize: none;
     font-size: 18px;
+  }
+</style>
+
+<!--Global, unscoped styles necessary for the library highlight-within-textfield to work-->
+<style>
+  .hwt-container {
+    flex: 1 1 0;
+    display: inline-block;
+    position: relative;
+    overflow: hidden !important;
+    -webkit-text-size-adjust: none !important;
+  }
+
+  .hwt-backdrop {
+    position: absolute !important;
+    top: 0 !important;
+    right: -99px !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    padding-right: 99px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .hwt-highlights {
+    width: auto !important;
+    height: auto !important;
+    border-color: transparent !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    color: transparent !important;
+    overflow: hidden !important;
+  }
+
+  .hwt-input {
+    display: block !important;
+    position: relative !important;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    font: inherit;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .hwt-content {
+    border: 1px solid;
+    background: none transparent !important;
+  }
+
+  .hwt-content mark {
+    padding: 0 !important;
+    color: inherit;
   }
 </style>
