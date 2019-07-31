@@ -127,7 +127,9 @@
       this.reactiveParentHeight = this.$refs.container.parentElement.clientHeight
 
       this.onContainerResize = () => {
-        this.reactiveParentHeight = this.$refs.container.parentElement.clientHeight
+        if (this.$refs.container.parentElement.clientHeight > 0) {
+          this.reactiveParentHeight = this.$refs.container.parentElement.clientHeight
+        }
       }
       new ResizeSensor(this.$refs.container.parentElement, this.onContainerResize)
       window.addEventListener('resize', this.onContainerResize)
