@@ -204,6 +204,7 @@
           update appropriately after a drag-drop.-->
           <v-tab v-for="(tab, index) in tabsLeftSide"
                  :key="`${index}-${tab.uuid}`"
+                 @click="onSwitchToTabLeftSide(tab)"
                  :href="`#tab-${tab.uuid}`">
             {{ tab.name }}
             <v-icon standard right
@@ -562,12 +563,6 @@
       tabsRightSide: function () {
         console.log('Watcher tabsRightSide:')
         console.log(this.tabsRightSide)
-      },
-      selectedTabLeftSide: function (newTab, oldTab) {
-        console.log(`selectedTabLeftSide: ${this.selectedTabLeftSide}`)
-        if (oldTab !== newTab) {
-          this.onSwitchToTab(this.selectedTabLeftSide)
-        }
       },
       // When the browser UUID is changed, we should reload the list of jobs and tell the server
       // we want to subscribe to notifications corresponding to our new UUIUD
@@ -1127,13 +1122,15 @@
       onAptEditorInput: function (apt) {
         this.apt = apt
       },
-      // Callback function called whenever the active tab changes
-      onSwitchToTab: function (tabId) {
-        console.log(`onSwitchToTab(${tabId})`)
-        const tabSwitchedTo = this.tabsLeftSide.find(tab => tabId === `tab-${tab.uuid}`)
-        // console.log(`switched to tab:`)
-        // console.log(tabSwitchedTo)
-        if (tabSwitchedTo.type === 'aptEditor') {
+      // Callback function called when the user clicks on a tab and switches to it from a different tab
+      onSwitchToTabLeftSide: function (tab) {
+        console.log(`onSwitchToTabLeftSide(tab with uuid = ${tab.uuid})`)
+        console.log(tab)
+        if (`tab-${tab.uuid}` === this.selectedTabLeftSide) {
+          console.log('This tab was already selected')
+          return
+        }
+        if (tab.type === 'aptEditor') {
           logging.logVerbose('Switched to APT editor')
           this.savePetriGameAsAPT()
         }
