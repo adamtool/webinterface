@@ -1125,6 +1125,18 @@
       }
     },
     watch: {
+      lastTransitionFired: function () {
+        console.log('lastTransitionFired watcher')
+        console.log('lastTransitionFired: ')
+        console.log(this.lastTransitionFired)
+        this.updateD3() // reset color of last fired transition (TODO delete)
+        const matchingTransitionEl = this.nodeElements.filter(
+          d => d.type === 'TRANSITION' && d.id === this.lastTransitionFired.id)
+        console.log('matchingTransitionEl: ')
+        console.log(matchingTransitionEl)
+        matchingTransitionEl.attr('fill',
+          this.lastTransitionFired.successful ? '#00ff00' : '#ff0000')
+      },
       ltlFormula: function (formula) {
         if (this.selectedWinningCondition === 'LTL' && formula !== '') {
           this.parseLtlFormula()
@@ -1770,32 +1782,7 @@
         }
 
         this.nodeElements
-          .attr('fill', data => {
-            if (this.selectedNodes.includes(data)) {
-              return '#007700'
-            } else if (this.shouldShowPartitions && data.partition !== -1) {
-              return partitionColorForPlace(data)
-            } else if (data.type === 'ENVPLACE') {
-              return 'white'
-            } else if (this.useModelChecking && data.type === 'SYSPLACE') {
-              return 'white' // In Model Checking mode, all places should be white.
-            } else if (data.type === 'SYSPLACE') {
-              return 'lightgrey'
-            } else if (data.type === 'TRANSITION') {
-              switch (data.fairness) {
-                case 'weak':
-                  return '#8888FF'
-                case 'strong':
-                  return '#3333FF'
-                default:
-                  return 'white'
-              }
-            } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
-              return data.isMcut ? 'white' : 'lightgrey'
-            } else {
-              return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
-            }
-          })
+          .attr('fill', this.fillOfNodeElement)
 
         const getTransitColor = link => {
           if (link.transitHue !== undefined) {
@@ -2147,6 +2134,32 @@
           // return 90 // TODO Make height expand to fit text
         } else {
           return this.nodeRadius * 2
+        }
+      },
+      fillOfNodeElement: function (data) {
+        if (this.selectedNodes.includes(data)) {
+          return '#007700'
+        } else if (this.shouldShowPartitions && data.partition !== -1) {
+          return partitionColorForPlace(data)
+        } else if (data.type === 'ENVPLACE') {
+          return 'white'
+        } else if (this.useModelChecking && data.type === 'SYSPLACE') {
+          return 'white' // In Model Checking mode, all places should be white.
+        } else if (data.type === 'SYSPLACE') {
+          return 'lightgrey'
+        } else if (data.type === 'TRANSITION') {
+          switch (data.fairness) {
+            case 'weak':
+              return '#8888FF'
+            case 'strong':
+              return '#3333FF'
+            default:
+              return 'white'
+          }
+        } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
+          return data.isMcut ? 'white' : 'lightgrey'
+        } else {
+          return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
         }
       },
       svgWidth: function () {
