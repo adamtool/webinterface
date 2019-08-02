@@ -1134,8 +1134,29 @@
           d => d.type === 'TRANSITION' && d.id === this.lastTransitionFired.id)
         console.log('matchingTransitionEl: ')
         console.log(matchingTransitionEl)
+
+        // Instantly set the color to either red or green
         matchingTransitionEl.attr('fill',
           this.lastTransitionFired.successful ? '#00ff00' : '#ff0000')
+
+        // Mark the node as being mid-transition so it won't get messed up in updateD3()
+        matchingTransitionEl.each(d => d.hasScheduledAnimation = true)
+
+        // Gradually fade back to the normal color of the node
+        // Note to future maintainers: "transition()" refers here to the D3 concept of transitions,
+        // which are used for gradual animations like this.
+        // Unfortunately, this is a bit of a namespace conflict for us.  :D
+        matchingTransitionEl.transition()
+          .attr('fill', this.fillOfNodeElement)
+          .duration(1000)
+          .ease(d3.easeLinear)
+          // Then, in case the node's proper color has changed since the transition began, update it again
+          .transition()
+          .duration(0)
+          .attr('fill', this.fillOfNodeElement)
+          .on('end',
+            // Mark the node as no longer being mid-animation, so updateD3() may affect it again
+            () => matchingTransitionEl.each(d => d.hasScheduledAnimation = false))
       },
       ltlFormula: function (formula) {
         if (this.selectedWinningCondition === 'LTL' && formula !== '') {
@@ -1782,6 +1803,8 @@
         }
 
         this.nodeElements
+        // Don't mess with the color of a node if an animation is running on it
+          .filter(d => !d.hasScheduledAnimation)
           .attr('fill', this.fillOfNodeElement)
 
         const getTransitColor = link => {
