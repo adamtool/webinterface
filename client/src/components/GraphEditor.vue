@@ -1126,14 +1126,8 @@
     },
     watch: {
       lastTransitionFired: function () {
-        console.log('lastTransitionFired watcher')
-        console.log('lastTransitionFired: ')
-        console.log(this.lastTransitionFired)
-        this.updateD3() // reset color of last fired transition (TODO delete)
         const matchingTransitionEl = this.nodeElements.filter(
           d => d.type === 'TRANSITION' && d.id === this.lastTransitionFired.id)
-        console.log('matchingTransitionEl: ')
-        console.log(matchingTransitionEl)
 
         // Instantly set the color to either red or green
         matchingTransitionEl.attr('fill',
