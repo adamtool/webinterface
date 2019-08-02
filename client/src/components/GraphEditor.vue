@@ -213,9 +213,10 @@
         type: Object,
         required: false,
         default: {
-          id: '___AAAAA fake transition ID',
-          successful: false,
-          timestamp: new Date(0)
+          id: '___AAAAA fake transition ID', // ID of the transition
+          successful: false, // Was the transition successfully fired or did an error happen
+          timestamp: new Date(0) // When did it get fired (this enables reactivity in case the same
+          // transition gets fired twice in a row)
         }
       },
       petriNetId: {
@@ -1125,6 +1126,8 @@
       }
     },
     watch: {
+      // When a transition gets fired (whether successful or not), it and its connected Places
+      // should flash red or green.
       lastTransitionFired: function () {
         const transitionD = this.nodes.find(d => d.id === this.lastTransitionFired.id)
         const matchingTransitionEl = this.nodeElements.filter(nodeD => {
@@ -1140,10 +1143,10 @@
         matchingTransitionEl.attr('fill',
           this.lastTransitionFired.successful ? '#00ff00' : '#ff0000')
 
-        // Mark the node as being mid-transition so it won't get messed up in updateD3()
+        // Mark the nodes as being mid-animation so they won't get messed up in updateD3()
         matchingTransitionEl.each(d => d.hasScheduledAnimation = true)
 
-        // Gradually fade back to the normal color of the node
+        // Gradually fade back to the normal color of the nodes
         // Note to future maintainers: "transition()" refers here to the D3 concept of transitions,
         // which are used for gradual animations like this.
         // Unfortunately, this is a bit of a namespace conflict for us.  :D
