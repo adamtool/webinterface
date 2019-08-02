@@ -63,18 +63,11 @@ public class PetriNetD3 {
         for (Transition transition : net.getTransitions()) {
             PetriNetNode transitionNode = PetriNetNode.of(net, transition);
             nodes.add(transitionNode);
-
-//            for (TokenFlow tokenFlow : net.getTokenFlows(transition)) {
-//                Place presetPlace = tokenFlow.getPresetPlace();
-//                Set<Place> postset = tokenFlow.getPostset();
-//                new PetriNetLink()
-//            }
         }
 
 
         Map<Flow, String> flowRelationFromTransitions = PNWTTools.getTransitRelationFromTransitions(net);
         for (Flow flow : net.getEdges()) {
-
             String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
             PetriNetLink petriNetLink = PetriNetLink.of(flow, net, arcLabel);
             links.add(petriNetLink);
@@ -134,14 +127,14 @@ public class PetriNetD3 {
 
     static class PetriNetLink extends GraphLink {
         private final String type = "petriNetLink";
-        private final String tokenFlow; // Null if there is no token flow given
-        private final Float tokenFlowHue; // In the interval (0, 1].  Null if no color should be used.
+        private final String transit; // Null if there is no transit given
+        private final Float transitHue; // In the interval (0, 1].  Null if no color should be used.
         private final boolean isInhibitorArc; // Is it an inhibitor arc?
 
-        private PetriNetLink(String sourceId, String targetId, String tokenFlow, Float tokenFlowHue, boolean isInhibitorArc) {
+        private PetriNetLink(String sourceId, String targetId, String transit, Float transitHue, boolean isInhibitorArc) {
             super(sourceId, targetId);
-            this.tokenFlow = tokenFlow;
-            this.tokenFlowHue = tokenFlowHue;
+            this.transit = transit;
+            this.transitHue = transitHue;
             this.isInhibitorArc = isInhibitorArc;
         }
 
@@ -149,21 +142,21 @@ public class PetriNetD3 {
             String sourceId = flow.getSource().getId();
             String targetId = flow.getTarget().getId();
             boolean isInhibitorArc = net.isInhibitor(flow);
-            Float tokenFlowHue = null;
+            Float transitHue = null;
 
             if (!arcLabel.equals("")) {
-                // Give a unique color to each of the token flows associated with a transition.
+                // Give a unique color to each of the transits associated with a transition.
                 if (!arcLabel.contains(",")) { // Flows with multiple tokens are black.
                     Transit init = net.getInitialTransit(flow.getTransition());
                     int max =
                             net.getTransits(flow.getTransition()).size() + ((init == null) ? 0 :
                                     init.getPostset().size() - 1);
                     int id = Tools.calcStringIDSmallPrecedenceReverse(arcLabel);
-                    tokenFlowHue = ((id + 1) * 1.f) / (max * 1.f);
+                    transitHue = ((id + 1) * 1.f) / (max * 1.f);
                 }
             }
 
-            return new PetriNetLink(sourceId, targetId, arcLabel, tokenFlowHue, isInhibitorArc);
+            return new PetriNetLink(sourceId, targetId, arcLabel, transitHue, isInhibitorArc);
         }
     }
 
@@ -172,18 +165,18 @@ public class PetriNetD3 {
         private final boolean isBad;
         private final long initialToken;
         private final boolean isSpecial;
-        private final boolean isInitialTokenFlow;
+        private final boolean isInitialTransit;
         private final int partition;
         private final String fairness;
 
         private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
-                             long initialToken, boolean isSpecial, boolean isInitialTokenFlow,
+                             long initialToken, boolean isSpecial, boolean isInitialTransit,
                              int partition, String fairness) {
             super(id, label, type);
             this.isBad = isBad;
             this.initialToken = initialToken;
             this.isSpecial = isSpecial;
-            this.isInitialTokenFlow = isInitialTokenFlow;
+            this.isInitialTransit = isInitialTransit;
             this.partition = partition;
             this.fairness = fairness;
         }
@@ -226,7 +219,7 @@ public class PetriNetD3 {
                 isSpecial = false;
             }
 
-            boolean isInitialTokenFlow = net.isInitialTransit(place);
+            boolean isInitialTransit = net.isInitialTransit(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
 
             int partition = net.hasPartition(place) ? net.getPartition(place) : -1;
@@ -234,7 +227,7 @@ public class PetriNetD3 {
             String fairness = "none"; // Places have no concept of fairness
 
             return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial,
-                    isInitialTokenFlow, partition, fairness);
+                    isInitialTransit, partition, fairness);
         }
 
         static boolean isSpecial(PetriNetWithTransits game, Place place, Condition.Objective objective) {

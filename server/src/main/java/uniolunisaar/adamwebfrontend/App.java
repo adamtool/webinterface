@@ -82,7 +82,7 @@ public class App {
 
         postWithPetriNetWithTransits("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
 
-        postWithPetriNetWithTransits("/toggleIsInitialTokenFlow", this::handleToggleIsInitialTokenFlow);
+        postWithPetriNetWithTransits("/toggleIsInitialTransit", this::handleToggleIsInitialTransit);
 
         postWithPetriNetWithTransits("/setIsSpecial", this::handleSetIsSpecial);
 
@@ -93,7 +93,7 @@ public class App {
 
         postWithPetriNetWithTransits("/deleteFlow", this::handleDeleteFlow);
 
-        postWithPetriNetWithTransits("/createTokenFlow", this::handleCreateTokenFlow);
+        postWithPetriNetWithTransits("/createTransit", this::handleCreateTransit);
 
         postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
@@ -543,13 +543,13 @@ public class App {
         return successResponse(serializedNet);
     }
 
-    private Object handleToggleIsInitialTokenFlow(Request req, Response res, PetriNetWithTransits net) {
+    private Object handleToggleIsInitialTransit(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
 
         Place place = net.getPlace(nodeId);
-        boolean isInitialTokenFlow = net.isInitialTransit(place);
-        if (isInitialTokenFlow) {
+        boolean isInitialTransit = net.isInitialTransit(place);
+        if (isInitialTransit) {
             net.removeInitialTokenflow(place);
         } else {
             net.setInitialTokenflow(place);
@@ -621,7 +621,7 @@ public class App {
         return successResponse(serializedNet);
     }
 
-    private Object handleCreateTokenFlow(Request req, Response res, PetriNetWithTransits net) {
+    private Object handleCreateTransit(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         Optional<String> sourceId = body.has("source") ?
                 Optional.of(body.get("source").getAsString()) :
@@ -648,7 +648,7 @@ public class App {
             }
         }
 
-        // Create a token flow.  It is an initial token flow if if has no source Place.
+        // Create a transit.  It is an initial transit if if has no source Place.
         String[] postsetArray = postsetIds.toArray(new String[postsetIds.size()]);
         if (sourceId.isPresent()) {
             net.createTransit(sourceId.get(), transitionId, postsetArray);

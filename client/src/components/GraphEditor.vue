@@ -260,10 +260,10 @@
         ltlFormula: '', // The LTL formula corresponding to our winning condition
         ltlParseErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
         ltlParseStatus: 'success',
-        drawTokenFlowPreviewLinks: [],
-        drawTokenFlowPreviewSource: undefined,
-        drawTokenFlowPreviewTransition: undefined,
-        drawTokenFlowPreviewPostset: [],
+        drawTransitPreviewLinks: [],
+        drawTransitPreviewSource: undefined,
+        drawTransitPreviewTransition: undefined,
+        drawTransitPreviewPostset: [],
         // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
         // TODO figure out how to initialize.  Should be element of toolPickerItems
@@ -320,18 +320,18 @@
           case 'Escape':
             // Allow pressing Esc to clear the temporary notification area
             if (this.selectedNodes.length === 0 &&
-              this.drawTokenFlowHandler.getCurrentState() === 0) {
+              this.drawTransitHandler.getCurrentState() === 0) {
               logging.resetNotification()
             }
             this.selectedNodes = []
-            this.drawTokenFlowHandler.reset()
+            this.drawTransitHandler.reset()
             break
           case 'Delete':
             this.deleteSelectedNodes()
             break
           case 'Enter':
           case 'Return':
-            this.drawTokenFlowHandler.finish()
+            this.drawTransitHandler.finish()
             break
         }
       })
@@ -401,8 +401,8 @@
             type: 'tool',
             icon: 'create',
             visible: this.showEditorTools,
-            toolEnumName: 'drawTokenFlow',
-            name: 'Draw Token Flow'
+            toolEnumName: 'drawTransit',
+            name: 'Draw Transit'
           },
           {
             type: 'tool',
@@ -584,8 +584,8 @@
             action: this.setInitialTokenInteractively
           },
           {
-            title: 'Toggle isInitialTokenFlow',
-            action: this.toggleIsInitialTokenFlow
+            title: 'Toggle isInitialTransit',
+            action: this.toggleIsInitialTransit
           },
           {
             title: 'Toggle isSpecial',
@@ -767,15 +767,15 @@
                 this.selectedNodes = [d]
               }
             }
-          case 'drawTokenFlow':
-            return this.drawTokenFlowHandler.onClick
+          case 'drawTransit':
+            return this.drawTransitHandler.onClick
           default:
             return () => {
               logging.sendErrorNotification(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
             }
         }
       },
-      drawTokenFlowHandler: function () {
+      drawTransitHandler: function () {
         let state = 0
         let source
         let transition
@@ -786,42 +786,42 @@
         // interface.  It's kind of spaghettilike to be updating these global variables here that
         // are used in updateD3.  Those parts of updateD3() that pertain to this tool could probably
         // be refactored out into their own method, I reckon, into which you could pass the values
-        // of drawTokenFlowPreviewSource, drawTokenFlowPreviewLinks, etc.  That way, they would no
+        // of drawTransitPreviewSource, drawTransitPreviewLinks, etc.  That way, they would no
         // longer need to be global variables like they are now.
         // You would use it like this:
-        // const handler = drawTokenFlowHandler()
-        //   .onChange({source, transition, postset} => this.updateTokenFlowPreview(source, transition, postset))
-        // Whereby the Vue instance method updateTokenFlowPreview would pass everything into D3.
+        // const handler = drawTransitHandler()
+        //   .onChange({source, transition, postset} => this.updateTransitPreview(source, transition, postset))
+        // Whereby the Vue instance method updateTransitPreview would pass everything into D3.
         // -Ann
         const logCurrentState = () => {
           const src = source ? source.id : 'none'
           const trans = transition ? transition.id : 'none'
           const targetList = Array.from(postset).map(t => t.id).join(', ')
-          logging.logVerbose(`DrawTokenFlow state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
+          logging.logVerbose(`DrawTransit state: \nsource: ${src}\ntransition: ${trans}\npostset: ${targetList}`)
           const sourceTransLink = source !== undefined && transition !== undefined ? [{
             source: source,
             target: transition
           }] : []
-          this.drawTokenFlowPreviewLinks = sourceTransLink.concat(Array.from(postset).map(postNode => ({
+          this.drawTransitPreviewLinks = sourceTransLink.concat(Array.from(postset).map(postNode => ({
             source: transition,
             target: postNode
           })))
-          this.drawTokenFlowPreviewSource = source
-          this.drawTokenFlowPreviewTransition = transition
-          this.drawTokenFlowPreviewPostset = Array.from(postset)
+          this.drawTransitPreviewSource = source
+          this.drawTransitPreviewTransition = transition
+          this.drawTransitPreviewPostset = Array.from(postset)
           this.updateD3()
         }
 
         const reset = () => {
-          logging.logVerbose('Resetting drawTokenFlow')
+          logging.logVerbose('Resetting drawTransit')
           state = 0
           source = undefined
           transition = undefined
           postset = new Set()
-          this.drawTokenFlowPreviewLinks = []
-          this.drawTokenFlowPreviewSource = undefined
-          this.drawTokenFlowPreviewTransition = undefined
-          this.drawTokenFlowPreviewPostset = []
+          this.drawTransitPreviewLinks = []
+          this.drawTransitPreviewSource = undefined
+          this.drawTransitPreviewTransition = undefined
+          this.drawTransitPreviewPostset = []
           this.updateD3()
         }
 
@@ -833,13 +833,13 @@
           finish: () => {
             const sourceId = source ? source.id : undefined
             if (transition && postset.size > 0) {
-              this.$emit('createTokenFlow', {
+              this.$emit('createTransit', {
                 source: sourceId,
                 transition: transition.id,
                 postset: Array.from(postset).map(d => d.id)
               })
             } else {
-              logging.logVerbose('Aborting drawTokenFlow.  A transition and at least one target must be specified.')
+              logging.logVerbose('Aborting drawTransit.  A transition and at least one target must be specified.')
             }
             reset()
           },
@@ -847,11 +847,11 @@
             switch (state) {
               case 0: {
                 if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
-                  logging.logVerbose('DrawTokenFlow: Creating non-initial token flow.')
+                  logging.logVerbose('DrawTransit: Creating non-initial transit.')
                   source = d
                   state = 1
                 } else if (d.type === 'TRANSITION') {
-                  logging.logVerbose('DrawTokenFlow: Creating initial token flow.')
+                  logging.logVerbose('DrawTransit: Creating initial transit.')
                   transition = d
                   state = 2
                 }
@@ -864,7 +864,7 @@
                   state = 2
                   logCurrentState()
                 } else {
-                  logging.logVerbose('DrawTokenFlow: Please click on a transition.')
+                  logging.logVerbose('DrawTransit: Please click on a transition.')
                 }
                 break
               }
@@ -877,8 +877,8 @@
                   }
                   logCurrentState()
                 } else {
-                  logging.logVerbose('DrawTokenFlow: Click on Places to specify a postset and press Enter ' +
-                    'to create the token flow.  Press Esc to abort.')
+                  logging.logVerbose('DrawTransit: Click on Places to specify a postset and press Enter ' +
+                    'to create the transit.  Press Esc to abort.')
                 }
               }
             }
@@ -1019,8 +1019,6 @@
           'end': node => {
             // figure out which node the drag ends on top of
             const nearestNode = findFlowTarget(this.mousePosZoom(), startNode, this.nodes, this.links)
-            // TODO Figure out a way to specify token flows
-
             this.dragLine.attr('d', '')
             if (nearestNode === undefined) {
               console.log('No candidate node found.  Not creating a flow.')
@@ -1136,8 +1134,8 @@
       selectedTool: function (tool) {
         // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
         // That would be more declarative and Vue-like, I think.  -Ann
-        if (tool.toolEnumName !== 'drawTokenFlow') {
-          this.drawTokenFlowHandler.reset()
+        if (tool.toolEnumName !== 'drawTransit') {
+          this.drawTransitHandler.reset()
         }
         switch (tool.toolEnumName) {
           case 'select': {
@@ -1157,10 +1155,10 @@
             this.linkClickMode = 'doNothing'
             break
           }
-          case 'drawTokenFlow': {
+          case 'drawTransit': {
             this.backgroundDragDropMode = 'zoom'
             this.backgroundClickMode = 'cancelSelection'
-            this.leftClickMode = 'drawTokenFlow'
+            this.leftClickMode = 'drawTransit'
             this.dragDropMode = 'moveNode'
             this.linkClickMode = 'doNothing'
             break
@@ -1279,8 +1277,8 @@
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
       },
-      toggleIsInitialTokenFlow: function (d) {
-        this.$emit('toggleIsInitialTokenFlow', d.id)
+      toggleIsInitialTransit: function (d) {
+        this.$emit('toggleIsInitialTransit', d.id)
       },
       toggleIsSpecial: function (d) {
         this.$emit('setIsSpecial', {
@@ -1579,7 +1577,7 @@
         this.linkTextGroup = this.container.append('g').attr('class', 'linkTexts')
         this.nodeGroup = this.container.append('g').attr('class', 'nodes')
         this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
-        this.drawTokenFlowPreviewGroup = this.container.append('g').attr('class', 'drawTokenFlowPreview')
+        this.drawTransitPreviewGroup = this.container.append('g').attr('class', 'drawTransitPreview')
         this.labelGroup = this.container.append('g').attr('class', 'texts')
         this.contentGroup = this.container.append('g').attr('class', 'node-content')
         // This is the arrow that we draw when the user is adding a transition between two nodes
@@ -1691,18 +1689,18 @@
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0)
 
-        const tokenFlowPreviewNodes = this.drawTokenFlowPreviewPostset
-          .concat([this.drawTokenFlowPreviewTransition, this.drawTokenFlowPreviewSource])
+        const transitPreviewNodes = this.drawTransitPreviewPostset
+          .concat([this.drawTransitPreviewTransition, this.drawTransitPreviewSource])
           .filter(d => d !== undefined)
-        const drawTokenFlowPreviewCircles = this.drawTokenFlowPreviewGroup
+        const drawTransitPreviewCircles = this.drawTransitPreviewGroup
           .selectAll('circle')
-          .data(tokenFlowPreviewNodes)
-        const newCircles = drawTokenFlowPreviewCircles.enter()
+          .data(transitPreviewNodes)
+        const newCircles = drawTransitPreviewCircles.enter()
           .append('circle')
         newCircles.call(this.applyNodeEventHandler)
-        drawTokenFlowPreviewCircles.exit().remove()
-        this.drawTokenFlowPreviewCircles = drawTokenFlowPreviewCircles.merge(newCircles)
-        this.drawTokenFlowPreviewCircles
+        drawTransitPreviewCircles.exit().remove()
+        this.drawTransitPreviewCircles = drawTransitPreviewCircles.merge(newCircles)
+        this.drawTransitPreviewCircles
           .attr('r', d => {
             if (d.type === 'ENVPLACE' || d.type === 'SYSPLACE') {
               return this.nodeRadius * 1.4
@@ -1740,7 +1738,7 @@
           .attr('stroke-dasharray', d => {
             if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && d.isGood) {
               return '20,10'
-            } else if ((d.type === 'ENVPLACE' || d.type === 'SYSPLACE') && d.isInitialTokenFlow) {
+            } else if ((d.type === 'ENVPLACE' || d.type === 'SYSPLACE') && d.isInitialTransit) {
               return '10,10'
             } else {
               return ''
@@ -1790,17 +1788,17 @@
             }
           })
 
-        const getTokenFlowColor = link => {
-          if (link.tokenFlowHue !== undefined) {
-            const hueInDegrees = link.tokenFlowHue * 360
+        const getTransitColor = link => {
+          if (link.transitHue !== undefined) {
+            const hueInDegrees = link.transitHue * 360
             return `HSL(${hueInDegrees}, 100%, 50%)`
           } else {
-            throw new Error(`The property tokenFlowHue is undefined for the link: ${link}`)
+            throw new Error(`The property transitHue is undefined for the link: ${link}`)
           }
         }
         const newLinkElements = this.linkGroup
           .selectAll('path')
-          .data(this.links.concat(this.drawTokenFlowPreviewLinks))
+          .data(this.links.concat(this.drawTransitPreviewLinks))
         const linkEnter = newLinkElements
           .enter().append('path')
           .attr('fill', 'none')
@@ -1808,17 +1806,17 @@
         newLinkElements.exit().remove()
         this.linkElements = linkEnter.merge(newLinkElements)
           .attr('stroke-width', link => {
-            if (this.drawTokenFlowPreviewLinks.includes(link)) {
+            if (this.drawTransitPreviewLinks.includes(link)) {
               return 6
             } else {
               return 3
             }
           })
           .attr('stroke', link => {
-            if (this.drawTokenFlowPreviewLinks.includes(link)) {
+            if (this.drawTransitPreviewLinks.includes(link)) {
               return '#444444'
-            } else if (link.tokenFlowHue !== undefined) {
-              return getTokenFlowColor(link)
+            } else if (link.transitHue !== undefined) {
+              return getTransitColor(link)
             } else {
               return '#E5E5E5'
             }
@@ -1835,7 +1833,7 @@
 
         const newLinkTextElements = this.linkTextGroup
           .selectAll('text')
-          .data(this.links.filter(link => link.transitionId !== undefined || link.tokenFlow !== undefined))
+          .data(this.links.filter(link => link.transitionId !== undefined || link.transit !== undefined))
         const linkTextEnter = newLinkTextElements
           .enter().append('text')
           .attr('font-size', 25)
@@ -1846,8 +1844,8 @@
         this.linkTextElements = linkTextEnter.merge(newLinkTextElements)
         this.linkTextElements
           .attr('fill', link => {
-            if (link.tokenFlowHue !== undefined) {
-              return getTokenFlowColor(link)
+            if (link.transitHue !== undefined) {
+              return getTransitColor(link)
             } else {
               return 'black'
             }
@@ -1858,11 +1856,11 @@
             if (link.transitionId !== undefined) {
               // This is for Graph Game BDDs
               return link.transitionId
-            } else if (link.tokenFlow !== undefined) {
+            } else if (link.transit !== undefined) {
               // This is for Petri Games
-              return link.tokenFlow
+              return link.transit
             } else {
-              throw new Error('Both transitionId and tokenFlow are both undefined.')
+              throw new Error('Both transitionId and transit are both undefined.')
             }
           })
 
@@ -1930,7 +1928,7 @@
                 return 0
               }
             })
-          this.drawTokenFlowPreviewCircles
+          this.drawTransitPreviewCircles
             .attr('transform', d => {
               return `translate(${d.x},${d.y})`
             })

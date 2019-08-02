@@ -229,12 +229,12 @@
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
-                           v-on:createTokenFlow='createTokenFlow'
+                           v-on:createTransit='createTransit'
                            v-on:deleteFlow='deleteFlow'
                            v-on:deleteNode='deleteNode'
                            v-on:renameNode='renameNode'
                            v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
-                           v-on:toggleIsInitialTokenFlow='toggleIsInitialTokenFlow'
+                           v-on:toggleIsInitialTransit='toggleIsInitialTransit'
                            v-on:setIsSpecial='setIsSpecial'
                            v-on:fireTransition='fireTransition'
                            v-on:setInitialToken='setInitialToken'
@@ -680,12 +680,12 @@
           'parseApt',
           'insertPlace',
           'createFlow',
-          'createTokenFlow',
+          'createTransit',
           'deleteFlow',
           'deleteNode',
           'renameNode',
           'toggleEnvironmentPlace',
-          'toggleIsInitialTokenFlow',
+          'toggleIsInitialTransit',
           'setIsSpecial',
           'fireTransition',
           'setInitialToken',
@@ -1187,9 +1187,9 @@
           logging.logError('Network error')
         })
       },
-      createTokenFlow: function ({source, transition, postset}) {
-        console.log('processing createTokenFlow event')
-        this.restEndpoints.createTokenFlow({
+      createTransit: function ({source, transition, postset}) {
+        console.log('processing createTransit event')
+        this.restEndpoints.createTransit({
           petriNetId: this.petriGame.uuid,
           source,
           transition,
@@ -1264,9 +1264,9 @@
           logging.logError('Network error')
         })
       },
-      toggleIsInitialTokenFlow: function (nodeId) {
-        console.log('processing toggleIsInitialTokenFlow event')
-        this.restEndpoints.toggleIsInitialTokenFlow({
+      toggleIsInitialTransit: function (nodeId) {
+        console.log('processing toggleIsInitialTransit event')
+        this.restEndpoints.toggleIsInitialTransit({
           petriNetId: this.petriGame.uuid,
           nodeId: nodeId
         }).then(response => {
