@@ -1126,8 +1126,15 @@
     },
     watch: {
       lastTransitionFired: function () {
-        const matchingTransitionEl = this.nodeElements.filter(
-          d => d.type === 'TRANSITION' && d.id === this.lastTransitionFired.id)
+        const transitionD = this.nodes.find(d => d.id === this.lastTransitionFired.id)
+        const matchingTransitionEl = this.nodeElements.filter(nodeD => {
+          const isTheTransition = nodeD == transitionD
+          const isAnAffectedPlace = this.links.some(link =>
+            (link.source == transitionD && link.target == nodeD) ||
+            (link.target == transitionD && link.source == nodeD)
+          )
+          return isTheTransition || isAnAffectedPlace
+        })
 
         // Instantly set the color to either red or green
         matchingTransitionEl.attr('fill',
