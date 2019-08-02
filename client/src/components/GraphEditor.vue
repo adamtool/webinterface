@@ -57,14 +57,14 @@
           </v-flex>
         </template>
         <template v-else>
-            <v-flex xs6 sm5 offset-sm1 md4 offset-md2>
-              <v-select
-                v-if="showEditorTools"
-                v-model="selectedWinningCondition"
-                :items="winningConditions"
-                label="Winning Condition"/>
-            </v-flex>
-            <v-flex xs6 sm1 md2></v-flex>
+          <v-flex xs6 sm5 offset-sm1 md4 offset-md2>
+            <v-select
+              v-if="showEditorTools"
+              v-model="selectedWinningCondition"
+              :items="winningConditions"
+              label="Winning Condition"/>
+          </v-flex>
+          <v-flex xs6 sm1 md2></v-flex>
         </template>
       </v-layout>
     </v-container>
@@ -208,6 +208,15 @@
       graph: {
         type: Object,
         required: true
+      },
+      lastTransitionFired: {
+        type: Object,
+        required: false,
+        default: {
+          id: '___AAAAA fake transition ID',
+          successful: false,
+          timestamp: new Date(0)
+        }
       },
       petriNetId: {
         type: String,
@@ -665,7 +674,7 @@
       applyLinkEventHandler: function () {
         return selection => {
           selection.on('click', this.onLinkClick)
-          selection.on('contextmenu',this.onLinkRightClick)
+          selection.on('contextmenu', this.onLinkRightClick)
         }
       },
       onLinkClick: function () {
@@ -1552,7 +1561,7 @@
         this.zoom = d3.zoom()
           .on('zoom', onZoom)
           .wheelDelta(() => {
-            return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 1500;
+            return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 1500
           })
           .filter(() => {
             const isWheel = d3.event instanceof WheelEvent

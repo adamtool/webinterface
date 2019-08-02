@@ -224,6 +224,7 @@
                  v-if="tab.type === 'petriGameEditor'">
               <!--<ToolPicker style="position: absolute; z-index: 5; width: 5%; display: none;"/>-->
               <GraphEditor :graph='petriGame.net'
+                           :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
                            ref='graphEditorPetriGame'
                            v-on:dragDropEnd='onDragDropEnd'
@@ -540,6 +541,11 @@
             nodes: []
           },
           uuid: 'abcfakeuuid123'
+        },
+        lastPetriGameTransitionFired: {
+          id: '___AAAAA fake transition ID',
+          successful: false,
+          timestamp: new Date(0)
         },
         isLeftPaneVisible: true,
         isLogVisible: false,
@@ -1297,12 +1303,15 @@
           petriNetId: this.petriGame.uuid,
           transitionId: transitionId
         }).then(response => {
+          this.lastPetriGameTransitionFired = {
+            id: transitionId,
+            successful: response.status === 'success',
+            timestamp: new Date()
+          }
           this.withErrorHandling(response, response => {
             logging.sendSuccessNotification('Fired transition ' + transitionId)
             this.petriGame.net = response.data.result
           })
-        }).catch(() => {
-          logging.logError('Network error')
         })
       },
       setInitialToken: function ({nodeId, tokens}) {
