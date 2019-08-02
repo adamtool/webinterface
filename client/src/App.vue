@@ -1305,7 +1305,7 @@
         }).then(response => {
           this.lastPetriGameTransitionFired = {
             id: transitionId,
-            successful: response.status === 'success',
+            successful: response.data.status === 'success',
             timestamp: new Date()
           }
           this.withErrorHandling(response, response => {
