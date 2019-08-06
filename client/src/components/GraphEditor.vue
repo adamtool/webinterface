@@ -674,7 +674,12 @@
       // Usage: selection.call(applyNodeEventHandler)
       applyLinkEventHandler: function () {
         return selection => {
-          selection.on('click', this.onLinkClick)
+          selection.on('mousedown', (d) => {
+            // Use mousedown instead of click because click doesn't fire until mouseup
+            if (d3.event.button === 0) { // Only respond to left clicks
+              this.onLinkClick(d)
+            }
+          })
           selection.on('contextmenu', this.onLinkRightClick)
         }
       },
@@ -1612,7 +1617,11 @@
             }
           })
         this.svg.call(this.zoom)
-        this.svg.on('click', d => {
+        this.svg.on('mousedown', d => {
+          // Use mousedown instead of click because click doesn't fire until mouseup
+          if (d3.event.button !== 0) {
+            return // Only respond to left clicks
+          }
           this.closeContextMenu()
           this.backgroundClickHandler(d)
         })
