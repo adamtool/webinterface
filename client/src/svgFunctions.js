@@ -118,38 +118,45 @@ function transformedBoundingBox (el) {
 // Return the 'd' attribute for a svg path element that will represent a link in a Petri Net or
 // other graph.
 // 'this' should be a GraphEditor object.  So you can call this using e.g.
-// pathForLink.call(this, link)
-// from within a method of the GraphEditor component.
+// pathForLink.call(this, link) from within a method of the GraphEditor component.
 // (The file GraphEditor was just way too huge, so I chose to break it down a little bit this way.)
-function pathForLink (d) {
+//
+function pathForLink (d, options) {
+  // Determine where the endpoint of the path should be
+  // This can be specified via 'options.endpoint' or determined based on the 'target' of the link
   let targetPoint
-  switch (d.target.type) {
-    case 'ENVPLACE':
-    case 'SYSPLACE': {
-      // The target node is a circle.
-      targetPoint = pointOnCircle(
-        d.source.x,
-        d.source.y,
-        this.nodeRadius,
-        d.target.x,
-        d.target.y,
-        false)
-      break
-    }
-    case 'TRANSITION':
-    case 'GRAPH_STRATEGY_BDD_STATE': {
-      // The target node is a rectangle.
-      targetPoint = pointOnRect(
-        d.source.x,
-        d.source.y,
-        d.target.x - this.calculateNodeWidth(d.target) / 2,
-        d.target.y - this.calculateNodeHeight(d.target) / 2,
-        d.target.x + this.calculateNodeWidth(d.target) / 2,
-        d.target.y + this.calculateNodeHeight(d.target) / 2,
-        false
-      )
+  if (options && options.endpoint) {
+    targetPoint = options.endpoint
+  } else {
+    switch (d.target.type) {
+      case 'ENVPLACE':
+      case 'SYSPLACE': {
+        // The target node is a circle.
+        targetPoint = pointOnCircle(
+          d.source.x,
+          d.source.y,
+          this.nodeRadius,
+          d.target.x,
+          d.target.y,
+          false)
+        break
+      }
+      case 'TRANSITION':
+      case 'GRAPH_STRATEGY_BDD_STATE': {
+        // The target node is a rectangle.
+        targetPoint = pointOnRect(
+          d.source.x,
+          d.source.y,
+          d.target.x - this.calculateNodeWidth(d.target) / 2,
+          d.target.y - this.calculateNodeHeight(d.target) / 2,
+          d.target.x + this.calculateNodeWidth(d.target) / 2,
+          d.target.y + this.calculateNodeHeight(d.target) / 2,
+          false
+        )
+      }
     }
   }
+
   const targetX = targetPoint['x']
   const targetY = targetPoint['y']
   // Save the length of the link in order to place a label at its midpoint (see below)

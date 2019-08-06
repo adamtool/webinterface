@@ -1975,9 +1975,35 @@
           this.linkElements
             .attr('d', d => {
               const unadjustedPathD = pathForLink.call(this, d)
+              if (!d.isInhibitorArc) {
+                return unadjustedPathD
+              } else {
+                const inhibitorArcCircleRadius = 10
+                // Back off the arc by a small distance to make room for a little circle in between
+                // the arrowhead and the target node
+                // We do this by constructing a SVG element with the given 'unadjusted path'
+                // and using its 'getPointAtLength' method to figure out where the actual path
+                // should end
+                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+                pathEl.setAttributeNS(null, 'd', unadjustedPathD)
+                const length = pathEl.getTotalLength()
+                const endpoint = pathEl.getPointAtLength(length - inhibitorArcCircleRadius * 2)
 
-              return unadjustedPathD
+                // Save this for later in order to place the inhibitor arc circle
+                d.inhibitorArcCircleCenter =
+                  pathEl.getPointAtLength(length - inhibitorArcCircleRadius)
+
+                return pathForLink.call(this, d, { endpoint })
+                // console.log('path length: ' + length)
+                // console.log('point before end: ')
+                // console.log(point)
+              }
             })
+
+          // TODO Position inhibitor arc circles
+          // (I guess it makes sense to create/destroy them inside of updateD3 and then position
+          // them here.)
+
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
             .attr('dx', d => d.pathLength / 2)
