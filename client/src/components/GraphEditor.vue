@@ -1776,7 +1776,7 @@
           .append('circle')
         newInhibitorArcCircles.call(this.applyLinkEventHandler)
         inhibitorArcCircleElements.exit().remove()
-        this.inhibitorArcCircleElements = inhibitorArcCircleElements.merge(newCircles)
+        this.inhibitorArcCircleElements = inhibitorArcCircleElements.merge(newInhibitorArcCircles)
         this.inhibitorArcCircleElements
           .attr('r', 10)
           .attr('stroke', 'black')
