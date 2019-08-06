@@ -1632,6 +1632,8 @@
         this.nodeGroup = this.container.append('g').attr('class', 'nodes')
         this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
         this.drawTransitPreviewGroup = this.container.append('g').attr('class', 'drawTransitPreview')
+        this.inhibitorArcCircleGroup = this.container.append('g')
+          .attr('class', 'inhibitorArcCircle')
         this.labelGroup = this.container.append('g').attr('class', 'texts')
         this.contentGroup = this.container.append('g').attr('class', 'node-content')
         // This is the arrow that we draw when the user is adding a transition between two nodes
@@ -1670,6 +1672,7 @@
        * It causes our visualization to update accordingly, showing new nodes and removing deleted ones.
        */
       updateD3: function () {
+        console.log('updateD3()')
         // Write the IDs/labels of nodes underneath them.
         // TODO Prevent these from getting covered up by arrowheads.  Maybe add a background.
         // See https://stackoverflow.com/questions/15500894/background-color-of-text-in-svg
@@ -1765,6 +1768,21 @@
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0.1)
+
+        const inhibitorArcCircleElements = this.inhibitorArcCircleGroup
+          .selectAll('circle')
+          .data(this.links.filter(d => d.isInhibitorArc))
+        const newInhibitorArcCircles = inhibitorArcCircleElements.enter()
+          .append('circle')
+        newInhibitorArcCircles.call(this.applyLinkEventHandler)
+        inhibitorArcCircleElements.exit().remove()
+        this.inhibitorArcCircleElements = inhibitorArcCircleElements.merge(newCircles)
+        this.inhibitorArcCircleElements
+          .attr('r', 10)
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('fill', 'white')
+          .attr('fill-opacity', 1)
 
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')
@@ -1993,7 +2011,7 @@
                 d.inhibitorArcCircleCenter =
                   pathEl.getPointAtLength(length - inhibitorArcCircleRadius)
 
-                return pathForLink.call(this, d, { endpoint })
+                return pathForLink.call(this, d, {endpoint})
                 // console.log('path length: ' + length)
                 // console.log('point before end: ')
                 // console.log(point)
@@ -2003,6 +2021,9 @@
           // TODO Position inhibitor arc circles
           // (I guess it makes sense to create/destroy them inside of updateD3 and then position
           // them here.)
+          this.inhibitorArcCircleElements.attr('transform',
+            (d) => `translate(${d.inhibitorArcCircleCenter.x},${d.inhibitorArcCircleCenter.y})`
+          )
 
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
