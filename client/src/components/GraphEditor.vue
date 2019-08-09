@@ -530,10 +530,12 @@
       openContextMenu: function () {
         return contextMenuFactory(this.contextMenuItems)
       },
+      // TODO Consider turning these 'computed functions' into methods.  (I think the result would
+      //  be more or less the same.)
       contextMenuItems: function () {
         return (d) => {
           if (d.type === 'petriNetLink') {
-            return this.contextMenuItemsFlow
+            return this.contextMenuItemsFlow(d)
           } else if (this.selectedNodes.length > 1) {
             return this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
@@ -544,32 +546,34 @@
         }
       },
       contextMenuItemsFlow: function () {
-        const deleteFlow = {
-          title: 'Delete Flow',
-          action: (d) => {
-            this.$emit('deleteFlow', {
-              sourceId: d.source.id,
-              targetId: d.target.id
-            })
+        return (clickedLink) => {
+          const deleteFlow = {
+            title: 'Delete Flow',
+            action: (d) => {
+              this.$emit('deleteFlow', {
+                sourceId: d.source.id,
+                targetId: d.target.id
+              })
+            }
           }
-        }
-        const setInhibitorArc = {
-          title: (d) => d.isInhibitorArc ? 'Set not inhibitor arc' : 'Set inhibitor arc',
-          action: (d) => {
-            this.$emit('setInhibitorArc', {
-              sourceId: d.source.id,
-              targetId: d.target.id,
-              isInhibitorArc: !d.isInhibitorArc
-            })
+          const setInhibitorArc = {
+            title: (d) => d.isInhibitorArc ? 'Set not inhibitor arc' : 'Set inhibitor arc',
+            action: (d) => {
+              this.$emit('setInhibitorArc', {
+                sourceId: d.source.id,
+                targetId: d.target.id,
+                isInhibitorArc: !d.isInhibitorArc
+              })
+            }
           }
-        }
-        const title = {
-          title: (d) => `Flow ${d.source.id} -> ${d.target.id}`
-        }
-        if (this.useModelChecking) {
-          return [title, deleteFlow, setInhibitorArc]
-        } else {
-          return [title, deleteFlow]
+          const title = {
+            title: (d) => `Flow ${d.source.id} -> ${d.target.id}`
+          }
+          if (this.useModelChecking && clickedLink.target.type === 'TRANSITION') {
+            return [title, deleteFlow, setInhibitorArc]
+          } else {
+            return [title, deleteFlow]
+          }
         }
       },
       contextMenuItemsPlace: function () {
