@@ -279,11 +279,22 @@
                  :key="`${index}-${tab.uuid}`"
                  :href="`#tab-${tab.uuid}`">
             {{ formatTabTitle(tab) }}
-            <v-icon standard right
-                    v-if="tab.isCloseable"
-                    @click="closeTab(tab, 'right')">
+            <!--Show a spinny circle to indicate job is in the process of being canceled.
+            The tab will be closed after the job is fully canceled.
+            (see websocket message handler 'jobStatusChanged')-->
+            <v-progress-circular
+              v-if="tab.jobStatus === 'CANCELING'"
+              indeterminate
+            />
+            <!--Show an X to close the tab/cancel the running job-->
+            <v-icon
+              v-else-if="tab.isCloseable"
+              standard right
+              @click="closeTab(tab, 'right')">
               close
             </v-icon>
+            <template
+              v-else/>
           </v-tab>
         </draggable>
         <v-tab-item v-for="tab in tabsRightSide"
@@ -596,20 +607,7 @@
     computed: {
       tabsRightSide: function () {
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
-        // return [
-        //   {
-        //     type: 'testTab',
-        //     name: 'Test',
-        //     uuid: 'oienwfoyujiehsrayltj32425125',
-        //     isCloseable: true
-        //   },
-        //   {
-        //     type: 'testTab',
-        //     name: 'Test 2',
-        //     uuid: 'oienwfoyujiehsrayltj32425126',
-        //     isCloseable: true
-        //   }
-        // ]
+
         function jobKeyToTab (jobListings, jobKey) {
           const matchingJobListing = jobListings.find(listing => isEqual(listing.jobKey, jobKey))
           if (matchingJobListing) {
@@ -753,8 +751,12 @@
             this.tabsLeftSide = this.tabsLeftSide.filter(t => t !== tab)
             break
           case 'right':
-            this.visibleJobsRightSide =
-              this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
+            if (tab.jobStatus === 'RUNNING') {
+              this.cancelJob(tab.jobKey)
+            } else {
+              this.visibleJobsRightSide =
+                this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
+            }
             break
           default:
             throw new Error('Invalid value for "side" in case statement in closeTab(): ' + side)
@@ -806,6 +808,11 @@
               logging.logVerbose('A job\'s status changed.  Updating job list.')
               // TODO Incrementally update list instead of polling and reloading the WHOLE list each time
               this.getListOfJobs()
+              // Close the tab of the job if the job has been canceled
+              const jobStatus = messageParsed.jobListing.jobStatus
+              if (jobStatus === 'CANCELED') {
+                this.closeTabIfOpen(messageParsed.jobListing.jobKey)
+              }
               break
             case 'ping':
               logging.logVerbose('Got ping from server.  Sending pong')
@@ -1074,11 +1081,14 @@
         const tabId = `tab-${JSON.stringify(jobKey)}`
         this.selectedTabRightSide = tabId
       },
-      cancelJob: function ({jobKey, type}) {
-        logging.sendSuccessNotification('Sent request to cancel the job of ' + type)
+      closeTabIfOpen: function (jobKey) {
+        this.visibleJobsRightSide = this.visibleJobsRightSide.filter(
+          visibleJobKey => !isEqual(visibleJobKey, jobKey))
+      },
+      cancelJob: function (jobKey) {
+        logging.sendSuccessNotification('Sent request to cancel the job of type ' + jobKey.jobType)
         this.restEndpoints.cancelJob({
-          jobKey,
-          type
+          jobKey
         }).then(response => {
           switch (response.data.status) {
             case 'error':
@@ -1102,8 +1112,7 @@
               logging.sendErrorNotification(response.data.message)
               break
             case 'success':
-              this.visibleJobsRightSide = this.visibleJobsRightSide.filter(
-                visibleJobKey => !isEqual(visibleJobKey, jobKey))
+              this.closeTabIfOpen(jobKey)
               logging.sendSuccessNotification('Cancelled the job and deleted it from the ' +
                 'list of jobs.  Note: It might take a little while for the job to actually' +
                 ' stop if it was running.  This is a limitation of the libraries used by' +

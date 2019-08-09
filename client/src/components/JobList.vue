@@ -85,8 +85,7 @@
       </td>
       <td v-else-if="['RUNNING', 'QUEUED'].includes(listing.jobStatus)"
           class="highlightable">
-        <button @click="$emit('cancelJob',
-        { jobKey: listing.jobKey, type: listing.type})">
+        <button @click="$emit('cancelJob', listing.jobKey)">
           Cancel
         </button>
       </td>
