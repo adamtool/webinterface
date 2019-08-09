@@ -187,8 +187,7 @@
   import {saveFileAs} from '../fileutilities'
   import {layoutNodes} from '../autoLayout'
   import {noOpImplementation} from '../modelCheckingRoutes'
-  import {pointOnRect, pointOnCircle} from '../shapeIntersections'
-  import {rectanglePath, arcPath, loopPath, containingBorder} from '../svgFunctions'
+  import {rectanglePath, arcPath, loopPath, containingBorder, pathForLink} from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import {debounce} from 'underscore'
@@ -531,10 +530,12 @@
       openContextMenu: function () {
         return contextMenuFactory(this.contextMenuItems)
       },
+      // TODO Consider turning these 'computed functions' into methods.  (I think the result would
+      //  be more or less the same.)
       contextMenuItems: function () {
         return (d) => {
           if (d.type === 'petriNetLink') {
-            return this.contextMenuItemsFlow
+            return this.contextMenuItemsFlow(d)
           } else if (this.selectedNodes.length > 1) {
             return this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
@@ -545,32 +546,34 @@
         }
       },
       contextMenuItemsFlow: function () {
-        const deleteFlow = {
-          title: 'Delete Flow',
-          action: (d) => {
-            this.$emit('deleteFlow', {
-              sourceId: d.source.id,
-              targetId: d.target.id
-            })
+        return (clickedLink) => {
+          const deleteFlow = {
+            title: 'Delete Flow',
+            action: (d) => {
+              this.$emit('deleteFlow', {
+                sourceId: d.source.id,
+                targetId: d.target.id
+              })
+            }
           }
-        }
-        const setInhibitorArc = {
-          title: (d) => d.isInhibitorArc ? 'Set not inhibitor arc' : 'Set inhibitor arc',
-          action: (d) => {
-            this.$emit('setInhibitorArc', {
-              sourceId: d.source.id,
-              targetId: d.target.id,
-              isInhibitorArc: !d.isInhibitorArc
-            })
+          const setInhibitorArc = {
+            title: (d) => d.isInhibitorArc ? 'Set not inhibitor arc' : 'Set inhibitor arc',
+            action: (d) => {
+              this.$emit('setInhibitorArc', {
+                sourceId: d.source.id,
+                targetId: d.target.id,
+                isInhibitorArc: !d.isInhibitorArc
+              })
+            }
           }
-        }
-        const title = {
-          title: (d) => `Flow ${d.source.id} -> ${d.target.id}`
-        }
-        if (this.useModelChecking) {
-          return [title, deleteFlow, setInhibitorArc]
-        } else {
-          return [title, deleteFlow]
+          const title = {
+            title: (d) => `Flow ${d.source.id} -> ${d.target.id}`
+          }
+          if (this.useModelChecking && clickedLink.target.type === 'TRANSITION') {
+            return [title, deleteFlow, setInhibitorArc]
+          } else {
+            return [title, deleteFlow]
+          }
         }
       },
       contextMenuItemsPlace: function () {
@@ -1633,6 +1636,8 @@
         this.nodeGroup = this.container.append('g').attr('class', 'nodes')
         this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
         this.drawTransitPreviewGroup = this.container.append('g').attr('class', 'drawTransitPreview')
+        this.inhibitorArcCircleGroup = this.container.append('g')
+          .attr('class', 'inhibitorArcCircle')
         this.labelGroup = this.container.append('g').attr('class', 'texts')
         this.contentGroup = this.container.append('g').attr('class', 'node-content')
         // This is the arrow that we draw when the user is adding a transition between two nodes
@@ -1671,6 +1676,7 @@
        * It causes our visualization to update accordingly, showing new nodes and removing deleted ones.
        */
       updateD3: function () {
+        console.log('updateD3()')
         // Write the IDs/labels of nodes underneath them.
         // TODO Prevent these from getting covered up by arrowheads.  Maybe add a background.
         // See https://stackoverflow.com/questions/15500894/background-color-of-text-in-svg
@@ -1766,6 +1772,21 @@
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
           .attr('fill-opacity', 0.1)
+
+        const inhibitorArcCircleElements = this.inhibitorArcCircleGroup
+          .selectAll('circle')
+          .data(this.links.filter(d => d.isInhibitorArc))
+        const newInhibitorArcCircles = inhibitorArcCircleElements.enter()
+          .append('circle')
+        newInhibitorArcCircles.call(this.applyLinkEventHandler)
+        inhibitorArcCircleElements.exit().remove()
+        this.inhibitorArcCircleElements = inhibitorArcCircleElements.merge(newInhibitorArcCircles)
+        this.inhibitorArcCircleElements
+          .attr('r', 10)
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('fill', 'white')
+          .attr('fill-opacity', 1)
 
         const nodeElements = this.nodeGroup
           .selectAll('.graph-node')
@@ -1975,59 +1996,39 @@
           // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
           this.linkElements
             .attr('d', d => {
-              let targetPoint
-              switch (d.target.type) {
-                case 'ENVPLACE':
-                case 'SYSPLACE': {
-                  // The target node is a circle.
-                  targetPoint = pointOnCircle(
-                    d.source.x,
-                    d.source.y,
-                    this.nodeRadius,
-                    d.target.x,
-                    d.target.y,
-                    false)
-                  break
-                }
-                case 'TRANSITION':
-                case 'GRAPH_STRATEGY_BDD_STATE': {
-                  // The target node is a rectangle.
-                  targetPoint = pointOnRect(
-                    d.source.x,
-                    d.source.y,
-                    d.target.x - this.calculateNodeWidth(d.target) / 2,
-                    d.target.y - this.calculateNodeHeight(d.target) / 2,
-                    d.target.x + this.calculateNodeWidth(d.target) / 2,
-                    d.target.y + this.calculateNodeHeight(d.target) / 2,
-                    false
-                  )
-                }
-              }
-              const targetX = targetPoint['x']
-              const targetY = targetPoint['y']
-              // Save the length of the link in order to place a label at its midpoint (see below)
-              const dx = targetX - d.source.x
-              const dy = targetY - d.source.y
-              d.pathLength = Math.sqrt(dx * dx + dy * dy)
+              const unadjustedPathD = pathForLink.call(this, d)
+              if (!d.isInhibitorArc) {
+                return unadjustedPathD
+              } else {
+                const inhibitorArcCircleRadius = 10
+                // Back off the arc by a small distance to make room for a little circle in between
+                // the arrowhead and the target node
+                // We do this by constructing a SVG element with the given 'unadjusted path'
+                // and using its 'getPointAtLength' method to figure out where the actual path
+                // should end
+                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+                pathEl.setAttributeNS(null, 'd', unadjustedPathD)
+                const length = pathEl.getTotalLength()
+                const endpoint = pathEl.getPointAtLength(length - inhibitorArcCircleRadius * 2)
 
-              // This means source -> target and target -> source are both links
-              const multipleLinksBetweenNodes = this.links.find(link => link !== d && link.source === d.target && link.target === d.source)
-              const linkIsLoop = d.target === d.source
-              const isStraightLink = !multipleLinksBetweenNodes && !linkIsLoop
-              if (isStraightLink) {
-                // Straight line for a single edge between two distinct nodes
-                return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
-              } else if (multipleLinksBetweenNodes) {
-                return arcPath(d.source.x, d.source.y, targetX, targetY)
-              } else if (linkIsLoop) {
-                // Place the loop around the upper-right corner of the node.
-                const x1 = d.source.x + this.calculateNodeWidth(d.source) / 2
-                const y1 = d.source.y
-                const x2 = d.source.x
-                const y2 = d.source.y - this.calculateNodeHeight(d.source) / 2
-                return loopPath(x1, y1, x2, y2)
+                // Save this for later in order to place the inhibitor arc circle
+                d.inhibitorArcCircleCenter =
+                  pathEl.getPointAtLength(length - inhibitorArcCircleRadius)
+
+                return pathForLink.call(this, d, {endpoint})
+                // console.log('path length: ' + length)
+                // console.log('point before end: ')
+                // console.log(point)
               }
             })
+
+          // TODO Position inhibitor arc circles
+          // (I guess it makes sense to create/destroy them inside of updateD3 and then position
+          // them here.)
+          this.inhibitorArcCircleElements.attr('transform',
+            (d) => `translate(${d.inhibitorArcCircleCenter.x},${d.inhibitorArcCircleCenter.y})`
+          )
+
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
             .attr('dx', d => d.pathLength / 2)

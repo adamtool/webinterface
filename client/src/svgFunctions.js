@@ -1,3 +1,5 @@
+import {pointOnRect, pointOnCircle} from './shapeIntersections'
+
 function rectanglePath (x0, y0, x1, y1) {
   return `M${x0},${y0}
               L${x0},${y1}
@@ -113,6 +115,74 @@ function transformedBoundingBox (el) {
   return bb
 }
 
+// Return the 'd' attribute for a svg path element that will represent a link in a Petri Net or
+// other graph.
+// 'this' should be a GraphEditor object.  So you can call this using e.g.
+// pathForLink.call(this, link) from within a method of the GraphEditor component.
+// (The file GraphEditor was just way too huge, so I chose to break it down a little bit this way.)
+//
+function pathForLink (d, options) {
+  // Determine where the endpoint of the path should be
+  // This can be specified via 'options.endpoint' or determined based on the 'target' of the link
+  let targetPoint
+  if (options && options.endpoint) {
+    targetPoint = options.endpoint
+  } else {
+    switch (d.target.type) {
+      case 'ENVPLACE':
+      case 'SYSPLACE': {
+        // The target node is a circle.
+        targetPoint = pointOnCircle(
+          d.source.x,
+          d.source.y,
+          this.nodeRadius,
+          d.target.x,
+          d.target.y,
+          false)
+        break
+      }
+      case 'TRANSITION':
+      case 'GRAPH_STRATEGY_BDD_STATE': {
+        // The target node is a rectangle.
+        targetPoint = pointOnRect(
+          d.source.x,
+          d.source.y,
+          d.target.x - this.calculateNodeWidth(d.target) / 2,
+          d.target.y - this.calculateNodeHeight(d.target) / 2,
+          d.target.x + this.calculateNodeWidth(d.target) / 2,
+          d.target.y + this.calculateNodeHeight(d.target) / 2,
+          false
+        )
+      }
+    }
+  }
+
+  const targetX = targetPoint['x']
+  const targetY = targetPoint['y']
+  // Save the length of the link in order to place a label at its midpoint (see below)
+  const dx = targetX - d.source.x
+  const dy = targetY - d.source.y
+  d.pathLength = Math.sqrt(dx * dx + dy * dy)
+
+  // This means source -> target and target -> source are both links
+  const multipleLinksBetweenNodes = this.links.find(link => link !== d && link.source === d.target && link.target === d.source)
+  const linkIsLoop = d.target === d.source
+  const isStraightLink = !multipleLinksBetweenNodes && !linkIsLoop
+  if (isStraightLink) {
+    // Straight line for a single edge between two distinct nodes
+    return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
+  } else if (multipleLinksBetweenNodes) {
+    return arcPath(d.source.x, d.source.y, targetX, targetY)
+  } else if (linkIsLoop) {
+    // Place the loop around the upper-right corner of the node.
+    const x1 = d.source.x + this.calculateNodeWidth(d.source) / 2
+    const y1 = d.source.y
+    const x2 = d.source.x
+    const y2 = d.source.y - this.calculateNodeHeight(d.source) / 2
+    return loopPath(x1, y1, x2, y2)
+  }
+}
+
 export {
-  rectanglePath, arcPath, loopPath, containingBorder
+  rectanglePath, arcPath, loopPath, containingBorder, pathForLink
 }

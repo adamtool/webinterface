@@ -718,8 +718,15 @@ public class App {
         String targetId = body.get("targetId").getAsString();
         boolean isInhibitorArc = body.get("isInhibitorArc").getAsBoolean();
 
+        Node sourceNode = net.getNode(sourceId);
+        Node targetNode = net.getNode(targetId);
+
         Flow flow = net.getFlow(sourceId, targetId);
         if (isInhibitorArc) {
+            if (!(sourceNode instanceof Place) || !(targetNode instanceof Transition)) {
+                throw new IllegalArgumentException(
+                        "Inhibitor arcs must point from a Place to a Transition, and not vice versa.");
+            }
             net.setInhibitor(flow);
         } else {
             net.removeInhibitor(flow);
