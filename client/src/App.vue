@@ -596,20 +596,7 @@
     computed: {
       tabsRightSide: function () {
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
-        // return [
-        //   {
-        //     type: 'testTab',
-        //     name: 'Test',
-        //     uuid: 'oienwfoyujiehsrayltj32425125',
-        //     isCloseable: true
-        //   },
-        //   {
-        //     type: 'testTab',
-        //     name: 'Test 2',
-        //     uuid: 'oienwfoyujiehsrayltj32425126',
-        //     isCloseable: true
-        //   }
-        // ]
+
         function jobKeyToTab (jobListings, jobKey) {
           const matchingJobListing = jobListings.find(listing => isEqual(listing.jobKey, jobKey))
           if (matchingJobListing) {
