@@ -740,8 +740,12 @@
             this.tabsLeftSide = this.tabsLeftSide.filter(t => t !== tab)
             break
           case 'right':
-            this.visibleJobsRightSide =
-              this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
+            if (tab.jobStatus === 'RUNNING') {
+              this.cancelJob(tab.jobKey)
+            } else {
+              this.visibleJobsRightSide =
+                this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
+            }
             break
           default:
             throw new Error('Invalid value for "side" in case statement in closeTab(): ' + side)
@@ -1061,11 +1065,10 @@
         const tabId = `tab-${JSON.stringify(jobKey)}`
         this.selectedTabRightSide = tabId
       },
-      cancelJob: function ({jobKey, type}) {
-        logging.sendSuccessNotification('Sent request to cancel the job of ' + type)
+      cancelJob: function (jobKey) {
+        logging.sendSuccessNotification('Sent request to cancel the job of type ' + jobKey.jobType)
         this.restEndpoints.cancelJob({
-          jobKey,
-          type
+          jobKey
         }).then(response => {
           switch (response.data.status) {
             case 'error':
