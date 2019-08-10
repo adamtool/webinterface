@@ -1025,9 +1025,8 @@
             case 'error':
               if (response.data.errorType === 'JOB_ALREADY_QUEUED') {
                 logging.sendErrorNotification(
-                  response.data.message,
-                  'Show job',
-                  () => this.openOrAddTab(response.data.jobKey))
+                  'The requested job has already been queued.  Automatically switching to tab')
+                this.openOrAddTab(response.data.jobKey)
               } else {
                 logging.sendErrorNotification(response.data.message)
               }
