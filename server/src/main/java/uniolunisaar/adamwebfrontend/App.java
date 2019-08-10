@@ -298,11 +298,24 @@ public class App {
 
         // Check if this job has already been requested
         if (userContext.hasJobWithKey(jobKey)) {
-            JsonObject response = errorResponseObject("An identical job has already been queued.  Its status: " +
-                    userContext.getJobFromKey(jobKey).getStatus());
-            response.addProperty("errorType", "JOB_ALREADY_QUEUED");
-            response.add("jobKey", gson.toJsonTree(jobKey));
-            return response;
+            Job existingJob = userContext.getJobFromKey(jobKey);
+            switch (existingJob.getStatus()) {
+                case NOT_STARTED:
+                case QUEUED:
+                case RUNNING:
+                case COMPLETED: {
+                    JsonObject response = errorResponseObject("An identical job has already been queued.  Its status: " +
+                            userContext.getJobFromKey(jobKey).getStatus());
+                    response.addProperty("errorType", "JOB_ALREADY_QUEUED");
+                    response.add("jobKey", gson.toJsonTree(jobKey));
+                    return response;
+                }
+                case FAILED:
+                case CANCELING:
+                case CANCELED:
+                    // Delete the existing job so we can queue it again
+                    userContext.deleteJobWithKey(jobKey);
+            }
         }
 
         // Create the job and queue it up in the user's job queue
@@ -366,7 +379,7 @@ public class App {
             // We don't care if the job is not eligible to be canceled.
             // We just want to cancel it if that's possible.
         }
-        uc.removeJobWithKey(jobKey);
+        uc.deleteJobWithKey(jobKey);
         return successResponse(new JsonPrimitive(true));
     }
 

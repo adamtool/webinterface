@@ -20,7 +20,7 @@ import static uniolunisaar.adamwebfrontend.JobStatus.FAILED;
 public class UserContext {
     // Each user has a queue that will run one job at a time in a single thread
     public final ThreadPoolExecutor executorService;
-    private final UUID uuid; // Stored for debugging purposes
+    private final UUID browserUuid; // Stored for debugging purposes
     private final ThreadGroup threadGroup;
 
     // Each user has their own logging streams
@@ -33,7 +33,7 @@ public class UserContext {
     private final Map<JobKey, Job> jobsByKey = new ConcurrentHashMap<>();
 
     public UserContext(UUID uuid) {
-        this.uuid = uuid;
+        this.browserUuid = uuid;
         this.threadGroup = new ThreadGroup("UserContext " + uuid.toString());
         ThreadFactory threadFactory = (Runnable jobRunnable) -> {
             Thread thread = new Thread(
@@ -51,10 +51,10 @@ public class UserContext {
         // session's ThreadGroup.
         // This only needs to be done once per ThreadGroup.
         // (Logger.getInstance() returns a ThreadGroup-local instance.)
-        this.printStreamVerbose = LogWebSocket.makePrintStream(1, this.uuid);
-        this.printStreamNormal = LogWebSocket.makePrintStream(2, this.uuid);
-        this.printStreamWarning = LogWebSocket.makePrintStream(3, this.uuid);
-        this.printStreamError = LogWebSocket.makePrintStream(4, this.uuid);
+        this.printStreamVerbose = LogWebSocket.makePrintStream(1, this.browserUuid);
+        this.printStreamNormal = LogWebSocket.makePrintStream(2, this.browserUuid);
+        this.printStreamWarning = LogWebSocket.makePrintStream(3, this.browserUuid);
+        this.printStreamError = LogWebSocket.makePrintStream(4, this.browserUuid);
         this.executorService.submit(() -> {
             Logger.getInstance().setVerboseMessageStream(printStreamVerbose);
             Logger.getInstance().setShortMessageStream(printStreamNormal);
@@ -144,8 +144,12 @@ public class UserContext {
         return jobsByKey.get(jobKey);
     }
 
-    public void removeJobWithKey(JobKey jobKey) {
+    public void deleteJobWithKey(JobKey jobKey) {
         jobsByKey.remove(jobKey);
+        JsonObject jobDeletedMessage = new JsonObject();
+        jobDeletedMessage.addProperty("type", "jobDeleted");
+        jobDeletedMessage.add("jobKey", new Gson().toJsonTree(jobKey));
+        LogWebSocket.queueWebsocketMessage(this.browserUuid, jobDeletedMessage);
     }
 
     public Job<BDDGraphExplorer> getGraphGameBDDJob(JobKey jobKey) {

@@ -814,6 +814,13 @@
                 this.closeTabIfOpen(messageParsed.jobListing.jobKey)
               }
               break
+            case 'jobDeleted':
+              // Remove the deleted job from the list of jobListings and close its tab
+              this.jobListings = this.jobListings.filter(listing => {
+                return !isEqual(messageParsed.jobKey, listing.jobKey)
+              })
+              this.closeTabIfOpen(messageParsed.jobKey)
+              break
             case 'ping':
               logging.logVerbose('Got ping from server.  Sending pong')
               this.socket.send(JSON.stringify({
