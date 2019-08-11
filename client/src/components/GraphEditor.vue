@@ -4,6 +4,7 @@
     <!--Physics controls toolbar.  Normally hidden.-->
     <div
       style="position: absolute;
+      bottom: 0px;
       width: 100%;
       padding-right: 20px;
       z-index: 6;
@@ -74,6 +75,7 @@
       background: #ffffffee;
       padding: 12px;
       border-radius: 40px;"
+      :paddingWithinParentElement="this.shouldShowPhysicsControls ? 250 : 200"
       :selectedTool="this.selectedTool"
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
