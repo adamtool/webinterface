@@ -312,9 +312,6 @@ public class App {
                 }
                 case FAILED:
                 case CANCELING:
-                    // TODO consider preventing 'deleting' jobs that are not yet fully canceled,
-                    //  it could be confusing if they are not shown in the list of jobs.
-                    //  Might want to do this in an asynchronous way
                 case CANCELED:
                     // Delete the existing job so we can queue it again
                     userContext.deleteJobWithKey(jobKey);
