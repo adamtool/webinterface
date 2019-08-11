@@ -287,18 +287,6 @@
         nodeTypeToInsert: 'SYSPLACE',
         nodeRadius: 27,
         exportedGraphJson: {},
-        svg: undefined,
-        linkGroup: undefined,
-        linkTextGroup: undefined,
-        nodeGroup: undefined,
-        labelGroup: undefined,
-        contentGroup: undefined,
-        isSpecialElements: undefined,
-        nodeElements: undefined,
-        linkElements: undefined,
-        linkTextElements: undefined,
-        labelElements: undefined,
-        contentElements: undefined,
         lastUserClick: undefined,
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
