@@ -113,6 +113,12 @@
         // type: Object,
         // required: true,
         // validator: tool => tools.includes(tool) && tool.type === 'tool'
+      },
+      // How many pixels should be left, top and bottom, between the edges of the tool picker and
+      // the top/bottom edges of the parent element
+      paddingWithinParentElement: {
+        type: Number,
+        required: true
       }
     },
     data: function () {
@@ -179,7 +185,7 @@
     methods: {
       // Truncate menuItems with an ellipsis in case there are too many to fit on screen
       withResponsiveEllipsis: function (menuItems) {
-        let availableHeight = this.reactiveParentHeight - 200
+        let availableHeight = this.reactiveParentHeight - this.paddingWithinParentElement
         let lastItemIndex = 0
         menuItems.forEach(menuItem => {
           const heightNeeded = heightOfItem(menuItem)
