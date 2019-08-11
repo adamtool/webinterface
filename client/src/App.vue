@@ -1044,6 +1044,14 @@
       checkLtlFormula: function () {
         // this.$refs.menubar.deactivate()
         const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
+        if (formula === '') {
+          // TODO: This is currently kind of a mess with these variables being accessed and written to
+          //  both here and inside of the GraphEditor component.  I think it might make sense to
+          //  put them into a central store... Either here in App, or better, in a VueX store
+          this.$refs.graphEditorPetriGame[0].ltlParseStatus = 'error'
+          this.$refs.graphEditorPetriGame[0].ltlParseErrors = ['Please enter a formula to check.']
+          return
+        }
         this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_RESULT', {
           formula
         })
