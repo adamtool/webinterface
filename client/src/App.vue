@@ -814,6 +814,13 @@
                 this.closeTabIfOpen(messageParsed.jobListing.jobKey)
               }
               break
+            case 'jobDeleted':
+              // Remove the deleted job from the list of jobListings and close its tab
+              this.jobListings = this.jobListings.filter(listing => {
+                return !isEqual(messageParsed.jobKey, listing.jobKey)
+              })
+              this.closeTabIfOpen(messageParsed.jobKey)
+              break
             case 'ping':
               logging.logVerbose('Got ping from server.  Sending pong')
               this.socket.send(JSON.stringify({
@@ -1018,9 +1025,8 @@
             case 'error':
               if (response.data.errorType === 'JOB_ALREADY_QUEUED') {
                 logging.sendErrorNotification(
-                  response.data.message,
-                  'Show job',
-                  () => this.openOrAddTab(response.data.jobKey))
+                  'The requested job has already been queued.  Automatically switching to tab')
+                this.openOrAddTab(response.data.jobKey)
               } else {
                 logging.sendErrorNotification(response.data.message)
               }
