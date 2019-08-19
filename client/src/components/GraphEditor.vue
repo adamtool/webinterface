@@ -1855,11 +1855,13 @@
           .attr('fill', 'none')
           .attr('class', 'visibleLink')
         linkSelection.exit().remove()
-        // Save the selection so the paths' 'd' attributes can be updated each frame of the
-        // physics simulation
-        const linkElements = linkEnter.merge(linkSelection).selectAll('path')
+        // We're passing our data down from the parent 'g' element to two child
+        // 'path' elements,  so each parent datum must be mapped to an array of two child datums
+        // using selection.data
+        this.linkElements = linkEnter.merge(linkSelection).selectAll('path')
+          .data((d) => [d, d])
         // Apply styles to the visible link elements
-        linkElements.filter('.visibleLink')
+        this.linkElements.filter('.visibleLink')
           .attr('stroke-width', link => {
             if (this.drawTransitPreviewLinks.includes(link)) {
               return 6
@@ -1994,8 +1996,7 @@
           // this.updateSelectionBorder()
 
           // Update links to match the nodes' new positions
-          this.linkGroup
-            .selectAll('path')
+          this.linkElements
             .attr('d', d => {
               const unadjustedPathD = pathForLink.call(this, d)
               if (!d.isInhibitorArc) {
