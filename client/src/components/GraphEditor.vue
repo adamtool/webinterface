@@ -1847,7 +1847,7 @@
         const linkEnterInvisiblePath = linkEnter.append('path')
           .attr('fill', 'none')
           .attr('class', 'invisibleLink')
-          .attr('stroke', '#33aacc77')
+          .attr('stroke', '#33aacc00')
           .attr('stroke-width', 20)
           .call(this.applyLinkEventHandler)
         // These are the links you can actually see
