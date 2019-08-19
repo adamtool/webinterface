@@ -1839,15 +1839,29 @@
             throw new Error(`The property transitHue is undefined for the link: ${link}`)
           }
         }
-        const newLinkElements = this.linkGroup
-          .selectAll('path')
+        const linkSelection = this.linkGroup
+          .selectAll('g')
           .data(this.links.concat(this.drawTransitPreviewLinks))
-        const linkEnter = newLinkElements
-          .enter().append('path')
+        const linkEnter = linkSelection.enter().append('g')
+        // These are invisible path elements that serve as big hitboxes for our thin links
+        const linkEnterInvisiblePath = linkEnter.append('path')
           .attr('fill', 'none')
+          .attr('class', 'invisibleLink')
+          .attr('stroke', '#33aacc77')
+          .attr('stroke-width', 20)
           .call(this.applyLinkEventHandler)
-        newLinkElements.exit().remove()
-        this.linkElements = linkEnter.merge(newLinkElements)
+        // These are the links you can actually see
+        const linkEnterVisiblePath = linkEnter.append('path')
+          .attr('fill', 'none')
+          .attr('class', 'visibleLink')
+          .call(this.applyLinkEventHandler)
+        linkSelection.exit().remove()
+        // Save the selection so the paths' 'd' attributes can be updated each frame of the
+        // physics simulation
+        this.linkElements = linkEnter.merge(linkSelection).selectAll('path')
+        // Apply styles to the visible link elements
+        this.linkElements
+          .filter('.visibleLink')
           .attr('stroke-width', link => {
             if (this.drawTransitPreviewLinks.includes(link)) {
               return 6
