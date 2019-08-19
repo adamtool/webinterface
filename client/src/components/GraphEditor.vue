@@ -1854,7 +1854,6 @@
         const linkEnterVisiblePath = linkEnter.append('path')
           .attr('fill', 'none')
           .attr('class', 'visibleLink')
-          .call(this.applyLinkEventHandler)
         linkSelection.exit().remove()
         // Save the selection so the paths' 'd' attributes can be updated each frame of the
         // physics simulation
