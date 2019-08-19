@@ -128,6 +128,9 @@ function pathForLink (d, options) {
   if (options && options.endpoint) {
     targetPoint = options.endpoint
   } else {
+    // Calculate a point on the edge of the given target node
+    // We have to do this so that we can position the arrowhead correctly
+    // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
     switch (d.target.type) {
       case 'ENVPLACE':
       case 'SYSPLACE': {

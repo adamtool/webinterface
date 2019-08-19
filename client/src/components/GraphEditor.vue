@@ -1857,10 +1857,9 @@
         linkSelection.exit().remove()
         // Save the selection so the paths' 'd' attributes can be updated each frame of the
         // physics simulation
-        this.linkElements = linkEnter.merge(linkSelection).selectAll('path')
+        const linkElements = linkEnter.merge(linkSelection).selectAll('path')
         // Apply styles to the visible link elements
-        this.linkElements
-          .filter('.visibleLink')
+        linkElements.filter('.visibleLink')
           .attr('stroke-width', link => {
             if (this.drawTransitPreviewLinks.includes(link)) {
               return 6
@@ -1994,10 +1993,9 @@
           // up the "zoom to fit all nodes" functionality
           // this.updateSelectionBorder()
 
-          // Draw a line from the edge of one node to the edge of another.
-          // We have to do this so that the arrowheads will be correctly aligned for nodes of varying size.
-          // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
-          this.linkElements
+          // Update links to match the nodes' new positions
+          this.linkGroup
+            .selectAll('path')
             .attr('d', d => {
               const unadjustedPathD = pathForLink.call(this, d)
               if (!d.isInhibitorArc) {
@@ -2034,7 +2032,9 @@
 
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
-            .attr('dx', d => d.pathLength / 2)
+            .attr('dx', d => {
+              return d.pathLength / 2
+            })
 
           // Let the simulation know what links it is working with
           this.simulation.force('link').links(this.links)
