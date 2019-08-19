@@ -287,18 +287,6 @@
         nodeTypeToInsert: 'SYSPLACE',
         nodeRadius: 27,
         exportedGraphJson: {},
-        svg: undefined,
-        linkGroup: undefined,
-        linkTextGroup: undefined,
-        nodeGroup: undefined,
-        labelGroup: undefined,
-        contentGroup: undefined,
-        isSpecialElements: undefined,
-        nodeElements: undefined,
-        linkElements: undefined,
-        linkTextElements: undefined,
-        labelElements: undefined,
-        contentElements: undefined,
         lastUserClick: undefined,
         simulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
@@ -1851,15 +1839,29 @@
             throw new Error(`The property transitHue is undefined for the link: ${link}`)
           }
         }
-        const newLinkElements = this.linkGroup
-          .selectAll('path')
+        const linkSelection = this.linkGroup
+          .selectAll('g')
           .data(this.links.concat(this.drawTransitPreviewLinks))
-        const linkEnter = newLinkElements
-          .enter().append('path')
+        const linkEnter = linkSelection.enter().append('g')
+        // These are invisible path elements that serve as big hitboxes for our thin links
+        const linkEnterInvisiblePath = linkEnter.append('path')
           .attr('fill', 'none')
+          .attr('class', 'invisibleLink')
+          .attr('stroke', '#33aacc00')
+          .attr('stroke-width', 20)
           .call(this.applyLinkEventHandler)
-        newLinkElements.exit().remove()
-        this.linkElements = linkEnter.merge(newLinkElements)
+        // These are the links you can actually see
+        const linkEnterVisiblePath = linkEnter.append('path')
+          .attr('fill', 'none')
+          .attr('class', 'visibleLink')
+        linkSelection.exit().remove()
+        // We're passing our data down from the parent 'g' element to two child
+        // 'path' elements,  so each parent datum must be mapped to an array of two child datums
+        // using selection.data
+        this.linkElements = linkEnter.merge(linkSelection).selectAll('path')
+          .data((d) => [d, d])
+        // Apply styles to the visible link elements
+        this.linkElements.filter('.visibleLink')
           .attr('stroke-width', link => {
             if (this.drawTransitPreviewLinks.includes(link)) {
               return 6
@@ -1993,9 +1995,7 @@
           // up the "zoom to fit all nodes" functionality
           // this.updateSelectionBorder()
 
-          // Draw a line from the edge of one node to the edge of another.
-          // We have to do this so that the arrowheads will be correctly aligned for nodes of varying size.
-          // TODO Consider using https://www.npmjs.com/package/svg-intersections for more accurate results
+          // Update links to match the nodes' new positions
           this.linkElements
             .attr('d', d => {
               const unadjustedPathD = pathForLink.call(this, d)
@@ -2033,7 +2033,9 @@
 
           // Position link labels at the center of the links based on the distance calculated above
           this.linkTextElements
-            .attr('dx', d => d.pathLength / 2)
+            .attr('dx', d => {
+              return d.pathLength / 2
+            })
 
           // Let the simulation know what links it is working with
           this.simulation.force('link').links(this.links)
