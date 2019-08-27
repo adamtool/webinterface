@@ -2,4 +2,5 @@ libraryFolder=absolutePathToLib
 aigertools=./aiger-1.9.9/
 mcHyper=./mchypertool/Main
 abcBin=./abc-master/abc
+time=/usr/bin/time
 
