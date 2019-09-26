@@ -1,6 +1,6 @@
 package uniolunisaar.adamwebfrontend;
 
-import uniolunisaar.adam.tools.ProcessPool;
+import uniolunisaar.adam.tools.processHandling.ProcessPool;
 
 import java.time.Instant;
 import java.util.HashSet;
