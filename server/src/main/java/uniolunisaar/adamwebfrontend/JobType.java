@@ -9,6 +9,9 @@ import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
+import uniolunisaar.adam.ds.modelchecking.output.AdamCircuitFlowLTLMCOutputData;
+import uniolunisaar.adam.ds.modelchecking.settings.AdamCircuitFlowLTLMCSettings;
+import uniolunisaar.adam.ds.modelchecking.statistics.AdamCircuitFlowLTLMCStatistics;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
@@ -76,7 +79,14 @@ public enum JobType {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
-                ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL();
+
+                AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
+                AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
+                AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData();
+                settings.setStatistics(statistics);
+                settings.setOutputData(data);
+
+                ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL(settings);
                 ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula, "/tmp/", null);
                 return result;
             }, net.getName());
