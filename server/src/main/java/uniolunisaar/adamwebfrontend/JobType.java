@@ -81,13 +81,15 @@ public enum JobType {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
 
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
+                // TODO display statistics in UI
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
-                AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData();
+                AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
+                        "/tmp", false, false, false);
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
                 ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL(settings);
-                ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula, "/tmp/", null);
+                ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula);
                 return result;
             }, net.getName());
         }
