@@ -563,9 +563,9 @@ public class App {
         Place place = net.getPlace(nodeId);
         boolean isInitialTransit = net.isInitialTransit(place);
         if (isInitialTransit) {
-            net.removeInitialTokenflow(place);
+            net.removeInitialTransit(place);
         } else {
-            net.setInitialTokenflow(place);
+            net.setInitialTransit(place);
         }
 
         JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);

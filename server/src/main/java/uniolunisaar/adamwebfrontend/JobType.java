@@ -102,7 +102,17 @@ public enum JobType {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
-                PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(net, runFormula, false);
+
+                AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
+                // TODO display statistics in UI
+                //   (not sure if there are really interesting ones for just the net, though)
+                AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
+                AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
+                        "/tmp", false, false, false);
+                settings.setStatistics(statistics);
+                settings.setOutputData(data);
+
+                PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(net, runFormula, settings);
                 return modelCheckingNet;
             }, net.getName());
         }
