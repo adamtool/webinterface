@@ -70,7 +70,7 @@
       <template
         v-else-if="listing.jobStatus === 'COMPLETED'
                         && listing.type === 'MODEL_CHECKING_RESULT'">
-        <td :style="`color: ${modelCheckingResultColor(listing.result)}`">
+        <td :style="`color: ${modelCheckingResultColor(listing.result.satisfied)}`">
           {{ modelCheckingResultText(listing.result) }}
         </td>
       </template>
@@ -156,8 +156,8 @@
         // You can add 'MMM Do' to get month and day
       },
       formatJobType,
-      modelCheckingResultColor (result) {
-        switch (result) {
+      modelCheckingResultColor (satisfied) {
+        switch (satisfied) {
           case 'TRUE':
             return 'blue'
           case 'FALSE':
@@ -165,12 +165,12 @@
             return 'red'
           default:
             logging.logError('Missing switch case in JobList.modelCheckingResultColor' +
-              ' for the case "' + result + '".')
+              ' for the case "' + satisfied + '".')
             return 'red'
         }
       },
       modelCheckingResultText (result) {
-        return result
+        return result.satisfied
       }
     }
   }

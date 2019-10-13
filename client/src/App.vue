@@ -353,7 +353,11 @@
             <div v-else-if="tab.type === 'MODEL_CHECKING_RESULT'">
               <h2>Model checking result</h2>
               <div>Formula: {{ tab.jobKey.requestParams.formula }}</div>
-              <div>Result: {{ tab.result }}</div>
+              <div>Result: {{ tab.result.satisfied }}</div>
+              <div
+                v-if="tab.result.counterExample"
+                style="white-space: pre-wrap;"
+              >Counter example: {{ tab.result.counterExample }}</div>
             </div>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
@@ -1047,7 +1051,7 @@
         logging.sendSuccessNotification('Sent a request to get the model checking net')
       },
       checkLtlFormula: function () {
-        // this.$refs.menubar.deactivate()
+        this.$refs.menubar.deactivate()
         const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
