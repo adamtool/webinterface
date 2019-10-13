@@ -1036,8 +1036,13 @@
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
+        const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
+        if (formula === '') {
+          this.setLtlParseError('Please enter a formula to check.')
+          return
+        }
         this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_NET', {
-          formula: this.$refs.graphEditorPetriGame[0].ltlFormula
+          formula
         })
         logging.sendSuccessNotification('Sent a request to get the model checking net')
       },
@@ -1045,17 +1050,27 @@
         // this.$refs.menubar.deactivate()
         const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
         if (formula === '') {
-          // TODO: This is currently kind of a mess with these variables being accessed and written to
-          //  both here and inside of the GraphEditor component.  I think it might make sense to
-          //  put them into a central store... Either here in App, or better, in a VueX store
-          this.$refs.graphEditorPetriGame[0].ltlParseStatus = 'error'
-          this.$refs.graphEditorPetriGame[0].ltlParseErrors = ['Please enter a formula to check.']
+          this.setLtlParseError('Please enter a formula to check.')
           return
         }
         this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_RESULT', {
           formula
         })
         logging.sendSuccessNotification(`Sent a request to check the formula "${formula}"`)
+      },
+      setLtlParseError: function (message) {
+        // TODO: This is currently kind of a mess with these variables being accessed and written to
+        //  both here and inside of the GraphEditor component.  I think it might make sense to
+        //  put them into a central store... Maybe using VueX
+        const graphEditorRef = this.$refs.graphEditorPetriGame[0]
+        graphEditorRef.ltlParseStatus = 'error'
+        // clear error and then set it again in the next tick, so that the 'v-text-field'
+        // component will do its "error" wiggle animation again if you cause another error after it
+        // was already in an error state
+        graphEditorRef.ltlParseErrors = []
+        Vue.nextTick(() => {
+          this.$refs.graphEditorPetriGame[0].ltlParseErrors = [message]
+        })
       },
       calculateExistsWinningStrategy: function () {
         this.queueJob(this.petriGame.uuid, 'EXISTS_WINNING_STRATEGY', {})
