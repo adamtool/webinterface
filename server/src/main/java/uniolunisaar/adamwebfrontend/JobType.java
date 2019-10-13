@@ -8,6 +8,7 @@ import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
+import uniolunisaar.adam.ds.modelchecking.CounterExample;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.modelchecking.output.AdamCircuitFlowLTLMCOutputData;
 import uniolunisaar.adam.ds.modelchecking.settings.AdamCircuitFlowLTLMCSettings;
@@ -68,9 +69,15 @@ public enum JobType {
         }
     }, MODEL_CHECKING_RESULT {
         JsonElement serialize(Object result) {
-            // TODO serialize the counterexample as well if it is present
+            JsonObject resultJson = new JsonObject();
             ModelCheckingResult mcResult = (ModelCheckingResult) result;
-            return new JsonPrimitive(mcResult.getSatisfied().toString());
+            ModelCheckingResult.Satisfied satisfied = mcResult.getSatisfied();
+            resultJson.addProperty("satisfied", satisfied.toString());
+            if (satisfied == ModelCheckingResult.Satisfied.FALSE) {
+                CounterExample counterExample = mcResult.getCex();
+                resultJson.addProperty("counterExample", counterExample.toString());
+            }
+            return resultJson;
         }
 
         Job<ModelCheckingResult> makeJob(
@@ -84,7 +91,7 @@ public enum JobType {
                 // TODO display statistics in UI
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
-                        "/tmp", false, false, false);
+                        "./tmp", false, false, false);
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
@@ -108,7 +115,7 @@ public enum JobType {
                 //   (not sure if there are really interesting ones for just the net, though)
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
-                        "/tmp", false, false, false);
+                        "./tmp", false, false, false);
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
@@ -126,7 +133,7 @@ public enum JobType {
             if (!(petriGame1 instanceof PetriGame)) {
                 throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
             }
-            PetriGame petriGame = (PetriGame)petriGame1;
+            PetriGame petriGame = (PetriGame) petriGame1;
 
             // If there is an invalid condition annotation, we should throw an error right away instead
             // of waiting until the job gets started (which might take a while if there is a
