@@ -1878,14 +1878,13 @@
               return '#E5E5E5'
             }
           })
-          .attr('stroke-dasharray', d => {
-            if (d.isInhibitorArc) {
-              return '20,10'
-            } else {
+          .attr('marker-end', link => {
+            if (link.isInhibitorArc) {
               return ''
+            } else {
+              return 'url(#' + this.arrowheadId + ')'
             }
           })
-          .attr('marker-end', 'url(#' + this.arrowheadId + ')')
           .attr('id', this.generateLinkId)
 
         const newLinkTextElements = this.linkTextGroup
