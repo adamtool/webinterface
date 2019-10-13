@@ -174,7 +174,7 @@ public class LogWebSocket {
             UUID browserUuid = UUID.fromString(browserUuidString);
             sessionUuids.put(session, browserUuid);
         } else if (messageJson.has("type") && messageJson.get("type").getAsString().equals("pong")) {
-            System.out.println("Got pong from client");
+//            System.out.println("Got pong from client");
         } else {
             throw new IllegalArgumentException("Got an unrecognizable message over a websocket.\n" +
                     "Message: " + message + "\nSession: " + session.getRemoteAddress().toString());
