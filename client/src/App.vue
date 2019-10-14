@@ -306,19 +306,36 @@
             <div v-if="tab.type === 'errorMessage'">
               Error: {{ tab.message }}
             </div>
-            <div v-else-if="tab.jobStatus !== 'COMPLETED'">
-              <div v-if="tab.jobStatus === 'FAILED'">
-                Job failed.
-              </div>
-              <div v-else>
-                Job not completed.
-              </div>
-
-              <div>Job type: {{ tab.type }}</div>
-              <div>Job status: {{ tab.jobStatus }}</div>
-              <div v-if="tab.jobStatus !== 'FAILED'">Queue position: {{ tab.queuePosition }}</div>
-              <div v-if="tab.jobStatus === 'FAILED'">Failure reason: {{ tab.failureReason }}</div>
-            </div>
+            <v-card
+              v-else-if="tab.jobStatus !== 'COMPLETED'"
+              :loading="tab.jobStatus === 'RUNNING'"
+            >
+              <!--TODO update to Vuetify 2 to allow using the 'loading' property-->
+              <v-card-title v-if="tab.jobStatus === 'FAILED'">
+                This job failed.
+              </v-card-title>
+              <v-card-title v-else-if="tab.jobStatus === 'RUNNING'">
+                This job is running right now.
+              </v-card-title>
+              <v-card-title v-else-if="tab.jobStatus === 'QUEUED'">
+                This job is currently waiting to be run.
+              </v-card-title>
+              <v-card-title v-else>
+                This job is not yet finished.
+                <!--TODO Cover all jobStatus cases explicitly-->
+                <!--TODO consider moving these v-else-if cases to the top level (v-card)-->
+              </v-card-title>
+              <v-card-text>
+                <div>Job type: {{ tab.type }}</div>
+                <div>Job status: {{ tab.jobStatus }}</div>
+                <div v-if="tab.jobStatus !== 'FAILED'">
+                  Queue position: {{ tab.queuePosition }}
+                </div>
+                <div v-if="tab.jobStatus === 'FAILED'">
+                  Failure reason: {{ tab.failureReason }}
+                </div>
+              </v-card-text>
+            </v-card>
             <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
               <template v-if="tab.result === true">
                 Yes, there is a winning strategy for this net.
@@ -357,7 +374,8 @@
               <div
                 v-if="tab.result.counterExample"
                 style="white-space: pre-wrap;"
-              >Counter example: {{ tab.result.counterExample }}</div>
+              >Counter example: {{ tab.result.counterExample }}
+              </div>
             </div>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
@@ -393,7 +411,7 @@
 
 
 <script>
-  import {fakeTabs} from './testData';
+  import {fakeTabs} from './testData'
   import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
@@ -611,7 +629,7 @@
     },
     computed: {
       tabsRightSide: function () {
-        return fakeTabs;
+        return fakeTabs
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
         function jobKeyToTab (jobListings, jobKey) {
