@@ -393,6 +393,7 @@
 
 
 <script>
+  import {fakeTabs} from './testData';
   import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
@@ -610,6 +611,7 @@
     },
     computed: {
       tabsRightSide: function () {
+        return fakeTabs;
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
         function jobKeyToTab (jobListings, jobKey) {
