@@ -145,7 +145,9 @@
     },
     methods: {
       canBeDisplayedInTab (jobType) {
-        const displayableJobTypes = ['GRAPH_GAME_BDD', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD', 'MODEL_CHECKING_NET']
+        const displayableJobTypes =
+          ['GRAPH_GAME_BDD', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD',
+          'MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT']
         return displayableJobTypes.includes(jobType)
       },
       formatDate (secondsSinceUnixEpoch) {
