@@ -265,6 +265,8 @@
         </v-tab-item>
       </v-tabs>
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide"
+              show-arrows
+              grow
               v-model="selectedTabRightSide">
         <draggable v-model="visibleJobsRightSide" class="v-tabs__container"
                    @start="tabDragStart"
@@ -278,7 +280,7 @@
           <v-tab v-for="(tab, index) in tabsRightSide"
                  :key="`${index}-${tab.uuid}`"
                  :href="`#tab-${tab.uuid}`">
-            {{ formatTabTitle(tab) }}
+            <div style="max-width: 150px; ">{{ formatTabTitle(tab) }}</div>
             <!--Spinny circle for running job with X inside -->
             <div
               v-if="tab.jobStatus === 'RUNNING'"
