@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static junit.framework.TestCase.assertEquals;
+
 public class JobStatisticsTest {
 
     public String loadAptFile(String path) throws IOException {
@@ -28,7 +30,7 @@ public class JobStatisticsTest {
 
     @Test
     public void test() throws IOException, ParseException, InterruptedException, ExecutionException {
-        String aptExample = loadAptFile("apt-examples-mc/accessControl.apt");
+        String aptExample = loadAptFile("somewhatSmallExampleLtl.apt");
         PetriNetWithTransits net = AdamModelChecker.getPetriNetWithTransits(aptExample);
         JsonObject params = new JsonObject();
         params.addProperty("formula", "A(p0 AND p4)");
@@ -40,15 +42,16 @@ public class JobStatisticsTest {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         job.queue(executorService);
         System.out.println("Started model checking test job");
-        while (job.getStatus() != JobStatus.COMPLETED) {
+        while (job.getStatus() == JobStatus.QUEUED || job.getStatus() == JobStatus.RUNNING) {
             Thread.sleep(100);
         }
+        assertEquals(JobStatus.COMPLETED, job.getStatus());
 
         Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics> result =
                 (Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>) job.getResult();
 
         System.out.println("Result: " + result.getFirst().getSatisfied().toString());
-
+        AdamCircuitFlowLTLMCStatistics statistics = result.getSecond();
 
     }
 

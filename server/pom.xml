@@ -62,6 +62,9 @@
                         <goals>
                             <goal>testResources</goal>
                         </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>default-resources</id>
