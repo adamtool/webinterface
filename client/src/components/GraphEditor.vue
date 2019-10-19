@@ -125,65 +125,6 @@
   </div>
 </template>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-  /* inconsolata-regular - latin */
-  @font-face {
-    font-family: 'Inconsolata';
-    font-style: normal;
-    font-weight: 400;
-    src: local('Inconsolata Regular'), local('Inconsolata-Regular'),
-    url('../assets/fonts/inconsolata-v16-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */ url('../assets/fonts/inconsolata-v16-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-  }
-
-  /* inconsolata-700 - latin */
-  @font-face {
-    font-family: 'Inconsolata';
-    font-style: normal;
-    font-weight: 700;
-    src: local('Inconsolata Bold'), local('Inconsolata-Bold'),
-    url('../assets/fonts/inconsolata-v16-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */ url('../assets/fonts/inconsolata-v16-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-  }
-
-
-  .graph-editor {
-    /*TODO Make the graph editor use up exactly as much space as is given to it.*/
-    /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/
-    height: 100%;
-    width: 100%;
-    max-width: 100%;
-    display: relative;
-  }
-
-  .graph {
-    flex-grow: 1;
-    text-align: left;
-  }
-
-  .graph-editor-toolbar {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 5px;
-  }
-
-  .graph-editor-toolbar button,
-  .graph-editor-toolbar input {
-    margin: 5px;
-  }
-
-  .forceStrengthSlider {
-    flex-grow: 0.5;
-  }
-
-  .forceStrengthNumber {
-    width: 80px;
-    padding-left: 10px;
-  }
-</style>
-
 <script>
   import * as d3 from 'd3'
   import {saveFileAs} from '../fileutilities'
@@ -518,7 +459,16 @@
         }
       },
       openContextMenu: function () {
-        return contextMenuFactory(this.contextMenuItems)
+        return (d) => {
+          const contextMenuFun = contextMenuFactory(this.contextMenuItems, {
+            onClose: () => {
+              console.log('closed context menu')
+              this.highlightedDatum = null
+            }
+          })
+          this.highlightedDatum = d
+          contextMenuFun(d)
+        }
       },
       // TODO Consider turning these 'computed functions' into methods.  (I think the result would
       //  be more or less the same.)
@@ -674,6 +624,14 @@
             }
           })
           selection.on('contextmenu', this.onLinkRightClick)
+          selection.on('mouseover', (d) => {
+            d.isHovered = true
+            this.updateD3()
+          })
+          selection.on('mouseout', (d) => {
+            d.isHovered = false
+            this.updateD3()
+          })
         }
       },
       onLinkClick: function () {
@@ -704,6 +662,14 @@
           this.dragDrop(selection)
           selection.on('click', this.onNodeClick)
           selection.on('contextmenu', this.onNodeRightClick)
+          selection.on('mouseover', d => {
+            d.isHovered = true
+            this.updateD3()
+          })
+          selection.on('mouseout', d => {
+            d.isHovered = false
+            this.updateD3()
+          })
         }
       },
       onNodeClick: function () {
@@ -1843,17 +1809,16 @@
           .selectAll('g')
           .data(this.links.concat(this.drawTransitPreviewLinks))
         const linkEnter = linkSelection.enter().append('g')
-        // These are invisible path elements that serve as big hitboxes for our thin links
-        const linkEnterInvisiblePath = linkEnter.append('path')
-          .attr('fill', 'none')
-          .attr('class', 'invisibleLink')
-          .attr('stroke', '#33aacc00')
-          .attr('stroke-width', 20)
-          .call(this.applyLinkEventHandler)
         // These are the links you can actually see
         const linkEnterVisiblePath = linkEnter.append('path')
           .attr('fill', 'none')
           .attr('class', 'visibleLink')
+        // These are invisible path elements that serve as big hitboxes for our thin links
+        const linkEnterInvisiblePath = linkEnter.append('path')
+          .attr('fill', 'none')
+          .attr('stroke', '#33aacc00')
+          .attr('stroke-width', 20)
+          .call(this.applyLinkEventHandler)
         linkSelection.exit().remove()
         // We're passing our data down from the parent 'g' element to two child
         // 'path' elements,  so each parent datum must be mapped to an array of two child datums
@@ -1863,7 +1828,9 @@
         // Apply styles to the visible link elements
         this.linkElements.filter('.visibleLink')
           .attr('stroke-width', link => {
-            if (this.drawTransitPreviewLinks.includes(link)) {
+            if (this.highlightedDatum == link || link.isHovered) {
+              return 5
+            } else if (this.drawTransitPreviewLinks.includes(link)) {
               return 6
             } else {
               return 3
@@ -2177,7 +2144,9 @@
         }
       },
       fillOfNodeElement: function (data) {
-        if (this.selectedNodes.includes(data)) {
+        if (this.highlightedDatum == data || data.isHovered) {
+          return '#00aa00'
+        } else if (this.selectedNodes.includes(data)) {
           return '#007700'
         } else if (this.shouldShowPartitions && data.partition !== -1) {
           return partitionColorForPlace(data)
@@ -2288,3 +2257,62 @@
   }
 
 </script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+
+  /* inconsolata-regular - latin */
+  @font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Inconsolata Regular'), local('Inconsolata-Regular'),
+    url('../assets/fonts/inconsolata-v16-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */ url('../assets/fonts/inconsolata-v16-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  }
+
+  /* inconsolata-700 - latin */
+  @font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Inconsolata Bold'), local('Inconsolata-Bold'),
+    url('../assets/fonts/inconsolata-v16-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */ url('../assets/fonts/inconsolata-v16-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  }
+
+
+  .graph-editor {
+    /*TODO Make the graph editor use up exactly as much space as is given to it.*/
+    /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
+    display: relative;
+  }
+
+  .graph {
+    flex-grow: 1;
+    text-align: left;
+  }
+
+  .graph-editor-toolbar {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px;
+  }
+
+  .graph-editor-toolbar button,
+  .graph-editor-toolbar input {
+    margin: 5px;
+  }
+
+  .forceStrengthSlider {
+    flex-grow: 0.5;
+  }
+
+  .forceStrengthNumber {
+    width: 80px;
+    padding-left: 10px;
+  }
+</style>
