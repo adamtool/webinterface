@@ -459,12 +459,16 @@
         }
       },
       openContextMenu: function () {
-        return contextMenuFactory(this.contextMenuItems, {
-          onClose: () => {
-            console.log('closed context menu')
-            this.highlightedDatum = null
-          }
-        })
+        return (d) => {
+          const contextMenuFun = contextMenuFactory(this.contextMenuItems, {
+            onClose: () => {
+              console.log('closed context menu')
+              this.highlightedDatum = null
+            }
+          })
+          this.highlightedDatum = d
+          contextMenuFun(d)
+        }
       },
       // TODO Consider turning these 'computed functions' into methods.  (I think the result would
       //  be more or less the same.)
@@ -648,7 +652,6 @@
       },
       onLinkRightClick: function () {
         return (d) => {
-          this.highlightedDatum = d
           this.openContextMenu(d)
         }
       },
@@ -659,6 +662,14 @@
           this.dragDrop(selection)
           selection.on('click', this.onNodeClick)
           selection.on('contextmenu', this.onNodeRightClick)
+          selection.on('mouseover', d => {
+            d.isHovered = true
+            this.updateD3()
+          })
+          selection.on('mouseout', d => {
+            d.isHovered = false
+            this.updateD3()
+          })
         }
       },
       onNodeClick: function () {
@@ -2133,7 +2144,9 @@
         }
       },
       fillOfNodeElement: function (data) {
-        if (this.selectedNodes.includes(data)) {
+        if (this.highlightedDatum == data || data.isHovered) {
+          return '#00aa00'
+        } else if (this.selectedNodes.includes(data)) {
           return '#007700'
         } else if (this.shouldShowPartitions && data.partition !== -1) {
           return partitionColorForPlace(data)
