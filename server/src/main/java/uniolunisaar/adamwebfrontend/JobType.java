@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import uniol.apt.adt.pn.PetriNet;
+import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
@@ -70,17 +71,18 @@ public enum JobType {
     }, MODEL_CHECKING_RESULT {
         JsonElement serialize(Object result) {
             JsonObject resultJson = new JsonObject();
-            ModelCheckingResult mcResult = (ModelCheckingResult) result;
-            ModelCheckingResult.Satisfied satisfied = mcResult.getSatisfied();
+            Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics> mcResult =
+                    (Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>) result;
+            ModelCheckingResult.Satisfied satisfied = mcResult.getFirst().getSatisfied();
             resultJson.addProperty("satisfied", satisfied.toString());
             if (satisfied == ModelCheckingResult.Satisfied.FALSE) {
-                CounterExample counterExample = mcResult.getCex();
+                CounterExample counterExample = mcResult.getFirst().getCex();
                 resultJson.addProperty("counterExample", counterExample.toString());
             }
             return resultJson;
         }
 
-        Job<ModelCheckingResult> makeJob(
+        Job<Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>> makeJob(
                 PetriNetWithTransits net,
                 JsonObject params) {
             String formula = params.get("formula").getAsString();
@@ -97,7 +99,7 @@ public enum JobType {
 
                 ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL(settings);
                 ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula);
-                return result;
+                return new Pair<>(result, statistics);
             }, net.getName());
         }
     }, MODEL_CHECKING_NET {
