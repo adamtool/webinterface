@@ -279,17 +279,36 @@
                  :key="`${index}-${tab.uuid}`"
                  :href="`#tab-${tab.uuid}`">
             {{ formatTabTitle(tab) }}
-            <!--Show a spinny circle to indicate job is in the process of being canceled.
-            The tab will be closed after the job is fully canceled.
-            (see websocket message handler 'jobStatusChanged')-->
+            <!--Spinny circle for running job with X inside -->
+            <div
+              v-if="tab.jobStatus === 'RUNNING'"
+            >
+              <v-progress-circular
+                indeterminate
+                color="blue darken-2"
+                :size="26"
+                :width="2"
+              >
+                <v-icon
+                  small
+                  style="position: absolute; transform: translate(-50%, -50%);"
+                  @click="closeTab(tab, 'right')">
+                  close
+                </v-icon>
+              </v-progress-circular>
+            </div>
+            <!--Spinny circle for a job that is being canceled-->
             <v-progress-circular
-              v-if="tab.jobStatus === 'CANCELING'"
+              v-else-if="tab.jobStatus === 'CANCELING'"
               indeterminate
+              color="deep-orange"
+              :size="26"
+              :width="3"
             />
             <!--Show an X to close the tab/cancel the running job-->
             <v-icon
               v-else-if="tab.isCloseable"
-              standard right
+              small right
               @click="closeTab(tab, 'right')">
               close
             </v-icon>
@@ -308,14 +327,12 @@
             </div>
             <v-card
               v-else-if="tab.jobStatus !== 'COMPLETED'"
-              :loading="tab.jobStatus === 'RUNNING'"
             >
-              <!--TODO update to Vuetify 2 to allow using the 'loading' property-->
               <v-card-title v-if="tab.jobStatus === 'FAILED'">
                 This job failed.
               </v-card-title>
               <v-card-title v-else-if="tab.jobStatus === 'RUNNING'">
-                This job is running right now.
+                This job is running.
               </v-card-title>
               <v-card-title v-else-if="tab.jobStatus === 'QUEUED'">
                 This job is currently waiting to be run.
@@ -1650,5 +1667,13 @@
 
   .v-card__title {
     font-size: 18px;
+  }
+
+  .hover-to-show-parent .hover-to-show-descendant {
+    display: none;
+  }
+
+  .hover-to-show-parent:hover .hover-to-show-descendant {
+    display: block;
   }
 </style>
