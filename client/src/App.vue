@@ -346,7 +346,9 @@
                 <!--TODO consider moving these v-else-if cases to the top level (v-card)-->
               </v-card-title>
 
-              <v-card-text>
+              <v-card-text
+                class="job-tab-card-text"
+              >
                 <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
                   <div>Checking the following LTL formula: {{ tab.jobKey.requestParams.formula }}
                   </div>
@@ -372,7 +374,7 @@
                   small
                   color="red lighten-2"
                   @click="cancelJob(tab.jobKey)"
-                  >
+                >
                   Cancel Job
                 </v-btn>
               </v-card-actions>
@@ -409,14 +411,33 @@
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
             <div v-else-if="tab.type === 'MODEL_CHECKING_RESULT'">
-              <h2>Model checking result</h2>
-              <div>Formula: {{ tab.jobKey.requestParams.formula }}</div>
-              <div>Result: {{ tab.result.satisfied }}</div>
-              <div
-                v-if="tab.result.counterExample"
-                style="white-space: pre-wrap;"
-              >Counter example: {{ tab.result.counterExample }}
-              </div>
+              <v-card>
+                <v-card-title>Model checking result</v-card-title>
+                <v-card-text class="job-tab-card-text">
+                  <div>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></div>
+                  <div>Result:
+                    <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
+                      <strong>{{ tab.result.satisfied }}</strong>
+                    </span>
+                  </div>
+                  <!--@formatter:off-->
+                  <div
+                    v-if="tab.result.counterExample"
+                  >Counter example:
+                    <div class="counter-example">{{ tab.result.counterExample }}</div>
+                  </div>
+                  <!--@formatter:on-->
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                    small
+                    color="blue lighten-3"
+                    @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                  >
+                    View Petri Game
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
             </div>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
@@ -493,7 +514,7 @@
   import {format} from 'date-fns'
 
   import draggable from 'vuedraggable'
-  import {formatJobType} from './jobType'
+  import {formatJobType, modelCheckingResultColor} from './jobType'
 
   const uuidv4 = require('uuid/v4')
 
@@ -798,6 +819,7 @@
       }
     },
     methods: {
+      modelCheckingResultColor,
       formatTabTitle: function (tab) {
         if (tab.type === 'errorMessage') {
           return 'Error'
@@ -1693,11 +1715,16 @@
     font-size: 18px;
   }
 
-  .hover-to-show-parent .hover-to-show-descendant {
-    display: none;
+  .counter-example {
+    white-space: pre-wrap;
   }
 
-  .hover-to-show-parent:hover .hover-to-show-descendant {
-    display: block;
+  .counter-example::first-line {
+    font-weight: bold;
   }
+
+  .job-tab-card-text div + div {
+    margin-top: 5px;
+  }
+
 </style>
