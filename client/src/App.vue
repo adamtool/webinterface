@@ -351,14 +351,15 @@
                 class="job-tab-card-text"
               >
                 <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
-                  <div>Checking the following LTL formula: {{ tab.jobKey.requestParams.formula }}
+                  <div>Checking the following LTL formula:
+                    <strong>{{ tab.jobKey.requestParams.formula }}</strong>
                   </div>
                 </div>
                 <div v-if="tab.jobStatus === 'QUEUED'">
-                  Queue position: {{ tab.queuePosition }}
+                  Queue position: <strong>{{ tab.queuePosition }}</strong>
                 </div>
                 <div v-if="tab.jobStatus === 'FAILED'">
-                  Failure reason: {{ tab.failureReason }}
+                  Failure reason: <strong>{{ tab.failureReason }}</strong>
                 </div>
               </v-card-text>
 
