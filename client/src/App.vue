@@ -664,10 +664,6 @@
       }
     },
     watch: {
-      tabsRightSide: function () {
-        console.log('Watcher tabsRightSide:')
-        console.log(this.tabsRightSide)
-      },
       // When the browser UUID is changed, we should reload the list of jobs and tell the server
       // we want to subscribe to notifications corresponding to our new UUIUD
       browserUuid: function () {
