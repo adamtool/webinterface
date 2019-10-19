@@ -338,7 +338,7 @@
                 This job is currently waiting to be run.
               </v-card-title>
               <v-card-title v-else-if="tab.jobStatus === 'CANCELING'">
-                This job is in the process of being canceled.
+                This job is being canceled.
               </v-card-title>
               <v-card-title v-else>
                 This job is not yet finished.
