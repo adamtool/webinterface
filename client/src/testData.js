@@ -38,6 +38,42 @@ const fakeTabs = [
   {
     'type': 'MODEL_CHECKING_RESULT',
     'jobKey': {
+      'canonicalApt': '.name "Simple' +
+        ' Example"\n.description "a very small APT example to reduce CPU load during' +
+        ' development and show all the different ways that nodes in a graph can look"\n.type LPN\n.options\ncondition="LTL"\n\n.places\nE1[itfl="true", yCoord=632.88, bad="true", xCoord=349.64]\nE2[itfl="true", yCoord=641.01, xCoord=705.01]\np0[yCoord=347.47, xCoord=513.28, bad="true"]\np1[yCoord=399.06, xCoord=706.54]\np2[itfl="true", yCoord=396.93, xCoord=359.28, bad="true", env="true"]\np3[itfl="true", yCoord=713.19, xCoord=483.51, env="true"]\np4[bad="true", env="true"]\np5[env="true"]\n\n.transitions\nt1[label="t1", yCoord=517.96, xCoord=535.35, tfl="p0 -> {p1},p2 -> {p3},E1 -> {E2}"]\n\n.flows\nt1: {1*E1, 1*p0, 1*p2, 1*p4} -> {1*p5, 1*p1, 1*p3, 1*E2}\n\n.initial_marking {1*E1, 99*E2, 1*p2, 1*p3}',
+      'requestParams': {'formula': 'p0'},
+      'jobType': 'MODEL_CHECKING_RESULT'
+    },
+    'jobStatus': 'QUEUED',
+    'timeStarted': 1571051660,
+    'timeFinished': 0,
+    'queuePosition': 1,
+    'name': 'MODEL_CHECKING_RESULT',
+    'uuid': '{"canonicalApt":".name \\"Simple Example\\"\\n.description \\"a very small APT' +
+      ' example to reduce CPU load during development and show all the different ways that nodes in a graph can look\\"\\n.type LPN\\n.options\\ncondition=\\"LTL\\"\\n\\n.places\\nE1[itfl=\\"true\\", yCoord=632.88, bad=\\"true\\", xCoord=349.64]\\nE2[itfl=\\"true\\", yCoord=641.01, xCoord=705.01]\\np0[yCoord=347.47, xCoord=513.28, bad=\\"true\\"]\\np1[yCoord=399.06, xCoord=706.54]\\np2[itfl=\\"true\\", yCoord=396.93, xCoord=359.28, bad=\\"true\\", env=\\"true\\"]\\np3[itfl=\\"true\\", yCoord=713.19, xCoord=483.51, env=\\"true\\"]\\np4[bad=\\"true\\", env=\\"true\\"]\\np5[env=\\"true\\"]\\n\\n.transitions\\nt1[label=\\"t1\\", yCoord=517.96, xCoord=535.35, tfl=\\"p0 -> {p1},p2 -> {p3},E1 -> {E2}\\"]\\n\\n.flows\\nt1: {1*E1, 1*p0, 1*p2, 1*p4} -> {1*p5, 1*p1, 1*p3, 1*E2}\\n\\n.initial_marking {1*E1, 99*E2, 1*p2, 1*p3}","requestParams":{"formula":"p0"},"jobType":"MODEL_CHECKING_RESULT"}',
+    'isCloseable': true
+  },
+  {
+    'type': 'MODEL_CHECKING_RESULT',
+    'jobKey': {
+      'canonicalApt': '.name "Simple' +
+        ' Example"\n.description "aaaaa very small APT example to reduce CPU load during' +
+        ' development and show all the different ways that nodes in a graph can look"\n.type LPN\n.options\ncondition="LTL"\n\n.places\nE1[itfl="true", yCoord=632.88, bad="true", xCoord=349.64]\nE2[itfl="true", yCoord=641.01, xCoord=705.01]\np0[yCoord=347.47, xCoord=513.28, bad="true"]\np1[yCoord=399.06, xCoord=706.54]\np2[itfl="true", yCoord=396.93, xCoord=359.28, bad="true", env="true"]\np3[itfl="true", yCoord=713.19, xCoord=483.51, env="true"]\np4[bad="true", env="true"]\np5[env="true"]\n\n.transitions\nt1[label="t1", yCoord=517.96, xCoord=535.35, tfl="p0 -> {p1},p2 -> {p3},E1 -> {E2}"]\n\n.flows\nt1: {1*E1, 1*p0, 1*p2, 1*p4} -> {1*p5, 1*p1, 1*p3, 1*E2}\n\n.initial_marking {1*E1, 99*E2, 1*p2, 1*p3}',
+      'requestParams': {'formula': 'p0'},
+      'jobType': 'MODEL_CHECKING_RESULT'
+    },
+    'jobStatus': 'CANCELING',
+    'timeStarted': 1571051660,
+    'timeFinished': 0,
+    'queuePosition': 1,
+    'name': 'MODEL_CHECKING_RESULT',
+    'uuid': '{"canonicalApt":".name \\"Simple Example\\"\\n.description \\"aaaaa very small APT' +
+      ' example to reduce CPU load during development and show all the different ways that nodes in a graph can look\\"\\n.type LPN\\n.options\\ncondition=\\"LTL\\"\\n\\n.places\\nE1[itfl=\\"true\\", yCoord=632.88, bad=\\"true\\", xCoord=349.64]\\nE2[itfl=\\"true\\", yCoord=641.01, xCoord=705.01]\\np0[yCoord=347.47, xCoord=513.28, bad=\\"true\\"]\\np1[yCoord=399.06, xCoord=706.54]\\np2[itfl=\\"true\\", yCoord=396.93, xCoord=359.28, bad=\\"true\\", env=\\"true\\"]\\np3[itfl=\\"true\\", yCoord=713.19, xCoord=483.51, env=\\"true\\"]\\np4[bad=\\"true\\", env=\\"true\\"]\\np5[env=\\"true\\"]\\n\\n.transitions\\nt1[label=\\"t1\\", yCoord=517.96, xCoord=535.35, tfl=\\"p0 -> {p1},p2 -> {p3},E1 -> {E2}\\"]\\n\\n.flows\\nt1: {1*E1, 1*p0, 1*p2, 1*p4} -> {1*p5, 1*p1, 1*p3, 1*E2}\\n\\n.initial_marking {1*E1, 99*E2, 1*p2, 1*p3}","requestParams":{"formula":"p0"},"jobType":"MODEL_CHECKING_RESULT"}',
+    'isCloseable': true
+  },
+  {
+    'type': 'MODEL_CHECKING_RESULT',
+    'jobKey': {
       'canonicalApt': '.name "Simple Example"\n.description "A very small APT example to reduce CPU load during development and show all the different ways that nodes in a graph can look"\n.type LPN\n.options\ncondition="LTL"\n\n.places\nE1[itfl="true", yCoord=632.88, bad="true", xCoord=349.64]\nE2[itfl="true", yCoord=641.01, xCoord=705.01]\np0[yCoord=347.47, xCoord=513.28, bad="true"]\np1[yCoord=399.06, xCoord=706.54]\np2[itfl="true", yCoord=396.93, xCoord=359.28, bad="true", env="true"]\np3[itfl="true", yCoord=713.19, xCoord=483.51, env="true"]\np4[bad="true", env="true"]\np5[env="true"]\n\n.transitions\nt1[label="t1", yCoord=517.96, xCoord=535.35, tfl="p0 -> {p1},p2 -> {p3},E1 -> {E2}"]\n\n.flows\nt1: {1*E1, 1*p0, 1*p2, 1*p4} -> {1*p5, 1*p1, 1*p3, 1*E2}\n\n.initial_marking {1*E1, 99*E2, 1*p2, 1*p3}',
       'requestParams': {'formula': 'p5'},
       'jobType': 'MODEL_CHECKING_RESULT'
