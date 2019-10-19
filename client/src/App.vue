@@ -266,7 +266,6 @@
       </v-tabs>
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide"
               show-arrows
-              grow
               v-model="selectedTabRightSide">
         <draggable v-model="visibleJobsRightSide" class="v-tabs__container"
                    @start="tabDragStart"
