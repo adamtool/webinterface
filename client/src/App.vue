@@ -367,6 +367,14 @@
                 >
                   View Petri Game
                 </v-btn>
+                <v-btn
+                  v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
+                  small
+                  color="red lighten-2"
+                  @click="cancelJob(tab.jobKey)"
+                  >
+                  Cancel Job
+                </v-btn>
               </v-card-actions>
             </v-card>
             <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
