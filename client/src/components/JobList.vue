@@ -108,7 +108,7 @@
 <script>
   import { format } from 'date-fns'
   import logging from '../logging'
-  import { formatJobType } from '../jobType'
+  import { formatJobType, modelCheckingResultColor } from '../jobType'
 
   export default {
     name: 'JobList',
@@ -145,7 +145,9 @@
     },
     methods: {
       canBeDisplayedInTab (jobType) {
-        const displayableJobTypes = ['GRAPH_GAME_BDD', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD', 'MODEL_CHECKING_NET']
+        const displayableJobTypes =
+          ['GRAPH_GAME_BDD', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD',
+          'MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT']
         return displayableJobTypes.includes(jobType)
       },
       formatDate (secondsSinceUnixEpoch) {
@@ -156,19 +158,7 @@
         // You can add 'MMM Do' to get month and day
       },
       formatJobType,
-      modelCheckingResultColor (satisfied) {
-        switch (satisfied) {
-          case 'TRUE':
-            return 'blue'
-          case 'FALSE':
-          case 'UNKNOWN':
-            return 'red'
-          default:
-            logging.logError('Missing switch case in JobList.modelCheckingResultColor' +
-              ' for the case "' + satisfied + '".')
-            return 'red'
-        }
-      },
+      modelCheckingResultColor,
       modelCheckingResultText (result) {
         return result.satisfied
       }

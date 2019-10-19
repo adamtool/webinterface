@@ -1,4 +1,4 @@
-export {formatJobType}
+export {formatJobType, modelCheckingResultColor}
 
 function formatJobType (jobType) {
   switch (jobType) {
@@ -16,5 +16,19 @@ function formatJobType (jobType) {
       return 'Model Checking Net'
     default:
       return jobType
+  }
+}
+
+function modelCheckingResultColor (satisfied) {
+  switch (satisfied) {
+    case 'TRUE':
+      return 'blue'
+    case 'FALSE':
+    case 'UNKNOWN':
+      return 'red'
+    default:
+      logging.logError('Missing switch case in JobList.modelCheckingResultColor' +
+        ' for the case "' + satisfied + '".')
+      return 'red'
   }
 }

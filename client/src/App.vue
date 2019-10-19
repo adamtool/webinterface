@@ -265,6 +265,7 @@
         </v-tab-item>
       </v-tabs>
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide"
+              show-arrows
               v-model="selectedTabRightSide">
         <draggable v-model="visibleJobsRightSide" class="v-tabs__container"
                    @start="tabDragStart"
@@ -278,18 +279,37 @@
           <v-tab v-for="(tab, index) in tabsRightSide"
                  :key="`${index}-${tab.uuid}`"
                  :href="`#tab-${tab.uuid}`">
-            {{ formatTabTitle(tab) }}
-            <!--Show a spinny circle to indicate job is in the process of being canceled.
-            The tab will be closed after the job is fully canceled.
-            (see websocket message handler 'jobStatusChanged')-->
+            <div style="max-width: 150px; ">{{ formatTabTitle(tab) }}</div>
+            <!--Spinny circle for running job with X inside -->
+            <div
+              v-if="tab.jobStatus === 'RUNNING'"
+            >
+              <v-progress-circular
+                indeterminate
+                color="blue darken-2"
+                :size="26"
+                :width="2"
+              >
+                <v-icon
+                  small
+                  style="position: absolute; transform: translate(-50%, -50%);"
+                  @click="closeTab(tab, 'right')">
+                  close
+                </v-icon>
+              </v-progress-circular>
+            </div>
+            <!--Spinny circle for a job that is being canceled-->
             <v-progress-circular
-              v-if="tab.jobStatus === 'CANCELING'"
+              v-else-if="tab.jobStatus === 'CANCELING'"
               indeterminate
+              color="deep-orange"
+              :size="26"
+              :width="3"
             />
             <!--Show an X to close the tab/cancel the running job-->
             <v-icon
               v-else-if="tab.isCloseable"
-              standard right
+              small right
               @click="closeTab(tab, 'right')">
               close
             </v-icon>
@@ -306,19 +326,60 @@
             <div v-if="tab.type === 'errorMessage'">
               Error: {{ tab.message }}
             </div>
-            <div v-else-if="tab.jobStatus !== 'COMPLETED'">
-              <div v-if="tab.jobStatus === 'FAILED'">
-                Job failed.
-              </div>
-              <div v-else>
-                Job not completed.
-              </div>
+            <v-card
+              v-else-if="tab.jobStatus !== 'COMPLETED'"
+            >
+              <v-card-title v-if="tab.jobStatus === 'FAILED'">
+                This job failed.
+              </v-card-title>
+              <v-card-title v-else-if="tab.jobStatus === 'RUNNING'">
+                This job is running.
+              </v-card-title>
+              <v-card-title v-else-if="tab.jobStatus === 'QUEUED'">
+                This job is currently waiting to be run.
+              </v-card-title>
+              <v-card-title v-else-if="tab.jobStatus === 'CANCELING'">
+                This job is being canceled.
+              </v-card-title>
+              <v-card-title v-else>
+                This job is not yet finished.
+                <!--TODO Cover all jobStatus cases explicitly-->
+                <!--TODO consider moving these v-else-if cases to the top level (v-card)-->
+              </v-card-title>
 
-              <div>Job type: {{ tab.type }}</div>
-              <div>Job status: {{ tab.jobStatus }}</div>
-              <div v-if="tab.jobStatus !== 'FAILED'">Queue position: {{ tab.queuePosition }}</div>
-              <div v-if="tab.jobStatus === 'FAILED'">Failure reason: {{ tab.failureReason }}</div>
-            </div>
+              <v-card-text
+                class="job-tab-card-text"
+              >
+                <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
+                  <div>Checking the following LTL formula: {{ tab.jobKey.requestParams.formula }}
+                  </div>
+                </div>
+                <div v-if="tab.jobStatus === 'QUEUED'">
+                  Queue position: {{ tab.queuePosition }}
+                </div>
+                <div v-if="tab.jobStatus === 'FAILED'">
+                  Failure reason: {{ tab.failureReason }}
+                </div>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-btn
+                  small
+                  color="blue lighten-3"
+                  @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                >
+                  View Petri Game
+                </v-btn>
+                <v-btn
+                  v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
+                  small
+                  color="red lighten-2"
+                  @click="cancelJob(tab.jobKey)"
+                >
+                  Cancel Job
+                </v-btn>
+              </v-card-actions>
+            </v-card>
             <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
               <template v-if="tab.result === true">
                 Yes, there is a winning strategy for this net.
@@ -351,13 +412,33 @@
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
             <div v-else-if="tab.type === 'MODEL_CHECKING_RESULT'">
-              <h2>Model checking result</h2>
-              <div>Formula: {{ tab.jobKey.requestParams.formula }}</div>
-              <div>Result: {{ tab.result.satisfied }}</div>
-              <div
-                v-if="tab.result.counterExample"
-                style="white-space: pre-wrap;"
-              >Counter example: {{ tab.result.counterExample }}</div>
+              <v-card>
+                <v-card-title>Model checking result</v-card-title>
+                <v-card-text class="job-tab-card-text">
+                  <div>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></div>
+                  <div>Result:
+                    <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
+                      <strong>{{ tab.result.satisfied }}</strong>
+                    </span>
+                  </div>
+                  <!--@formatter:off-->
+                  <div
+                    v-if="tab.result.counterExample"
+                  >Counter example:
+                    <div class="counter-example">{{ tab.result.counterExample }}</div>
+                  </div>
+                  <!--@formatter:on-->
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                    small
+                    color="blue lighten-3"
+                    @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                  >
+                    View Petri Game
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
             </div>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
@@ -393,6 +474,7 @@
 
 
 <script>
+  import {fakeTabs} from './testData'
   import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import AboutAdamWeb from './components/AboutAdamWeb'
@@ -433,7 +515,7 @@
   import {format} from 'date-fns'
 
   import draggable from 'vuedraggable'
-  import {formatJobType} from './jobType'
+  import {formatJobType, modelCheckingResultColor} from './jobType'
 
   const uuidv4 = require('uuid/v4')
 
@@ -581,10 +663,6 @@
       }
     },
     watch: {
-      tabsRightSide: function () {
-        console.log('Watcher tabsRightSide:')
-        console.log(this.tabsRightSide)
-      },
       // When the browser UUID is changed, we should reload the list of jobs and tell the server
       // we want to subscribe to notifications corresponding to our new UUIUD
       browserUuid: function () {
@@ -737,6 +815,7 @@
       }
     },
     methods: {
+      modelCheckingResultColor,
       formatTabTitle: function (tab) {
         if (tab.type === 'errorMessage') {
           return 'Error'
@@ -1631,4 +1710,17 @@
   .v-card__title {
     font-size: 18px;
   }
+
+  .counter-example {
+    white-space: pre-wrap;
+  }
+
+  .counter-example::first-line {
+    font-weight: bold;
+  }
+
+  .job-tab-card-text div + div {
+    margin-top: 5px;
+  }
+
 </style>
