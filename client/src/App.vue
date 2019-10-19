@@ -345,16 +345,29 @@
                 <!--TODO Cover all jobStatus cases explicitly-->
                 <!--TODO consider moving these v-else-if cases to the top level (v-card)-->
               </v-card-title>
+
               <v-card-text>
-                <div>Job type: {{ tab.type }}</div>
-                <div>Job status: {{ tab.jobStatus }}</div>
-                <div v-if="tab.jobStatus !== 'FAILED'">
+                <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
+                  <div>Checking the following LTL formula: {{ tab.jobKey.requestParams.formula }}
+                  </div>
+                </div>
+                <div v-if="tab.jobStatus === 'QUEUED'">
                   Queue position: {{ tab.queuePosition }}
                 </div>
                 <div v-if="tab.jobStatus === 'FAILED'">
                   Failure reason: {{ tab.failureReason }}
                 </div>
               </v-card-text>
+
+              <v-card-actions>
+                <v-btn
+                  small
+                  color="blue lighten-3"
+                  @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                >
+                  View Petri Game
+                </v-btn>
+              </v-card-actions>
             </v-card>
             <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
               <template v-if="tab.result === true">
