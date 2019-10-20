@@ -418,49 +418,74 @@
                   Model checking result
                 </v-card-title>
                 <v-card-text class="job-tab-card-text">
-                  <v-expansion-panel
-                    expandable
+                  <v-list
                   >
-                    <v-expansion-panel-content
-                      v-if="tab.result.statistics"
+                    <v-list-tile
+                      class="list-tile-stretchy"
                     >
-                      <template v-slot:header>
-                        <div>Statistics</div>
+                      <v-list-tile-content>
+                        <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
+                      </v-list-tile-content>
+                    </v-list-tile>
+
+                    <v-list-tile
+                      class="list-tile-stretchy"
+                    >
+                      <v-list-tile-content>
+                        <span>Result:
+                          <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
+                            <strong>{{ tab.result.satisfied }}</strong>
+                          </span>
+                        </span>
+                      </v-list-tile-content>
+                    </v-list-tile>
+
+                    <!--Expandable counterexample-->
+                    <v-list-group
+                      v-if="tab.result.counterExample"
+                    >
+                      <template v-slot:activator>
+                        <v-list-tile>
+                          <v-list-tile-content>
+                            <v-list-tile-title>Counter example</v-list-tile-title>
+                          </v-list-tile-content>
+                        </v-list-tile>
                       </template>
-                      <v-card>
-                        <v-card-text>
+                      <v-list-tile
+                        class="list-tile-stretchy"
+                      >
+                        <v-list-tile-content>
+                          <div class="counter-example">{{ tab.result.counterExample }}</div>
+                        </v-list-tile-content>
+                      </v-list-tile>
+                    </v-list-group>
+
+                    <!--Expandable statistics panel-->
+                    <v-list-group>
+                      <template v-slot:activator>
+                        <v-list-tile>
+                          <v-list-tile-content>
+                            <v-list-tile-title>Statistics</v-list-tile-title>
+                          </v-list-tile-content>
+                        </v-list-tile>
+                      </template>
+
+                      <v-list-tile
+                        class="list-tile-stretchy"
+                      >
+                        <v-list-tile-content>
                           <ul>
-                            <li v-for="(stat, statName) in tab.result.statistics">
+                            <li
+                              v-for="(stat, statName) in tab.result.statistics"
+                              :key="statName"
+                            >
                               {{ statName }}: <strong>{{ stat }}</strong>
                             </li>
                           </ul>
-                        </v-card-text>
-                      </v-card>
-                    </v-expansion-panel-content>
-                    <v-expansion-panel-content>
-                      <template v-slot:header>
-                        <div>Formula</div>
-                      </template>
-                      <v-card>
-                        <v-card-text>
-                          <strong>{{ tab.jobKey.requestParams.formula }}</strong>
-                        </v-card-text>
-                      </v-card>
-                    </v-expansion-panel-content>
-                  </v-expansion-panel>
-
-                  <div>Result:
-                    <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
-                      <strong>{{ tab.result.satisfied }}</strong>
-                    </span>
-                  </div>
-                  <!--@formatter:off-->
-                  <div
-                    v-if="tab.result.counterExample"
-                  >Counter example:
-                    <div class="counter-example">{{ tab.result.counterExample }}</div>
-                  </div>
-                  <!--@formatter:on-->
+                        </v-list-tile-content>
+                      </v-list-tile>
+                    </v-list-group>
+                  </v-list>
                 </v-card-text>
                 <v-card-actions>
                   <v-btn
@@ -1755,13 +1780,18 @@
   .job-tab-card-text {
     padding-top: 8px;
   }
+
   .job-tab-card-title {
     padding-bottom: 8px;
   }
 
-
   .job-tab-card-text div + div {
     margin-top: 5px;
+  }
+
+  .list-tile-stretchy > * {
+    height: auto;
+    min-height: 32px;
   }
 
 </style>
