@@ -727,7 +727,6 @@
     },
     computed: {
       tabsRightSide: function () {
-        return fakeTabs
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
         function jobKeyToTab (jobListings, jobKey) {
