@@ -327,24 +327,12 @@
               Error: {{ tab.message }}
             </div>
             <v-card
+              class="job-tab-card"
               v-else-if="tab.jobStatus !== 'COMPLETED'"
             >
-              <v-card-title v-if="tab.jobStatus === 'FAILED'">
-                This job failed.
-              </v-card-title>
-              <v-card-title v-else-if="tab.jobStatus === 'RUNNING'">
-                This job is running.
-              </v-card-title>
-              <v-card-title v-else-if="tab.jobStatus === 'QUEUED'">
-                This job is currently waiting to be run.
-              </v-card-title>
-              <v-card-title v-else-if="tab.jobStatus === 'CANCELING'">
-                This job is being canceled.
-              </v-card-title>
-              <v-card-title v-else>
-                This job is not yet finished.
-                <!--TODO Cover all jobStatus cases explicitly-->
-                <!--TODO consider moving these v-else-if cases to the top level (v-card)-->
+              <v-card-title
+                class="job-tab-card-title">
+                {{ textForJobStatusInTab(tab.jobStatus) }}
               </v-card-title>
 
               <v-card-text
@@ -365,7 +353,6 @@
 
               <v-card-actions>
                 <v-btn
-                  small
                   color="blue lighten-3"
                   @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
                 >
@@ -373,7 +360,6 @@
                 </v-btn>
                 <v-btn
                   v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
-                  small
                   color="red lighten-2"
                   @click="cancelJob(tab.jobKey)"
                 >
@@ -462,7 +448,9 @@
                   </v-list-group>
 
                   <!--Expandable statistics panel-->
-                  <v-list-group>
+                  <v-list-group
+                    v-if="tab.result.statistics"
+                  >
                     <template v-slot:activator>
                       <v-list-tile>
                         <v-list-tile-content>
@@ -489,7 +477,6 @@
                 </v-list>
               </v-card-text>
               <v-btn
-                small
                 color="blue lighten-3"
                 @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
               >
@@ -744,6 +731,7 @@
     },
     computed: {
       tabsRightSide: function () {
+        return fakeTabs
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
         function jobKeyToTab (jobListings, jobKey) {
@@ -871,6 +859,18 @@
       }
     },
     methods: {
+      textForJobStatusInTab: function (jobStatus) {
+        switch (jobStatus) {
+          case 'NOT_STARTED': return 'This job has not yet been queued to be run.'
+          case 'FAILED': return 'This job failed.'
+          case 'RUNNING': return 'This job is running.'
+          case 'QUEUED': return 'This job is currently waiting to be run.'
+          case 'CANCELING': return 'This job is being canceled.'
+          case 'CANCELED': return 'This job has been canceled.'
+          case 'COMPLETED': return 'This job is finished.'
+
+        }
+      },
       modelCheckingResultColor,
       formatTabTitle: function (tab) {
         if (tab.type === 'errorMessage') {
