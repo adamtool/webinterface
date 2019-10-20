@@ -419,9 +419,10 @@
                 <v-list
                   class="left-padding-0-descendants elevation-2 accordion-list"
                 >
-                  <!--Expandable counterexample-->
+                  <!--Expandable counterexample.  It should be open by default-->
                   <v-list-group
                     v-if="tab.result.counterExample"
+                    :value="true"
                   >
                     <template v-slot:activator>
                       <v-list-tile
