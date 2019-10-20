@@ -1610,6 +1610,10 @@
 </script>
 
 <style>
+  html {
+    overflow-y: auto;
+  }
+
   @font-face {
     font-family: 'Material Icons';
     font-style: normal;
