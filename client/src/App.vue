@@ -417,7 +417,7 @@
                 </div>
 
                 <v-list
-                  class="left-padding-0-all"
+                  class="left-padding-0-descendants elevation-2 accordion-list"
                 >
                   <!--Expandable counterexample-->
                   <v-list-group
@@ -470,12 +470,14 @@
                   </v-list-group>
                 </v-list>
               </v-card-text>
-              <v-btn
-                color="blue lighten-3"
-                @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
-              >
-                View Petri Game
-              </v-btn>
+              <v-card-actions>
+                <v-btn
+                  color="blue lighten-3"
+                  @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                >
+                  View Petri Game
+                </v-btn>
+              </v-card-actions>
             </v-card>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
@@ -1811,8 +1813,12 @@
     min-height: 32px;
   }
 
-  .left-padding-0-all * {
+  .left-padding-0-descendants * {
     padding-left: 0;
+  }
+
+  .accordion-list {
+    padding-left: 15px;
   }
 
 </style>
