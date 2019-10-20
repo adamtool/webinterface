@@ -30,7 +30,7 @@ public class JobStatisticsTest {
         return new String(Files.readAllBytes(file.toPath()), Charset.defaultCharset());
     }
 
-    @Test
+//    @Test
     public void test() throws IOException, ParseException, InterruptedException, ExecutionException {
         String aptExample = loadAptFile("somewhatSmallExampleLtl.apt");
         PetriNetWithTransits net = AdamModelChecker.getPetriNetWithTransits(aptExample);
