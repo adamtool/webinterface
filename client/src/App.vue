@@ -327,24 +327,12 @@
               Error: {{ tab.message }}
             </div>
             <v-card
+              class="job-tab-card"
               v-else-if="tab.jobStatus !== 'COMPLETED'"
             >
-              <v-card-title v-if="tab.jobStatus === 'FAILED'">
-                This job failed.
-              </v-card-title>
-              <v-card-title v-else-if="tab.jobStatus === 'RUNNING'">
-                This job is running.
-              </v-card-title>
-              <v-card-title v-else-if="tab.jobStatus === 'QUEUED'">
-                This job is currently waiting to be run.
-              </v-card-title>
-              <v-card-title v-else-if="tab.jobStatus === 'CANCELING'">
-                This job is being canceled.
-              </v-card-title>
-              <v-card-title v-else>
-                This job is not yet finished.
-                <!--TODO Cover all jobStatus cases explicitly-->
-                <!--TODO consider moving these v-else-if cases to the top level (v-card)-->
+              <v-card-title
+                class="job-tab-card-title">
+                {{ textForJobStatusInTab(tab.jobStatus) }}
               </v-card-title>
 
               <v-card-text
@@ -365,7 +353,6 @@
 
               <v-card-actions>
                 <v-btn
-                  small
                   color="blue lighten-3"
                   @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
                 >
@@ -373,7 +360,6 @@
                 </v-btn>
                 <v-btn
                   v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
-                  small
                   color="red lighten-2"
                   @click="cancelJob(tab.jobKey)"
                 >
@@ -412,35 +398,88 @@
             <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
-            <div v-else-if="tab.type === 'MODEL_CHECKING_RESULT'">
-              <v-card>
-                <v-card-title>Model checking result</v-card-title>
-                <v-card-text class="job-tab-card-text">
-                  <div>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></div>
-                  <div>Result:
+            <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
+                    class="job-tab-card"
+            >
+              <v-card-title class="job-tab-card-title">
+                Model checking result
+              </v-card-title>
+              <v-card-text class="job-tab-card-text">
+                <div>
+                  <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
+                </div>
+                <div>
+                  <span>Result:
                     <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
                       <strong>{{ tab.result.satisfied }}</strong>
                     </span>
-                  </div>
-                  <!--@formatter:off-->
-                  <div
+                  </span>
+                </div>
+
+                <v-list
+                  class="left-padding-0-descendants elevation-2 accordion-list"
+                >
+                  <!--Expandable counterexample.  It should be open by default-->
+                  <v-list-group
                     v-if="tab.result.counterExample"
-                  >Counter example:
-                    <div class="counter-example">{{ tab.result.counterExample }}</div>
-                  </div>
-                  <!--@formatter:on-->
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn
-                    small
-                    color="blue lighten-3"
-                    @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                    :value="true"
                   >
-                    View Petri Game
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </div>
+                    <template v-slot:activator>
+                      <v-list-tile
+                      >
+                        <v-list-tile-content>
+                          <v-list-tile-title>Counter example</v-list-tile-title>
+                        </v-list-tile-content>
+                      </v-list-tile>
+                    </template>
+                    <v-list-tile
+                      class="list-tile-stretchy"
+                    >
+                      <v-list-tile-content>
+                        <div class="counter-example">{{ tab.result.counterExample }}</div>
+                      </v-list-tile-content>
+                    </v-list-tile>
+                  </v-list-group>
+
+                  <!--Expandable statistics panel-->
+                  <v-list-group
+                    v-if="tab.result.statistics"
+                  >
+                    <template v-slot:activator>
+                      <v-list-tile
+                      >
+                        <v-list-tile-content>
+                          <v-list-tile-title>Statistics</v-list-tile-title>
+                        </v-list-tile-content>
+                      </v-list-tile>
+                    </template>
+
+                    <v-list-tile
+                      class="list-tile-stretchy"
+                    >
+                      <v-list-tile-content>
+                        <ul>
+                          <li
+                            v-for="(stat, statName) in tab.result.statistics"
+                            :key="statName"
+                          >
+                            {{ statName }}: <strong>{{ stat }}</strong>
+                          </li>
+                        </ul>
+                      </v-list-tile-content>
+                    </v-list-tile>
+                  </v-list-group>
+                </v-list>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  color="blue lighten-3"
+                  @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                >
+                  View Petri Game
+                </v-btn>
+              </v-card-actions>
+            </v-card>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
               <div>
@@ -816,6 +855,25 @@
       }
     },
     methods: {
+      textForJobStatusInTab: function (jobStatus) {
+        switch (jobStatus) {
+          case 'NOT_STARTED':
+            return 'This job has not yet been queued to be run.'
+          case 'FAILED':
+            return 'This job failed.'
+          case 'RUNNING':
+            return 'This job is running.'
+          case 'QUEUED':
+            return 'This job is currently waiting to be run.'
+          case 'CANCELING':
+            return 'This job is being canceled.'
+          case 'CANCELED':
+            return 'This job has been canceled.'
+          case 'COMPLETED':
+            return 'This job is finished.'
+
+        }
+      },
       modelCheckingResultColor,
       formatTabTitle: function (tab) {
         if (tab.type === 'errorMessage') {
@@ -1554,6 +1612,10 @@
 </script>
 
 <style>
+  html {
+    overflow-y: auto;
+  }
+
   @font-face {
     font-family: 'Material Icons';
     font-style: normal;
@@ -1713,6 +1775,7 @@
   }
 
   .counter-example {
+    font-size: 14px;
     white-space: pre-wrap;
   }
 
@@ -1720,8 +1783,42 @@
     font-weight: bold;
   }
 
+  .job-tab-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .job-tab-card-text {
+    padding-top: 8px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 1px;
+    overflow-y: auto;
+  }
+
+  .job-tab-card-title {
+    padding-bottom: 8px;
+  }
+
   .job-tab-card-text div + div {
     margin-top: 5px;
+  }
+
+  .list-tile-stretchy > * {
+    height: auto;
+  }
+
+  .list-tile-smaller > * {
+    min-height: 32px;
+  }
+
+  .left-padding-0-descendants * {
+    padding-left: 0;
+  }
+
+  .accordion-list {
+    padding-left: 15px;
   }
 
 </style>
