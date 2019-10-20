@@ -414,9 +414,41 @@
                          :shouldShowPhysicsControls="showPhysicsControls"/>
             <div v-else-if="tab.type === 'MODEL_CHECKING_RESULT'">
               <v-card>
-                <v-card-title>Model checking result</v-card-title>
+                <v-card-title class="job-tab-card-title">
+                  Model checking result
+                </v-card-title>
                 <v-card-text class="job-tab-card-text">
-                  <div>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></div>
+                  <v-expansion-panel
+                    expandable
+                  >
+                    <v-expansion-panel-content
+                      v-if="tab.result.statistics"
+                    >
+                      <template v-slot:header>
+                        <div>Statistics</div>
+                      </template>
+                      <v-card>
+                        <v-card-text>
+                          <ul>
+                            <li v-for="(stat, statName) in tab.result.statistics">
+                              {{ statName }}: <strong>{{ stat }}</strong>
+                            </li>
+                          </ul>
+                        </v-card-text>
+                      </v-card>
+                    </v-expansion-panel-content>
+                    <v-expansion-panel-content>
+                      <template v-slot:header>
+                        <div>Formula</div>
+                      </template>
+                      <v-card>
+                        <v-card-text>
+                          <strong>{{ tab.jobKey.requestParams.formula }}</strong>
+                        </v-card-text>
+                      </v-card>
+                    </v-expansion-panel-content>
+                  </v-expansion-panel>
+
                   <div>Result:
                     <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
                       <strong>{{ tab.result.satisfied }}</strong>
@@ -1719,6 +1751,14 @@
   .counter-example::first-line {
     font-weight: bold;
   }
+
+  .job-tab-card-text {
+    padding-top: 8px;
+  }
+  .job-tab-card-title {
+    padding-bottom: 8px;
+  }
+
 
   .job-tab-card-text div + div {
     margin-top: 5px;
