@@ -413,6 +413,7 @@
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
             <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
+                    class="job-tab-card"
             >
               <v-card-title class="job-tab-card-title">
                 Model checking result
@@ -1774,8 +1775,18 @@
     font-weight: bold;
   }
 
+  .job-tab-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
   .job-tab-card-text {
     padding-top: 8px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 1px;
+    overflow-y: auto;
   }
 
   .job-tab-card-title {
