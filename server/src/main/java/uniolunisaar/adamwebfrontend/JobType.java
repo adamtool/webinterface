@@ -1,8 +1,6 @@
 package uniolunisaar.adamwebfrontend;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
@@ -75,10 +73,16 @@ public enum JobType {
                     (Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>) result;
             ModelCheckingResult.Satisfied satisfied = mcResult.getFirst().getSatisfied();
             resultJson.addProperty("satisfied", satisfied.toString());
+
             if (satisfied == ModelCheckingResult.Satisfied.FALSE) {
                 CounterExample counterExample = mcResult.getFirst().getCex();
                 resultJson.addProperty("counterExample", counterExample.toString());
             }
+
+            // Add statistics.
+            JsonElement statisticsJson = serializeStatistics(mcResult.getSecond());
+            resultJson.add("statistics", statisticsJson);
+
             return resultJson;
         }
 
@@ -90,7 +94,6 @@ public enum JobType {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
 
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
-                // TODO display statistics in UI
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
                         "./tmp", false, false, false);
@@ -114,7 +117,6 @@ public enum JobType {
 
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
                 // TODO display statistics in UI
-                //   (not sure if there are really interesting ones for just the net, though)
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
                         "./tmp", false, false, false);
@@ -164,4 +166,33 @@ public enum JobType {
 
     abstract Job<?> makeJob(PetriNetWithTransits net, JsonObject params);
 
+    // Serialize a statistics object, including only its primitive and String fields
+    public static JsonElement serializeStatistics(AdamCircuitFlowLTLMCStatistics stats) {
+        Gson gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new OnlyStringsAndPrimitives())
+                .create();
+
+        return gson.toJsonTree(stats);
+    }
+}
+
+/**
+ * This 'serialization strategy' tells GSON to serialize an object while excluding all fields that
+ * aren't either strings or primitives.
+ */
+class OnlyStringsAndPrimitives implements ExclusionStrategy {
+    @Override
+    public boolean shouldSkipField(FieldAttributes fieldAttributes) {
+        return !shouldIncludeField(fieldAttributes.getDeclaredClass());
+    }
+
+    public static boolean shouldIncludeField(Class<?> aClass) {
+        return aClass.isPrimitive()
+                || aClass.equals(String.class);
+    }
+
+    @Override
+    public boolean shouldSkipClass(Class<?> aClass) {
+        return false;
+    }
 }

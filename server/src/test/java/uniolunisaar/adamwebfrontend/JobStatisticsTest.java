@@ -1,4 +1,5 @@
 package uniolunisaar.adamwebfrontend;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.junit.Test;
 import uniol.apt.io.parser.ParseException;
@@ -18,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 public class JobStatisticsTest {
 
@@ -51,8 +53,9 @@ public class JobStatisticsTest {
                 (Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>) job.getResult();
 
         System.out.println("Result: " + result.getFirst().getSatisfied().toString());
-        AdamCircuitFlowLTLMCStatistics statistics = result.getSecond();
-
+        JsonElement resultJson = JobType.MODEL_CHECKING_RESULT.serialize(result);
+        JsonObject resultJsonObject = (JsonObject)resultJson;
+        assertTrue(resultJsonObject.has("statistics"));
     }
 
 }
