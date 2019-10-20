@@ -412,92 +412,89 @@
             <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
                          :graph="tab.result"
                          :shouldShowPhysicsControls="showPhysicsControls"/>
-            <div v-else-if="tab.type === 'MODEL_CHECKING_RESULT'">
-              <v-card>
-                <v-card-title class="job-tab-card-title">
-                  Model checking result
-                </v-card-title>
-                <v-card-text class="job-tab-card-text">
-                  <v-list
+            <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
+            >
+              <v-card-title class="job-tab-card-title">
+                Model checking result
+              </v-card-title>
+              <v-card-text class="job-tab-card-text">
+                <v-list
+                >
+                  <v-list-tile
+                    class="list-tile-smaller"
                   >
-                    <v-list-tile
-                      class="list-tile-stretchy"
-                    >
-                      <v-list-tile-content>
-                        <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
-                      </v-list-tile-content>
-                    </v-list-tile>
+                    <v-list-tile-content>
+                      <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
+                    </v-list-tile-content>
+                  </v-list-tile>
 
-                    <v-list-tile
-                      class="list-tile-stretchy"
-                    >
-                      <v-list-tile-content>
+                  <v-list-tile
+                    class="list-tile-smaller"
+                  >
+                    <v-list-tile-content>
                         <span>Result:
                           <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
                             <strong>{{ tab.result.satisfied }}</strong>
                           </span>
                         </span>
+                    </v-list-tile-content>
+                  </v-list-tile>
+
+                  <!--Expandable counterexample-->
+                  <v-list-group
+                    v-if="tab.result.counterExample"
+                  >
+                    <template v-slot:activator>
+                      <v-list-tile>
+                        <v-list-tile-content>
+                          <v-list-tile-title>Counter example</v-list-tile-title>
+                        </v-list-tile-content>
+                      </v-list-tile>
+                    </template>
+                    <v-list-tile
+                      class="list-tile-stretchy"
+                    >
+                      <v-list-tile-content>
+                        <div class="counter-example">{{ tab.result.counterExample }}</div>
                       </v-list-tile-content>
                     </v-list-tile>
+                  </v-list-group>
 
-                    <!--Expandable counterexample-->
-                    <v-list-group
-                      v-if="tab.result.counterExample"
+                  <!--Expandable statistics panel-->
+                  <v-list-group>
+                    <template v-slot:activator>
+                      <v-list-tile>
+                        <v-list-tile-content>
+                          <v-list-tile-title>Statistics</v-list-tile-title>
+                        </v-list-tile-content>
+                      </v-list-tile>
+                    </template>
+
+                    <v-list-tile
+                      class="list-tile-stretchy"
                     >
-                      <template v-slot:activator>
-                        <v-list-tile>
-                          <v-list-tile-content>
-                            <v-list-tile-title>Counter example</v-list-tile-title>
-                          </v-list-tile-content>
-                        </v-list-tile>
-                      </template>
-                      <v-list-tile
-                        class="list-tile-stretchy"
-                      >
-                        <v-list-tile-content>
-                          <div class="counter-example">{{ tab.result.counterExample }}</div>
-                        </v-list-tile-content>
-                      </v-list-tile>
-                    </v-list-group>
-
-                    <!--Expandable statistics panel-->
-                    <v-list-group>
-                      <template v-slot:activator>
-                        <v-list-tile>
-                          <v-list-tile-content>
-                            <v-list-tile-title>Statistics</v-list-tile-title>
-                          </v-list-tile-content>
-                        </v-list-tile>
-                      </template>
-
-                      <v-list-tile
-                        class="list-tile-stretchy"
-                      >
-                        <v-list-tile-content>
-                          <ul>
-                            <li
-                              v-for="(stat, statName) in tab.result.statistics"
-                              :key="statName"
-                            >
-                              {{ statName }}: <strong>{{ stat }}</strong>
-                            </li>
-                          </ul>
-                        </v-list-tile-content>
-                      </v-list-tile>
-                    </v-list-group>
-                  </v-list>
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn
-                    small
-                    color="blue lighten-3"
-                    @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
-                  >
-                    View Petri Game
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </div>
+                      <v-list-tile-content>
+                        <ul>
+                          <li
+                            v-for="(stat, statName) in tab.result.statistics"
+                            :key="statName"
+                          >
+                            {{ statName }}: <strong>{{ stat }}</strong>
+                          </li>
+                        </ul>
+                      </v-list-tile-content>
+                    </v-list-tile>
+                  </v-list-group>
+                </v-list>
+              </v-card-text>
+              <v-btn
+                small
+                color="blue lighten-3"
+                @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+              >
+                View Petri Game
+              </v-btn>
+            </v-card>
             <div v-else>
               <div>Tab type not yet implemented: {{ tab.type }}</div>
               <div>
@@ -1791,6 +1788,9 @@
 
   .list-tile-stretchy > * {
     height: auto;
+  }
+
+  .list-tile-smaller > * {
     min-height: 32px;
   }
 
