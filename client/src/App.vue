@@ -405,34 +405,27 @@
                 Model checking result
               </v-card-title>
               <v-card-text class="job-tab-card-text">
+                <div>
+                  <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
+                </div>
+                <div>
+                  <span>Result:
+                    <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
+                      <strong>{{ tab.result.satisfied }}</strong>
+                    </span>
+                  </span>
+                </div>
+
                 <v-list
+                  class="left-padding-0-all"
                 >
-                  <v-list-tile
-                    class="list-tile-smaller"
-                  >
-                    <v-list-tile-content>
-                      <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
-                    </v-list-tile-content>
-                  </v-list-tile>
-
-                  <v-list-tile
-                    class="list-tile-smaller"
-                  >
-                    <v-list-tile-content>
-                        <span>Result:
-                          <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
-                            <strong>{{ tab.result.satisfied }}</strong>
-                          </span>
-                        </span>
-                    </v-list-tile-content>
-                  </v-list-tile>
-
                   <!--Expandable counterexample-->
                   <v-list-group
                     v-if="tab.result.counterExample"
                   >
                     <template v-slot:activator>
-                      <v-list-tile>
+                      <v-list-tile
+                      >
                         <v-list-tile-content>
                           <v-list-tile-title>Counter example</v-list-tile-title>
                         </v-list-tile-content>
@@ -452,7 +445,8 @@
                     v-if="tab.result.statistics"
                   >
                     <template v-slot:activator>
-                      <v-list-tile>
+                      <v-list-tile
+                      >
                         <v-list-tile-content>
                           <v-list-tile-title>Statistics</v-list-tile-title>
                         </v-list-tile-content>
@@ -861,13 +855,20 @@
     methods: {
       textForJobStatusInTab: function (jobStatus) {
         switch (jobStatus) {
-          case 'NOT_STARTED': return 'This job has not yet been queued to be run.'
-          case 'FAILED': return 'This job failed.'
-          case 'RUNNING': return 'This job is running.'
-          case 'QUEUED': return 'This job is currently waiting to be run.'
-          case 'CANCELING': return 'This job is being canceled.'
-          case 'CANCELED': return 'This job has been canceled.'
-          case 'COMPLETED': return 'This job is finished.'
+          case 'NOT_STARTED':
+            return 'This job has not yet been queued to be run.'
+          case 'FAILED':
+            return 'This job failed.'
+          case 'RUNNING':
+            return 'This job is running.'
+          case 'QUEUED':
+            return 'This job is currently waiting to be run.'
+          case 'CANCELING':
+            return 'This job is being canceled.'
+          case 'CANCELED':
+            return 'This job has been canceled.'
+          case 'COMPLETED':
+            return 'This job is finished.'
 
         }
       },
@@ -1768,6 +1769,7 @@
   }
 
   .counter-example {
+    font-size: 14px;
     white-space: pre-wrap;
   }
 
@@ -1803,6 +1805,10 @@
 
   .list-tile-smaller > * {
     min-height: 32px;
+  }
+
+  .left-padding-0-all * {
+    padding-left: 0;
   }
 
 </style>
