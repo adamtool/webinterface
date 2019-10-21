@@ -11,7 +11,7 @@
       <!--Normal rows in the grid-->
       <div v-if="tool.type === 'tool' || tool.type === 'action'"
            @click="onClick(tool)"
-           :class="classOfToolRow(tool)"
+           :class="selectedTool === tool ? 'toolbar-row tool selected-tool' : 'toolbar-row tool'"
            :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`"
            v-ripple
       >
@@ -199,12 +199,6 @@
       }
     },
     methods: {
-      classOfToolRow: function (tool) {
-        if (tool.type === 'divider') {
-          return 'toolbar-row'
-        }
-        return this.selectedTool === tool ? 'toolbar-row tool selected-tool' : 'toolbar-row tool'
-      },
       // Truncate menuItems with an ellipsis in case there are too many to fit on screen
       withResponsiveEllipsis: function (menuItems) {
         let availableHeight = this.reactiveParentHeight - this.paddingWithinParentElement
