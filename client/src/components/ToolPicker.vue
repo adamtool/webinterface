@@ -9,7 +9,7 @@
   >
     <div v-for="(tool, index) in visibleTools"
          @click="onClick(tool)"
-         :class="selectedTool === tool ? 'toolbar-row selected-tool' : 'toolbar-row'"
+         :class="classOfToolRow(tool)"
          :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
       <!--Normal rows in the grid-->
       <template v-if="tool.type === 'tool' || tool.type === 'action'">
@@ -183,6 +183,12 @@
       }
     },
     methods: {
+      classOfToolRow: function (tool) {
+        if (tool.type === 'divider') {
+          return 'toolbar-row'
+        }
+        return this.selectedTool === tool ? 'toolbar-row tool selected-tool' : 'toolbar-row tool'
+      },
       // Truncate menuItems with an ellipsis in case there are too many to fit on screen
       withResponsiveEllipsis: function (menuItems) {
         let availableHeight = this.reactiveParentHeight - this.paddingWithinParentElement
@@ -248,14 +254,25 @@
     width: auto;
   }
 
-  .selected-tool {
+  .divider {
+    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+
+  .toolbar-row {
+    border: 1px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .toolbar-row.selected-tool {
     border: 1px solid #aaaaaa;
     border-radius: 10px;
   }
 
-  .divider {
-    margin-top: 6px;
-    margin-bottom: 6px;
+  .tool:hover {
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.15);
   }
 
   .toolpicker-root-el > .toolbar-row > .tool-name {
