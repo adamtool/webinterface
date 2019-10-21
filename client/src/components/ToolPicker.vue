@@ -7,12 +7,13 @@
        @mouseover="hover = true"
        @mouseleave="hover = false"
   >
-    <div v-for="(tool, index) in visibleTools"
-         @click="onClick(tool)"
-         :class="classOfToolRow(tool)"
-         :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`">
+    <template v-for="(tool, index) in visibleTools">
       <!--Normal rows in the grid-->
-      <template v-if="tool.type === 'tool' || tool.type === 'action'">
+      <div v-if="tool.type === 'tool' || tool.type === 'action'"
+           @click="onClick(tool)"
+           :class="classOfToolRow(tool)"
+           :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`"
+      >
         <v-btn
           small
           :ripple="false"
@@ -25,41 +26,54 @@
         <div class="tool-name">
           {{ tool.name }}
         </div>
-      </template>
+      </div>
       <!--Dividers-->
-      <v-divider
+      <div
         v-else-if="tool.type === 'divider'"
-        class="divider"
-      />
+        class="divider toolbar-row"
+        :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`"
+      >
+        <v-divider/>
+      </div>
       <!--Ellipsis to show overflow on small screens-->
-      <template v-else-if="tool.type === 'ellipsis'">
-        <v-menu
-          v-model="isOverflowMenuOpen"
+      <v-menu
+        v-else-if="tool.type === 'ellipsis'"
+        v-model="isOverflowMenuOpen"
+      >
+        <template v-slot:activator="{ on }"
         >
-          <template v-slot:activator="{ on }">
+          <div
+            class="divider toolbar-row tool"
+            :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`"
+            v-on="on"
+          >
             <v-btn
               small
               icon
-              v-on="on"
+              v-on="$parent.on"
             >
               <v-icon>more_horiz</v-icon>
             </v-btn>
-            <div class="tool-name">
+            <div
+              class="tool-name"
+              v-on="$parent.on"
+            >
               More
             </div>
-          </template>
-          <v-list
-            dense
+          </div>
+        </template>
+        <v-list
+          dense
+        >
+          <template
+            v-for="(hiddenItem, index) in tool.hiddenItems"
           >
-            <template
-              v-for="(hiddenItem, index) in tool.hiddenItems"
+            <v-list-tile
+              v-if="hiddenItem.type === 'tool' || hiddenItem.type === 'action'"
+              @click="onClick(hiddenItem)"
+              :key="index"
             >
-              <v-list-tile
-                v-if="hiddenItem.type === 'tool' || hiddenItem.type === 'action'"
-                @click="onClick(hiddenItem)"
-                :key="index"
-              >
-                <v-list-tile-content>
+              <v-list-tile-content>
                   <span>
                   <v-btn
                     small
@@ -73,26 +87,25 @@
                     {{ hiddenItem.name }}
                   </span>
                   </span>
-                </v-list-tile-content>
-              </v-list-tile>
-              <v-divider
-                v-else-if="hiddenItem.type === 'divider'"
-                :key="index"
-              />
-              <div
-                v-else
-                :key="index"
-              >
-                Error: Unknown item type: {{ hiddenItem.type }}
-              </div>
-            </template>
-          </v-list>
-        </v-menu>
-      </template>
+              </v-list-tile-content>
+            </v-list-tile>
+            <v-divider
+              v-else-if="hiddenItem.type === 'divider'"
+              :key="index"
+            />
+            <div
+              v-else
+              :key="index"
+            >
+              Error: Unknown item type: {{ hiddenItem.type }}
+            </div>
+          </template>
+        </v-list>
+      </v-menu>
       <template v-else>
         <v-icon>error</v-icon>
       </template>
-    </div>
+    </template>
   </div>
 
 </template>
