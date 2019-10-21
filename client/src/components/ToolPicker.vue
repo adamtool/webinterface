@@ -13,6 +13,7 @@
            @click="onClick(tool)"
            :class="classOfToolRow(tool)"
            :style="`grid-column: 1; grid-row-start: ${index}; grid-row-end: ${index + 1}`"
+           v-ripple
       >
         <v-btn
           small
