@@ -276,12 +276,12 @@
   }
 
   .toolbar-row.selected-tool {
-    border: 1px solid #aaaaaa;
+    border: 1px solid #555555;
     border-radius: 10px;
   }
 
   .toolbar-row.selected-tool:hover {
-    border: 1px solid #333333;
+    border: 1px solid #000000;
   }
 
 
