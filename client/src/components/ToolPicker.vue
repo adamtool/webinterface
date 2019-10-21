@@ -271,6 +271,11 @@
     border-radius: 10px;
   }
 
+  .toolbar-row.selected-tool:hover {
+    border: 1px solid #333333;
+  }
+
+
   /*Disable hover effect on v-btn */
   .toolbar-row .v-btn::before {
     opacity: 0;
