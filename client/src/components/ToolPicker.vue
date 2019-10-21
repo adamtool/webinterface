@@ -15,6 +15,7 @@
       <template v-if="tool.type === 'tool' || tool.type === 'action'">
         <v-btn
           small
+          :ripple="false"
           icon>
           <v-icon
             v-if="tool.icon">
@@ -268,6 +269,11 @@
   .toolbar-row.selected-tool {
     border: 1px solid #aaaaaa;
     border-radius: 10px;
+  }
+
+  /*Disable hover effect on v-btn */
+  .toolbar-row .v-btn::before {
+    opacity: 0;
   }
 
   .tool:hover {
