@@ -50,6 +50,7 @@
             <v-btn
               small
               icon
+              :ripple="false"
               v-on="$parent.on"
             >
               <v-icon>more_horiz</v-icon>
