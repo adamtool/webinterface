@@ -754,8 +754,6 @@
             return (d) => {
               if (d.type !== 'TRANSITION') {
                 return
-              } else if (!d.isReadyToFire) {
-                logging.sendErrorNotification('The transition you clicked is not ready to fire.')
               } else {
                 this.fireTransition(d)
               }
