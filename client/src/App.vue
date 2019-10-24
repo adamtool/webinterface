@@ -81,6 +81,9 @@
       style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
         <hsc-menu-bar-item label="File">
+          <hsc-menu-item
+            :label="useModelChecking ? 'New Petri net with transits' : 'New Petri game'"
+            @click.native="newPetriGame"/>
           <!--Have to use click.native so that the popup blocker isn't triggered-->
           <hsc-menu-item label="Load APT from file" @click.native="loadAptFromFile"/>
           <v-dialog
@@ -542,6 +545,7 @@
 
   import aptExampleLtl from './somewhatSmallExampleLtl.apt'
   import aptExampleDistributedSynthesis from './somewhatSmallExampleNotLtl.apt'
+  import aptExampleEmpty from './aptExampleEmpty.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from './logWebSocket'
@@ -855,6 +859,11 @@
       }
     },
     methods: {
+      newPetriGame: function () {
+        this.onAptExampleSelected(aptExampleEmpty)
+        const whatDoYouCallIt = this.useModelChecking ? 'Petri net with transits' : 'Petri game'
+        logging.sendSuccessNotification('Loaded a new empty ' + whatDoYouCallIt)
+      },
       textForJobStatusInTab: function (jobStatus) {
         switch (jobStatus) {
           case 'NOT_STARTED':
