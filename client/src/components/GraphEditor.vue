@@ -325,7 +325,7 @@
           },
           {
             type: 'tool',
-            icon: 'mouse',
+            icon: 'offline_bolt',
             visible: true,
             toolEnumName: 'fireTransitions',
             name: 'Fire transitions'
