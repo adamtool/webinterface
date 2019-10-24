@@ -38,14 +38,14 @@
     >
       <v-layout justify-center>
         <template v-if="useModelChecking">
-          <v-flex xs2>
+          <v-flex xs3>
             <v-select
               v-if="showEditorTools"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Condition"/>
           </v-flex>
-          <v-flex xs4 sm7>
+          <v-flex xs3 sm7>
             <v-text-field
               style="flex: 1 1 auto;"
               :disabled="selectedWinningCondition !== 'LTL'"
@@ -53,8 +53,8 @@
               v-model="ltlFormula"
               :prepend-inner-icon="ltlParseStatusIcon"
               :error-messages="ltlParseErrors"
-              placeholder="Enter a LTL formula here"
-              label="LTL Formula"/>
+              placeholder="Enter an LTL or Flow-LTL formula here"
+              label="Formula"/>
           </v-flex>
         </template>
         <template v-else>
@@ -209,8 +209,8 @@
         },
         winningCondition: '',
         selectedWinningCondition: '',
-        ltlFormula: '', // The LTL formula corresponding to our winning condition
-        ltlParseErrors: [], // If there is a server-side error parsing the LTL formula, it gets put in here
+        ltlFormula: '', // The LTL or Flow-LTL formula corresponding to our winning condition
+        ltlParseErrors: [], // If there is a server-side error parsing the formula, it gets put in here
         ltlParseStatus: 'success',
         drawTransitPreviewLinks: [],
         drawTransitPreviewSource: undefined,
@@ -422,10 +422,23 @@
       winningConditions: function () {
         if (this.useModelChecking) {
           return [
-            'LTL',
-            'A_REACHABILITY',
-            'A_SAFETY',
-            'A_BUCHI']
+            {
+              text: 'LTL or Flow-LTL',
+              value: 'LTL'
+            },
+            {
+              text: 'Reachability',
+              value: 'A_REACHABILITY'
+            },
+            {
+              text: 'Safety',
+              value: 'A_SAFETY'
+            },
+            {
+              text: 'Büchi',
+              value: 'A_BUCHI'
+            }
+          ]
         } else {
           return [
             'E_REACHABILITY',
@@ -1253,7 +1266,7 @@
     },
     methods: {
       parseLtlFormula: debounce(async function () {
-        console.log('Parsing Ltl Formula')
+        console.log('Parsing Formula')
         // TODO Show 'running' status somehow in gui to distinguish it from 'success'
         // TODO Implement a timeout in case the server takes a really long time to respond
         this.ltlParseStatus = 'running'
@@ -1276,7 +1289,7 @@
               throw new Error('Unknown status from server: ' + result.data.status)
           }
         } catch (error) {
-          logging.logError('Error parsing LTL formula: ' + error)
+          logging.logError('Error parsing formula: ' + error)
           this.ltlParseStatus = 'error'
           this.ltlParseErrors = [error]
         }

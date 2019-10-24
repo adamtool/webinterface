@@ -136,7 +136,7 @@
         </template>
         <hsc-menu-bar-item @click.native="calculateModelCheckingNet" label="Get Model Checking Net"
                            v-if="useModelChecking"/>
-        <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check LTL Formula"
+        <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check Formula"
                            v-if="useModelChecking"/>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
@@ -342,7 +342,7 @@
                 class="job-tab-card-text"
               >
                 <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
-                  <div>Checking the following LTL formula:
+                  <div>Checking the following formula:
                     <strong>{{ tab.jobKey.requestParams.formula }}</strong>
                   </div>
                 </div>
