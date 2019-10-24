@@ -325,6 +325,13 @@
           },
           {
             type: 'tool',
+            icon: 'mouse',
+            visible: true,
+            toolEnumName: 'fireTransitions',
+            name: 'Fire transitions'
+          },
+          {
+            type: 'tool',
             icon: 'delete',
             visible: this.showEditorTools,
             toolEnumName: 'deleteNodesAndFlows',
@@ -743,6 +750,16 @@
             }
           case 'drawTransit':
             return this.drawTransitHandler.onClick
+          case 'fireTransition':
+            return (d) => {
+              if (d.type !== 'TRANSITION') {
+                return
+              } else if (!d.isReadyToFire) {
+                logging.sendErrorNotification('The transition you clicked is not ready to fire.')
+              } else {
+                this.fireTransition(d)
+              }
+            }
           default:
             return () => {
               logging.sendErrorNotification(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
@@ -1206,6 +1223,14 @@
             this.leftClickMode = 'deleteNode'
             this.dragDropMode = 'moveNode'
             this.linkClickMode = 'deleteFlow'
+            break
+          }
+          case 'fireTransitions': {
+            this.backgroundDragDropMode = 'selectNodes'
+            this.backgroundClickMode = 'cancelSelection'
+            this.leftClickMode = 'fireTransition'
+            this.dragDropMode = 'moveNode'
+            this.linkClickMode = 'doNothing'
             break
           }
           default: {
