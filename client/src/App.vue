@@ -187,7 +187,7 @@
       </div>
       <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
               v-model="selectedTabLeftSide">
-        <draggable v-model="tabsLeftSide" class="v-tabs-container"
+        <draggable v-model="tabsLeftSide" class="v-slide-group__content v-tabs-bar__content"
                    @start="tabDragStart"
                    @end="(evt) => tabDragEnd(evt, 'left')"
                    @choose="onTabChosen">
@@ -259,7 +259,7 @@
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide"
               show-arrows
               v-model="selectedTabRightSide">
-        <draggable v-model="visibleJobsRightSide" class="v-tabs-container"
+        <draggable v-model="visibleJobsRightSide" class="v-slide-group__content v-tabs-bar__content"
                    @start="tabDragStart"
                    @end="(evt) => tabDragEnd(evt, 'right')"
                    @choose="onTabChosen">
