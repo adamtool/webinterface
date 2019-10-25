@@ -19,11 +19,13 @@ public class Job<T> {
     private final Callable<T> callable;
     private final String netId;
 
-    private Future<T> future = null;
+    private CompletableFuture<T> future = null;
     private volatile boolean isStarted = false;
     private volatile Instant timeStarted = Instant.EPOCH;
     private volatile Instant timeFinished = Instant.EPOCH;
     private final HashSet<JobObserver> observers = new HashSet<>();
+
+    private boolean isQueued = false;
 
     public Future<T> getFuture() {
         return future;
@@ -53,22 +55,22 @@ public class Job<T> {
         if (this.future != null) {
             return;
         }
-        this.future = executorService.submit(() -> {
+        isQueued = true;
+        fireJobStatusChanged();
+        this.future = asFuture(() -> {
             isStarted = true;
             timeStarted = Instant.now();
             fireJobStatusChanged();
             try {
                 T result = callable.call();
                 timeFinished = Instant.now();
-                fireJobStatusChanged();
                 return result;
             } catch (Throwable e) {
                 timeFinished = Instant.now();
-                fireJobStatusChanged();
                 throw e;
             }
-        });
-        fireJobStatusChanged();
+        }, executorService);
+        this.future.whenComplete((result, exception) -> this.fireJobStatusChanged());
     }
 
     public void cancel() {
@@ -91,7 +93,11 @@ public class Job<T> {
 
     public JobStatus getStatus() {
         if (future == null) {
-            return NOT_STARTED;
+            if (!isQueued) {
+                return NOT_STARTED;
+            } else {
+                return QUEUED;
+            }
         }
         if (future.isCancelled()) {
             if (isStarted && timeFinished == Instant.EPOCH) {
@@ -136,4 +142,15 @@ public class Job<T> {
         return timeFinished;
     }
 
+    public static <T> CompletableFuture<T> asFuture(Callable<? extends T> callable, Executor executor) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        executor.execute(() -> {
+            try {
+                future.complete(callable.call());
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
+        });
+        return future;
+    }
 }
