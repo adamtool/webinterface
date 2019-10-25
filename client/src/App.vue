@@ -719,7 +719,7 @@
     },
     computed: {
       tabsRightSide: function () {
-        // console.log('updated tabsRightSide')
+        console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
         function jobKeyToTab (jobListings, jobKey) {
@@ -953,7 +953,7 @@
               if (existingJobIndex === -1) {
                 this.jobListings.push(messageParsed.jobListing)
               } else {
-                // console.log('splicing job status')
+                console.log('splicing job status')
                 this.jobListings.splice(existingJobIndex, 1, messageParsed.jobListing)
               }
               // Close the tab of the job if the job has been canceled
