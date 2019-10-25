@@ -214,7 +214,6 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;"
                  v-if="tab.type === 'petriGameEditor'">
-              <!--<ToolPicker style="position: absolute; z-index: 5; width: 5%; display: none;"/>-->
               <GraphEditor :graph='petriGame.net'
                            :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
@@ -514,7 +513,6 @@
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
-  import ToolPicker from './components/ToolPicker'
   import Vue from 'vue'
   import * as axios from 'axios'
   import {debounce, isEqual} from 'underscore'
@@ -574,7 +572,6 @@
       AptEditor,
       JobList,
       JobTab,
-      ToolPicker,
       AboutAdamWeb
     },
     created: function () {
