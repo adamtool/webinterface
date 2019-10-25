@@ -277,6 +277,13 @@
           <!--We include the tab's index in the key so that this component will re-render when
           the tabs' order changes.  That's necessary so that the 'current tab' indicator will
           update appropriately after a drag-drop.-->
+          <v-tab
+            v-for="(tab, index) in tabsRightSide"
+            :key="`${index}-${tab.uuid}`"
+            :href="`#tab-${tab.uuid}`"
+          >
+            tab {{ index }}
+          </v-tab>
         </draggable>
         <v-tab-item v-for="tab in tabsRightSide"
                     :key="tab.uuid"
