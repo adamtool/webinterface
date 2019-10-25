@@ -61,17 +61,6 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-snackbar
-      :timeout="6000"
-      top
-      multi-line
-      :color="snackbarMessage.color"
-      v-model="snackbarMessage.display">
-      <div style="white-space: pre-wrap; font-size: 18px">
-        {{ snackbarMessage.text }}
-      </div>
-      <v-btn flat @click.native="snackbarMessage.display = false">Close</v-btn>
-    </v-snackbar>
     <input id="file-picker" type="file" style="display: none;" v-on:change="onFileSelected"/>
     <!--<v-toolbar</v-toolbar-items>-->
     <!--<v-spacer/>-->
@@ -658,11 +647,6 @@
         showPhysicsControls: false,
         showPartitions: false,
         messageLog: [],
-        snackbarMessage: {
-          display: false,
-          text: '',
-          color: undefined
-        },
         horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
         horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
