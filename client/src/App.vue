@@ -418,20 +418,20 @@
                       :value="true"
                     >
                       <template v-slot:activator>
-                        <v-list-tile
+                        <v-list-item
                         >
-                          <v-list-tile-content>
-                            <v-list-tile-title>Counter example</v-list-tile-title>
-                          </v-list-tile-content>
-                        </v-list-tile>
+                          <v-list-item-content>
+                            <v-list-item-title>Counter example</v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
                       </template>
-                      <v-list-tile
+                      <v-list-item
                         class="list-tile-stretchy"
                       >
-                        <v-list-tile-content>
+                        <v-list-item-content>
                           <div class="counter-example">{{ tab.result.counterExample }}</div>
-                        </v-list-tile-content>
-                      </v-list-tile>
+                        </v-list-item-content>
+                      </v-list-item>
                     </v-list-group>
 
                     <!--Expandable statistics panel-->
@@ -439,18 +439,18 @@
                       v-if="tab.result.statistics"
                     >
                       <template v-slot:activator>
-                        <v-list-tile
+                        <v-list-item
                         >
-                          <v-list-tile-content>
-                            <v-list-tile-title>Statistics</v-list-tile-title>
-                          </v-list-tile-content>
-                        </v-list-tile>
+                          <v-list-item-content>
+                            <v-list-item-title>Statistics</v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
                       </template>
 
-                      <v-list-tile
+                      <v-list-item
                         class="list-tile-stretchy"
                       >
-                        <v-list-tile-content>
+                        <v-list-item-content>
                           <ul>
                             <li
                               v-for="(stat, statName) in tab.result.statistics"
@@ -459,8 +459,8 @@
                               {{ statName }}: <strong>{{ stat }}</strong>
                             </li>
                           </ul>
-                        </v-list-tile-content>
-                      </v-list-tile>
+                        </v-list-item-content>
+                      </v-list-item>
                     </v-list-group>
                   </v-list>
                 </v-card-text>
@@ -550,7 +550,6 @@
 
   import draggable from 'vuedraggable'
   import {formatJobType, modelCheckingResultColor} from './jobType'
-
 
   const uuidv4 = require('uuid/v4')
 
