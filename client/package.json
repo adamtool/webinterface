@@ -28,7 +28,7 @@
     "uuid": "^3.3.2",
     "vue": "^2.6.8",
     "vue-router": "^2.6.0",
-    "vuedraggable": "^2.23.0",
+    "vuedraggable": "^2.23.2",
     "vuetify": "^1.5.16"
   },
   "devDependencies": {
