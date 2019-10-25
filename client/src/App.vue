@@ -630,11 +630,10 @@
         browserUuidEntry: '',
         aptFilename: 'apt.txt',
         showSaveAptModal: false,
+        // True iff the modal dialog with the list of jobs is visible
         showJobList: false,
         showAboutModal: false,
-        // True iff the modal dialog with the list of jobs is visible
         jobListings: [], // Listings for all enqueued/finished jobs
-        // TODO Rename to just 'availableJobListings' or 'jobListings'
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
@@ -1161,10 +1160,15 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
+              // 'response.data.result' is the listing of the job that was queued
+              // Only add it to the list if its not already there
+              // (There could be a race condition with the websocket's jobStatusChanged message)
+              if (!this.jobListings.find(listing =>
+                isEqual(listing.jobKey, response.data.result.jobKey))) {
+                this.jobListings.push(response.data.result)
+              }
               // Add a tab corresponding to the newly queued job
-              // 'result' is the listing of the job that was queued
               this.openOrAddTab(response.data.result.jobKey)
-              this.jobListings.push(response.data.result)
               break
             case 'error':
               if (response.data.errorType === 'JOB_ALREADY_QUEUED') {
