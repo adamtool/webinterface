@@ -1797,7 +1797,8 @@
   }
 
   .counter-example {
-    font-size: 14px;
+    font-size: 16px;
+    line-height: 1.4rem;
     white-space: pre-wrap;
   }
 
@@ -1812,6 +1813,7 @@
   }
 
   .job-tab-card-text {
+    font-size: 16px;
     padding-top: 8px;
     flex-grow: 1;
     flex-shrink: 1;
