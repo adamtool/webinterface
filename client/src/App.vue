@@ -941,6 +941,7 @@
               logging.logServerMessage(messageParsed.message, messageParsed.level)
               break
             case 'jobStatusChanged':
+              console.log('jobStatusChanged.  Status: ' + messageParsed.jobListing.jobStatus)
               // Incrementally update the job list
               const existingJobIndex = this.jobListings.findIndex(
                 listing => isEqual(listing.jobKey, messageParsed.jobListing.jobKey)
