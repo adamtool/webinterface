@@ -266,13 +266,45 @@
           <!--We include the tab's index in the key so that this component will re-render when
           the tabs' order changes.  That's necessary so that the 'current tab' indicator will
           update appropriately after a drag-drop.-->
-          <v-tab
-            v-for="(tab, index) in tabsRightSide"
-            :key="`${index}-${tab.uuid}`"
-            :href="`#tab-${tab.uuid}`"
-            :tab="tab"
-          >
-            tab {{tab.uuid}}
+          <v-tab v-for="(tab, index) in tabsRightSide"
+                 :key="`${index}-${tab.uuid}`"
+                 :href="`#tab-${tab.uuid}`">
+            <div style="max-width: 150px; ">{{ formatTabTitle(tab) }}</div>
+            <!--Spinny circle for running job with X inside -->
+            <div
+              v-if="tab.jobStatus === 'RUNNING'"
+            >
+              <v-progress-circular
+                indeterminate
+                color="blue darken-2"
+                :size="26"
+                :width="2"
+              >
+                <v-icon
+                  small
+                  style="position: absolute; transform: translate(-50%, -50%);"
+                  @click="closeTab(tab, 'right')">
+                  close
+                </v-icon>
+              </v-progress-circular>
+            </div>
+            <!--Spinny circle for a job that is being canceled-->
+            <v-progress-circular
+              v-else-if="tab.jobStatus === 'CANCELING'"
+              indeterminate
+              color="deep-orange"
+              :size="26"
+              :width="3"
+            />
+            <!--Show an X to close the tab/cancel the running job-->
+            <v-icon
+              v-else-if="tab.isCloseable"
+              small right
+              @click="closeTab(tab, 'right')">
+              close
+            </v-icon>
+            <template
+              v-else/>
           </v-tab>
         </draggable>
         <v-tabs-items
@@ -517,7 +549,8 @@
   import {format} from 'date-fns'
 
   import draggable from 'vuedraggable'
-  import {modelCheckingResultColor} from './jobType'
+  import {formatJobType, modelCheckingResultColor} from './jobType'
+
 
   const uuidv4 = require('uuid/v4')
 
@@ -838,6 +871,16 @@
         }
       },
       modelCheckingResultColor,
+      formatTabTitle: function (tab) {
+        if (tab.type === 'errorMessage') {
+          return 'Error'
+        }
+        const typePrettyPrinted = formatJobType(tab.type)
+        const shouldIncludeFormula =
+          ['MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT'].includes(tab.type)
+        const formulaText = shouldIncludeFormula ? ` for "${tab.jobKey.requestParams.formula}"` : ''
+        return typePrettyPrinted.concat(formulaText)
+      },
       closeTabRight: function (tab) {
         this.closeTab(tab, 'right')
       },
