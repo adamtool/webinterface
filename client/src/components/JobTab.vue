@@ -1,44 +1,45 @@
 <template>
+  <v-tab> hi</v-tab>
   <!--TODO Mark the tabs somehow if the Petri Game has been modified since the tabs were
   opened-->
-  <v-tab>
-    <div style="max-width: 150px; ">{{ tabTitle }}</div>
-    <!--Spinny circle for running job with X inside -->
-    <div
-      v-if="tab.jobStatus === 'RUNNING'"
-    >
-      <v-progress-circular
-        indeterminate
-        color="blue darken-2"
-        :size="26"
-        :width="2"
-      >
-        <v-icon
-          small
-          style="position: absolute; transform: translate(-50%, -50%);"
-          @click="closeTab">
-          close
-        </v-icon>
-      </v-progress-circular>
-    </div>
-    <!--Spinny circle for a job that is being canceled-->
-    <v-progress-circular
-      v-else-if="tab.jobStatus === 'CANCELING'"
-      indeterminate
-      color="deep-orange"
-      :size="26"
-      :width="3"
-    />
-    <!--Show an X to close the tab/cancel the running job-->
-    <v-icon
-      v-else-if="tab.isCloseable"
-      small right
-      @click="closeTab">
-      close
-    </v-icon>
-    <template
-      v-else/>
-  </v-tab>
+  <!--<v-tab>-->
+    <!--<div style="max-width: 150px; ">{{ tabTitle }}</div>-->
+    <!--&lt;!&ndash;Spinny circle for running job with X inside &ndash;&gt;-->
+    <!--<div-->
+      <!--v-if="tab.jobStatus === 'RUNNING'"-->
+    <!--&gt;-->
+      <!--<v-progress-circular-->
+        <!--indeterminate-->
+        <!--color="blue darken-2"-->
+        <!--:size="26"-->
+        <!--:width="2"-->
+      <!--&gt;-->
+        <!--<v-icon-->
+          <!--small-->
+          <!--style="position: absolute; transform: translate(-50%, -50%);"-->
+          <!--@click="closeTab">-->
+          <!--close-->
+        <!--</v-icon>-->
+      <!--</v-progress-circular>-->
+    <!--</div>-->
+    <!--&lt;!&ndash;Spinny circle for a job that is being canceled&ndash;&gt;-->
+    <!--<v-progress-circular-->
+      <!--v-else-if="tab.jobStatus === 'CANCELING'"-->
+      <!--indeterminate-->
+      <!--color="deep-orange"-->
+      <!--:size="26"-->
+      <!--:width="3"-->
+    <!--/>-->
+    <!--&lt;!&ndash;Show an X to close the tab/cancel the running job&ndash;&gt;-->
+    <!--<v-icon-->
+      <!--v-else-if="tab.isCloseable"-->
+      <!--small right-->
+      <!--@click="closeTab">-->
+      <!--close-->
+    <!--</v-icon>-->
+    <!--<template-->
+      <!--v-else/>-->
+  <!--</v-tab>-->
 </template>
 
 <script>
