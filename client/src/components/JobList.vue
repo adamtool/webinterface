@@ -26,8 +26,8 @@
       <!--Options-->
       <template v-if="JSON.stringify(listing.jobKey.requestParams).length > 40">
         <v-tooltip bottom style="display: none;">
-          <template v-slot:activator="on">
-            <td v-on="on"
+          <template #activator="data">
+            <td v-on="data.on"
                 class="highlightable">
               {{ JSON.stringify(listing.jobKey.requestParams).slice(0, 40) }}...
               <v-icon>more</v-icon>
