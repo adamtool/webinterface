@@ -10,7 +10,18 @@ Vue.config.productionTip = false
 
 Vue.use(Vuetify)
 
-const opts = {}
+const opts = {
+  theme: {
+    themes: {
+      light: {
+        // primary: '#000033',
+        // secondary: '#b0bec5',
+        // accent: '#8c9eff',
+        error: '#DD0000'
+      }
+    }
+  }
+}
 
 /* eslint-disable no-new */
 new Vue({

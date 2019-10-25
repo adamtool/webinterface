@@ -1617,6 +1617,23 @@
 </script>
 
 <style>
+  /*Text inside of v-cards should be pure black.*/
+  .theme--light.v-card .v-card__subtitle, .theme--light.v-card > .v-card__text {
+    color: #000000;
+  }
+
+  /*Inactive tab text should not be too hard to read*/
+  .theme--light.v-tabs > .v-tabs-bar .v-tab--disabled,
+  .theme--light.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active),
+  .theme--light.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active) > .v-icon {
+    color: rgba(0, 0, 0, .7);
+  }
+
+  /*Placeholder text of v-input should not be too faint to read*/
+  .theme--light.v-input input::placeholder, .theme--light.v-input textarea::placeholder {
+    color: rgba(0, 0, 0, .7);
+  }
+
   html {
     overflow-y: auto;
   }
