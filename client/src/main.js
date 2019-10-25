@@ -9,6 +9,7 @@ Vue.config.productionTip = false
 
 Vue.use(Vuetify)
 
+const opts = {}
 
 /* eslint-disable no-new */
 new Vue({
@@ -17,5 +18,5 @@ new Vue({
   // Use relative URLs for server requests
   template: '<MainRouterView/>',
   components: { MainRouterView },
-  vuetify: new Vuetify({})
+  vuetify: new Vuetify(opts)
 })
