@@ -187,7 +187,7 @@
       </div>
       <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
               v-model="selectedTabLeftSide">
-        <draggable v-model="tabsLeftSide" class="v-tabs__container"
+        <draggable v-model="tabsLeftSide" class="v-tabs-container"
                    @start="tabDragStart"
                    @end="(evt) => tabDragEnd(evt, 'left')"
                    @choose="onTabChosen">
@@ -259,193 +259,198 @@
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide"
               show-arrows
               v-model="selectedTabRightSide">
-        <draggable v-model="visibleJobsRightSide" class="v-tabs__container"
+        <draggable v-model="visibleJobsRightSide" class="v-tabs-container"
                    @start="tabDragStart"
                    @end="(evt) => tabDragEnd(evt, 'right')"
                    @choose="onTabChosen">
           <!--We include the tab's index in the key so that this component will re-render when
           the tabs' order changes.  That's necessary so that the 'current tab' indicator will
           update appropriately after a drag-drop.-->
-          <JobTab
+          <v-tab
             v-for="(tab, index) in tabsRightSide"
             :key="`${index}-${tab.uuid}`"
             :href="`#tab-${tab.uuid}`"
             :tab="tab"
           >
-          </JobTab>
+            tab {{tab.uuid}}
+          </v-tab>
         </draggable>
-        <v-tab-item v-for="tab in tabsRightSide"
-                    :key="tab.uuid"
-                    :value="`tab-${tab.uuid}`"
-                    :transition="false"
-                    :reverse-transition="false">
-          <keep-alive>
-            <div v-if="tab.type === 'errorMessage'">
-              Error: {{ tab.message }}
-            </div>
-            <v-card
-              class="job-tab-card"
-              v-else-if="tab.jobStatus !== 'COMPLETED'"
-            >
-              <v-card-title
-                class="job-tab-card-title">
-                {{ textForJobStatusInTab(tab.jobStatus) }}
-              </v-card-title>
-
-              <v-card-text
-                class="job-tab-card-text"
+        <v-tabs-items
+          v-model="selectedTabRightSide"
+        >
+          <v-tab-item v-for="tab in tabsRightSide"
+                      :key="tab.uuid"
+                      :value="`tab-${tab.uuid}`"
+                      :transition="false"
+                      :reverse-transition="false">
+            <keep-alive>
+              <div v-if="tab.type === 'errorMessage'">
+                Error: {{ tab.message }}
+              </div>
+              <v-card
+                class="job-tab-card"
+                v-else-if="tab.jobStatus !== 'COMPLETED'"
               >
-                <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
-                  <div>Checking the following formula:
-                    <strong>{{ tab.jobKey.requestParams.formula }}</strong>
-                  </div>
-                </div>
-                <div v-if="tab.jobStatus === 'QUEUED'">
-                  Queue position: <strong>{{ tab.queuePosition }}</strong>
-                </div>
-                <div v-if="tab.jobStatus === 'FAILED'">
-                  Failure reason: <strong>{{ tab.failureReason }}</strong>
-                </div>
-              </v-card-text>
+                <v-card-title
+                  class="job-tab-card-title">
+                  {{ textForJobStatusInTab(tab.jobStatus) }}
+                </v-card-title>
 
-              <v-card-actions>
-                <v-btn
-                  color="blue lighten-3"
-                  @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                <v-card-text
+                  class="job-tab-card-text"
                 >
-                  View Petri Game
-                </v-btn>
-                <v-btn
-                  v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
-                  color="red lighten-2"
-                  @click="cancelJob(tab.jobKey)"
-                >
-                  Cancel Job
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-            <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
-              <template v-if="tab.result === true">
-                Yes, there is a winning strategy for this net.
-              </template>
-              <template v-else-if="tab.result === false">
-                No, there is no winning strategy for this net.
-              </template>
-              <template v-else>
-                Error: Invalid value for job result: {{ tab.result }}
-                <div>
-                  (This shouldn't happen. Please file a bug. :)
-                </div>
-              </template>
-            </div>
-            <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
-                         :graph="tab.result"
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-            <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
-                         :graph="tab.result"
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-            <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
-                         :graph='tab.result'
-                         v-on:toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
-                         v-on:toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
-                         :shouldShowPhysicsControls="showPhysicsControls"
-                         :repulsionStrengthDefault="415"
-                         :linkStrengthDefault="0.04"
-                         :gravityStrengthDefault="300"/>
-            <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
-                         :graph="tab.result"
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-            <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
-                    class="job-tab-card"
-            >
-              <v-card-title class="job-tab-card-title">
-                Model checking result
-              </v-card-title>
-              <v-card-text class="job-tab-card-text">
-                <div>
-                  <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
-                </div>
-                <div>
+                  <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
+                    <div>Checking the following formula:
+                      <strong>{{ tab.jobKey.requestParams.formula }}</strong>
+                    </div>
+                  </div>
+                  <div v-if="tab.jobStatus === 'QUEUED'">
+                    Queue position: <strong>{{ tab.queuePosition }}</strong>
+                  </div>
+                  <div v-if="tab.jobStatus === 'FAILED'">
+                    Failure reason: <strong>{{ tab.failureReason }}</strong>
+                  </div>
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-btn
+                    color="blue lighten-3"
+                    @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                  >
+                    View Petri Game
+                  </v-btn>
+                  <v-btn
+                    v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
+                    color="red lighten-2"
+                    @click="cancelJob(tab.jobKey)"
+                  >
+                    Cancel Job
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+              <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
+                <template v-if="tab.result === true">
+                  Yes, there is a winning strategy for this net.
+                </template>
+                <template v-else-if="tab.result === false">
+                  No, there is no winning strategy for this net.
+                </template>
+                <template v-else>
+                  Error: Invalid value for job result: {{ tab.result }}
+                  <div>
+                    (This shouldn't happen. Please file a bug. :)
+                  </div>
+                </template>
+              </div>
+              <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
+                           :graph="tab.result"
+                           :shouldShowPhysicsControls="showPhysicsControls"/>
+              <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
+                           :graph="tab.result"
+                           :shouldShowPhysicsControls="showPhysicsControls"/>
+              <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
+                           :graph='tab.result'
+                           v-on:toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
+                           v-on:toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
+                           :shouldShowPhysicsControls="showPhysicsControls"
+                           :repulsionStrengthDefault="415"
+                           :linkStrengthDefault="0.04"
+                           :gravityStrengthDefault="300"/>
+              <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
+                           :graph="tab.result"
+                           :shouldShowPhysicsControls="showPhysicsControls"/>
+              <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
+                      class="job-tab-card"
+              >
+                <v-card-title class="job-tab-card-title">
+                  Model checking result
+                </v-card-title>
+                <v-card-text class="job-tab-card-text">
+                  <div>
+                    <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
+                  </div>
+                  <div>
                   <span>Result:
                     <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
                       <strong>{{ tab.result.satisfied }}</strong>
                     </span>
                   </span>
+                  </div>
+
+                  <v-list
+                    class="left-padding-0-descendants elevation-2 accordion-list"
+                  >
+                    <!--Expandable counterexample.  It should be open by default-->
+                    <v-list-group
+                      v-if="tab.result.counterExample"
+                      :value="true"
+                    >
+                      <template v-slot:activator>
+                        <v-list-tile
+                        >
+                          <v-list-tile-content>
+                            <v-list-tile-title>Counter example</v-list-tile-title>
+                          </v-list-tile-content>
+                        </v-list-tile>
+                      </template>
+                      <v-list-tile
+                        class="list-tile-stretchy"
+                      >
+                        <v-list-tile-content>
+                          <div class="counter-example">{{ tab.result.counterExample }}</div>
+                        </v-list-tile-content>
+                      </v-list-tile>
+                    </v-list-group>
+
+                    <!--Expandable statistics panel-->
+                    <v-list-group
+                      v-if="tab.result.statistics"
+                    >
+                      <template v-slot:activator>
+                        <v-list-tile
+                        >
+                          <v-list-tile-content>
+                            <v-list-tile-title>Statistics</v-list-tile-title>
+                          </v-list-tile-content>
+                        </v-list-tile>
+                      </template>
+
+                      <v-list-tile
+                        class="list-tile-stretchy"
+                      >
+                        <v-list-tile-content>
+                          <ul>
+                            <li
+                              v-for="(stat, statName) in tab.result.statistics"
+                              :key="statName"
+                            >
+                              {{ statName }}: <strong>{{ stat }}</strong>
+                            </li>
+                          </ul>
+                        </v-list-tile-content>
+                      </v-list-tile>
+                    </v-list-group>
+                  </v-list>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                    color="blue lighten-3"
+                    @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                  >
+                    View Petri Game
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+              <div v-else>
+                <div>Tab type not yet implemented: {{ tab.type }}</div>
+                <div>
+                  Tab contents:
+                  <div style="white-space: pre-wrap;">{{ tab }}</div>
                 </div>
-
-                <v-list
-                  class="left-padding-0-descendants elevation-2 accordion-list"
-                >
-                  <!--Expandable counterexample.  It should be open by default-->
-                  <v-list-group
-                    v-if="tab.result.counterExample"
-                    :value="true"
-                  >
-                    <template v-slot:activator>
-                      <v-list-tile
-                      >
-                        <v-list-tile-content>
-                          <v-list-tile-title>Counter example</v-list-tile-title>
-                        </v-list-tile-content>
-                      </v-list-tile>
-                    </template>
-                    <v-list-tile
-                      class="list-tile-stretchy"
-                    >
-                      <v-list-tile-content>
-                        <div class="counter-example">{{ tab.result.counterExample }}</div>
-                      </v-list-tile-content>
-                    </v-list-tile>
-                  </v-list-group>
-
-                  <!--Expandable statistics panel-->
-                  <v-list-group
-                    v-if="tab.result.statistics"
-                  >
-                    <template v-slot:activator>
-                      <v-list-tile
-                      >
-                        <v-list-tile-content>
-                          <v-list-tile-title>Statistics</v-list-tile-title>
-                        </v-list-tile-content>
-                      </v-list-tile>
-                    </template>
-
-                    <v-list-tile
-                      class="list-tile-stretchy"
-                    >
-                      <v-list-tile-content>
-                        <ul>
-                          <li
-                            v-for="(stat, statName) in tab.result.statistics"
-                            :key="statName"
-                          >
-                            {{ statName }}: <strong>{{ stat }}</strong>
-                          </li>
-                        </ul>
-                      </v-list-tile-content>
-                    </v-list-tile>
-                  </v-list-group>
-                </v-list>
-              </v-card-text>
-              <v-card-actions>
-                <v-btn
-                  color="blue lighten-3"
-                  @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
-                >
-                  View Petri Game
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-            <div v-else>
-              <div>Tab type not yet implemented: {{ tab.type }}</div>
-              <div>
-                Tab contents:
-                <div style="white-space: pre-wrap;">{{ tab }}</div>
               </div>
-            </div>
-          </keep-alive>
-        </v-tab-item>
+            </keep-alive>
+          </v-tab-item>
+        </v-tabs-items>
       </v-tabs>
     </div>
     <div :style="`color: ${this.notificationColor}`">
@@ -1636,7 +1641,7 @@
     flex-direction: column;
   }
 
-  .tabs-component-full-height > .v-tabs__bar {
+  .tabs-component-full-height > .v-tabs-bar {
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: auto;
