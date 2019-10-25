@@ -956,9 +956,15 @@
               logging.logServerMessage(messageParsed.message, messageParsed.level)
               break
             case 'jobStatusChanged':
-              logging.logVerbose('A job\'s status changed.  Updating job list.')
-              // TODO Incrementally update list instead of polling and reloading the WHOLE list each time
-              this.getListOfJobs()
+              // Incrementally update the job list
+              const existingJobIndex = this.jobListings.findIndex(
+                listing => equals(listing.jobKey, messageParsed.jobListing.jobKey)
+              )
+              if (existingJobIndex === -1) {
+                this.jobListings.push(messageParsed.jobListing)
+              } else {
+                this.jobListings.splice(existingJobIndex, 1, messageParsed.jobListing)
+              }
               // Close the tab of the job if the job has been canceled
               const jobStatus = messageParsed.jobListing.jobStatus
               if (jobStatus === 'CANCELED') {
@@ -1298,7 +1304,7 @@
                 ' stop if it was running.  This is a limitation of the libraries used by' +
                 ' ADAM.')
           }
-        }).then(this.getListOfJobs)
+        })
       },
       toggleGraphGameStatePostset: function (stateId, jobKey) {
         this.restEndpoints.toggleGraphGameBDDNodePostset({
