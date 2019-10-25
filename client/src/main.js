@@ -3,9 +3,11 @@
 import Vue from 'vue'
 import MainRouterView from './MainRouterView'
 import router from './router'
+import Vuetify from 'vuetify'
 
 Vue.config.productionTip = false
-Vue.config.performance = true
+
+Vue.use(Vuetify)
 
 
 /* eslint-disable no-new */
@@ -14,5 +16,6 @@ new Vue({
   router,
   // Use relative URLs for server requests
   template: '<MainRouterView/>',
-  components: { MainRouterView }
+  components: { MainRouterView },
+  vuetify: new Vuetify({})
 })

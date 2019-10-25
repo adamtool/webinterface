@@ -497,8 +497,6 @@
   import Vuetify from 'vuetify'
   import 'vuetify/dist/vuetify.min.css'
 
-  Vue.use(Vuetify)
-
   import * as VueMenu from '@hscmap/vue-menu'
 
   Vue.use(VueMenu)
