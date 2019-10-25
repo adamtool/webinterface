@@ -4,6 +4,7 @@ import Vue from 'vue'
 import MainRouterView from './MainRouterView'
 import router from './router'
 import Vuetify from 'vuetify'
+import '@mdi/font/css/materialdesignicons.css'
 
 Vue.config.productionTip = false
 

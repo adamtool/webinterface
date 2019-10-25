@@ -24,39 +24,39 @@
             @deleteJob="deleteJob"/>
           <div
             style="padding-top: 15px;">
-            <v-expansion-panel>
-              <v-expansion-panel-content>
-                <template v-slot:header>
-                  <div>More info</div>
-                </template>
-                <v-card>
-                  <v-card-text>
-                    <div>
-                      The jobs listed here are stored in-memory on the server and will disappear if
-                      the server is restarted.
-                    </div>
-                    <div>
-                      You will also lose access to them if you clear the "local
-                      storage" of your browser. That's because you can only see jobs that correspond
-                      to a randomly generated unique ID that is stored in your local storage.
-                    </div>
-                    <div>Your unique ID is {{ browserUuid }}.</div>
-                    <div>
-                      If you use multiple browsers, you can share one unique ID between them in
-                      order to have the same list of jobs appear in all of your browsers.
-                    </div>
-                    <v-text-field
-                      v-model="browserUuidEntry"
-                      :rules="[validateBrowserUuid]"
-                      label="Other Browser UUID"/>
-                    <v-btn
-                      @click="saveBrowserUuid">
-                      Use other UUID
-                    </v-btn>
-                  </v-card-text>
-                </v-card>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
+            <v-expansion-panels>
+              <v-expansion-panel>
+                <v-expansion-panel-header>
+                  More info
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                  <div>
+                    The jobs listed here are stored in-memory on the server and will disappear
+                    if
+                    the server is restarted.
+                  </div>
+                  <div>
+                    You will also lose access to them if you clear the "local
+                    storage" of your browser. That's because you can only see jobs that
+                    correspond
+                    to a randomly generated unique ID that is stored in your local storage.
+                  </div>
+                  <div>Your unique ID is {{ browserUuid }}.</div>
+                  <div>
+                    If you use multiple browsers, you can share one unique ID between them in
+                    order to have the same list of jobs appear in all of your browsers.
+                  </div>
+                  <v-text-field
+                    v-model="browserUuidEntry"
+                    :rules="[validateBrowserUuid]"
+                    label="Other Browser UUID"/>
+                  <v-btn
+                    @click="saveBrowserUuid">
+                    Use other UUID
+                  </v-btn>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
+            </v-expansion-panels>
           </div>
         </v-card-text>
       </v-card>
