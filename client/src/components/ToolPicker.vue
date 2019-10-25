@@ -290,6 +290,10 @@
     opacity: 0;
   }
 
+  .toolbar-row .v-btn {
+    margin: 6px;
+  }
+
   .tool:hover {
     border-radius: 10px;
     background-color: rgba(0, 0, 0, 0.15);
