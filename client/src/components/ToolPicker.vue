@@ -70,12 +70,12 @@
           <template
             v-for="(hiddenItem, index) in tool.hiddenItems"
           >
-            <v-list-tile
+            <v-list-item
               v-if="hiddenItem.type === 'tool' || hiddenItem.type === 'action'"
               @click="onClick(hiddenItem)"
               :key="index"
             >
-              <v-list-tile-content>
+              <v-list-item-content>
                   <span>
                   <v-btn
                     small
@@ -89,8 +89,8 @@
                     {{ hiddenItem.name }}
                   </span>
                   </span>
-              </v-list-tile-content>
-            </v-list-tile>
+              </v-list-item-content>
+            </v-list-item>
             <v-divider
               v-else-if="hiddenItem.type === 'divider'"
               :key="index"
@@ -288,6 +288,10 @@
   /*Disable hover effect on v-btn */
   .toolbar-row .v-btn::before {
     opacity: 0;
+  }
+
+  .toolbar-row .v-btn {
+    margin: 6px;
   }
 
   .tool:hover {

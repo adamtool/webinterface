@@ -2,12 +2,15 @@ package uniolunisaar.adamwebfrontend;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static uniolunisaar.adamwebfrontend.JobStatus.*;
@@ -70,6 +73,7 @@ public class JobTest {
 
             if (timeWaited >= 500 && !didWeCallCanceledYet) {
                 stringJob.cancel();
+                System.out.println("called stringJob.cancel()");
                 didWeCallCanceledYet = true;
             }
         }
@@ -91,8 +95,8 @@ public class JobTest {
     // -- but I have chosen to simply use a boolean flag that gets set to true at the start of my
     // Callable tasks.
     @Test
-    public void testDistinguishBetweenQueuedAndRunningJobs() throws InterruptedException, ExecutionException {
-         ExecutorService executorService = Executors.newSingleThreadExecutor();
+    public void testDistinguishBetweenQueuedAndRunningJobs() throws InterruptedException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
         Job<String> job1 = new Job<>(() -> {
             Thread.sleep(1000);
@@ -124,4 +128,38 @@ public class JobTest {
         assertEquals(COMPLETED, job2.getStatus());
     }
 
+    /**
+     * Make sure that observers of a job recieve messages at exactly the points they should
+     * (NOT_STARTED, QUEUED, RUNNING, COMPLETED)
+     * @throws InterruptedException
+     */
+    @Test
+    public void TestJobStatusChangedMessages() throws InterruptedException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Job<String> job1 = new Job<>(() -> {
+            Thread.sleep(1000);
+            return "First job result";
+        }, "Fake ID");
+
+        CopyOnWriteArrayList<JobStatus> statusSequence = new CopyOnWriteArrayList<>();
+        statusSequence.add(job1.getStatus());
+
+        job1.addObserver(new JobObserver() {
+            @Override
+            public synchronized void onJobChange(Job job) {
+                statusSequence.add(job.getStatus());
+            }
+        });
+        job1.queue(executorService);
+        Thread.sleep(1500);
+        try {
+            job1.getResult();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            fail();
+        }
+        assertEquals(
+                Arrays.asList(NOT_STARTED, QUEUED, RUNNING, COMPLETED),
+                statusSequence);
+    }
 }

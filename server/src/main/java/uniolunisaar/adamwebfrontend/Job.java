@@ -1,5 +1,6 @@
 package uniolunisaar.adamwebfrontend;
 
+import uniol.apt.util.Pair;
 import uniolunisaar.adam.tools.processHandling.ProcessPool;
 
 import java.time.Instant;
@@ -19,14 +20,16 @@ public class Job<T> {
     private final Callable<T> callable;
     private final String netId;
 
-    private Future<T> future = null;
+    private Pair<Future<?>, CompletableFuture<T>> futurePair = null;
     private volatile boolean isStarted = false;
     private volatile Instant timeStarted = Instant.EPOCH;
     private volatile Instant timeFinished = Instant.EPOCH;
     private final HashSet<JobObserver> observers = new HashSet<>();
 
+    private boolean isQueued = false;
+
     public Future<T> getFuture() {
-        return future;
+        return futurePair.getSecond();
     }
 
     public void addObserver(JobObserver observer) {
@@ -50,25 +53,25 @@ public class Job<T> {
     }
 
     public void queue(ExecutorService executorService) {
-        if (this.future != null) {
+        if (this.futurePair != null) {
             return;
         }
-        this.future = executorService.submit(() -> {
+        isQueued = true;
+        fireJobStatusChanged();
+        this.futurePair = asFuture(() -> {
             isStarted = true;
             timeStarted = Instant.now();
             fireJobStatusChanged();
             try {
                 T result = callable.call();
                 timeFinished = Instant.now();
-                fireJobStatusChanged();
                 return result;
             } catch (Throwable e) {
                 timeFinished = Instant.now();
-                fireJobStatusChanged();
                 throw e;
             }
-        });
-        fireJobStatusChanged();
+        }, executorService);
+        this.futurePair.getSecond().whenComplete((result, exception) -> this.fireJobStatusChanged());
     }
 
     public void cancel() {
@@ -76,24 +79,29 @@ public class Job<T> {
             throw new UnsupportedOperationException(
                     "This Job is not running/queued, so you can't cancel it.");
         }
-        this.future.cancel(true);
+        this.futurePair.getFirst().cancel(true);
+        this.futurePair.getSecond().cancel(true);
         ProcessPool.getInstance().destroyProcessesOfNet(netId);
         fireJobStatusChanged();
     }
 
     public boolean isFinished() {
-        return future.isDone();
+        return futurePair.getSecond().isDone();
     }
 
     public T getResult() throws ExecutionException, InterruptedException {
-        return future.get();
+        return futurePair.getSecond().get();
     }
 
     public JobStatus getStatus() {
-        if (future == null) {
-            return NOT_STARTED;
+        if (futurePair == null) {
+            if (!isQueued) {
+                return NOT_STARTED;
+            } else {
+                return QUEUED;
+            }
         }
-        if (future.isCancelled()) {
+        if (futurePair.getFirst().isCancelled()) {
             if (isStarted && timeFinished == Instant.EPOCH) {
                 // We have interrupted the thread and are waiting for it to check the interrupt
                 // flag and stop running.
@@ -101,9 +109,9 @@ public class Job<T> {
             }
             return CANCELED;
         }
-        if (future.isDone()) {
+        if (futurePair.getSecond().isDone()) {
             try {
-                future.get();
+                futurePair.getSecond().get();
             } catch (InterruptedException e) {
                 return CANCELED;
             } catch (ExecutionException e) {
@@ -120,7 +128,7 @@ public class Job<T> {
     public String getFailedReason() {
         if (getStatus() == FAILED) {
             try {
-                future.get();
+                futurePair.getSecond().get();
             } catch (InterruptedException | ExecutionException e) {
                 return e.getMessage();
             }
@@ -136,4 +144,20 @@ public class Job<T> {
         return timeFinished;
     }
 
+    /**
+     * @return a Future you can call cancel() on to cancel the ongoing calculation,
+     * and a CompletableFuture that you can schedule an event to occur on after it's completed.
+     */
+    public static <T> Pair<Future<?>, CompletableFuture<T>> asFuture(Callable<? extends T> callable,
+                                                                     ExecutorService executor) {
+        CompletableFuture<T> completableFuture = new CompletableFuture<>();
+        Future<?> executorFuture = executor.submit(() -> {
+            try {
+                completableFuture.complete(callable.call());
+            } catch (Throwable t) {
+                completableFuture.completeExceptionally(t);
+            }
+        });
+        return new Pair<>(executorFuture, completableFuture);
+    }
 }

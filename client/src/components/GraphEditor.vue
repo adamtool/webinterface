@@ -2300,6 +2300,7 @@
     width: 100%;
     max-width: 100%;
     display: relative;
+    background-color: #fafafa;
   }
 
   .graph {

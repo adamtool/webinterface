@@ -19,46 +19,42 @@
       in the Correct System Design group at the Universität Oldenburg.
     </p>
 
-    <v-expansion-panel>
-      <v-expansion-panel-content>
-        <template v-slot:header>
-          <div>Version</div>
-        </template>
-        <v-card>
-          <v-card-text>
-            <p>
-              Build date: {{ formattedBuildDate }}
-            </p>
-            <p>
-              Git revision: {{ sourceCodeRevision }}.
-            </p>
-          </v-card-text>
-        </v-card>
-      </v-expansion-panel-content>
-      <v-expansion-panel-content>
-        <template v-slot:header>
-          <div>License information</div>
-        </template>
-        <v-card>
-          <v-card-text>
-            <p>
-              ADAM Web uses open source components. You can find the source code of their open
-              source
-              projects along with license information below.
-            </p>
-            <ul>
-              <li v-for="(library, libraryName) in creditsJson">
-                {{ libraryName }}
-                <ul>
-                  <li>License: <a :href="library.licenseUrl">{{ library.licenses }}</a></li>
-                  <li><a :href="library.repository">Repository</a></li>
-                </ul>
-              </li>
-            </ul>
-          </v-card-text>
-        </v-card>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
+    <v-expansion-panels>
+      <v-expansion-panel>
+        <v-expansion-panel-header>
+          Version
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <p>
+            Build date: {{ formattedBuildDate }}
+          </p>
+          <p>
+            Git revision: {{ sourceCodeRevision }}.
+          </p>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+      <v-expansion-panel>
+        <v-expansion-panel-header>
+          License information
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <p>
+            ADAM Web uses open source components. You can find the source code of their open
+            source
+            projects along with license information below.
+          </p>
+          <ul>
+            <li v-for="(library, libraryName) in creditsJson">
+              {{ libraryName }}
+              <ul>
+                <li>License: <a :href="library.licenseUrl">{{ library.licenses }}</a></li>
+                <li><a :href="library.repository">Repository</a></li>
+              </ul>
+            </li>
+          </ul>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
   </div>
 </template>
 

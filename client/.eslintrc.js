@@ -14,7 +14,8 @@ module.exports = {
   'extends': 'plugin:vue/base',
   // required to lint *.vue files
   plugins: [
-    'vue'
+    'vue',
+    'vuetify'
   ],
   // add your custom rules here
   'rules': {
@@ -26,6 +27,8 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0,
     'no-unneeded-ternary': 0,
     'no-unused-vars': 0,
-    'object-curly-spacing': 0
+    'object-curly-spacing': 0,
+    // Vuetify 1.5 to 2.x helper
+    'vuetify/no-deprecated-classes': 'error'
   }
 }

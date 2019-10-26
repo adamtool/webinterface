@@ -3,6 +3,7 @@
     <v-dialog v-model="showJobList"
               :hide-overlay="false"
               :persistent="false"
+              :scrollable="true"
               @keydown.esc="showJobList = false">
       <v-card>
         <v-card-title
@@ -14,7 +15,9 @@
             close
           </v-icon>
         </v-card-title>
-        <v-card-text>
+        <v-card-text
+          style="max-height: 70vh;"
+        >
           <JobList
             :jobListings="jobListings"
             :useModelChecking="useModelChecking"
@@ -24,54 +27,43 @@
             @deleteJob="deleteJob"/>
           <div
             style="padding-top: 15px;">
-            <v-expansion-panel>
-              <v-expansion-panel-content>
-                <template v-slot:header>
-                  <div>More info</div>
-                </template>
-                <v-card>
-                  <v-card-text>
-                    <div>
-                      The jobs listed here are stored in-memory on the server and will disappear if
-                      the server is restarted.
-                    </div>
-                    <div>
-                      You will also lose access to them if you clear the "local
-                      storage" of your browser. That's because you can only see jobs that correspond
-                      to a randomly generated unique ID that is stored in your local storage.
-                    </div>
-                    <div>Your unique ID is {{ browserUuid }}.</div>
-                    <div>
-                      If you use multiple browsers, you can share one unique ID between them in
-                      order to have the same list of jobs appear in all of your browsers.
-                    </div>
-                    <v-text-field
-                      v-model="browserUuidEntry"
-                      :rules="[validateBrowserUuid]"
-                      label="Other Browser UUID"/>
-                    <v-btn
-                      @click="saveBrowserUuid">
-                      Use other UUID
-                    </v-btn>
-                  </v-card-text>
-                </v-card>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
+            <v-expansion-panels>
+              <v-expansion-panel>
+                <v-expansion-panel-header>
+                  More info
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                  <div>
+                    The jobs listed here are stored in-memory on the server and will disappear
+                    if
+                    the server is restarted.
+                  </div>
+                  <div>
+                    You will also lose access to them if you clear the "local
+                    storage" of your browser. That's because you can only see jobs that
+                    correspond
+                    to a randomly generated unique ID that is stored in your local storage.
+                  </div>
+                  <div>Your unique ID is {{ browserUuid }}.</div>
+                  <div>
+                    If you use multiple browsers, you can share one unique ID between them in
+                    order to have the same list of jobs appear in all of your browsers.
+                  </div>
+                  <v-text-field
+                    v-model="browserUuidEntry"
+                    :rules="[validateBrowserUuid]"
+                    label="Other Browser UUID"/>
+                  <v-btn
+                    @click="saveBrowserUuid">
+                    Use other UUID
+                  </v-btn>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
+            </v-expansion-panels>
           </div>
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-snackbar
-      :timeout="6000"
-      top
-      multi-line
-      :color="snackbarMessage.color"
-      v-model="snackbarMessage.display">
-      <div style="white-space: pre-wrap; font-size: 18px">
-        {{ snackbarMessage.text }}
-      </div>
-      <v-btn flat @click.native="snackbarMessage.display = false">Close</v-btn>
-    </v-snackbar>
     <input id="file-picker" type="file" style="display: none;" v-on:change="onFileSelected"/>
     <!--<v-toolbar</v-toolbar-items>-->
     <!--<v-spacer/>-->
@@ -198,7 +190,7 @@
       </div>
       <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
               v-model="selectedTabLeftSide">
-        <draggable v-model="tabsLeftSide" class="v-tabs__container"
+        <draggable v-model="tabsLeftSide" class="v-slide-group__content v-tabs-bar__content"
                    @start="tabDragStart"
                    @end="(evt) => tabDragEnd(evt, 'left')"
                    @choose="onTabChosen">
@@ -225,7 +217,6 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;"
                  v-if="tab.type === 'petriGameEditor'">
-              <!--<ToolPicker style="position: absolute; z-index: 5; width: 5%; display: none;"/>-->
               <GraphEditor :graph='petriGame.net'
                            :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
@@ -270,228 +261,195 @@
       <v-tabs class="tabs-component-full-height" :style="splitRightSideStyle" id="splitRightSide"
               show-arrows
               v-model="selectedTabRightSide">
-        <draggable v-model="visibleJobsRightSide" class="v-tabs__container"
+        <draggable v-model="visibleJobsRightSide" class="v-slide-group__content v-tabs-bar__content"
                    @start="tabDragStart"
                    @end="(evt) => tabDragEnd(evt, 'right')"
                    @choose="onTabChosen">
           <!--We include the tab's index in the key so that this component will re-render when
           the tabs' order changes.  That's necessary so that the 'current tab' indicator will
           update appropriately after a drag-drop.-->
-          <!--TODO Mark the tabs somehow if the Petri Game has been modified since the tabs were
-          opened-->
-          <v-tab v-for="(tab, index) in tabsRightSide"
-                 :key="`${index}-${tab.uuid}`"
-                 :href="`#tab-${tab.uuid}`">
-            <div style="max-width: 150px; ">{{ formatTabTitle(tab) }}</div>
-            <!--Spinny circle for running job with X inside -->
-            <div
-              v-if="tab.jobStatus === 'RUNNING'"
-            >
-              <v-progress-circular
-                indeterminate
-                color="blue darken-2"
-                :size="26"
-                :width="2"
-              >
-                <v-icon
-                  small
-                  style="position: absolute; transform: translate(-50%, -50%);"
-                  @click="closeTab(tab, 'right')">
-                  close
-                </v-icon>
-              </v-progress-circular>
-            </div>
-            <!--Spinny circle for a job that is being canceled-->
-            <v-progress-circular
-              v-else-if="tab.jobStatus === 'CANCELING'"
-              indeterminate
-              color="deep-orange"
-              :size="26"
-              :width="3"
-            />
-            <!--Show an X to close the tab/cancel the running job-->
-            <v-icon
-              v-else-if="tab.isCloseable"
-              small right
-              @click="closeTab(tab, 'right')">
-              close
-            </v-icon>
-            <template
-              v-else/>
-          </v-tab>
+          <JobTab v-for="(tab, index) in tabsRightSide"
+                  :key="`${index}-${tab.uuid}`"
+                  :tab="tab"
+                  @closeTab="closeTab(tab, 'right')"
+          />
         </draggable>
-        <v-tab-item v-for="tab in tabsRightSide"
-                    :key="tab.uuid"
-                    :value="`tab-${tab.uuid}`"
-                    :transition="false"
-                    :reverse-transition="false">
-          <keep-alive>
-            <div v-if="tab.type === 'errorMessage'">
-              Error: {{ tab.message }}
-            </div>
-            <v-card
-              class="job-tab-card"
-              v-else-if="tab.jobStatus !== 'COMPLETED'"
-            >
-              <v-card-title
-                class="job-tab-card-title">
-                {{ textForJobStatusInTab(tab.jobStatus) }}
-              </v-card-title>
-
-              <v-card-text
-                class="job-tab-card-text"
+        <v-tabs-items
+          v-model="selectedTabRightSide"
+        >
+          <v-tab-item v-for="tab in tabsRightSide"
+                      :key="tab.uuid"
+                      :value="`tab-${tab.uuid}`"
+                      :transition="false"
+                      :reverse-transition="false">
+            <keep-alive>
+              <div v-if="tab.type === 'errorMessage'">
+                Error: {{ tab.message }}
+              </div>
+              <v-card
+                class="job-tab-card"
+                v-else-if="tab.jobStatus !== 'COMPLETED'"
               >
-                <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
-                  <div>Checking the following formula:
-                    <strong>{{ tab.jobKey.requestParams.formula }}</strong>
-                  </div>
-                </div>
-                <div v-if="tab.jobStatus === 'QUEUED'">
-                  Queue position: <strong>{{ tab.queuePosition }}</strong>
-                </div>
-                <div v-if="tab.jobStatus === 'FAILED'">
-                  Failure reason: <strong>{{ tab.failureReason }}</strong>
-                </div>
-              </v-card-text>
+                <v-card-title
+                  class="job-tab-card-title">
+                  {{ textForJobStatusInTab(tab.jobStatus) }}
+                </v-card-title>
 
-              <v-card-actions>
-                <v-btn
-                  color="blue lighten-3"
-                  @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                <v-card-text
+                  class="job-tab-card-text"
                 >
-                  View Petri Game
-                </v-btn>
-                <v-btn
-                  v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
-                  color="red lighten-2"
-                  @click="cancelJob(tab.jobKey)"
-                >
-                  Cancel Job
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-            <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
-              <template v-if="tab.result === true">
-                Yes, there is a winning strategy for this net.
-              </template>
-              <template v-else-if="tab.result === false">
-                No, there is no winning strategy for this net.
-              </template>
-              <template v-else>
-                Error: Invalid value for job result: {{ tab.result }}
-                <div>
-                  (This shouldn't happen. Please file a bug. :)
-                </div>
-              </template>
-            </div>
-            <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
-                         :graph="tab.result"
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-            <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
-                         :graph="tab.result"
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-            <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
-                         :graph='tab.result'
-                         v-on:toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
-                         v-on:toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
-                         :shouldShowPhysicsControls="showPhysicsControls"
-                         :repulsionStrengthDefault="415"
-                         :linkStrengthDefault="0.04"
-                         :gravityStrengthDefault="300"/>
-            <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
-                         :graph="tab.result"
-                         :shouldShowPhysicsControls="showPhysicsControls"/>
-            <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
-                    class="job-tab-card"
-            >
-              <v-card-title class="job-tab-card-title">
-                Model checking result
-              </v-card-title>
-              <v-card-text class="job-tab-card-text">
-                <div>
-                  <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
-                </div>
-                <div>
+                  <div v-if="tab.type === 'MODEL_CHECKING_RESULT'">
+                    <div>Checking the following formula:
+                      <strong>{{ tab.jobKey.requestParams.formula }}</strong>
+                    </div>
+                  </div>
+                  <div v-if="tab.jobStatus === 'QUEUED'">
+                    Queue position: <strong>{{ tab.queuePosition }}</strong>
+                  </div>
+                  <div v-if="tab.jobStatus === 'FAILED'">
+                    Failure reason: <strong>{{ tab.failureReason }}</strong>
+                  </div>
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-btn
+                    color="blue lighten-3"
+                    @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                  >
+                    View Petri Game
+                  </v-btn>
+                  <v-btn
+                    v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
+                    color="red lighten-2"
+                    @click="cancelJob(tab.jobKey)"
+                  >
+                    Cancel Job
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+              <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
+                <template v-if="tab.result === true">
+                  Yes, there is a winning strategy for this net.
+                </template>
+                <template v-else-if="tab.result === false">
+                  No, there is no winning strategy for this net.
+                </template>
+                <template v-else>
+                  Error: Invalid value for job result: {{ tab.result }}
+                  <div>
+                    (This shouldn't happen. Please file a bug. :)
+                  </div>
+                </template>
+              </div>
+              <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
+                           :graph="tab.result"
+                           :shouldShowPhysicsControls="showPhysicsControls"/>
+              <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
+                           :graph="tab.result"
+                           :shouldShowPhysicsControls="showPhysicsControls"/>
+              <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
+                           :graph='tab.result'
+                           v-on:toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
+                           v-on:toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
+                           :shouldShowPhysicsControls="showPhysicsControls"
+                           :repulsionStrengthDefault="415"
+                           :linkStrengthDefault="0.04"
+                           :gravityStrengthDefault="300"/>
+              <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
+                           :graph="tab.result"
+                           :shouldShowPhysicsControls="showPhysicsControls"/>
+              <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
+                      class="job-tab-card"
+              >
+                <v-card-title class="job-tab-card-title">
+                  Model checking result
+                </v-card-title>
+                <v-card-text class="job-tab-card-text">
+                  <div>
+                    <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
+                  </div>
+                  <div>
                   <span>Result:
                     <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
                       <strong>{{ tab.result.satisfied }}</strong>
                     </span>
                   </span>
+                  </div>
+
+                  <v-list
+                    class="left-padding-0-descendants elevation-2 accordion-list"
+                  >
+                    <!--Expandable counterexample.  It should be open by default-->
+                    <v-list-group
+                      v-if="tab.result.counterExample"
+                      :value="true"
+                    >
+                      <template v-slot:activator>
+                        <v-list-item
+                        >
+                          <v-list-item-content>
+                            <v-list-item-title>Counter example</v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </template>
+                      <v-list-item
+                        class="list-tile-stretchy"
+                      >
+                        <v-list-item-content>
+                          <div class="counter-example">{{ tab.result.counterExample }}</div>
+                        </v-list-item-content>
+                      </v-list-item>
+                    </v-list-group>
+
+                    <!--Expandable statistics panel-->
+                    <v-list-group
+                      v-if="tab.result.statistics"
+                    >
+                      <template v-slot:activator>
+                        <v-list-item
+                        >
+                          <v-list-item-content>
+                            <v-list-item-title>Statistics</v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </template>
+
+                      <v-list-item
+                        class="list-tile-stretchy"
+                      >
+                        <v-list-item-content>
+                          <ul>
+                            <li
+                              v-for="(stat, statName) in tab.result.statistics"
+                              :key="statName"
+                            >
+                              {{ statName }}: <strong>{{ stat }}</strong>
+                            </li>
+                          </ul>
+                        </v-list-item-content>
+                      </v-list-item>
+                    </v-list-group>
+                  </v-list>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                    color="blue lighten-3"
+                    @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
+                  >
+                    View Petri Game
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+              <div v-else>
+                <div>Tab type not yet implemented: {{ tab.type }}</div>
+                <div>
+                  Tab contents:
+                  <div style="white-space: pre-wrap;">{{ tab }}</div>
                 </div>
-
-                <v-list
-                  class="left-padding-0-descendants elevation-2 accordion-list"
-                >
-                  <!--Expandable counterexample.  It should be open by default-->
-                  <v-list-group
-                    v-if="tab.result.counterExample"
-                    :value="true"
-                  >
-                    <template v-slot:activator>
-                      <v-list-tile
-                      >
-                        <v-list-tile-content>
-                          <v-list-tile-title>Counter example</v-list-tile-title>
-                        </v-list-tile-content>
-                      </v-list-tile>
-                    </template>
-                    <v-list-tile
-                      class="list-tile-stretchy"
-                    >
-                      <v-list-tile-content>
-                        <div class="counter-example">{{ tab.result.counterExample }}</div>
-                      </v-list-tile-content>
-                    </v-list-tile>
-                  </v-list-group>
-
-                  <!--Expandable statistics panel-->
-                  <v-list-group
-                    v-if="tab.result.statistics"
-                  >
-                    <template v-slot:activator>
-                      <v-list-tile
-                      >
-                        <v-list-tile-content>
-                          <v-list-tile-title>Statistics</v-list-tile-title>
-                        </v-list-tile-content>
-                      </v-list-tile>
-                    </template>
-
-                    <v-list-tile
-                      class="list-tile-stretchy"
-                    >
-                      <v-list-tile-content>
-                        <ul>
-                          <li
-                            v-for="(stat, statName) in tab.result.statistics"
-                            :key="statName"
-                          >
-                            {{ statName }}: <strong>{{ stat }}</strong>
-                          </li>
-                        </ul>
-                      </v-list-tile-content>
-                    </v-list-tile>
-                  </v-list-group>
-                </v-list>
-              </v-card-text>
-              <v-card-actions>
-                <v-btn
-                  color="blue lighten-3"
-                  @click="parseAPTToPetriGame(tab.jobKey.canonicalApt)"
-                >
-                  View Petri Game
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-            <div v-else>
-              <div>Tab type not yet implemented: {{ tab.type }}</div>
-              <div>
-                Tab contents:
-                <div style="white-space: pre-wrap;">{{ tab }}</div>
               </div>
-            </div>
-          </keep-alive>
-        </v-tab-item>
+            </keep-alive>
+          </v-tab-item>
+        </v-tabs-items>
       </v-tabs>
     </div>
     <div :style="`color: ${this.notificationColor}`">
@@ -523,7 +481,6 @@
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
-  import ToolPicker from './components/ToolPicker'
   import Vue from 'vue'
   import * as axios from 'axios'
   import {debounce, isEqual} from 'underscore'
@@ -531,8 +488,6 @@
 
   import Vuetify from 'vuetify'
   import 'vuetify/dist/vuetify.min.css'
-
-  Vue.use(Vuetify)
 
   import * as VueMenu from '@hscmap/vue-menu'
 
@@ -555,11 +510,12 @@
 
   import logging from './logging'
   import AptEditor from './components/AptEditor'
+  import JobTab from './components/JobTab'
 
   import {format} from 'date-fns'
 
   import draggable from 'vuedraggable'
-  import {formatJobType, modelCheckingResultColor} from './jobType'
+  import {modelCheckingResultColor} from './jobType'
 
   const uuidv4 = require('uuid/v4')
 
@@ -583,7 +539,7 @@
       LogViewer,
       AptEditor,
       JobList,
-      ToolPicker,
+      JobTab,
       AboutAdamWeb
     },
     created: function () {
@@ -642,11 +598,10 @@
         browserUuidEntry: '',
         aptFilename: 'apt.txt',
         showSaveAptModal: false,
+        // True iff the modal dialog with the list of jobs is visible
         showJobList: false,
         showAboutModal: false,
-        // True iff the modal dialog with the list of jobs is visible
         jobListings: [], // Listings for all enqueued/finished jobs
-        // TODO Rename to just 'availableJobListings' or 'jobListings'
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
@@ -693,11 +648,6 @@
         showPhysicsControls: false,
         showPartitions: false,
         messageLog: [],
-        snackbarMessage: {
-          display: false,
-          text: '',
-          color: undefined
-        },
         horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
         horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
@@ -732,6 +682,7 @@
     },
     computed: {
       tabsRightSide: function () {
+        console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
         function jobKeyToTab (jobListings, jobKey) {
@@ -880,20 +831,9 @@
             return 'This job has been canceled.'
           case 'COMPLETED':
             return 'This job is finished.'
-
         }
       },
       modelCheckingResultColor,
-      formatTabTitle: function (tab) {
-        if (tab.type === 'errorMessage') {
-          return 'Error'
-        }
-        const typePrettyPrinted = formatJobType(tab.type)
-        const shouldIncludeFormula =
-          ['MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT'].includes(tab.type)
-        const formulaText = shouldIncludeFormula ? ` for "${tab.jobKey.requestParams.formula}"` : ''
-        return typePrettyPrinted.concat(formulaText)
-      },
       closeTab: function (tab, side) {
         console.log(`closeTab(${tab.name}, ${side})`)
         // TODO delete this case statement and replace with a component
@@ -956,9 +896,17 @@
               logging.logServerMessage(messageParsed.message, messageParsed.level)
               break
             case 'jobStatusChanged':
-              logging.logVerbose('A job\'s status changed.  Updating job list.')
-              // TODO Incrementally update list instead of polling and reloading the WHOLE list each time
-              this.getListOfJobs()
+              console.log('jobStatusChanged.  Status: ' + messageParsed.jobListing.jobStatus)
+              // Incrementally update the job list
+              const existingJobIndex = this.jobListings.findIndex(
+                listing => isEqual(listing.jobKey, messageParsed.jobListing.jobKey)
+              )
+              if (existingJobIndex === -1) {
+                this.jobListings.push(messageParsed.jobListing)
+              } else {
+                console.log('splicing job status')
+                this.jobListings.splice(existingJobIndex, 1, messageParsed.jobListing)
+              }
               // Close the tab of the job if the job has been canceled
               const jobStatus = messageParsed.jobListing.jobStatus
               if (jobStatus === 'CANCELED') {
@@ -1168,10 +1116,15 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
+              // 'response.data.result' is the listing of the job that was queued
+              // Only add it to the list if its not already there
+              // (There could be a race condition with the websocket's jobStatusChanged message)
+              if (!this.jobListings.find(listing =>
+                isEqual(listing.jobKey, response.data.result.jobKey))) {
+                this.jobListings.push(response.data.result)
+              }
               // Add a tab corresponding to the newly queued job
-              // 'result' is the listing of the job that was queued
               this.openOrAddTab(response.data.result.jobKey)
-              this.jobListings.push(response.data.result)
               break
             case 'error':
               if (response.data.errorType === 'JOB_ALREADY_QUEUED') {
@@ -1298,7 +1251,7 @@
                 ' stop if it was running.  This is a limitation of the libraries used by' +
                 ' ADAM.')
           }
-        }).then(this.getListOfJobs)
+        })
       },
       toggleGraphGameStatePostset: function (stateId, jobKey) {
         this.restEndpoints.toggleGraphGameBDDNodePostset({
@@ -1621,6 +1574,27 @@
 </script>
 
 <style>
+  /*Text inside of v-cards should be pure black.*/
+  .theme--light.v-card .v-card__subtitle, .theme--light.v-card > .v-card__text {
+    color: #000000;
+  }
+
+  /*Inactive tab text should not be too hard to read*/
+  .theme--light.v-tabs > .v-tabs-bar .v-tab--disabled,
+  .theme--light.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active),
+  .theme--light.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active) > .v-icon {
+    color: rgba(0, 0, 0, .7);
+  }
+
+  /*Placeholder text of v-input should not be too faint to read*/
+  .theme--light.v-input input::placeholder, .theme--light.v-input textarea::placeholder {
+    color: rgba(0, 0, 0, .7);
+  }
+
+  .theme--light.v-btn.v-btn--icon {
+    color: rgba(0, 0, 0, .7);
+  }
+
   html {
     overflow-y: auto;
   }
@@ -1673,7 +1647,7 @@
     font-family: 'Roboto', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color: #2c3e50;
+    color: #000000;
     height: 100vh;
   }
 
@@ -1688,7 +1662,7 @@
     flex-direction: column;
   }
 
-  .tabs-component-full-height > .v-tabs__bar {
+  .tabs-component-full-height > .v-tabs-bar {
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: auto;
@@ -1784,7 +1758,8 @@
   }
 
   .counter-example {
-    font-size: 14px;
+    font-size: 16px;
+    line-height: 1.4rem;
     white-space: pre-wrap;
   }
 
@@ -1799,6 +1774,7 @@
   }
 
   .job-tab-card-text {
+    font-size: 16px;
     padding-top: 8px;
     flex-grow: 1;
     flex-shrink: 1;
