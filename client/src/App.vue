@@ -466,8 +466,8 @@
                   :isOpen.sync="isLogVisible"
                   title="Log"
                   style="z-index: 9999">
-        <LogViewer :messages="messageLog"
-                   style="height: inherit; width: inherit;"/>
+        <!--<LogViewer :messages="messageLog"-->
+                   <!--style="height: inherit; width: inherit;"/>-->
       </hsc-window>
     </hsc-window-style-metal>
   </v-app>
