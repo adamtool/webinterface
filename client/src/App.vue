@@ -466,8 +466,9 @@
                   :isOpen.sync="isLogVisible"
                   title="Log"
                   style="z-index: 9999">
-        <LogViewer :messages="messageLog"
-                   style="height: inherit; width: inherit;"/>
+        <LogViewer
+          style="height: inherit; width: inherit;"
+        />
       </hsc-window>
     </hsc-window-style-metal>
   </v-app>
@@ -555,10 +556,6 @@
       this.browserUuid = window.localStorage.getItem('browserUuid')
       console.log(`browserUuid: ${this.browserUuid}`)
 
-      // Subscribe to logging event bus
-      logging.subscribeLog(message => {
-        this.messageLog.push(message)
-      })
       logging.subscribeErrorNotification(({message, actionName, action}) => {
         this.showNotification(message, '#cc0000')
         if (actionName !== undefined && action !== undefined) {
@@ -647,7 +644,6 @@
         isLogVisible: false,
         showPhysicsControls: false,
         showPartitions: false,
-        messageLog: [],
         horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
         horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
@@ -921,7 +917,6 @@
               this.closeTabIfOpen(messageParsed.jobKey)
               break
             case 'ping':
-              logging.logVerbose('Got ping from server.  Sending pong')
               this.socket.send(JSON.stringify({
                 type: 'pong'
               }))

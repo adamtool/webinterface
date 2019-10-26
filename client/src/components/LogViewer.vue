@@ -2,70 +2,63 @@
   <div class="logViewer" style="display: flex; flex-direction: column;">
     <div style="flex: 1 0 50px; display: flex; justify-content: center; align-items: center;">
       <v-radio-group v-model="logLevel" row hide-details style="padding-top: 0" height="30px">
-          <v-radio label="Verbose" :value="1"/>
-          <v-radio label="Normal" :value="2"/>
-          <v-radio label="Warning" :value="3"/>
-          <v-radio label="Error" :value="4"/>
-          <v-checkbox label="Show client log" v-model="showClientMessages"/>
-          <v-checkbox label="Show server log" v-model="showServerMessages"/>
+        <v-radio label="Verbose" :value="1"/>
+        <v-radio label="Normal" :value="2"/>
+        <v-radio label="Warning" :value="3"/>
+        <v-radio label="Error" :value="4"/>
+        <v-checkbox label="Show client log" v-model="showClientMessages"/>
+        <v-checkbox label="Show server log" v-model="showServerMessages"/>
       </v-radio-group>
     </div>
     <div class="log" ref="logElement" style="flex: 1 1 100%">
-      <template v-for="message in visibleMessages">
-        <pre :style="styleOfMessage(message)">{{ formatMessageDate(message.time) }} {{ message.text }}</pre>
-      </template>
     </div>
   </div>
 </template>
 
 <script>
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
   import Vue from 'vue'
+  import logging from '../logging'
 
   export default {
     name: 'log-viewer',
-    props: {
-      messages: {
-        type: Array,
-        required: true,
-        // It might be nice to switch to Typescript to avoid the need for this ad-hoc type checking.
-        // This is actually O(n) in the number of log messages, it's really not a great solution.
-        validator: messageList => messageList.every(message =>
-          message.hasOwnProperty('source') &&
-          message.hasOwnProperty('level') &&
-          message.hasOwnProperty('time') &&
-          message.hasOwnProperty('text')
-        )
-      }
-    },
+    props: {},
     data () {
       return {
         logLevel: 2,
         showClientMessages: true,
-        showServerMessages: true
+        showServerMessages: true,
+        messageLog: []
       }
     },
-    computed: {
-      visibleMessages: function () {
-        return this.messages.filter(m => {
-          const isSourceVisible = (m.source === 'client' && this.showClientMessages) ||
-            (m.source === 'server' && this.showServerMessages)
-          const isLogLevelVisible = m.level >= this.logLevel
-          return isLogLevelVisible && isSourceVisible
-        })
-      }
-
+    computed: {},
+    created: function () {
+      // Subscribe to logging event bus
+      logging.subscribeLog(message => {
+        this.messageLog.push(message)
+        if (this.shouldMessageBeVisible(message)) {
+          this.$refs.logElement.appendChild(this.createMessageElement(message))
+          this.scrollToBottom()
+        }
+      })
     },
     mounted: function () {
       this.scrollToBottom()
     },
     methods: {
-      styleOfMessage: function (message) {
-        const colorsOfSources = {
-          server: '#007700',
-          client: '#003377'
-        }
-        return `color: ${colorsOfSources[message.source]}`
+      shouldMessageBeVisible: function (m) {
+        const isSourceVisible = (m.source === 'client' && this.showClientMessages) ||
+          (m.source === 'server' && this.showServerMessages)
+        const isLogLevelVisible = m.level >= this.logLevel
+        return isLogLevelVisible && isSourceVisible
+      },
+      createMessageElement: function (message) {
+        const pre = document.createElement('pre')
+        pre.style.color = message.source === 'client' ? '#003377' : '#007700'
+        const text = `${this.formatMessageDate(message.time)} ${message.text}`
+        const preContent = document.createTextNode(text)
+        pre.appendChild(preContent)
+        return pre
       },
       formatMessageDate: function (date) {
         return format(date, 'YYYY-MM-DD HH:mm:ss')
@@ -76,11 +69,31 @@
           const div = this.$refs.logElement
           div.scrollTop = div.scrollHeight
         })
+      },
+      rerenderLogMessages: function () {
+        // Delete all <pre> elements we created
+        const range = document.createRange()
+        range.selectNodeContents(this.$refs.logElement)
+        range.deleteContents()
+
+        // Create new <pre> elements based on log level and client/server checkboxes
+        this.messageLog.forEach(message => {
+          if (this.shouldMessageBeVisible(message)) {
+            this.$refs.logElement.appendChild(this.createMessageElement(message))
+          }
+        })
+        this.scrollToBottom()
       }
     },
     watch: {
-      visibleMessages: function () {
-        this.scrollToBottom()
+      logLevel: function () {
+        this.rerenderLogMessages()
+      },
+      showClientMessages: function () {
+        this.rerenderLogMessages()
+      },
+      showServerMessages: function () {
+        this.rerenderLogMessages()
       }
     }
   }

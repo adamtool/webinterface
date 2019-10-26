@@ -154,11 +154,13 @@
       lastTransitionFired: {
         type: Object,
         required: false,
-        default: {
-          id: '___AAAAA fake transition ID', // ID of the transition
-          successful: false, // Was the transition successfully fired or did an error happen
-          timestamp: new Date(0) // When did it get fired (this enables reactivity in case the same
-          // transition gets fired twice in a row)
+        default: function () {
+          return {
+            id: '___AAAAA fake transition ID', // ID of the transition
+            successful: false, // Was the transition successfully fired or did an error happen
+            timestamp: new Date(0) // When did it get fired (this enables reactivity in case the same
+            // transition gets fired twice in a row)
+          }
         }
       },
       petriNetId: {
