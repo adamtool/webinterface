@@ -4,7 +4,7 @@
   <v-tab
     :href="`#tab-${tab.uuid}`"
   >
-    <div style="max-width: 150px; ">{{ tabTitle }}</div>
+    <div style="max-width: 150px;">{{ tabTitle }}</div>
     <!--Spinny circle for running job with X inside -->
     <div
       v-if="tab.jobStatus === 'RUNNING'"

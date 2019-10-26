@@ -515,7 +515,7 @@
   import {format} from 'date-fns'
 
   import draggable from 'vuedraggable'
-  import {formatJobType, modelCheckingResultColor} from './jobType'
+  import {modelCheckingResultColor} from './jobType'
 
   const uuidv4 = require('uuid/v4')
 
@@ -834,16 +834,6 @@
         }
       },
       modelCheckingResultColor,
-      formatTabTitle: function (tab) {
-        if (tab.type === 'errorMessage') {
-          return 'Error'
-        }
-        const typePrettyPrinted = formatJobType(tab.type)
-        const shouldIncludeFormula =
-          ['MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT'].includes(tab.type)
-        const formulaText = shouldIncludeFormula ? ` for "${tab.jobKey.requestParams.formula}"` : ''
-        return typePrettyPrinted.concat(formulaText)
-      },
       closeTab: function (tab, side) {
         console.log(`closeTab(${tab.name}, ${side})`)
         // TODO delete this case statement and replace with a component
