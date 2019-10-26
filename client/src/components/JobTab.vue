@@ -1,7 +1,9 @@
 <template>
   <!--TODO Mark the tabs somehow if the Petri Game has been modified since the tabs were
   opened-->
-  <v-tab>
+  <v-tab
+    :href="`#tab-${tab.uuid}`"
+  >
     <div style="max-width: 150px; ">{{ tabTitle }}</div>
     <!--Spinny circle for running job with X inside -->
     <div
@@ -15,7 +17,7 @@
       >
         <v-icon
           small
-          style="position: absolute; transform: translate(-50%, -50%);"
+          style="position: absolute;"
           @click="closeTab">
           close
         </v-icon>
