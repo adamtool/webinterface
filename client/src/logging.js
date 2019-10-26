@@ -61,7 +61,7 @@ function logServerMessage (message, level) {
   EventBus.$emit('logMessage', {
     source: 'server',
     level: level,
-    time: new Date(),
+    time: Date.now(),
     text: message
   })
 }
@@ -70,7 +70,7 @@ function log (message, level) {
   EventBus.$emit('logMessage', {
     source: 'client',
     level: level === undefined ? 2 : level,
-    time: new Date(),
+    time: Date.now(),
     text: message
   })
   console.log(message)
