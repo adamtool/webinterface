@@ -73,6 +73,7 @@ public class JobTest {
 
             if (timeWaited >= 500 && !didWeCallCanceledYet) {
                 stringJob.cancel();
+                System.out.println("called stringJob.cancel()");
                 didWeCallCanceledYet = true;
             }
         }
