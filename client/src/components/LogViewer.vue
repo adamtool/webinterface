@@ -20,8 +20,6 @@
   import Vue from 'vue'
   import logging from '../logging'
 
-  const uuidv4 = require('uuid/v4')
-
   export default {
     name: 'log-viewer',
     props: {},
@@ -37,10 +35,7 @@
     created: function () {
       // Subscribe to logging event bus
       logging.subscribeLog(message => {
-        this.messageLog.push({
-          ...message,
-          uuid: uuidv4()
-        })
+        this.messageLog.push(message)
         if (this.shouldMessageBeVisible(message)) {
           this.$refs.logElement.appendChild(this.createMessageElement(message))
           this.scrollToBottom()
