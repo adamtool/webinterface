@@ -74,11 +74,31 @@
           const div = this.$refs.logElement
           div.scrollTop = div.scrollHeight
         })
+      },
+      rerenderLogMessages: function () {
+        // Delete all <pre> elements we created
+        const range = document.createRange()
+        range.selectNodeContents(this.$refs.logElement)
+        range.deleteContents()
+
+        // Create new <pre> elements based on log level and client/server checkboxes
+        this.messageLog.forEach(message => {
+          if (this.shouldMessageBeVisible(message)) {
+            this.$refs.logElement.appendChild(this.createMessageElement(message))
+          }
+        })
+        this.scrollToBottom()
       }
     },
     watch: {
-      visibleMessages: function () {
-        this.scrollToBottom()
+      logLevel: function () {
+        this.rerenderLogMessages()
+      },
+      showClientMessages: function () {
+        this.rerenderLogMessages()
+      },
+      showServerMessages: function () {
+        this.rerenderLogMessages()
       }
     }
   }
