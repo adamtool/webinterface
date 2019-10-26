@@ -917,7 +917,6 @@
               this.closeTabIfOpen(messageParsed.jobKey)
               break
             case 'ping':
-              logging.logVerbose('Got ping from server.  Sending pong')
               this.socket.send(JSON.stringify({
                 type: 'pong'
               }))
