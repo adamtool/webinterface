@@ -3,6 +3,7 @@
     <v-dialog v-model="showJobList"
               :hide-overlay="false"
               :persistent="false"
+              :scrollable="true"
               @keydown.esc="showJobList = false">
       <v-card>
         <v-card-title
@@ -14,7 +15,9 @@
             close
           </v-icon>
         </v-card-title>
-        <v-card-text>
+        <v-card-text
+          style="max-height: 70vh;"
+        >
           <JobList
             :jobListings="jobListings"
             :useModelChecking="useModelChecking"
