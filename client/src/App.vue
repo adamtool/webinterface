@@ -501,7 +501,8 @@
 
   import aptExampleLtl from './somewhatSmallExampleLtl.apt'
   import aptExampleDistributedSynthesis from './somewhatSmallExampleNotLtl.apt'
-  import aptExampleEmpty from './aptExampleEmpty.apt'
+  import aptExampleEmptySynthesis from './aptExampleEmptySynthesis.apt'
+  import aptExampleEmptyModelChecking from './aptExampleEmptyModelChecking.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
 
   import makeWebSocket from './logWebSocket'
@@ -807,7 +808,8 @@
     },
     methods: {
       newPetriGame: function () {
-        this.onAptExampleSelected(aptExampleEmpty)
+        const apt = this.useModelChecking ? aptExampleEmptyModelChecking : aptExampleEmptySynthesis
+        this.onAptExampleSelected(apt)
         const whatDoYouCallIt = this.useModelChecking ? 'Petri net with transits' : 'Petri game'
         logging.sendSuccessNotification('Loaded a new empty ' + whatDoYouCallIt)
       },

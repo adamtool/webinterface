@@ -1,0 +1,13 @@
+.name "Example"
+.description "Describe your net here."
+.type LPN
+.options
+condition="LTL"
+
+.places
+
+.transitions
+
+.flows
+
+.initial_marking {}
