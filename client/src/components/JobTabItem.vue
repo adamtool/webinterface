@@ -30,14 +30,14 @@
     <v-card-actions>
       <v-btn
         color="blue lighten-3"
-        @click="this.$emit('loadPetriGameFromApt', tab.jobKey.canonicalApt)"
+        @click="$emit('loadPetriGameFromApt', tab.jobKey.canonicalApt)"
       >
         View Petri Game
       </v-btn>
       <v-btn
         v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
         color="red lighten-2"
-        @click="this.$emit('cancelJob', tab.jobKey)"
+        @click="$emit('cancelJob', tab.jobKey)"
       >
         Cancel Job
       </v-btn>
@@ -66,8 +66,8 @@
   <!--TODO replace anonymous functions with non-anonymous ones for performance reasons-->
   <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
                :graph='tab.result'
-               @toggleStatePostset="stateId => this.$emit('toggleStatePostset', stateId)"
-               @toggleStatePreset="stateId => this.$emit('toggleStatePreset', stateId)"
+               @toggleStatePostset="stateId => $emit('toggleStatePostset', stateId)"
+               @toggleStatePreset="stateId => $emit('toggleStatePreset', stateId)"
                :shouldShowPhysicsControls="showPhysicsControls"
                :repulsionStrengthDefault="415"
                :linkStrengthDefault="0.04"
@@ -151,7 +151,7 @@
     <v-card-actions>
       <v-btn
         color="blue lighten-3"
-        @click="this.$emit('loadPetriGameFromApt', tab.jobKey.canonicalApt)"
+        @click="$emit('loadPetriGameFromApt', tab.jobKey.canonicalApt)"
       >
         View Petri Game
       </v-btn>
@@ -167,9 +167,13 @@
 </template>
 
 <script>
+  import GraphEditor from './GraphEditor'
   import {modelCheckingResultColor} from '../jobType'
   export default {
     name: 'JobTabItem',
+    components: {
+      GraphEditor
+    },
     data: function () {
       return {}
     },
