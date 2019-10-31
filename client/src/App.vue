@@ -525,7 +525,6 @@
     },
     computed: {
       tabsRightSide: function () {
-        return fakeTabs
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
