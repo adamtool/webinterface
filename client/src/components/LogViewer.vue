@@ -34,18 +34,25 @@
     computed: {},
     created: function () {
       // Subscribe to logging event bus
-      logging.subscribeLog(message => {
-        this.messageLog.push(message)
-        if (this.shouldMessageBeVisible(message)) {
-          this.$refs.logElement.appendChild(this.createMessageElement(message))
-          this.scrollToBottom()
-        }
-      })
+      logging.subscribeLog(this.onLogMessage)
+    },
+    beforeDestroy: function () {
+      // You have to do this so that in developer mode you don't get flooded with console error
+      // messages when instances of this function accumulate after each hot reload of the code
+      // and try to append <pre> elements to a nonexistent logElement
+      logging.unsubscribeLog(this.onLogMessage)
     },
     mounted: function () {
       this.scrollToBottom()
     },
     methods: {
+      onLogMessage: function (message) {
+        this.messageLog.push(message)
+        if (this.shouldMessageBeVisible(message)) {
+          this.$refs.logElement.appendChild(this.createMessageElement(message))
+          this.scrollToBottom()
+        }
+      },
       shouldMessageBeVisible: function (m) {
         const isSourceVisible = (m.source === 'client' && this.showClientMessages) ||
           (m.source === 'server' && this.showServerMessages)
