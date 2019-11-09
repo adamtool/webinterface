@@ -195,11 +195,6 @@
                @click="onClickTabLeftSide(tab)"
                :href="`#${tab.tabContentId}`">
           {{ tab.name }}
-          <v-icon standard right
-                  v-if="tab.isCloseable"
-                  @click="closeTab(tab, 'left')">
-            close
-          </v-icon>
         </v-tab>
         <v-tab-item v-for="tabContentId in tabContentsLeftSide"
                     :key="tabContentId"
@@ -255,7 +250,7 @@
               v-model="selectedTabRightSide">
         <draggable v-model="visibleJobsRightSide" class="v-slide-group__content v-tabs-bar__content"
                    @start="tabDragStart"
-                   @end="(evt) => tabDragEnd(evt, 'right')"
+                   @end="tabDragEnd"
                    @choose="onTabChosen">
           <!--We include the tab's index in the key so that this component will re-render when
           the tabs' order changes.  That's necessary so that the 'current tab' indicator will
@@ -263,7 +258,7 @@
           <JobTab v-for="(tab, index) in tabsRightSide"
                   :key="`${index}-${tab.uuid}`"
                   :tab="tab"
-                  @closeTab="closeTab(tab, 'right')"
+                  @closeTab="closeTab(tab)"
           />
         </draggable>
         <v-tabs-items
@@ -461,19 +456,16 @@
             name: 'Petri Game',
             uuid: uuidv4(),
             tabContentId: 'simulatorEditor',
-            isCloseable: false
           },
           {
             name: 'Simulator',
             uuid: uuidv4(),
             tabContentId: 'simulatorEditor',
-            isCloseable: false
           },
           {
             name: 'APT Editor',
             uuid: uuidv4(),
             tabContentId: 'aptEditor',
-            isCloseable: false
           }
         ],
         visibleJobsRightSide: [],
@@ -674,23 +666,13 @@
         const whatDoYouCallIt = this.useModelChecking ? 'Petri net with transits' : 'Petri game'
         logging.sendSuccessNotification('Loaded a new empty ' + whatDoYouCallIt)
       },
-      closeTab: function (tab, side) {
-        console.log(`closeTab(${tab.name}, ${side})`)
-        // TODO delete this case statement and replace with a component
-        switch (side) {
-          case 'left':
-            this.tabsLeftSide = this.tabsLeftSide.filter(t => t !== tab)
-            break
-          case 'right':
-            if (tab.jobStatus === 'RUNNING') {
-              this.cancelJob(tab.jobKey)
-            } else {
-              this.visibleJobsRightSide =
-                this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
-            }
-            break
-          default:
-            throw new Error('Invalid value for "side" in case statement in closeTab(): ' + side)
+      closeTab: function (tab) {
+        console.log(`closeTab(${tab.name})`)
+        if (tab.jobStatus === 'RUNNING') {
+          this.cancelJob(tab.jobKey)
+        } else {
+          this.visibleJobsRightSide =
+            this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
         }
       },
       onTabChosen: function (evt) {
@@ -699,25 +681,12 @@
       tabDragStart: function (evt) {
         console.log('tabDragStart')
       },
-      tabDragEnd: function (evt, side) {
+      tabDragEnd: function (evt) {
         console.log('tabDragEnd')
         console.log(evt)
-        switch (side) {
-          // TODO this is broken rn.  Delete or fix
-          case 'left':
-            const newTab = this.tabsLeftSide[evt.newIndex]
-            const newTabId = `tab-${newTab.uuid}`
-            this.visibleTabContentsLeftSide = newTabId
-            break
-          case 'right':
-            // TODO delete this case statement and replace with a component
-            const newTabRight = this.tabsRightSide[evt.newIndex]
-            const newTabIdRight = `tab-${newTabRight.uuid}`
-            this.selectedTabRightSide = newTabIdRight
-            break
-          default:
-            throw new Error('Invalid value for "side" in case statement in tabDragEnd')
-        }
+        const newTabRight = this.tabsRightSide[evt.newIndex]
+        const newTabIdRight = `tab-${newTabRight.uuid}`
+        this.selectedTabRightSide = newTabIdRight
       },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
