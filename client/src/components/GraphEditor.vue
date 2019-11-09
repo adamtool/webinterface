@@ -327,6 +327,13 @@
           },
           {
             type: 'tool',
+            icon: 'offline_bolt',
+            visible: true,
+            toolEnumName: 'fireTransitions',
+            name: 'Fire transitions'
+          },
+          {
+            type: 'tool',
             icon: 'delete',
             visible: this.showEditorTools,
             toolEnumName: 'deleteNodesAndFlows',
@@ -758,6 +765,14 @@
             }
           case 'drawTransit':
             return this.drawTransitHandler.onClick
+          case 'fireTransition':
+            return (d) => {
+              if (d.type !== 'TRANSITION') {
+                return
+              } else {
+                this.fireTransition(d)
+              }
+            }
           default:
             return () => {
               logging.sendErrorNotification(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
@@ -1221,6 +1236,14 @@
             this.leftClickMode = 'deleteNode'
             this.dragDropMode = 'moveNode'
             this.linkClickMode = 'deleteFlow'
+            break
+          }
+          case 'fireTransitions': {
+            this.backgroundDragDropMode = 'selectNodes'
+            this.backgroundClickMode = 'cancelSelection'
+            this.leftClickMode = 'fireTransition'
+            this.dragDropMode = 'moveNode'
+            this.linkClickMode = 'doNothing'
             break
           }
           default: {
@@ -1689,7 +1712,15 @@
         newContentElements.exit().remove()
         this.contentElements = contentEnter.merge(newContentElements)
         this.contentElements
-          .attr('font-size', 15)
+          .attr('font-size', node => {
+            if (node.type === 'TRANSITION') {
+              return 28
+            } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
+              return 20
+            } else if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              return 15
+            }
+          })
           .text(node => {
             if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
               // Figure out how long the widest line of the content is to determine node width later
@@ -1703,6 +1734,8 @@
               return node.content
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
               return node.initialToken === 0 ? '' : node.initialToken
+            } else if (node.type === 'TRANSITION' && node.isReadyToFire) {
+              return '*'
             }
           })
 
@@ -1948,7 +1981,13 @@
             .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
           this.contentElements
             .attr('x', node => node.x)
-            .attr('y', node => node.y - this.calculateNodeHeight(node) / 2 + 30)
+            .attr('y', node => {
+              if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+                return node.y - this.calculateNodeHeight(node) / 2 + 30
+              } else {
+                return node.y - this.calculateNodeHeight(node) / 2 + 38
+              }
+            })
           this.drawFlowPreview
             .attr('transform', () => {
               const target = this.drawFlowTarget
