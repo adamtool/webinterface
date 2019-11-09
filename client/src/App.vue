@@ -189,14 +189,11 @@
         <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
       </div>
       <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
-              v-model="selectedTabLeftSide">
-        <!--We include the tab's index in the key so that this component will re-render when
-        the tabs' order changes.  That's necessary so that the 'current tab' indicator will
-        update appropriately after a drag-drop.-->
+              v-model="visibleTabContentsLeftSide">
         <v-tab v-for="(tab, index) in tabsLeftSide"
                :key="`${index}-${tab.uuid}`"
-               @click="onSwitchToTabLeftSide(tab)"
-               :href="`#tab-${tab.tabContentId}`">
+               @click="onClickTabLeftSide(tab)"
+               :href="`#${tab.tabContentId}`">
           {{ tab.name }}
           <v-icon standard right
                   v-if="tab.isCloseable"
@@ -206,7 +203,7 @@
         </v-tab>
         <v-tab-item v-for="tabContentId in tabContentsLeftSide"
                     :key="tabContentId"
-                    :value="`tab-${tabContentId}`"
+                    :value="tabContentId"
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
@@ -500,8 +497,9 @@
         horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
         // Name of the currently selected tab.  'tab-<uuid>'
-        selectedTabLeftSide: 'tab-PetriGameTab',
-        selectedTabRightSide: 'tab-PetriGameTab2' // TODO change.  This is only for testing
+        visibleTabContentsLeftSide: 'simulatorEditor',
+        selectedTabNameLeftSide: 'Petri Game',
+        selectedTabRightSide: ''
       }
     },
     watch: {
@@ -658,6 +656,18 @@
       }
     },
     methods: {
+      switchToTab: function (tabName) {
+        tabNameToContents = {
+          'Petri Game': 'simulatorEditor',
+          'Simulator': 'simulatorEditor',
+          'APT Editor': 'aptEditor'
+        }
+        if (!tabNameToContents.hasOwnProperty(tabName)) {
+          throw new Error('Unrecognized tab name: ' + tabName)
+        }
+        this.visibleTabContentsLeftSide = tabNameToContents[tabName]
+        this.selectedTabNameLeftSide = tabName
+      },
       newPetriGame: function () {
         const apt = this.useModelChecking ? aptExampleEmptyModelChecking : aptExampleEmptySynthesis
         this.onAptExampleSelected(apt)
@@ -693,10 +703,11 @@
         console.log('tabDragEnd')
         console.log(evt)
         switch (side) {
+          // TODO this is broken rn.  Delete or fix
           case 'left':
             const newTab = this.tabsLeftSide[evt.newIndex]
             const newTabId = `tab-${newTab.uuid}`
-            this.selectedTabLeftSide = newTabId
+            this.visibleTabContentsLeftSide = newTabId
             break
           case 'right':
             // TODO delete this case statement and replace with a component
@@ -886,7 +897,7 @@
       },
       saveAptToFile: function () {
         logging.logVerbose('saveAptToFile()')
-        const isAptEditorOpen = this.selectedTabLeftSide === 'tab-AptEditorTab'
+        const isAptEditorOpen = this.visibleTabContentsLeftSide === 'aptEditor'
         if (isAptEditorOpen) {
           saveFileAs(this.apt, this.aptFilename)
         } else {
@@ -894,7 +905,7 @@
         }
       },
       switchToAptEditor: function () {
-        this.selectedTabLeftSide = 'tab-AptEditorTab'
+        this.visibleTabContentsLeftSide = 'aptEditor'
       },
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
@@ -1100,10 +1111,11 @@
         this.apt = apt
       },
       // Callback function called when the user clicks on a tab and switches to it from a different tab
-      onSwitchToTabLeftSide: function (tab) {
+      onClickTabLeftSide: function (tab) {
+        // TODO fix.  this is broken RN
         console.log(`onSwitchToTabLeftSide(tab with uuid = ${tab.uuid})`)
         console.log(tab)
-        if (`tab-${tab.uuid}` === this.selectedTabLeftSide) {
+        if (`tab-${tab.uuid}` === this.visibleTabContentsLeftSide) {
           console.log('This tab was already selected')
           return
         }
@@ -1111,6 +1123,7 @@
           logging.logVerbose('Switched to APT editor')
           this.savePetriGameAsAPT()
         }
+        this.selectedTabNameLeftSide = tab.name
       },
       saveXYCoordinatesOnServer: function () {
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
