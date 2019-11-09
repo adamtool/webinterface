@@ -179,6 +179,11 @@
         type: Boolean,
         default: false
       },
+      // TODO refactor showEditorTools and useSimulator somehow to an enum
+      useSimulator: {
+        type: Boolean,
+        default: false
+      },
       // This indicates whether features related to model checking should be here.
       // If this is true, then you have to supply modelCheckingRoutes as well.
       useModelChecking: {
