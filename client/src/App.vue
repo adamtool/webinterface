@@ -190,33 +190,28 @@
       </div>
       <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
               v-model="selectedTabLeftSide">
-        <draggable v-model="tabsLeftSide" class="v-slide-group__content v-tabs-bar__content"
-                   @start="tabDragStart"
-                   @end="(evt) => tabDragEnd(evt, 'left')"
-                   @choose="onTabChosen">
-          <!--We include the tab's index in the key so that this component will re-render when
-          the tabs' order changes.  That's necessary so that the 'current tab' indicator will
-          update appropriately after a drag-drop.-->
-          <v-tab v-for="(tab, index) in tabsLeftSide"
-                 :key="`${index}-${tab.uuid}`"
-                 @click="onSwitchToTabLeftSide(tab)"
-                 :href="`#tab-${tab.uuid}`">
-            {{ tab.name }}
-            <v-icon standard right
-                    v-if="tab.isCloseable"
-                    @click="closeTab(tab, 'left')">
-              close
-            </v-icon>
-          </v-tab>
-        </draggable>
-        <v-tab-item v-for="tab in tabsLeftSide"
-                    :key="tab.uuid"
-                    :value="`tab-${tab.uuid}`"
+        <!--We include the tab's index in the key so that this component will re-render when
+        the tabs' order changes.  That's necessary so that the 'current tab' indicator will
+        update appropriately after a drag-drop.-->
+        <v-tab v-for="(tab, index) in tabsLeftSide"
+               :key="`${index}-${tab.uuid}`"
+               @click="onSwitchToTabLeftSide(tab)"
+               :href="`#tab-${tab.tabContentId}`">
+          {{ tab.name }}
+          <v-icon standard right
+                  v-if="tab.isCloseable"
+                  @click="closeTab(tab, 'left')">
+            close
+          </v-icon>
+        </v-tab>
+        <v-tab-item v-for="tabContentId in tabContentsLeftSide"
+                    :key="tabContentId"
+                    :value="`tab-${tabContentId}`"
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;"
-                 v-if="tab.type === 'petriGameEditor'">
+                 v-if="tabContentId === 'simulatorEditor'">
               <GraphEditor :graph='petriGame.net'
                            :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
@@ -245,7 +240,7 @@
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"/>
             </div>
-            <AptEditor v-else-if="tab.type === 'aptEditor'"
+            <AptEditor v-else-if="tabContentId === 'aptEditor'"
                        :aptFromAdamParser='apt'
                        :aptParseStatus='aptParseStatus'
                        :aptParseError='aptParseError'
@@ -253,7 +248,7 @@
                        :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
                        @input='onAptEditorInput'/>
             <div v-else>
-              Tab type not yet implemented: {{ tab.type }}
+              Tab content type not yet implemented: {{ tabContentId }}
             </div>
           </keep-alive>
         </v-tab-item>
@@ -460,17 +455,27 @@
           action: () => {
           }
         },
+        tabContentsLeftSide: [
+          'simulatorEditor',
+          'aptEditor'
+        ],
         tabsLeftSide: [
           {
-            type: 'petriGameEditor',
             name: 'Petri Game',
-            uuid: 'PetriGameTab', // this tab is hard-coded
+            uuid: uuidv4(),
+            tabContentId: 'simulatorEditor',
             isCloseable: false
           },
           {
-            type: 'aptEditor',
+            name: 'Simulator',
+            uuid: uuidv4(),
+            tabContentId: 'simulatorEditor',
+            isCloseable: false
+          },
+          {
             name: 'APT Editor',
-            uuid: 'AptEditorTab',
+            uuid: uuidv4(),
+            tabContentId: 'aptEditor',
             isCloseable: false
           }
         ],
