@@ -323,20 +323,41 @@
     computed: {
       toolPickerItems: function () {
         return [
+          this.selectTool,
+          this.fireTransitionTool,
+          ...this.drawingTools,
           {
-            type: 'tool',
-            icon: 'mouse',
-            visible: this.showEditorTools,
-            toolEnumName: 'select',
-            name: 'Select'
+            type: 'divider',
+            visible: this.showEditorTools
           },
+          ...this.selectionTools,
           {
-            type: 'tool',
-            icon: 'offline_bolt',
-            visible: true,
-            toolEnumName: 'fireTransitions',
-            name: 'Fire transitions'
+            type: 'divider',
+            visible: this.showEditorTools
           },
+          ...this.viewTools
+        ]
+      },
+      selectTool: function () {
+        return {
+          type: 'tool',
+          icon: 'mouse',
+          visible: true,
+          toolEnumName: 'select',
+          name: 'Select'
+        }
+      },
+      fireTransitionTool: function () {
+        return {
+          type: 'tool',
+          icon: 'offline_bolt',
+          visible: this.useSimulator,
+          toolEnumName: 'fireTransitions',
+          name: 'Fire transitions'
+        }
+      },
+      drawingTools: function () {
+        return [
           {
             type: 'tool',
             icon: 'delete',
@@ -378,11 +399,11 @@
             visible: this.showEditorTools,
             toolEnumName: 'insertTransition',
             name: 'Add Transition'
-          },
-          {
-            type: 'divider',
-            visible: this.showEditorTools
-          },
+          }
+        ]
+      },
+      selectionTools: function () {
+        return [
           {
             type: 'action',
             name: 'Invert selection',
@@ -396,11 +417,11 @@
             icon: 'delete_sweep',
             action: this.deleteSelectedNodes,
             visible: this.showEditorTools
-          },
-          {
-            type: 'divider',
-            visible: this.showEditorTools
-          },
+          }
+        ]
+      },
+      viewTools: function () {
+        return [
           {
             type: 'action',
             name: 'Auto-Layout',

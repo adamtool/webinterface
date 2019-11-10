@@ -211,6 +211,7 @@
               <GraphEditor :graph='petriGame.net'
                            :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
+                           :useSimulator='isSimulatorSelected'
                            ref='graphEditorPetriGame'
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
@@ -523,6 +524,9 @@
       }
     },
     computed: {
+      isSimulatorSelected: function () {
+        return this.selectedTabNameLeftSide === 'Simulator'
+      },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
