@@ -168,10 +168,11 @@ public class PetriNetD3 {
         private final boolean isInitialTransit;
         private final int partition;
         private final String fairness;
+        private final boolean isReadyToFire;
 
         private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
                              long initialToken, boolean isSpecial, boolean isInitialTransit,
-                             int partition, String fairness) {
+                             int partition, String fairness, boolean isReadyToFire) {
             super(id, label, type);
             this.isBad = isBad;
             this.initialToken = initialToken;
@@ -179,6 +180,7 @@ public class PetriNetD3 {
             this.isInitialTransit = isInitialTransit;
             this.partition = partition;
             this.fairness = fairness;
+            this.isReadyToFire = isReadyToFire;
         }
 
         static PetriNetNode of(PetriNetWithTransits net, Transition t) {
@@ -192,9 +194,10 @@ public class PetriNetD3 {
             } else {
                 fairness = "none";
             }
+            boolean isReadyToFire = t.isFireable(net.getInitialMarking());
             // Transitions are never bad or special and have no tokens
             return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false,
-                    -1, fairness);
+                    -1, fairness, isReadyToFire);
         }
 
         static PetriNetNode of(PetriNetWithTransits net, Place place) {
@@ -225,9 +228,10 @@ public class PetriNetD3 {
             int partition = net.hasPartition(place) ? net.getPartition(place) : -1;
 
             String fairness = "none"; // Places have no concept of fairness
+            boolean isReadyToFire = false; // Places can't be fired, only Transitions can.
 
             return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial,
-                    isInitialTransit, partition, fairness);
+                    isInitialTransit, partition, fairness, isReadyToFire);
         }
 
         static boolean isSpecial(PetriNetWithTransits game, Place place, Condition.Objective objective) {

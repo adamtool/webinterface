@@ -188,38 +188,30 @@
            v-if="shouldShowRightSide">
         <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
       </div>
-      <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
-              v-model="selectedTabLeftSide">
-        <draggable v-model="tabsLeftSide" class="v-slide-group__content v-tabs-bar__content"
-                   @start="tabDragStart"
-                   @end="(evt) => tabDragEnd(evt, 'left')"
-                   @choose="onTabChosen">
-          <!--We include the tab's index in the key so that this component will re-render when
-          the tabs' order changes.  That's necessary so that the 'current tab' indicator will
-          update appropriately after a drag-drop.-->
-          <v-tab v-for="(tab, index) in tabsLeftSide"
-                 :key="`${index}-${tab.uuid}`"
-                 @click="onSwitchToTabLeftSide(tab)"
-                 :href="`#tab-${tab.uuid}`">
-            {{ tab.name }}
-            <v-icon standard right
-                    v-if="tab.isCloseable"
-                    @click="closeTab(tab, 'left')">
-              close
-            </v-icon>
-          </v-tab>
-        </draggable>
-        <v-tab-item v-for="tab in tabsLeftSide"
-                    :key="tab.uuid"
-                    :value="`tab-${tab.uuid}`"
+      <v-tabs class="tabs-component-full-height v-tabs-with-shared-content"
+              :style="splitLeftSideStyle"
+              id="splitLeftSide"
+              hide-slider
+              v-model="visibleTabContentsLeftSide">
+        <v-tab v-for="(tab, index) in tabsLeftSide"
+               :key="`${index}-${tab.uuid}`"
+               @click="switchToTab(tab.name)"
+               :class="classOfTab(tab)"
+               :href="`#${tab.tabContentId}`">
+          {{ tab.name }}
+        </v-tab>
+        <v-tab-item v-for="tabContentId in tabContentsLeftSide"
+                    :key="tabContentId"
+                    :value="tabContentId"
                     :transition="false"
                     :reverse-transition="false">
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;"
-                 v-if="tab.type === 'petriGameEditor'">
+                 v-if="tabContentId === 'simulatorEditor'">
               <GraphEditor :graph='petriGame.net'
                            :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
+                           :editorMode='editorSimulatorMode'
                            ref='graphEditorPetriGame'
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
@@ -236,7 +228,6 @@
                            v-on:setWinningCondition='setWinningCondition'
                            v-on:setFairness='setFairness'
                            v-on:setInhibitorArc='setInhibitorArc'
-                           showEditorTools
                            :useModelChecking="useModelChecking"
                            :useDistributedSynthesis="useDistributedSynthesis"
                            :modelCheckingRoutes="modelCheckingRoutes"
@@ -245,7 +236,7 @@
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"/>
             </div>
-            <AptEditor v-else-if="tab.type === 'aptEditor'"
+            <AptEditor v-else-if="tabContentId === 'aptEditor'"
                        :aptFromAdamParser='apt'
                        :aptParseStatus='aptParseStatus'
                        :aptParseError='aptParseError'
@@ -253,7 +244,7 @@
                        :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
                        @input='onAptEditorInput'/>
             <div v-else>
-              Tab type not yet implemented: {{ tab.type }}
+              Tab content type not yet implemented: {{ tabContentId }}
             </div>
           </keep-alive>
         </v-tab-item>
@@ -263,7 +254,7 @@
               v-model="selectedTabRightSide">
         <draggable v-model="visibleJobsRightSide" class="v-slide-group__content v-tabs-bar__content"
                    @start="tabDragStart"
-                   @end="(evt) => tabDragEnd(evt, 'right')"
+                   @end="tabDragEnd"
                    @choose="onTabChosen">
           <!--We include the tab's index in the key so that this component will re-render when
           the tabs' order changes.  That's necessary so that the 'current tab' indicator will
@@ -271,7 +262,7 @@
           <JobTab v-for="(tab, index) in tabsRightSide"
                   :key="`${index}-${tab.uuid}`"
                   :tab="tab"
-                  @closeTab="closeTab(tab, 'right')"
+                  @closeTab="closeTab(tab)"
           />
         </draggable>
         <v-tabs-items
@@ -460,18 +451,25 @@
           action: () => {
           }
         },
+        tabContentsLeftSide: [
+          'simulatorEditor',
+          'aptEditor'
+        ],
         tabsLeftSide: [
           {
-            type: 'petriGameEditor',
             name: 'Petri Game',
-            uuid: 'PetriGameTab', // this tab is hard-coded
-            isCloseable: false
+            uuid: uuidv4(),
+            tabContentId: 'simulatorEditor',
           },
           {
-            type: 'aptEditor',
+            name: 'Simulator',
+            uuid: uuidv4(),
+            tabContentId: 'simulatorEditor',
+          },
+          {
             name: 'APT Editor',
-            uuid: 'AptEditorTab',
-            isCloseable: false
+            uuid: uuidv4(),
+            tabContentId: 'aptEditor',
           }
         ],
         visibleJobsRightSide: [],
@@ -495,8 +493,9 @@
         horizontalSplitSizes: [50, 50],
         leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
         // Name of the currently selected tab.  'tab-<uuid>'
-        selectedTabLeftSide: 'tab-PetriGameTab',
-        selectedTabRightSide: 'tab-PetriGameTab2' // TODO change.  This is only for testing
+        visibleTabContentsLeftSide: 'simulatorEditor',
+        selectedTabNameLeftSide: 'Petri Game',
+        selectedTabRightSide: ''
       }
     },
     watch: {
@@ -524,6 +523,13 @@
       }
     },
     computed: {
+      editorSimulatorMode: function () {
+        switch (this.selectedTabNameLeftSide) {
+          case 'Petri Game': return 'Editor'
+          case 'Simulator': return 'Simulator'
+          default: return 'Editor'
+        }
+      },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
@@ -653,29 +659,44 @@
       }
     },
     methods: {
+      classOfTab: function (tab) {
+        return this.selectedTabNameLeftSide === tab.name ? 'selected-tab' : '';
+      },
+      switchToTab: function (tabName) {
+        console.log(`switchToTab(${tabName})`)
+        const tabNameToContents = {
+          'Petri Game': 'simulatorEditor',
+          'Simulator': 'simulatorEditor',
+          'APT Editor': 'aptEditor'
+        }
+        if (!tabNameToContents.hasOwnProperty(tabName)) {
+          throw new Error('Unrecognized tab name: ' + tabName)
+        }
+        if (tabName === this.selectedTabNameLeftSide) {
+          console.log('This tab was already selected')
+          return
+        }
+        if (tabName === 'APT Editor') {
+          logging.logVerbose('Switched to APT editor')
+          this.savePetriGameAsAPT()
+        }
+
+        this.visibleTabContentsLeftSide = tabNameToContents[tabName]
+        this.selectedTabNameLeftSide = tabName
+      },
       newPetriGame: function () {
         const apt = this.useModelChecking ? aptExampleEmptyModelChecking : aptExampleEmptySynthesis
         this.onAptExampleSelected(apt)
         const whatDoYouCallIt = this.useModelChecking ? 'Petri net with transits' : 'Petri game'
         logging.sendSuccessNotification('Loaded a new empty ' + whatDoYouCallIt)
       },
-      closeTab: function (tab, side) {
-        console.log(`closeTab(${tab.name}, ${side})`)
-        // TODO delete this case statement and replace with a component
-        switch (side) {
-          case 'left':
-            this.tabsLeftSide = this.tabsLeftSide.filter(t => t !== tab)
-            break
-          case 'right':
-            if (tab.jobStatus === 'RUNNING') {
-              this.cancelJob(tab.jobKey)
-            } else {
-              this.visibleJobsRightSide =
-                this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
-            }
-            break
-          default:
-            throw new Error('Invalid value for "side" in case statement in closeTab(): ' + side)
+      closeTab: function (tab) {
+        console.log(`closeTab(${tab.name})`)
+        if (tab.jobStatus === 'RUNNING') {
+          this.cancelJob(tab.jobKey)
+        } else {
+          this.visibleJobsRightSide =
+            this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
         }
       },
       onTabChosen: function (evt) {
@@ -684,24 +705,12 @@
       tabDragStart: function (evt) {
         console.log('tabDragStart')
       },
-      tabDragEnd: function (evt, side) {
+      tabDragEnd: function (evt) {
         console.log('tabDragEnd')
         console.log(evt)
-        switch (side) {
-          case 'left':
-            const newTab = this.tabsLeftSide[evt.newIndex]
-            const newTabId = `tab-${newTab.uuid}`
-            this.selectedTabLeftSide = newTabId
-            break
-          case 'right':
-            // TODO delete this case statement and replace with a component
-            const newTabRight = this.tabsRightSide[evt.newIndex]
-            const newTabIdRight = `tab-${newTabRight.uuid}`
-            this.selectedTabRightSide = newTabIdRight
-            break
-          default:
-            throw new Error('Invalid value for "side" in case statement in tabDragEnd')
-        }
+        const newTabRight = this.tabsRightSide[evt.newIndex]
+        const newTabIdRight = `tab-${newTabRight.uuid}`
+        this.selectedTabRightSide = newTabIdRight
       },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
@@ -881,7 +890,7 @@
       },
       saveAptToFile: function () {
         logging.logVerbose('saveAptToFile()')
-        const isAptEditorOpen = this.selectedTabLeftSide === 'tab-AptEditorTab'
+        const isAptEditorOpen = this.visibleTabContentsLeftSide === 'aptEditor'
         if (isAptEditorOpen) {
           saveFileAs(this.apt, this.aptFilename)
         } else {
@@ -889,7 +898,7 @@
         }
       },
       switchToAptEditor: function () {
-        this.selectedTabLeftSide = 'tab-AptEditorTab'
+        this.switchToTab('APT Editor')
       },
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
@@ -1093,19 +1102,6 @@
       },
       onAptEditorInput: function (apt) {
         this.apt = apt
-      },
-      // Callback function called when the user clicks on a tab and switches to it from a different tab
-      onSwitchToTabLeftSide: function (tab) {
-        console.log(`onSwitchToTabLeftSide(tab with uuid = ${tab.uuid})`)
-        console.log(tab)
-        if (`tab-${tab.uuid}` === this.selectedTabLeftSide) {
-          console.log('This tab was already selected')
-          return
-        }
-        if (tab.type === 'aptEditor') {
-          logging.logVerbose('Switched to APT editor')
-          this.savePetriGameAsAPT()
-        }
       },
       saveXYCoordinatesOnServer: function () {
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
@@ -1428,8 +1424,7 @@
     font-style: normal;
     font-weight: 400;
     src: local('Material Icons'), local('MaterialIcons-Regular'),
-    url('./assets/fonts/MaterialIcons-Regular.woff2') format('woff2'),
-    url('./assets/fonts/MaterialIcons-Regular.woff') format('woff');
+    url('./assets/fonts/MaterialIcons-Regular.woff2') format('woff2');
   }
 
   .material-icons {
@@ -1496,6 +1491,23 @@
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: available;
+  }
+
+  /* Make modifications to hide the default 'selected tab' display of v-tabs */
+  /* We need this because we are using a non-standard behavior of having multiple <v-tab> elements
+     which correspond to a single v-tab-item.
+     See my codepen https://codepen.io/annmygdala/pen/xxxpoNP  */
+  .v-tabs-with-shared-content .v-tab--active:not(.selected-tab) {
+    color: rgba(0,0,0,.7);
+  }
+
+  .v-tabs-with-shared-content .v-tab {
+    border-bottom: 2px solid rgba(0, 0, 0, 0%);
+  }
+
+  .v-tabs-with-shared-content .v-tab.selected-tab {
+    border-bottom: 2px solid;
+    transition: border-bottom 0.5s;
   }
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/

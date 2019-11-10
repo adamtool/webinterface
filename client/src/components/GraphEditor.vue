@@ -40,7 +40,7 @@
         <template v-if="useModelChecking">
           <v-flex xs3>
             <v-select
-              v-if="showEditorTools"
+              v-if="editorMode === 'Editor'"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Condition"/>
@@ -49,7 +49,7 @@
             <v-text-field
               style="flex: 1 1 auto;"
               :disabled="selectedWinningCondition !== 'LTL'"
-              v-if="showEditorTools && useModelChecking"
+              v-if="editorMode === 'Editor' && useModelChecking"
               v-model="ltlFormula"
               :prepend-inner-icon="ltlParseStatusIcon"
               :error-messages="ltlParseErrors"
@@ -60,7 +60,7 @@
         <template v-else>
           <v-flex xs6 sm5 offset-sm1 md4 offset-md2>
             <v-select
-              v-if="showEditorTools"
+              v-if="editorMode === 'Editor'"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Winning Condition"/>
@@ -175,9 +175,12 @@
         type: Boolean,
         default: false
       },
-      showEditorTools: {
-        type: Boolean,
-        default: false
+      editorMode: {
+        type: String,
+        required: true,
+        validator: function (mode) {
+          return ['Editor', 'Simulator', 'Viewer'].includes(mode)
+        }
       },
       // This indicates whether features related to model checking should be here.
       // If this is true, then you have to supply modelCheckingRoutes as well.
@@ -317,78 +320,111 @@
     },
     computed: {
       toolPickerItems: function () {
+        switch (this.editorMode) {
+          case 'Viewer':
+            return [
+              this.selectToolInvisible,
+              ...this.viewTools
+            ]
+          case 'Simulator':
+            return [
+              this.selectTool,
+              this.fireTransitionTool,
+              {type: 'divider'},
+              ...this.viewTools
+            ]
+          case 'Editor':
+            return [
+              this.selectTool,
+              ...this.drawingTools,
+              {type: 'divider'},
+              ...this.selectionTools,
+              {type: 'divider'},
+              ...this.viewTools
+            ]
+        }
+      },
+      selectToolInvisible: function () {
+        return {
+          ...this.selectTool,
+          visible: false
+        }
+      },
+      selectTool: function () {
+        return {
+          type: 'tool',
+          icon: 'mouse',
+          toolEnumName: 'select',
+          name: 'Select'
+        }
+      },
+      fireTransitionTool: function () {
+        return {
+          type: 'tool',
+          icon: 'offline_bolt',
+          toolEnumName: 'fireTransitions',
+          name: 'Fire transitions'
+        }
+      },
+      drawingTools: function () {
         return [
           {
             type: 'tool',
-            icon: 'mouse',
-            visible: this.showEditorTools,
-            toolEnumName: 'select',
-            name: 'Select'
-          },
-          {
-            type: 'tool',
             icon: 'delete',
-            visible: this.showEditorTools,
             toolEnumName: 'deleteNodesAndFlows',
             name: 'Delete'
           },
           {
             type: 'tool',
             icon: 'create',
-            visible: this.showEditorTools,
             toolEnumName: 'drawFlow',
             name: 'Draw Flow'
           },
           {
             type: 'tool',
             icon: 'create',
-            visible: this.showEditorTools,
             toolEnumName: 'drawTransit',
             name: 'Draw Transit'
           },
           {
             type: 'tool',
             icon: 'add',
-            visible: this.showEditorTools,
             toolEnumName: 'insertSysPlace',
             name: this.useModelChecking ? 'Add Place' : 'Add System Place'
           },
           {
             type: 'tool',
             icon: 'add',
-            visible: this.showEditorTools && !this.useModelChecking,
+            visible: !this.useModelChecking,
             toolEnumName: 'insertEnvPlace',
             name: 'Add Environment Place'
           },
           {
             type: 'tool',
             icon: 'add',
-            visible: this.showEditorTools,
             toolEnumName: 'insertTransition',
             name: 'Add Transition'
-          },
-          {
-            type: 'divider',
-            visible: this.showEditorTools
-          },
+          }
+        ]
+      },
+      selectionTools: function () {
+        return [
           {
             type: 'action',
             name: 'Invert selection',
             icon: 'invert_colors',
-            action: this.invertSelection,
-            visible: this.showEditorTools
+            action: this.invertSelection
           },
           {
             type: 'action',
             name: 'Delete selected nodes',
             icon: 'delete_sweep',
-            action: this.deleteSelectedNodes,
-            visible: this.showEditorTools
-          },
-          {
-            type: 'divider',
-            visible: this.showEditorTools
-          },
+            action: this.deleteSelectedNodes
+          }
+        ]
+      },
+      viewTools: function () {
+        return [
           {
             type: 'action',
             name: 'Auto-Layout',
@@ -758,6 +794,14 @@
             }
           case 'drawTransit':
             return this.drawTransitHandler.onClick
+          case 'fireTransition':
+            return (d) => {
+              if (d.type !== 'TRANSITION') {
+                return
+              } else {
+                this.fireTransition(d)
+              }
+            }
           default:
             return () => {
               logging.sendErrorNotification(`No left click handler was found for leftClickMode === ${this.leftClickMode}`)
@@ -1156,6 +1200,15 @@
         this.ltlParseStatus = ''
         this.ltlParseErrors = []
       },
+      editorMode: function () {
+        if (this.editorMode === 'Simulator') {
+          this.selectedTool = this.fireTransitionTool
+        } else if (this.selectedTool == this.fireTransitionTool &&
+          this.editorMode !== 'Simulator') {
+          // Prevent fireTransitionTool from being selected in Editor
+          this.selectedTool = this.selectTool
+        }
+      },
       selectedTool: function (tool) {
         // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
         // That would be more declarative and Vue-like, I think.  -Ann
@@ -1221,6 +1274,14 @@
             this.leftClickMode = 'deleteNode'
             this.dragDropMode = 'moveNode'
             this.linkClickMode = 'deleteFlow'
+            break
+          }
+          case 'fireTransitions': {
+            this.backgroundDragDropMode = 'selectNodes'
+            this.backgroundClickMode = 'cancelSelection'
+            this.leftClickMode = 'fireTransition'
+            this.dragDropMode = 'moveNode'
+            this.linkClickMode = 'doNothing'
             break
           }
           default: {
@@ -1689,7 +1750,15 @@
         newContentElements.exit().remove()
         this.contentElements = contentEnter.merge(newContentElements)
         this.contentElements
-          .attr('font-size', 15)
+          .attr('font-size', node => {
+            if (node.type === 'TRANSITION') {
+              return 28
+            } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
+              return 20
+            } else if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              return 15
+            }
+          })
           .text(node => {
             if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
               // Figure out how long the widest line of the content is to determine node width later
@@ -1703,6 +1772,8 @@
               return node.content
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
               return node.initialToken === 0 ? '' : node.initialToken
+            } else if (node.type === 'TRANSITION' && node.isReadyToFire) {
+              return '*'
             }
           })
 
@@ -1948,7 +2019,13 @@
             .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
           this.contentElements
             .attr('x', node => node.x)
-            .attr('y', node => node.y - this.calculateNodeHeight(node) / 2 + 30)
+            .attr('y', node => {
+              if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+                return node.y - this.calculateNodeHeight(node) / 2 + 30
+              } else {
+                return node.y - this.calculateNodeHeight(node) / 2 + 38
+              }
+            })
           this.drawFlowPreview
             .attr('transform', () => {
               const target = this.drawFlowTarget
@@ -2159,10 +2236,12 @@
         }
       },
       fillOfNodeElement: function (data) {
-        if (this.highlightedDatum == data || data.isHovered) {
-          return '#00aa00'
-        } else if (this.selectedNodes.includes(data)) {
-          return '#007700'
+        const isHighlightedOrHovered = this.highlightedDatum == data || data.isHovered
+        const isSelected = this.selectedNodes.includes(data)
+        if (isHighlightedOrHovered && isSelected) {
+          return '#3366bb'
+        } else if (isHighlightedOrHovered || isSelected) {
+          return '#99aadd'
         } else if (this.shouldShowPartitions && data.partition !== -1) {
           return partitionColorForPlace(data)
         } else if (data.type === 'ENVPLACE') {
