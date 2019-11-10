@@ -40,7 +40,7 @@
         <template v-if="useModelChecking">
           <v-flex xs3>
             <v-select
-              v-if="showEditorTools"
+              v-if="editorMode === 'Editor'"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Condition"/>
@@ -49,7 +49,7 @@
             <v-text-field
               style="flex: 1 1 auto;"
               :disabled="selectedWinningCondition !== 'LTL'"
-              v-if="showEditorTools && useModelChecking"
+              v-if="editorMode === 'Editor' && useModelChecking"
               v-model="ltlFormula"
               :prepend-inner-icon="ltlParseStatusIcon"
               :error-messages="ltlParseErrors"
@@ -60,7 +60,7 @@
         <template v-else>
           <v-flex xs6 sm5 offset-sm1 md4 offset-md2>
             <v-select
-              v-if="showEditorTools"
+              v-if="editorMode === 'Editor'"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Winning Condition"/>
@@ -181,10 +181,6 @@
         validator: function (mode) {
           return ['Editor', 'Simulator', 'Viewer'].includes(mode)
         }
-      },
-      showEditorTools: {
-        type: Boolean,
-        default: false
       },
       // This indicates whether features related to model checking should be here.
       // If this is true, then you have to supply modelCheckingRoutes as well.
@@ -2240,10 +2236,12 @@
         }
       },
       fillOfNodeElement: function (data) {
-        if (this.highlightedDatum == data || data.isHovered) {
-          return '#00aa00'
-        } else if (this.selectedNodes.includes(data)) {
-          return '#007700'
+        const isHighlightedOrHovered = this.highlightedDatum == data || data.isHovered
+        const isSelected = this.selectedNodes.includes(data)
+        if (isHighlightedOrHovered && isSelected) {
+          return '#3366bb'
+        } else if (isHighlightedOrHovered || isSelected) {
+          return '#99aadd'
         } else if (this.shouldShowPartitions && data.partition !== -1) {
           return partitionColorForPlace(data)
         } else if (data.type === 'ENVPLACE') {
