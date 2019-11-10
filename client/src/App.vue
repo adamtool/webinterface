@@ -188,11 +188,15 @@
            v-if="shouldShowRightSide">
         <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
       </div>
-      <v-tabs class="tabs-component-full-height" :style="splitLeftSideStyle" id="splitLeftSide"
+      <v-tabs class="tabs-component-full-height v-tabs-with-shared-content"
+              :style="splitLeftSideStyle"
+              id="splitLeftSide"
+              hide-slider
               v-model="visibleTabContentsLeftSide">
         <v-tab v-for="(tab, index) in tabsLeftSide"
                :key="`${index}-${tab.uuid}`"
                @click="switchToTab(tab.name)"
+               :class="classOfTab(tab)"
                :href="`#${tab.tabContentId}`">
           {{ tab.name }}
         </v-tab>
@@ -648,6 +652,9 @@
       }
     },
     methods: {
+      classOfTab: function (tab) {
+        return this.selectedTabNameLeftSide === tab.name ? 'selected-tab' : '';
+      },
       switchToTab: function (tabName) {
         console.log(`switchToTab(${tabName})`)
         const tabNameToContents = {
@@ -1477,6 +1484,23 @@
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: available;
+  }
+
+  /* Make modifications to hide the default 'selected tab' display of v-tabs */
+  /* We need this because we are using a non-standard behavior of having multiple <v-tab> elements
+     which correspond to a single v-tab-item.
+     See my codepen https://codepen.io/annmygdala/pen/xxxpoNP  */
+  .v-tabs-with-shared-content .v-tab--active:not(.selected-tab) {
+    color: rgba(0,0,0,.7);
+  }
+
+  .v-tabs-with-shared-content .v-tab {
+    border-bottom: 2px solid rgba(0, 0, 0, 0%);
+  }
+
+  .v-tabs-with-shared-content .v-tab.selected-tab {
+    border-bottom: 2px solid;
+    transition: border-bottom 0.5s;
   }
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/
