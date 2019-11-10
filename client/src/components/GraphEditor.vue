@@ -324,21 +324,44 @@
     },
     computed: {
       toolPickerItems: function () {
-        return [
-          this.selectTool,
-          this.fireTransitionTool,
-          ...this.drawingTools,
-          {
-            type: 'divider',
-            visible: this.showEditorTools
-          },
-          ...this.selectionTools,
-          {
-            type: 'divider',
-            visible: this.showEditorTools
-          },
-          ...this.viewTools
-        ]
+        switch (this.editorMode) {
+          case 'Viewer':
+            return [
+              this.selectToolInvisible,
+              ...this.viewTools
+            ]
+          case 'Simulator':
+            return [
+              this.selectTool,
+              this.fireTransitionTool,
+              {
+                type: 'divider',
+                visible: true
+              },
+              ...this.viewTools
+            ]
+          case 'Editor':
+            return [
+              this.selectTool,
+              ...this.drawingTools,
+              {
+                type: 'divider',
+                visible: true
+              },
+              ...this.selectionTools,
+              {
+                type: 'divider',
+                visible: true
+              },
+              ...this.viewTools
+            ]
+        }
+      },
+      selectToolInvisible: function () {
+        return {
+          ...this.selectTool,
+          visible: false
+        }
       },
       selectTool: function () {
         return {
@@ -353,7 +376,7 @@
         return {
           type: 'tool',
           icon: 'offline_bolt',
-          visible: this.editorMode === 'Simulator',
+          visible: true,
           toolEnumName: 'fireTransitions',
           name: 'Fire transitions'
         }
@@ -363,42 +386,42 @@
           {
             type: 'tool',
             icon: 'delete',
-            visible: this.showEditorTools,
+            visible: true,
             toolEnumName: 'deleteNodesAndFlows',
             name: 'Delete'
           },
           {
             type: 'tool',
             icon: 'create',
-            visible: this.showEditorTools,
+            visible: true,
             toolEnumName: 'drawFlow',
             name: 'Draw Flow'
           },
           {
             type: 'tool',
             icon: 'create',
-            visible: this.showEditorTools,
+            visible: true,
             toolEnumName: 'drawTransit',
             name: 'Draw Transit'
           },
           {
             type: 'tool',
             icon: 'add',
-            visible: this.showEditorTools,
+            visible: true,
             toolEnumName: 'insertSysPlace',
             name: this.useModelChecking ? 'Add Place' : 'Add System Place'
           },
           {
             type: 'tool',
             icon: 'add',
-            visible: this.showEditorTools && !this.useModelChecking,
+            visible: !this.useModelChecking,
             toolEnumName: 'insertEnvPlace',
             name: 'Add Environment Place'
           },
           {
             type: 'tool',
             icon: 'add',
-            visible: this.showEditorTools,
+            visible: true,
             toolEnumName: 'insertTransition',
             name: 'Add Transition'
           }
@@ -411,14 +434,14 @@
             name: 'Invert selection',
             icon: 'invert_colors',
             action: this.invertSelection,
-            visible: this.showEditorTools
+            visible: true
           },
           {
             type: 'action',
             name: 'Delete selected nodes',
             icon: 'delete_sweep',
             action: this.deleteSelectedNodes,
-            visible: this.showEditorTools
+            visible: true
           }
         ]
       },
