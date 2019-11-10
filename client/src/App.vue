@@ -211,7 +211,7 @@
               <GraphEditor :graph='petriGame.net'
                            :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
-                           :useSimulator='isSimulatorSelected'
+                           :editorMode='editorSimulatorMode'
                            ref='graphEditorPetriGame'
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
@@ -524,8 +524,12 @@
       }
     },
     computed: {
-      isSimulatorSelected: function () {
-        return this.selectedTabNameLeftSide === 'Simulator'
+      editorSimulatorMode: function () {
+        switch (this.selectedTabNameLeftSide) {
+          case 'Petri Game': return 'Editor'
+          case 'Simulator': return 'Simulator'
+          default: return 'Editor'
+        }
       },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')

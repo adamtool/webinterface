@@ -175,12 +175,14 @@
         type: Boolean,
         default: false
       },
-      showEditorTools: {
-        type: Boolean,
-        default: false
+      editorMode: {
+        type: String,
+        required: true,
+        validator: function (mode) {
+          return ['Editor', 'Simulator', 'Viewer'].includes(mode)
+        }
       },
-      // TODO refactor showEditorTools and useSimulator somehow to an enum
-      useSimulator: {
+      showEditorTools: {
         type: Boolean,
         default: false
       },
@@ -351,7 +353,7 @@
         return {
           type: 'tool',
           icon: 'offline_bolt',
-          visible: this.useSimulator,
+          visible: this.editorMode === 'Simulator',
           toolEnumName: 'fireTransitions',
           name: 'Fire transitions'
         }
