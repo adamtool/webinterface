@@ -334,25 +334,16 @@
             return [
               this.selectTool,
               this.fireTransitionTool,
-              {
-                type: 'divider',
-                visible: true
-              },
+              {type: 'divider'},
               ...this.viewTools
             ]
           case 'Editor':
             return [
               this.selectTool,
               ...this.drawingTools,
-              {
-                type: 'divider',
-                visible: true
-              },
+              {type: 'divider'},
               ...this.selectionTools,
-              {
-                type: 'divider',
-                visible: true
-              },
+              {type: 'divider'},
               ...this.viewTools
             ]
         }
@@ -367,7 +358,6 @@
         return {
           type: 'tool',
           icon: 'mouse',
-          visible: true,
           toolEnumName: 'select',
           name: 'Select'
         }
@@ -376,7 +366,6 @@
         return {
           type: 'tool',
           icon: 'offline_bolt',
-          visible: true,
           toolEnumName: 'fireTransitions',
           name: 'Fire transitions'
         }
@@ -386,28 +375,24 @@
           {
             type: 'tool',
             icon: 'delete',
-            visible: true,
             toolEnumName: 'deleteNodesAndFlows',
             name: 'Delete'
           },
           {
             type: 'tool',
             icon: 'create',
-            visible: true,
             toolEnumName: 'drawFlow',
             name: 'Draw Flow'
           },
           {
             type: 'tool',
             icon: 'create',
-            visible: true,
             toolEnumName: 'drawTransit',
             name: 'Draw Transit'
           },
           {
             type: 'tool',
             icon: 'add',
-            visible: true,
             toolEnumName: 'insertSysPlace',
             name: this.useModelChecking ? 'Add Place' : 'Add System Place'
           },
@@ -421,7 +406,6 @@
           {
             type: 'tool',
             icon: 'add',
-            visible: true,
             toolEnumName: 'insertTransition',
             name: 'Add Transition'
           }
@@ -433,15 +417,13 @@
             type: 'action',
             name: 'Invert selection',
             icon: 'invert_colors',
-            action: this.invertSelection,
-            visible: true
+            action: this.invertSelection
           },
           {
             type: 'action',
             name: 'Delete selected nodes',
             icon: 'delete_sweep',
-            action: this.deleteSelectedNodes,
-            visible: true
+            action: this.deleteSelectedNodes
           }
         ]
       },
@@ -1221,6 +1203,15 @@
         this.selectedWinningCondition = condition
         this.ltlParseStatus = ''
         this.ltlParseErrors = []
+      },
+      editorMode: function () {
+        // if (this.editorMode === 'Simulator') {
+        //   this.selectedTool = this.fireTransitionTool
+        // } else if (
+        //   this.selectedTool == this.fireTransitionTool && this.editorMode !== 'Simulator') {
+        //   this.selectedTool = this.selectTool
+        //
+        // }
       },
       selectedTool: function (tool) {
         // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
