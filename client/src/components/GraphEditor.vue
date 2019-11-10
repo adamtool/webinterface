@@ -1205,13 +1205,13 @@
         this.ltlParseErrors = []
       },
       editorMode: function () {
-        // if (this.editorMode === 'Simulator') {
-        //   this.selectedTool = this.fireTransitionTool
-        // } else if (
-        //   this.selectedTool == this.fireTransitionTool && this.editorMode !== 'Simulator') {
-        //   this.selectedTool = this.selectTool
-        //
-        // }
+        if (this.editorMode === 'Simulator') {
+          this.selectedTool = this.fireTransitionTool
+        } else if (this.selectedTool == this.fireTransitionTool &&
+          this.editorMode !== 'Simulator') {
+          // Prevent fireTransitionTool from being selected in Editor
+          this.selectedTool = this.selectTool
+        }
       },
       selectedTool: function (tool) {
         // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
