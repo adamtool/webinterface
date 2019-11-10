@@ -192,7 +192,7 @@
               v-model="visibleTabContentsLeftSide">
         <v-tab v-for="(tab, index) in tabsLeftSide"
                :key="`${index}-${tab.uuid}`"
-               @click="onClickTabLeftSide(tab)"
+               @click="switchToTab(tab.name)"
                :href="`#${tab.tabContentId}`">
           {{ tab.name }}
         </v-tab>
@@ -649,7 +649,8 @@
     },
     methods: {
       switchToTab: function (tabName) {
-        tabNameToContents = {
+        console.log(`switchToTab(${tabName})`)
+        const tabNameToContents = {
           'Petri Game': 'simulatorEditor',
           'Simulator': 'simulatorEditor',
           'APT Editor': 'aptEditor'
@@ -657,6 +658,15 @@
         if (!tabNameToContents.hasOwnProperty(tabName)) {
           throw new Error('Unrecognized tab name: ' + tabName)
         }
+        if (tabName === this.selectedTabNameLeftSide) {
+          console.log('This tab was already selected')
+          return
+        }
+        if (tabName === 'APT Editor') {
+          logging.logVerbose('Switched to APT editor')
+          this.savePetriGameAsAPT()
+        }
+
         this.visibleTabContentsLeftSide = tabNameToContents[tabName]
         this.selectedTabNameLeftSide = tabName
       },
@@ -874,7 +884,7 @@
         }
       },
       switchToAptEditor: function () {
-        this.visibleTabContentsLeftSide = 'aptEditor'
+        this.switchToTab('APT Editor')
       },
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
@@ -1078,21 +1088,6 @@
       },
       onAptEditorInput: function (apt) {
         this.apt = apt
-      },
-      // Callback function called when the user clicks on a tab and switches to it from a different tab
-      onClickTabLeftSide: function (tab) {
-        // TODO fix.  this is broken RN
-        console.log(`onSwitchToTabLeftSide(tab with uuid = ${tab.uuid})`)
-        console.log(tab)
-        if (`tab-${tab.uuid}` === this.visibleTabContentsLeftSide) {
-          console.log('This tab was already selected')
-          return
-        }
-        if (tab.type === 'aptEditor') {
-          logging.logVerbose('Switched to APT editor')
-          this.savePetriGameAsAPT()
-        }
-        this.selectedTabNameLeftSide = tab.name
       },
       saveXYCoordinatesOnServer: function () {
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
