@@ -1,0 +1,42 @@
+// There should be a strategy when the nondeterminsm is checked in the unfolding 
+// (ergo also for checking it in the strategy) but no strategy if it is checked
+// directly on the net.
+// @author Manuel Gieseking
+
+.name "Nondet Net vs Unfolding"
+.type LPN
+.options
+condition="SAFETY"
+
+.places
+Env[env="true"]
+Env1[env="true"]
+p
+q1
+q2
+bad1[bad="true"]
+bad2[bad="true"]
+
+.transitions
+envA
+envB
+toQ1
+toQ2
+a
+b
+c
+tb1
+tb2
+
+.flows
+envA: {Env} -> {Env1, p}
+envB: {Env} -> {p, q1, q2}
+toQ1: {Env1} -> {q1}
+toQ2: {Env1} -> {q2}
+a: {q1,p} -> {}
+b: {q2,p} -> {}
+c: {q1,q2,p} -> {}
+tb1: {q1} -> {bad1}
+tb2: {q2} -> {bad2}
+
+.initial_marking {Env}
