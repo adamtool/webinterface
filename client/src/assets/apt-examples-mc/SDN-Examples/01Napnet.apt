@@ -1,0 +1,69 @@
+.name "Napnet"
+.type LPN
+.options
+nb_switches="6"
+
+.places
+p0
+p1
+pOut
+sw000
+sw000fwdTosw001
+sw000fwdTosw003
+sw001fwdTosw000
+sw001fwdTosw003
+sw001fwdTosw004
+sw002
+sw002fwdTosw003
+sw003
+sw003fwdTosw000
+sw003fwdTosw001
+sw003fwdTosw002
+sw003fwdTosw004
+sw003fwdTosw005
+sw004
+sw004fwdTosw001
+sw004fwdTosw003
+sw005
+sw005fwdTosw003
+updateStart
+
+.transitions
+fwdsw000tosw001[label="fwdsw000tosw001", weakFair="true", tfl="sw000 -> {pOut},pOut -> {pOut}"]
+fwdsw000tosw003[label="fwdsw000tosw003", weakFair="true", tfl="sw003 -> {sw003},sw000 -> {sw003}"]
+fwdsw001tosw000[label="fwdsw001tosw000", weakFair="true", tfl="sw000 -> {sw000},pOut -> {sw000}"]
+fwdsw001tosw003[label="fwdsw001tosw003", weakFair="true", tfl="sw003 -> {sw003},pOut -> {sw003}"]
+fwdsw001tosw004[label="fwdsw001tosw004", weakFair="true", tfl="pOut -> {sw004},sw004 -> {sw004}"]
+fwdsw002tosw003[label="fwdsw002tosw003", weakFair="true", tfl="sw003 -> {sw003},sw002 -> {sw003}"]
+fwdsw003tosw000[label="fwdsw003tosw000", weakFair="true", tfl="sw003 -> {sw000},sw000 -> {sw000}"]
+fwdsw003tosw001[label="fwdsw003tosw001", weakFair="true", tfl="sw003 -> {pOut},pOut -> {pOut}"]
+fwdsw003tosw002[label="fwdsw003tosw002", weakFair="true", tfl="sw003 -> {sw002},sw002 -> {sw002}"]
+fwdsw003tosw004[label="fwdsw003tosw004", weakFair="true", tfl="sw003 -> {sw004},sw004 -> {sw004}"]
+fwdsw003tosw005[label="fwdsw003tosw005", weakFair="true", tfl="sw003 -> {sw005},sw005 -> {sw005}"]
+fwdsw004tosw001[label="fwdsw004tosw001", weakFair="true", tfl="pOut -> {pOut},sw004 -> {pOut}"]
+fwdsw004tosw003[label="fwdsw004tosw003", weakFair="true", tfl="sw003 -> {sw003},sw004 -> {sw003}"]
+fwdsw005tosw003[label="fwdsw005tosw003", weakFair="true", tfl="sw003 -> {sw003},sw005 -> {sw003}"]
+ingresssw003[label="ingresssw003", weakFair="true", tfl="sw003 -> {sw003},> -> {sw003}"]
+t0[label="t0", weakFair="true"]
+t1[label="t1", weakFair="true"]
+
+.flows
+fwdsw000tosw001: {1*sw000fwdTosw001, 1*pOut, 1*sw000} -> {1*pOut, 1*sw000fwdTosw001, 1*sw000}
+fwdsw000tosw003: {1*sw000fwdTosw003, 1*sw000, 1*sw003} -> {1*sw003, 1*sw000fwdTosw003, 1*sw000}
+fwdsw001tosw000: {1*pOut, 1*sw001fwdTosw000, 1*sw000} -> {1*pOut, 1*sw000, 1*sw001fwdTosw000}
+fwdsw001tosw003: {1*sw003, 1*pOut, 1*sw001fwdTosw003} -> {1*pOut, 1*sw001fwdTosw003, 1*sw003}
+fwdsw001tosw004: {1*sw004, 1*pOut, 1*sw001fwdTosw004} -> {1*sw004, 1*pOut, 1*sw001fwdTosw004}
+fwdsw002tosw003: {1*sw002fwdTosw003, 1*sw002, 1*sw003} -> {1*sw003, 1*sw002fwdTosw003, 1*sw002}
+fwdsw003tosw000: {1*sw003fwdTosw000, 1*sw003, 1*sw000} -> {1*sw000, 1*sw003, 1*sw003fwdTosw000}
+fwdsw003tosw001: {1*sw003, 1*pOut, 1*sw003fwdTosw001} -> {1*sw003fwdTosw001, 1*sw003, 1*pOut}
+fwdsw003tosw002: {1*sw003fwdTosw002, 1*sw002, 1*sw003} -> {1*sw003, 1*sw002, 1*sw003fwdTosw002}
+fwdsw003tosw004: {1*sw003, 1*sw004, 1*sw003fwdTosw004} -> {1*sw003fwdTosw004, 1*sw004, 1*sw003}
+fwdsw003tosw005: {1*sw003, 1*sw005, 1*sw003fwdTosw005} -> {1*sw005, 1*sw003, 1*sw003fwdTosw005}
+fwdsw004tosw001: {1*sw004fwdTosw001, 1*sw004, 1*pOut} -> {1*sw004, 1*pOut, 1*sw004fwdTosw001}
+fwdsw004tosw003: {1*sw003, 1*sw004fwdTosw003, 1*sw004} -> {1*sw004fwdTosw003, 1*sw003, 1*sw004}
+fwdsw005tosw003: {1*sw003, 1*sw005, 1*sw005fwdTosw003} -> {1*sw005, 1*sw003, 1*sw005fwdTosw003}
+ingresssw003: {1*sw003} -> {1*sw003}
+t0: {1*sw004fwdTosw003, 1*updateStart} -> {1*sw004fwdTosw001, 1*p0}
+t1: {1*sw003fwdTosw001, 1*p0} -> {1*p1, 1*sw003fwdTosw004}
+
+.initial_marking {1*pOut, 1*sw000, 1*sw002, 1*sw003, 1*sw003fwdTosw001, 1*sw004, 1*sw004fwdTosw003, 1*sw005, 1*updateStart}

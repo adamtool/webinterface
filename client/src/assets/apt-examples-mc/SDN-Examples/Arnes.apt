@@ -1,0 +1,346 @@
+.name "Arnes"
+.type LPN
+.options
+nb_switches="34"
+
+.places
+p0
+p1
+p2
+p3
+p4
+p5
+p6
+pOut
+sw000
+sw000fwdTosw003
+sw000fwdTosw007
+sw001
+sw001fwdTosw006
+sw001fwdTosw013
+sw002
+sw002fwdTosw003
+sw002fwdTosw021
+sw002fwdTosw025
+sw002fwdTosw031
+sw003
+sw003fwdTosw000
+sw003fwdTosw002
+sw003fwdTosw007
+sw003fwdTosw030
+sw004
+sw004fwdTosw005
+sw004fwdTosw007
+sw004fwdTosw015
+sw004fwdTosw023
+sw005
+sw005fwdTosw004
+sw005fwdTosw008
+sw006
+sw006fwdTosw001
+sw006fwdTosw020
+sw007
+sw007fwdTosw000
+sw007fwdTosw003
+sw007fwdTosw004
+sw007fwdTosw009
+sw007fwdTosw018
+sw007fwdTosw020
+sw007fwdTosw021
+sw007fwdTosw023
+sw007fwdTosw030
+sw008
+sw008fwdTosw005
+sw008fwdTosw009
+sw009
+sw009fwdTosw007
+sw009fwdTosw008
+sw009fwdTosw019
+sw010
+sw010fwdTosw017
+sw010fwdTosw022
+sw011
+sw011fwdTosw012
+sw011fwdTosw030
+sw012
+sw012fwdTosw011
+sw012fwdTosw026
+sw013
+sw013fwdTosw001
+sw013fwdTosw029
+sw014
+sw014fwdTosw016
+sw014fwdTosw017
+sw014fwdTosw018
+sw015
+sw015fwdTosw004
+sw016
+sw016fwdTosw014
+sw017
+sw017fwdTosw010
+sw017fwdTosw014
+sw017fwdTosw019
+sw017fwdTosw023
+sw018
+sw018fwdTosw007
+sw018fwdTosw014
+sw019
+sw019fwdTosw009
+sw019fwdTosw017
+sw020
+sw020fwdTosw006
+sw020fwdTosw007
+sw021
+sw021fwdTosw002
+sw021fwdTosw007
+sw022
+sw022fwdTosw010
+sw022fwdTosw023
+sw023fwdTosw004
+sw023fwdTosw007
+sw023fwdTosw017
+sw023fwdTosw022
+sw024
+sw024fwdTosw025
+sw024fwdTosw032
+sw025
+sw025fwdTosw002
+sw025fwdTosw024
+sw025fwdTosw032
+sw026
+sw026fwdTosw012
+sw026fwdTosw027
+sw027
+sw027fwdTosw026
+sw027fwdTosw028
+sw028
+sw028fwdTosw027
+sw028fwdTosw029
+sw029
+sw029fwdTosw013
+sw029fwdTosw028
+sw029fwdTosw030
+sw030
+sw030fwdTosw003
+sw030fwdTosw007
+sw030fwdTosw011
+sw030fwdTosw029
+sw030fwdTosw031
+sw030fwdTosw032
+sw031
+sw031fwdTosw002
+sw031fwdTosw030
+sw032
+sw032fwdTosw024
+sw032fwdTosw025
+sw032fwdTosw030
+sw032fwdTosw033
+sw033
+sw033fwdTosw032
+updateStart
+
+.transitions
+fwdsw000tosw003[label="fwdsw000tosw003", weakFair="true", tfl="sw003 -> {sw003},sw000 -> {sw003}"]
+fwdsw000tosw007[label="fwdsw000tosw007", weakFair="true", tfl="sw000 -> {sw007},sw007 -> {sw007}"]
+fwdsw001tosw006[label="fwdsw001tosw006", weakFair="true", tfl="sw001 -> {sw006},sw006 -> {sw006}"]
+fwdsw001tosw013[label="fwdsw001tosw013", weakFair="true", tfl="sw013 -> {sw013},sw001 -> {sw013}"]
+fwdsw002tosw003[label="fwdsw002tosw003", weakFair="true", tfl="sw003 -> {sw003},sw002 -> {sw003}"]
+fwdsw002tosw021[label="fwdsw002tosw021", weakFair="true", tfl="sw021 -> {sw021},sw002 -> {sw021}"]
+fwdsw002tosw025[label="fwdsw002tosw025", weakFair="true", tfl="sw025 -> {sw025},sw002 -> {sw025}"]
+fwdsw002tosw031[label="fwdsw002tosw031", weakFair="true", tfl="sw031 -> {sw031},sw002 -> {sw031}"]
+fwdsw003tosw000[label="fwdsw003tosw000", weakFair="true", tfl="sw003 -> {sw000},sw000 -> {sw000}"]
+fwdsw003tosw002[label="fwdsw003tosw002", weakFair="true", tfl="sw003 -> {sw002},sw002 -> {sw002}"]
+fwdsw003tosw007[label="fwdsw003tosw007", weakFair="true", tfl="sw003 -> {sw007},sw007 -> {sw007}"]
+fwdsw003tosw030[label="fwdsw003tosw030", weakFair="true", tfl="sw030 -> {sw030},sw003 -> {sw030}"]
+fwdsw004tosw005[label="fwdsw004tosw005", weakFair="true", tfl="sw005 -> {sw005},sw004 -> {sw005}"]
+fwdsw004tosw007[label="fwdsw004tosw007", weakFair="true", tfl="sw007 -> {sw007},sw004 -> {sw007}"]
+fwdsw004tosw015[label="fwdsw004tosw015", weakFair="true", tfl="sw004 -> {sw015},sw015 -> {sw015}"]
+fwdsw004tosw023[label="fwdsw004tosw023", weakFair="true", tfl="pOut -> {pOut},sw004 -> {pOut}"]
+fwdsw005tosw004[label="fwdsw005tosw004", weakFair="true", tfl="sw005 -> {sw004},sw004 -> {sw004}"]
+fwdsw005tosw008[label="fwdsw005tosw008", weakFair="true", tfl="sw005 -> {sw008},sw008 -> {sw008}"]
+fwdsw006tosw001[label="fwdsw006tosw001", weakFair="true", tfl="sw001 -> {sw001},sw006 -> {sw001}"]
+fwdsw006tosw020[label="fwdsw006tosw020", weakFair="true", tfl="sw020 -> {sw020},sw006 -> {sw020}"]
+fwdsw007tosw000[label="fwdsw007tosw000", weakFair="true", tfl="sw000 -> {sw000},sw007 -> {sw000}"]
+fwdsw007tosw003[label="fwdsw007tosw003", weakFair="true", tfl="sw003 -> {sw003},sw007 -> {sw003}"]
+fwdsw007tosw004[label="fwdsw007tosw004", weakFair="true", tfl="sw007 -> {sw004},sw004 -> {sw004}"]
+fwdsw007tosw009[label="fwdsw007tosw009", weakFair="true", tfl="sw007 -> {sw009},sw009 -> {sw009}"]
+fwdsw007tosw018[label="fwdsw007tosw018", weakFair="true", tfl="sw007 -> {sw018},sw018 -> {sw018}"]
+fwdsw007tosw020[label="fwdsw007tosw020", weakFair="true", tfl="sw020 -> {sw020},sw007 -> {sw020}"]
+fwdsw007tosw021[label="fwdsw007tosw021", weakFair="true", tfl="sw021 -> {sw021},sw007 -> {sw021}"]
+fwdsw007tosw023[label="fwdsw007tosw023", weakFair="true", tfl="sw007 -> {pOut},pOut -> {pOut}"]
+fwdsw007tosw030[label="fwdsw007tosw030", weakFair="true", tfl="sw030 -> {sw030},sw007 -> {sw030}"]
+fwdsw008tosw005[label="fwdsw008tosw005", weakFair="true", tfl="sw005 -> {sw005},sw008 -> {sw005}"]
+fwdsw008tosw009[label="fwdsw008tosw009", weakFair="true", tfl="sw009 -> {sw009},sw008 -> {sw009}"]
+fwdsw009tosw007[label="fwdsw009tosw007", weakFair="true", tfl="sw007 -> {sw007},sw009 -> {sw007}"]
+fwdsw009tosw008[label="fwdsw009tosw008", weakFair="true", tfl="sw009 -> {sw008},sw008 -> {sw008}"]
+fwdsw009tosw019[label="fwdsw009tosw019", weakFair="true", tfl="sw009 -> {sw019},sw019 -> {sw019}"]
+fwdsw010tosw017[label="fwdsw010tosw017", weakFair="true", tfl="sw010 -> {sw017},sw017 -> {sw017}"]
+fwdsw010tosw022[label="fwdsw010tosw022", weakFair="true", tfl="sw010 -> {sw022},sw022 -> {sw022}"]
+fwdsw011tosw012[label="fwdsw011tosw012", weakFair="true", tfl="sw012 -> {sw012},sw011 -> {sw012}"]
+fwdsw011tosw030[label="fwdsw011tosw030", weakFair="true", tfl="sw030 -> {sw030},sw011 -> {sw030}"]
+fwdsw012tosw011[label="fwdsw012tosw011", weakFair="true", tfl="sw012 -> {sw011},sw011 -> {sw011}"]
+fwdsw012tosw026[label="fwdsw012tosw026", weakFair="true", tfl="sw012 -> {sw026},sw026 -> {sw026}"]
+fwdsw013tosw001[label="fwdsw013tosw001", weakFair="true", tfl="sw013 -> {sw001},sw001 -> {sw001}"]
+fwdsw013tosw029[label="fwdsw013tosw029", weakFair="true", tfl="sw013 -> {sw029},sw029 -> {sw029}"]
+fwdsw014tosw016[label="fwdsw014tosw016", weakFair="true", tfl="sw014 -> {sw016},sw016 -> {sw016}"]
+fwdsw014tosw017[label="fwdsw014tosw017", weakFair="true", tfl="sw014 -> {sw017},sw017 -> {sw017}"]
+fwdsw014tosw018[label="fwdsw014tosw018", weakFair="true", tfl="sw014 -> {sw018},sw018 -> {sw018}"]
+fwdsw015tosw004[label="fwdsw015tosw004", weakFair="true", tfl="sw015 -> {sw004},sw004 -> {sw004}"]
+fwdsw016tosw014[label="fwdsw016tosw014", weakFair="true", tfl="sw014 -> {sw014},sw016 -> {sw014}"]
+fwdsw017tosw010[label="fwdsw017tosw010", weakFair="true", tfl="sw010 -> {sw010},sw017 -> {sw010}"]
+fwdsw017tosw014[label="fwdsw017tosw014", weakFair="true", tfl="sw014 -> {sw014},sw017 -> {sw014}"]
+fwdsw017tosw019[label="fwdsw017tosw019", weakFair="true", tfl="sw017 -> {sw019},sw019 -> {sw019}"]
+fwdsw017tosw023[label="fwdsw017tosw023", weakFair="true", tfl="sw017 -> {pOut},pOut -> {pOut}"]
+fwdsw018tosw007[label="fwdsw018tosw007", weakFair="true", tfl="sw018 -> {sw007},sw007 -> {sw007}"]
+fwdsw018tosw014[label="fwdsw018tosw014", weakFair="true", tfl="sw014 -> {sw014},sw018 -> {sw014}"]
+fwdsw019tosw009[label="fwdsw019tosw009", weakFair="true", tfl="sw009 -> {sw009},sw019 -> {sw009}"]
+fwdsw019tosw017[label="fwdsw019tosw017", weakFair="true", tfl="sw017 -> {sw017},sw019 -> {sw017}"]
+fwdsw020tosw006[label="fwdsw020tosw006", weakFair="true", tfl="sw020 -> {sw006},sw006 -> {sw006}"]
+fwdsw020tosw007[label="fwdsw020tosw007", weakFair="true", tfl="sw020 -> {sw007},sw007 -> {sw007}"]
+fwdsw021tosw002[label="fwdsw021tosw002", weakFair="true", tfl="sw021 -> {sw002},sw002 -> {sw002}"]
+fwdsw021tosw007[label="fwdsw021tosw007", weakFair="true", tfl="sw021 -> {sw007},sw007 -> {sw007}"]
+fwdsw022tosw010[label="fwdsw022tosw010", weakFair="true", tfl="sw010 -> {sw010},sw022 -> {sw010}"]
+fwdsw022tosw023[label="fwdsw022tosw023", weakFair="true", tfl="sw022 -> {pOut},pOut -> {pOut}"]
+fwdsw023tosw004[label="fwdsw023tosw004", weakFair="true", tfl="pOut -> {sw004},sw004 -> {sw004}"]
+fwdsw023tosw007[label="fwdsw023tosw007", weakFair="true", tfl="sw007 -> {sw007},pOut -> {sw007}"]
+fwdsw023tosw017[label="fwdsw023tosw017", weakFair="true", tfl="sw017 -> {sw017},pOut -> {sw017}"]
+fwdsw023tosw022[label="fwdsw023tosw022", weakFair="true", tfl="sw022 -> {sw022},pOut -> {sw022}"]
+fwdsw024tosw025[label="fwdsw024tosw025", weakFair="true", tfl="sw025 -> {sw025},sw024 -> {sw025}"]
+fwdsw024tosw032[label="fwdsw024tosw032", weakFair="true", tfl="sw032 -> {sw032},sw024 -> {sw032}"]
+fwdsw025tosw002[label="fwdsw025tosw002", weakFair="true", tfl="sw025 -> {sw002},sw002 -> {sw002}"]
+fwdsw025tosw024[label="fwdsw025tosw024", weakFair="true", tfl="sw025 -> {sw024},sw024 -> {sw024}"]
+fwdsw025tosw032[label="fwdsw025tosw032", weakFair="true", tfl="sw032 -> {sw032},sw025 -> {sw032}"]
+fwdsw026tosw012[label="fwdsw026tosw012", weakFair="true", tfl="sw012 -> {sw012},sw026 -> {sw012}"]
+fwdsw026tosw027[label="fwdsw026tosw027", weakFair="true", tfl="sw027 -> {sw027},sw026 -> {sw027}"]
+fwdsw027tosw026[label="fwdsw027tosw026", weakFair="true", tfl="sw027 -> {sw026},sw026 -> {sw026}"]
+fwdsw027tosw028[label="fwdsw027tosw028", weakFair="true", tfl="sw028 -> {sw028},sw027 -> {sw028}"]
+fwdsw028tosw027[label="fwdsw028tosw027", weakFair="true", tfl="sw028 -> {sw027},sw027 -> {sw027}"]
+fwdsw028tosw029[label="fwdsw028tosw029", weakFair="true", tfl="sw029 -> {sw029},sw028 -> {sw029}"]
+fwdsw029tosw013[label="fwdsw029tosw013", weakFair="true", tfl="sw013 -> {sw013},sw029 -> {sw013}"]
+fwdsw029tosw028[label="fwdsw029tosw028", weakFair="true", tfl="sw029 -> {sw028},sw028 -> {sw028}"]
+fwdsw029tosw030[label="fwdsw029tosw030", weakFair="true", tfl="sw030 -> {sw030},sw029 -> {sw030}"]
+fwdsw030tosw003[label="fwdsw030tosw003", weakFair="true", tfl="sw030 -> {sw003},sw003 -> {sw003}"]
+fwdsw030tosw007[label="fwdsw030tosw007", weakFair="true", tfl="sw030 -> {sw007},sw007 -> {sw007}"]
+fwdsw030tosw011[label="fwdsw030tosw011", weakFair="true", tfl="sw030 -> {sw011},sw011 -> {sw011}"]
+fwdsw030tosw029[label="fwdsw030tosw029", weakFair="true", tfl="sw030 -> {sw029},sw029 -> {sw029}"]
+fwdsw030tosw031[label="fwdsw030tosw031", weakFair="true", tfl="sw031 -> {sw031},sw030 -> {sw031}"]
+fwdsw030tosw032[label="fwdsw030tosw032", weakFair="true", tfl="sw032 -> {sw032},sw030 -> {sw032}"]
+fwdsw031tosw002[label="fwdsw031tosw002", weakFair="true", tfl="sw031 -> {sw002},sw002 -> {sw002}"]
+fwdsw031tosw030[label="fwdsw031tosw030", weakFair="true", tfl="sw031 -> {sw030},sw030 -> {sw030}"]
+fwdsw032tosw024[label="fwdsw032tosw024", weakFair="true", tfl="sw032 -> {sw024},sw024 -> {sw024}"]
+fwdsw032tosw025[label="fwdsw032tosw025", weakFair="true", tfl="sw032 -> {sw025},sw025 -> {sw025}"]
+fwdsw032tosw030[label="fwdsw032tosw030", weakFair="true", tfl="sw032 -> {sw030},sw030 -> {sw030}"]
+fwdsw032tosw033[label="fwdsw032tosw033", weakFair="true", tfl="sw032 -> {sw033},sw033 -> {sw033}"]
+fwdsw033tosw032[label="fwdsw033tosw032", weakFair="true", tfl="sw032 -> {sw032},sw033 -> {sw032}"]
+ingresssw002[label="ingresssw002", weakFair="true", tfl="sw002 -> {sw002},> -> {sw002}"]
+t0[label="t0", weakFair="true"]
+t1[label="t1", weakFair="true"]
+t2[label="t2", weakFair="true"]
+t3[label="t3", weakFair="true"]
+t4[label="t4", weakFair="true"]
+t5[label="t5", weakFair="true"]
+t6[label="t6", weakFair="true"]
+
+.flows
+fwdsw000tosw003: {1*sw000fwdTosw003, 1*sw000, 1*sw003} -> {1*sw003, 1*sw000fwdTosw003, 1*sw000}
+fwdsw000tosw007: {1*sw000fwdTosw007, 1*sw000, 1*sw007} -> {1*sw000, 1*sw000fwdTosw007, 1*sw007}
+fwdsw001tosw006: {1*sw006, 1*sw001, 1*sw001fwdTosw006} -> {1*sw001, 1*sw006, 1*sw001fwdTosw006}
+fwdsw001tosw013: {1*sw013, 1*sw001, 1*sw001fwdTosw013} -> {1*sw013, 1*sw001fwdTosw013, 1*sw001}
+fwdsw002tosw003: {1*sw002fwdTosw003, 1*sw002, 1*sw003} -> {1*sw003, 1*sw002fwdTosw003, 1*sw002}
+fwdsw002tosw021: {1*sw021, 1*sw002, 1*sw002fwdTosw021} -> {1*sw002, 1*sw002fwdTosw021, 1*sw021}
+fwdsw002tosw025: {1*sw002fwdTosw025, 1*sw002, 1*sw025} -> {1*sw002fwdTosw025, 1*sw025, 1*sw002}
+fwdsw002tosw031: {1*sw002, 1*sw002fwdTosw031, 1*sw031} -> {1*sw002, 1*sw002fwdTosw031, 1*sw031}
+fwdsw003tosw000: {1*sw003fwdTosw000, 1*sw003, 1*sw000} -> {1*sw000, 1*sw003, 1*sw003fwdTosw000}
+fwdsw003tosw002: {1*sw003fwdTosw002, 1*sw002, 1*sw003} -> {1*sw003, 1*sw002, 1*sw003fwdTosw002}
+fwdsw003tosw007: {1*sw007, 1*sw003fwdTosw007, 1*sw003} -> {1*sw003, 1*sw003fwdTosw007, 1*sw007}
+fwdsw003tosw030: {1*sw003fwdTosw030, 1*sw030, 1*sw003} -> {1*sw003, 1*sw030, 1*sw003fwdTosw030}
+fwdsw004tosw005: {1*sw005, 1*sw004fwdTosw005, 1*sw004} -> {1*sw004fwdTosw005, 1*sw005, 1*sw004}
+fwdsw004tosw007: {1*sw007, 1*sw004fwdTosw007, 1*sw004} -> {1*sw004, 1*sw004fwdTosw007, 1*sw007}
+fwdsw004tosw015: {1*sw004, 1*sw004fwdTosw015, 1*sw015} -> {1*sw004, 1*sw015, 1*sw004fwdTosw015}
+fwdsw004tosw023: {1*pOut, 1*sw004fwdTosw023, 1*sw004} -> {1*sw004, 1*sw004fwdTosw023, 1*pOut}
+fwdsw005tosw004: {1*sw005, 1*sw004, 1*sw005fwdTosw004} -> {1*sw004, 1*sw005, 1*sw005fwdTosw004}
+fwdsw005tosw008: {1*sw008, 1*sw005fwdTosw008, 1*sw005} -> {1*sw005, 1*sw005fwdTosw008, 1*sw008}
+fwdsw006tosw001: {1*sw006fwdTosw001, 1*sw001, 1*sw006} -> {1*sw001, 1*sw006, 1*sw006fwdTosw001}
+fwdsw006tosw020: {1*sw006, 1*sw006fwdTosw020, 1*sw020} -> {1*sw006, 1*sw020, 1*sw006fwdTosw020}
+fwdsw007tosw000: {1*sw000, 1*sw007, 1*sw007fwdTosw000} -> {1*sw007fwdTosw000, 1*sw007, 1*sw000}
+fwdsw007tosw003: {1*sw007fwdTosw003, 1*sw003, 1*sw007} -> {1*sw007, 1*sw003, 1*sw007fwdTosw003}
+fwdsw007tosw004: {1*sw004, 1*sw007fwdTosw004, 1*sw007} -> {1*sw004, 1*sw007, 1*sw007fwdTosw004}
+fwdsw007tosw009: {1*sw007fwdTosw009, 1*sw009, 1*sw007} -> {1*sw009, 1*sw007fwdTosw009, 1*sw007}
+fwdsw007tosw018: {1*sw007fwdTosw018, 1*sw018, 1*sw007} -> {1*sw007fwdTosw018, 1*sw007, 1*sw018}
+fwdsw007tosw020: {1*sw020, 1*sw007, 1*sw007fwdTosw020} -> {1*sw007fwdTosw020, 1*sw020, 1*sw007}
+fwdsw007tosw021: {1*sw021, 1*sw007fwdTosw021, 1*sw007} -> {1*sw021, 1*sw007, 1*sw007fwdTosw021}
+fwdsw007tosw023: {1*pOut, 1*sw007, 1*sw007fwdTosw023} -> {1*sw007fwdTosw023, 1*sw007, 1*pOut}
+fwdsw007tosw030: {1*sw030, 1*sw007, 1*sw007fwdTosw030} -> {1*sw030, 1*sw007fwdTosw030, 1*sw007}
+fwdsw008tosw005: {1*sw005, 1*sw008, 1*sw008fwdTosw005} -> {1*sw008fwdTosw005, 1*sw005, 1*sw008}
+fwdsw008tosw009: {1*sw009, 1*sw008fwdTosw009, 1*sw008} -> {1*sw008, 1*sw009, 1*sw008fwdTosw009}
+fwdsw009tosw007: {1*sw009, 1*sw009fwdTosw007, 1*sw007} -> {1*sw009, 1*sw009fwdTosw007, 1*sw007}
+fwdsw009tosw008: {1*sw008, 1*sw009fwdTosw008, 1*sw009} -> {1*sw009, 1*sw009fwdTosw008, 1*sw008}
+fwdsw009tosw019: {1*sw009fwdTosw019, 1*sw009, 1*sw019} -> {1*sw009fwdTosw019, 1*sw019, 1*sw009}
+fwdsw010tosw017: {1*sw010fwdTosw017, 1*sw010, 1*sw017} -> {1*sw010, 1*sw010fwdTosw017, 1*sw017}
+fwdsw010tosw022: {1*sw010fwdTosw022, 1*sw010, 1*sw022} -> {1*sw022, 1*sw010, 1*sw010fwdTosw022}
+fwdsw011tosw012: {1*sw012, 1*sw011fwdTosw012, 1*sw011} -> {1*sw012, 1*sw011fwdTosw012, 1*sw011}
+fwdsw011tosw030: {1*sw011, 1*sw011fwdTosw030, 1*sw030} -> {1*sw011fwdTosw030, 1*sw011, 1*sw030}
+fwdsw012tosw011: {1*sw011, 1*sw012fwdTosw011, 1*sw012} -> {1*sw012, 1*sw011, 1*sw012fwdTosw011}
+fwdsw012tosw026: {1*sw026, 1*sw012fwdTosw026, 1*sw012} -> {1*sw012, 1*sw026, 1*sw012fwdTosw026}
+fwdsw013tosw001: {1*sw013fwdTosw001, 1*sw013, 1*sw001} -> {1*sw001, 1*sw013fwdTosw001, 1*sw013}
+fwdsw013tosw029: {1*sw013, 1*sw029, 1*sw013fwdTosw029} -> {1*sw013, 1*sw029, 1*sw013fwdTosw029}
+fwdsw014tosw016: {1*sw014fwdTosw016, 1*sw016, 1*sw014} -> {1*sw014, 1*sw016, 1*sw014fwdTosw016}
+fwdsw014tosw017: {1*sw014fwdTosw017, 1*sw014, 1*sw017} -> {1*sw014, 1*sw017, 1*sw014fwdTosw017}
+fwdsw014tosw018: {1*sw018, 1*sw014, 1*sw014fwdTosw018} -> {1*sw014fwdTosw018, 1*sw014, 1*sw018}
+fwdsw015tosw004: {1*sw015, 1*sw004, 1*sw015fwdTosw004} -> {1*sw015fwdTosw004, 1*sw004, 1*sw015}
+fwdsw016tosw014: {1*sw016, 1*sw016fwdTosw014, 1*sw014} -> {1*sw014, 1*sw016fwdTosw014, 1*sw016}
+fwdsw017tosw010: {1*sw017, 1*sw010, 1*sw017fwdTosw010} -> {1*sw017, 1*sw010, 1*sw017fwdTosw010}
+fwdsw017tosw014: {1*sw017fwdTosw014, 1*sw014, 1*sw017} -> {1*sw017fwdTosw014, 1*sw017, 1*sw014}
+fwdsw017tosw019: {1*sw017fwdTosw019, 1*sw017, 1*sw019} -> {1*sw019, 1*sw017fwdTosw019, 1*sw017}
+fwdsw017tosw023: {1*sw017fwdTosw023, 1*sw017, 1*pOut} -> {1*sw017, 1*sw017fwdTosw023, 1*pOut}
+fwdsw018tosw007: {1*sw018, 1*sw007, 1*sw018fwdTosw007} -> {1*sw018fwdTosw007, 1*sw007, 1*sw018}
+fwdsw018tosw014: {1*sw018fwdTosw014, 1*sw014, 1*sw018} -> {1*sw014, 1*sw018fwdTosw014, 1*sw018}
+fwdsw019tosw009: {1*sw009, 1*sw019, 1*sw019fwdTosw009} -> {1*sw009, 1*sw019fwdTosw009, 1*sw019}
+fwdsw019tosw017: {1*sw019, 1*sw019fwdTosw017, 1*sw017} -> {1*sw017, 1*sw019fwdTosw017, 1*sw019}
+fwdsw020tosw006: {1*sw020, 1*sw020fwdTosw006, 1*sw006} -> {1*sw006, 1*sw020, 1*sw020fwdTosw006}
+fwdsw020tosw007: {1*sw007, 1*sw020fwdTosw007, 1*sw020} -> {1*sw020fwdTosw007, 1*sw020, 1*sw007}
+fwdsw021tosw002: {1*sw002, 1*sw021fwdTosw002, 1*sw021} -> {1*sw021fwdTosw002, 1*sw002, 1*sw021}
+fwdsw021tosw007: {1*sw021fwdTosw007, 1*sw007, 1*sw021} -> {1*sw021, 1*sw021fwdTosw007, 1*sw007}
+fwdsw022tosw010: {1*sw022, 1*sw022fwdTosw010, 1*sw010} -> {1*sw010, 1*sw022, 1*sw022fwdTosw010}
+fwdsw022tosw023: {1*sw022fwdTosw023, 1*pOut, 1*sw022} -> {1*sw022fwdTosw023, 1*pOut, 1*sw022}
+fwdsw023tosw004: {1*pOut, 1*sw004, 1*sw023fwdTosw004} -> {1*sw004, 1*pOut, 1*sw023fwdTosw004}
+fwdsw023tosw007: {1*sw023fwdTosw007, 1*sw007, 1*pOut} -> {1*sw007, 1*pOut, 1*sw023fwdTosw007}
+fwdsw023tosw017: {1*sw017, 1*pOut, 1*sw023fwdTosw017} -> {1*sw023fwdTosw017, 1*sw017, 1*pOut}
+fwdsw023tosw022: {1*sw023fwdTosw022, 1*pOut, 1*sw022} -> {1*pOut, 1*sw022, 1*sw023fwdTosw022}
+fwdsw024tosw025: {1*sw024, 1*sw025, 1*sw024fwdTosw025} -> {1*sw025, 1*sw024fwdTosw025, 1*sw024}
+fwdsw024tosw032: {1*sw032, 1*sw024fwdTosw032, 1*sw024} -> {1*sw032, 1*sw024fwdTosw032, 1*sw024}
+fwdsw025tosw002: {1*sw002, 1*sw025, 1*sw025fwdTosw002} -> {1*sw002, 1*sw025fwdTosw002, 1*sw025}
+fwdsw025tosw024: {1*sw025fwdTosw024, 1*sw024, 1*sw025} -> {1*sw025, 1*sw024, 1*sw025fwdTosw024}
+fwdsw025tosw032: {1*sw025, 1*sw025fwdTosw032, 1*sw032} -> {1*sw025, 1*sw032, 1*sw025fwdTosw032}
+fwdsw026tosw012: {1*sw012, 1*sw026, 1*sw026fwdTosw012} -> {1*sw026fwdTosw012, 1*sw026, 1*sw012}
+fwdsw026tosw027: {1*sw027, 1*sw026fwdTosw027, 1*sw026} -> {1*sw026, 1*sw026fwdTosw027, 1*sw027}
+fwdsw027tosw026: {1*sw027fwdTosw026, 1*sw026, 1*sw027} -> {1*sw026, 1*sw027fwdTosw026, 1*sw027}
+fwdsw027tosw028: {1*sw027fwdTosw028, 1*sw027, 1*sw028} -> {1*sw027, 1*sw028, 1*sw027fwdTosw028}
+fwdsw028tosw027: {1*sw027, 1*sw028fwdTosw027, 1*sw028} -> {1*sw027, 1*sw028, 1*sw028fwdTosw027}
+fwdsw028tosw029: {1*sw028fwdTosw029, 1*sw029, 1*sw028} -> {1*sw029, 1*sw028, 1*sw028fwdTosw029}
+fwdsw029tosw013: {1*sw013, 1*sw029fwdTosw013, 1*sw029} -> {1*sw029fwdTosw013, 1*sw013, 1*sw029}
+fwdsw029tosw028: {1*sw029fwdTosw028, 1*sw028, 1*sw029} -> {1*sw029fwdTosw028, 1*sw029, 1*sw028}
+fwdsw029tosw030: {1*sw030, 1*sw029, 1*sw029fwdTosw030} -> {1*sw029fwdTosw030, 1*sw029, 1*sw030}
+fwdsw030tosw003: {1*sw030, 1*sw003, 1*sw030fwdTosw003} -> {1*sw003, 1*sw030fwdTosw003, 1*sw030}
+fwdsw030tosw007: {1*sw030, 1*sw030fwdTosw007, 1*sw007} -> {1*sw030, 1*sw007, 1*sw030fwdTosw007}
+fwdsw030tosw011: {1*sw011, 1*sw030, 1*sw030fwdTosw011} -> {1*sw030fwdTosw011, 1*sw011, 1*sw030}
+fwdsw030tosw029: {1*sw030, 1*sw030fwdTosw029, 1*sw029} -> {1*sw030fwdTosw029, 1*sw029, 1*sw030}
+fwdsw030tosw031: {1*sw031, 1*sw030fwdTosw031, 1*sw030} -> {1*sw030fwdTosw031, 1*sw031, 1*sw030}
+fwdsw030tosw032: {1*sw030fwdTosw032, 1*sw032, 1*sw030} -> {1*sw030fwdTosw032, 1*sw030, 1*sw032}
+fwdsw031tosw002: {1*sw031, 1*sw002, 1*sw031fwdTosw002} -> {1*sw002, 1*sw031fwdTosw002, 1*sw031}
+fwdsw031tosw030: {1*sw031fwdTosw030, 1*sw031, 1*sw030} -> {1*sw031, 1*sw030, 1*sw031fwdTosw030}
+fwdsw032tosw024: {1*sw032fwdTosw024, 1*sw032, 1*sw024} -> {1*sw032, 1*sw032fwdTosw024, 1*sw024}
+fwdsw032tosw025: {1*sw032fwdTosw025, 1*sw025, 1*sw032} -> {1*sw032, 1*sw032fwdTosw025, 1*sw025}
+fwdsw032tosw030: {1*sw032, 1*sw032fwdTosw030, 1*sw030} -> {1*sw032, 1*sw032fwdTosw030, 1*sw030}
+fwdsw032tosw033: {1*sw032, 1*sw033, 1*sw032fwdTosw033} -> {1*sw032, 1*sw033, 1*sw032fwdTosw033}
+fwdsw033tosw032: {1*sw033, 1*sw032, 1*sw033fwdTosw032} -> {1*sw033, 1*sw032, 1*sw033fwdTosw032}
+ingresssw002: {1*sw002} -> {1*sw002}
+t0: {1*sw017fwdTosw019, 1*updateStart} -> {1*p0, 1*sw017fwdTosw023}
+t1: {1*p0, 1*sw014fwdTosw018} -> {1*sw014fwdTosw017, 1*p1}
+t2: {1*sw018fwdTosw007, 1*p1} -> {1*sw018fwdTosw014, 1*p2}
+t3: {1*sw007fwdTosw023, 1*p2} -> {1*p3, 1*sw007fwdTosw018}
+t4: {1*sw030fwdTosw003, 1*p3} -> {1*p4, 1*sw030fwdTosw007}
+t5: {1*sw031fwdTosw030, 1*p4} -> {1*sw031fwdTosw030, 1*p5}
+t6: {1*sw002fwdTosw031, 1*p5} -> {1*p6, 1*sw002fwdTosw031}
+
+.initial_marking {1*pOut, 1*sw000, 1*sw001, 1*sw002, 1*sw002fwdTosw031, 1*sw003, 1*sw003fwdTosw007, 1*sw004, 1*sw005, 1*sw006, 1*sw007, 1*sw007fwdTosw023, 1*sw008, 1*sw009, 1*sw010, 1*sw011, 1*sw012, 1*sw013, 1*sw014, 1*sw014fwdTosw018, 1*sw015, 1*sw016, 1*sw017, 1*sw017fwdTosw019, 1*sw018, 1*sw018fwdTosw007, 1*sw019, 1*sw020, 1*sw021, 1*sw022, 1*sw024, 1*sw025, 1*sw026, 1*sw027, 1*sw028, 1*sw029, 1*sw030, 1*sw030fwdTosw003, 1*sw031, 1*sw031fwdTosw030, 1*sw032, 1*sw033, 1*updateStart}

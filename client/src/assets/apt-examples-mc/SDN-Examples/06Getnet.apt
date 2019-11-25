@@ -1,0 +1,73 @@
+.name "Getnet"
+.type LPN
+.options
+nb_switches="7"
+
+.places
+p0
+pOut
+sw000
+sw000fwdTosw001
+sw001fwdTosw000
+sw001fwdTosw002
+sw001fwdTosw004
+sw001fwdTosw006
+sw002
+sw002fwdTosw001
+sw002fwdTosw003
+sw002fwdTosw004
+sw003
+sw003fwdTosw002
+sw004
+sw004fwdTosw001
+sw004fwdTosw002
+sw004fwdTosw005
+sw005
+sw005fwdTosw004
+sw005fwdTosw006
+sw006
+sw006fwdTosw001
+sw006fwdTosw005
+updateStart
+
+.transitions
+fwdsw000tosw001[label="fwdsw000tosw001", weakFair="true", tfl="sw000 -> {pOut},pOut -> {pOut}"]
+fwdsw001tosw000[label="fwdsw001tosw000", weakFair="true", tfl="sw000 -> {sw000},pOut -> {sw000}"]
+fwdsw001tosw002[label="fwdsw001tosw002", weakFair="true", tfl="sw002 -> {sw002},pOut -> {sw002}"]
+fwdsw001tosw004[label="fwdsw001tosw004", weakFair="true", tfl="pOut -> {sw004},sw004 -> {sw004}"]
+fwdsw001tosw006[label="fwdsw001tosw006", weakFair="true", tfl="sw006 -> {sw006},pOut -> {sw006}"]
+fwdsw002tosw001[label="fwdsw002tosw001", weakFair="true", tfl="sw002 -> {pOut},pOut -> {pOut}"]
+fwdsw002tosw003[label="fwdsw002tosw003", weakFair="true", tfl="sw003 -> {sw003},sw002 -> {sw003}"]
+fwdsw002tosw004[label="fwdsw002tosw004", weakFair="true", tfl="sw002 -> {sw004},sw004 -> {sw004}"]
+fwdsw003tosw002[label="fwdsw003tosw002", weakFair="true", tfl="sw003 -> {sw002},sw002 -> {sw002}"]
+fwdsw004tosw001[label="fwdsw004tosw001", weakFair="true", tfl="pOut -> {pOut},sw004 -> {pOut}"]
+fwdsw004tosw002[label="fwdsw004tosw002", weakFair="true", tfl="sw002 -> {sw002},sw004 -> {sw002}"]
+fwdsw004tosw005[label="fwdsw004tosw005", weakFair="true", tfl="sw005 -> {sw005},sw004 -> {sw005}"]
+fwdsw005tosw004[label="fwdsw005tosw004", weakFair="true", tfl="sw005 -> {sw004},sw004 -> {sw004}"]
+fwdsw005tosw006[label="fwdsw005tosw006", weakFair="true", tfl="sw006 -> {sw006},sw005 -> {sw006}"]
+fwdsw006tosw001[label="fwdsw006tosw001", weakFair="true", tfl="sw006 -> {pOut},pOut -> {pOut}"]
+fwdsw006tosw005[label="fwdsw006tosw005", weakFair="true", tfl="sw006 -> {sw005},sw005 -> {sw005}"]
+ingresssw004[label="ingresssw004", weakFair="true", tfl="sw004 -> {sw004},> -> {sw004}"]
+t0[label="t0", weakFair="true"]
+
+.flows
+fwdsw000tosw001: {1*sw000fwdTosw001, 1*pOut, 1*sw000} -> {1*pOut, 1*sw000fwdTosw001, 1*sw000}
+fwdsw001tosw000: {1*pOut, 1*sw001fwdTosw000, 1*sw000} -> {1*pOut, 1*sw000, 1*sw001fwdTosw000}
+fwdsw001tosw002: {1*sw002, 1*pOut, 1*sw001fwdTosw002} -> {1*sw002, 1*sw001fwdTosw002, 1*pOut}
+fwdsw001tosw004: {1*sw004, 1*pOut, 1*sw001fwdTosw004} -> {1*sw004, 1*pOut, 1*sw001fwdTosw004}
+fwdsw001tosw006: {1*sw006, 1*pOut, 1*sw001fwdTosw006} -> {1*pOut, 1*sw006, 1*sw001fwdTosw006}
+fwdsw002tosw001: {1*sw002, 1*sw002fwdTosw001, 1*pOut} -> {1*pOut, 1*sw002, 1*sw002fwdTosw001}
+fwdsw002tosw003: {1*sw002fwdTosw003, 1*sw002, 1*sw003} -> {1*sw003, 1*sw002fwdTosw003, 1*sw002}
+fwdsw002tosw004: {1*sw002fwdTosw004, 1*sw002, 1*sw004} -> {1*sw002, 1*sw004, 1*sw002fwdTosw004}
+fwdsw003tosw002: {1*sw003fwdTosw002, 1*sw002, 1*sw003} -> {1*sw003, 1*sw002, 1*sw003fwdTosw002}
+fwdsw004tosw001: {1*sw004fwdTosw001, 1*sw004, 1*pOut} -> {1*sw004, 1*pOut, 1*sw004fwdTosw001}
+fwdsw004tosw002: {1*sw002, 1*sw004, 1*sw004fwdTosw002} -> {1*sw004, 1*sw002, 1*sw004fwdTosw002}
+fwdsw004tosw005: {1*sw005, 1*sw004fwdTosw005, 1*sw004} -> {1*sw004fwdTosw005, 1*sw005, 1*sw004}
+fwdsw005tosw004: {1*sw005, 1*sw004, 1*sw005fwdTosw004} -> {1*sw004, 1*sw005, 1*sw005fwdTosw004}
+fwdsw005tosw006: {1*sw005fwdTosw006, 1*sw006, 1*sw005} -> {1*sw005, 1*sw005fwdTosw006, 1*sw006}
+fwdsw006tosw001: {1*sw006fwdTosw001, 1*pOut, 1*sw006} -> {1*sw006, 1*sw006fwdTosw001, 1*pOut}
+fwdsw006tosw005: {1*sw006fwdTosw005, 1*sw006, 1*sw005} -> {1*sw006, 1*sw006fwdTosw005, 1*sw005}
+ingresssw004: {1*sw004} -> {1*sw004}
+t0: {1*sw004fwdTosw005, 1*updateStart} -> {1*sw004fwdTosw001, 1*p0}
+
+.initial_marking {1*pOut, 1*sw000, 1*sw002, 1*sw003, 1*sw004, 1*sw004fwdTosw005, 1*sw005, 1*sw005fwdTosw006, 1*sw006, 1*sw006fwdTosw001, 1*updateStart}
