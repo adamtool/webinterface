@@ -18,6 +18,8 @@ import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
+import java.util.Random;
+
 import static uniolunisaar.adamwebfrontend.App.exceptionToString;
 import static uniolunisaar.adamwebfrontend.App.promoteToPetriGame;
 
@@ -95,8 +97,9 @@ public enum JobType {
 
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
+                String tempFilePrefix = getTempFilePrefix(net);
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
-                        "./tmp", false, false, false);
+                        tempFilePrefix, false, false,false);
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
@@ -118,8 +121,9 @@ public enum JobType {
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
                 // TODO display statistics in UI
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
+                String tempFilePrefix = getTempFilePrefix(net);
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
-                        "./tmp", false, false, false);
+                        tempFilePrefix, false, false, false);
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
@@ -161,6 +165,14 @@ public enum JobType {
             }, petriGame.getName());
         }
     };
+
+    private static String getTempFilePrefix(PetriNetWithTransits net) {
+        String tempFileDirectory = System.getProperty(
+                "ADAMWEB_TEMP_DIRECTORY", "./tmp/");
+        String tempFileName = net.getName() + new Random().nextLong();
+        String prefix = tempFileDirectory + tempFileName;
+        return prefix;
+    }
 
     abstract JsonElement serialize(Object result) throws SerializationException;
 
