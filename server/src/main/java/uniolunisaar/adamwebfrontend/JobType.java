@@ -19,6 +19,7 @@ import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
 import java.util.Random;
+import java.util.UUID;
 
 import static uniolunisaar.adamwebfrontend.App.exceptionToString;
 import static uniolunisaar.adamwebfrontend.App.promoteToPetriGame;
@@ -97,7 +98,7 @@ public enum JobType {
 
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
-                String tempFilePrefix = getTempFilePrefix(net);
+                String tempFilePrefix = getTempFilePrefix();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
                         tempFilePrefix, false, false,false);
                 settings.setStatistics(statistics);
@@ -121,7 +122,7 @@ public enum JobType {
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
                 // TODO display statistics in UI
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
-                String tempFilePrefix = getTempFilePrefix(net);
+                String tempFilePrefix = getTempFilePrefix();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
                         tempFilePrefix, false, false, false);
                 settings.setStatistics(statistics);
@@ -166,10 +167,10 @@ public enum JobType {
         }
     };
 
-    private static String getTempFilePrefix(PetriNetWithTransits net) {
+    private static String getTempFilePrefix() {
         String tempFileDirectory = System.getProperty(
                 "ADAMWEB_TEMP_DIRECTORY", "./tmp/");
-        String tempFileName = net.getName() + new Random().nextLong();
+        String tempFileName = "tmp" + UUID.randomUUID().toString();
         String prefix = tempFileDirectory + tempFileName;
         return prefix;
     }
