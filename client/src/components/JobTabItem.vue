@@ -60,10 +60,12 @@
   <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
                :graph="tab.result"
                editorMode="Viewer"
+               :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
   <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
                :graph="tab.result"
                editorMode="Viewer"
+               :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
   <!--TODO replace anonymous functions with non-anonymous ones for performance reasons-->
   <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
@@ -71,6 +73,7 @@
                editorMode="Viewer"
                @toggleStatePostset="stateId => $emit('toggleStatePostset', stateId)"
                @toggleStatePreset="stateId => $emit('toggleStatePreset', stateId)"
+               :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"
                :repulsionStrengthDefault="415"
                :linkStrengthDefault="0.04"
@@ -78,6 +81,7 @@
   <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
                :graph="tab.result"
                editorMode="Viewer"
+               :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
           class="job-tab-card"
@@ -188,6 +192,10 @@
       },
       showPhysicsControls: {
         type: Boolean,
+        required: true
+      },
+      restEndpoints: {
+        type: Object,
         required: true
       }
     },

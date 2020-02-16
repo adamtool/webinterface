@@ -147,6 +147,10 @@
       ToolPicker
     },
     props: {
+      restEndpoints: {
+        type: Object,
+        required: true
+      },
       graph: {
         type: Object,
         required: true
@@ -206,8 +210,12 @@
         default: 100
       }
     },
-    data () {
+    data() {
       return {
+        gameSimulationState: {
+          graph: null,
+          apt: null
+        },
         dimensions: {
           width: 0,
           height: 0
@@ -1028,11 +1036,11 @@
           }
         }
 
-        function snap (x) {
+        function snap(x) {
           return roundToMiddle(60, x)
         }
 
-        function roundToMiddle (roundingNumber, x) {
+        function roundToMiddle(roundingNumber, x) {
           return x + (roundingNumber / 2 - (x % roundingNumber))
         }
       },
@@ -1071,7 +1079,7 @@
         // Your mouse cursor is at mouseX, mouseY.  You want to draw a flow that starts at startNode
         // and ends at another node which is close to the mouse cursor.  To figure out what eligible
         // end node is closest to the mouse, use this function.
-        function findFlowTarget (mousePos, startNode, nodes, links) {
+        function findFlowTarget(mousePos, startNode, nodes, links) {
           let nearestNode
           // Only nodes within this many units of the startNode will be under consideration.
           let minDistance = 50
@@ -1088,7 +1096,7 @@
           return nearestNode
 
           // Only create flows from Transition to Place or from Place to Transition
-          function isEligible (node) {
+          function isEligible(node) {
             const transitionToPlace = startNode.type === 'TRANSITION' &&
               ['SYSPLACE', 'ENVPLACE'].includes(node.type)
             const placeToTransition =
@@ -1137,7 +1145,7 @@
             this.selectNodesPreview.attr('d', '')
           })
 
-        function findSelectedNodes (nodes, startX, startY, currentX, currentY) {
+        function findSelectedNodes(nodes, startX, startY, currentX, currentY) {
           return nodes.filter(node => {
             const xFits = (node.x > startX && node.x < currentX) ||
               (node.x < startX && node.x > currentX)
@@ -1321,6 +1329,7 @@
          this component.
          */
         this.importGraph(graph)
+
         this.updateD3()
       },
       dimensions: function () {
@@ -1358,7 +1367,23 @@
         }
       }, 200),
       fireTransition: function (d) {
-        this.$emit('fireTransition', d.id)
+        if (this.editorMode === 'Editor') {
+          this.$emit('fireTransition', d.id)
+        } else if (this.editorMode === 'Simulator') {
+          this.restEndpoints.fireTransitionPure(this.gameSimulationState.apt)
+            .then(response => {
+              if (response.data.newState) {
+                this.gameSimulationState = result.newState
+                this.importGraph(this.gameSimulationState)
+              } else if (response.data.status === 'error') {
+                logging.sendErrorNotification(response.data.message)
+              } else {
+                logging.sendErrorNotification('Invalid response from server')
+              }
+            })
+        } else {
+          throw new Error('Called fireTransition in an unexpected editor mode: ' + this.editorMode)
+        }
       },
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
@@ -1869,7 +1894,7 @@
           })
         const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
 
-        function partitionColorForPlace (place) {
+        function partitionColorForPlace(place) {
           const hueDegrees = place.partition / (maxPartition + 1) * 360
           console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
           const luminosity = place.type === 'SYSPLACE' ? 35 : 90
