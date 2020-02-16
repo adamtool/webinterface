@@ -279,6 +279,7 @@
               <JobTabItem
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
+                :restEndpoints="restEndpoints"
                 @loadPetriGameFromApt="parseAPTToPetriGame"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
@@ -619,6 +620,7 @@
           'toggleIsInitialTransit',
           'setIsSpecial',
           'fireTransition',
+          'fireTransitionPure',
           'setInitialToken',
           'setWinningCondition',
           'setFairness',

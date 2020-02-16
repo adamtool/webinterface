@@ -99,6 +99,8 @@ public class App {
 
         postWithPetriNetWithTransits("/fireTransition", this::handleFireTransition);
 
+        post("/fireTransitionPure", this::handleFireTransitionPure);
+
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
 
         postWithPetriNetWithTransits("/setInhibitorArc", this::handleSetInhibitorArc);
@@ -688,16 +690,42 @@ public class App {
         }
     }
 
+    private Object handleFireTransitionPure(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String apt = body.get("apt").getAsString();
+        String transitionId = body.get("transitionId").getAsString();
+        PetriNetWithTransits pnwt;
+        try {
+            pnwt = PNWTTools.getPetriNetWithTransits(apt, true);
+        } catch (ParseException | IOException e) {
+            return errorResponse(exceptionToString(e));
+        }
+
+        fireTransition(pnwt, transitionId);
+        String newApt;
+        try {
+            newApt = PNWTTools.getAPT(pnwt, true, true);
+        } catch (RenderException e) {
+            return errorResponse(exceptionToString(e));
+        }
+        JsonObject result = new JsonObject();
+        result.addProperty("apt", newApt);
+        result.add("graph", PetriNetD3.ofPetriNetWithTransits(pnwt));
+        return successResponse(result);
+    }
 
     private Object handleFireTransition(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String transitionId = body.get("transitionId").getAsString();
+        fireTransition(net, transitionId);
+        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
+    }
 
+    private void fireTransition(PetriNetWithTransits net, String transitionId) {
         Transition transition = net.getTransition(transitionId);
         Marking initialMarking = net.getInitialMarking();
         Marking newInitialMarking = transition.fire(initialMarking);
         net.setInitialMarking(newInitialMarking);
-        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
     }
 
     private Object handleSetFairness(Request req, Response res, PetriNetWithTransits net) {

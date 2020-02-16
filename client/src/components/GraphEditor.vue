@@ -266,6 +266,10 @@
       this.nodes = []
       this.links = []
       this.importGraph(this.graph)
+      this.gameSimulationState = {
+        graph: this.deepCopy(this.graph),
+        apt: this.petriNetApt
+      }
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
@@ -1319,6 +1323,12 @@
       useModelChecking: function () {
         this.updateD3()
       },
+      petriNetApt: function () {
+        this.gameSimulationState = {
+          graph: this.deepCopy(this.graph),
+          apt: this.petriNetApt
+        }
+      },
       graph: function (graph) {
         console.log('GraphEditor: graph changed:')
         console.log(graph)
@@ -1374,11 +1384,15 @@
         if (this.editorMode === 'Editor') {
           this.$emit('fireTransition', d.id)
         } else if (this.editorMode === 'Simulator') {
+          if (!this.gameSimulationState.apt) {
+            logging.sendErrorNotification('No APT available.  Can\'t simulate')
+            return
+          }
           this.restEndpoints.fireTransitionPure(this.gameSimulationState.apt)
             .then(response => {
               if (response.data.newState) {
                 this.gameSimulationState = result.newState
-                this.importGraph(this.gameSimulationState)
+                this.importGraph(result.newState.graph)
               } else if (response.data.status === 'error') {
                 logging.sendErrorNotification(response.data.message)
               } else {
