@@ -79,8 +79,9 @@
                :linkStrengthDefault="0.04"
                :gravityStrengthDefault="300"/>
   <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
-               :graph="tab.result"
-               editorMode="Viewer"
+               :graph="tab.result.graph"
+               :petriNetApt="tab.result.apt"
+               editorMode="Simulator"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"

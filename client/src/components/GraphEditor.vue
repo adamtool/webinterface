@@ -147,6 +147,10 @@
       ToolPicker
     },
     props: {
+      petriNetApt: {
+        type: String,
+        required: false // Present only for GraphEditors which display Petri Nets
+      },
       restEndpoints: {
         type: Object,
         required: true

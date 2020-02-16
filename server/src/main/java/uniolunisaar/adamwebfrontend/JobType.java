@@ -2,6 +2,7 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.*;
 import uniol.apt.adt.pn.PetriNet;
+import uniol.apt.io.renderer.RenderException;
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
@@ -17,6 +18,7 @@ import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
+import uniolunisaar.adam.util.PNWTTools;
 
 import java.util.Random;
 import java.util.UUID;
@@ -111,7 +113,19 @@ public enum JobType {
         }
     }, MODEL_CHECKING_NET {
         JsonElement serialize(Object result) {
-            return PetriNetD3.ofPetriNetWithTransits(new PetriNetWithTransits((PetriNet) result));
+            JsonObject json = new JsonObject();
+            PetriNetWithTransits pnwt = new PetriNetWithTransits((PetriNet) result);
+            JsonElement netJson = PetriNetD3.ofPetriNetWithTransits(pnwt);
+            json.add("graph", netJson);
+
+            String apt;
+            try {
+                apt = PNWTTools.getAPT(pnwt, true, true);
+            } catch (RenderException e) {
+                throw new SerializationException(e);
+            }
+            json.addProperty("apt", apt);
+            return json;
         }
 
         Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params) {
