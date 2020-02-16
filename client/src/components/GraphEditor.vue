@@ -234,7 +234,7 @@
         nodeRadius: 27,
         exportedGraphJson: {},
         lastUserClick: undefined,
-        simulation: d3.forceSimulation()
+        physicsSimulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
           .force('charge', d3.forceManyBody())
           //          .force('center', d3.forceCenter(width / 2, height / 2))
@@ -313,7 +313,7 @@
       // This is an issue when, for example, the component is reloaded using Hot Reload during
       // development.
       console.log('Stopping forceSimulation')
-      this.simulation.stop()
+      this.physicsSimulation.stop()
       console.log('Removing resize event listener')
       window.removeEventListener('resize', this.updateGraphEditorDimensions)
       this.isDestroyed = true
@@ -985,9 +985,9 @@
           },
           'drag': node => {
             snapToGrid = d3.event.sourceEvent.ctrlKey
-            // When the user drags a node, the simulation should start again in case it had been
-            // paused for inactivity.
-            this.simulation.alpha(0.7).restart()
+            // When the user drags a node, the physics simulation should start again in case it had
+            // been paused for inactivity.
+            this.physicsSimulation.alpha(0.7).restart()
             if (isSelectionDrag) {
               // To you, dear reader, this might seem overcomplicated.  You might ask, "Ann,
               // why didn't you simply write this:
@@ -1482,10 +1482,10 @@
         const centerY = transform.invertY(this.dimensions.height / 2)
         // console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
         // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
-        // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
+        // this.physicsSimulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
         const centerStrength = 0.01
-        this.simulation.force('centerX', d3.forceX(centerX).strength(centerStrength))
-        this.simulation.force('centerY', d3.forceY(centerY).strength(centerStrength))
+        this.physicsSimulation.force('centerX', d3.forceX(centerX).strength(centerStrength))
+        this.physicsSimulation.force('centerY', d3.forceY(centerY).strength(centerStrength))
       },
       // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
@@ -1533,7 +1533,7 @@
             node.fy = null
           })
         }
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.alpha(0.7).restart()
       },
       // If you lost track of where the graph actually is, you can click this button and it will
       // zoom out far enough that all the nodes can be seen.  :)
@@ -1696,8 +1696,6 @@
           .attr('stroke', '#000099')
           .attr('fill', 'none')
           .attr('stroke-width', 0) // TODO Only draw this border when we need it for 'stretching'
-
-        console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
 
         this.updateD3()
 
@@ -1982,12 +1980,12 @@
           'TRANSITION': this.nodeRadius * 1.6
         }
         // let ticksElapsed = 0 // For printing debug info
-        this.simulation.nodes(this.nodes).on('tick', () => {
-          // Debugging alpha value of simulation (used to pause it when it's not in use)
+        this.physicsSimulation.nodes(this.nodes).on('tick', () => {
+          // Debugging alpha value of physics simulation (used to pause it when it's not in use)
           // ticksElapsed++
           // if (ticksElapsed === 10) {
           //   ticksElapsed = 0
-          //   console.log(`Simulation alpha: ${this.simulation.alpha()}`)
+          //   console.log(`Simulation alpha: ${this.physicsSimulation.alpha()}`)
           // }
 
           // Make sure the D3 forceSimulation is only running if the Graph Editor is visible.
@@ -1995,11 +1993,11 @@
           const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
           if (!isSvgVisible) {
             // console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible: ' + this._uid)
-            this.simulation.stop()
+            this.physicsSimulation.stop()
             setTimeout(() => {
               if (!this.isDestroyed) {
                 // console.log('Restarting forceSimulation after 2 seconds')
-                this.simulation.restart()
+                this.physicsSimulation.restart()
               }
             }, 2000)
             return
@@ -2095,13 +2093,13 @@
               return d.pathLength / 2
             })
 
-          // Let the simulation know what links it is working with
-          this.simulation.force('link').links(this.links)
+          // Let the physics simulation know what links it is working with
+          this.physicsSimulation.force('link').links(this.links)
         })
         // Raise the temperature of the force simulation and restart it, because if the simulation
         // isn't running, the newly inserted nodes' positions will not get applied to the SVG,
         // and you won't be able to see them.
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.alpha(0.7).restart()
       },
       updateSelectionBorder: function () {
         // TODO Figure out why this sometimes yields a border from -999999 to 999999
@@ -2272,16 +2270,16 @@
         return this.svg.node().getBoundingClientRect().height
       },
       updateGravityStrength: function (strength) {
-        this.simulation.force('gravity').strength(strength)
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.force('gravity').strength(strength)
+        this.physicsSimulation.alpha(0.7).restart()
       },
       updateLinkStrength: function (strength) {
-        this.simulation.force('link').strength(strength)
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.force('link').strength(strength)
+        this.physicsSimulation.alpha(0.7).restart()
       },
       updateRepulsionStrength: function (strength) {
-        this.simulation.force('charge').strength(-strength)
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.force('charge').strength(-strength)
+        this.physicsSimulation.alpha(0.7).restart()
       },
       /**
        * Perform a deep copy of an arbitrary object.
