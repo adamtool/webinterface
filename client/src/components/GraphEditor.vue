@@ -1388,8 +1388,10 @@
             logging.sendErrorNotification('No APT available.  Can\'t simulate')
             return
           }
-          this.restEndpoints.fireTransitionPure(this.gameSimulationState.apt)
-            .then(response => {
+          this.restEndpoints.fireTransitionPure({
+            apt: this.gameSimulationState.apt,
+            transitionId: d.id
+          }).then(response => {
               if (response.data.newState) {
                 this.gameSimulationState = result.newState
                 this.importGraph(result.newState.graph)
