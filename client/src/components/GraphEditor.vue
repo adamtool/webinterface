@@ -347,6 +347,7 @@
               this.selectTool,
               this.fireTransitionTool,
               {type: 'divider'},
+              this.resetSimulationTool,
               ...this.viewTools
             ]
           case 'Editor':
@@ -380,6 +381,14 @@
           icon: 'offline_bolt',
           toolEnumName: 'fireTransitions',
           name: 'Fire transitions'
+        }
+      },
+      resetSimulationTool: function () {
+        return {
+          type: 'action',
+          name: 'Reset simulation',
+          icon: 'reorder',
+          action: this.resetSimulation
         }
       },
       drawingTools: function () {
@@ -1351,6 +1360,15 @@
       }
     },
     methods: {
+      resetSimulation: function () {
+        this.importGraph(this.graph)
+        this.gameSimulationState = {
+          graph: this.deepCopy(this.graph),
+          apt: this.petriNetApt
+        }
+        this.updateD3()
+        logging.sendSuccessNotification('Reset the simulation.')
+      },
       parseLtlFormula: debounce(async function () {
         console.log('Parsing Formula')
         // TODO Show 'running' status somehow in gui to distinguish it from 'success'
@@ -1392,15 +1410,16 @@
             apt: this.gameSimulationState.apt,
             transitionId: d.id
           }).then(response => {
-              if (response.data.status === 'success') {
-                this.gameSimulationState = response.data.result
-                this.importGraph(response.data.result.graph)
-              } else if (response.data.status === 'error') {
-                logging.sendErrorNotification(response.data.message)
-              } else {
-                logging.sendErrorNotification('Invalid response from server')
-              }
-            })
+            if (response.data.status === 'success') {
+              this.gameSimulationState = response.data.result
+              this.importGraph(response.data.result.graph)
+              this.updateD3()
+            } else if (response.data.status === 'error') {
+              logging.sendErrorNotification(response.data.message)
+            } else {
+              logging.sendErrorNotification('Invalid response from server')
+            }
+          })
         } else {
           throw new Error('Called fireTransition in an unexpected editor mode: ' + this.editorMode)
         }
