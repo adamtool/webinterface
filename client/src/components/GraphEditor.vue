@@ -1392,9 +1392,9 @@
             apt: this.gameSimulationState.apt,
             transitionId: d.id
           }).then(response => {
-              if (response.data.newState) {
-                this.gameSimulationState = result.newState
-                this.importGraph(result.newState.graph)
+              if (response.data.status === 'success') {
+                this.gameSimulationState = response.data.result
+                this.importGraph(response.data.result.graph)
               } else if (response.data.status === 'error') {
                 logging.sendErrorNotification(response.data.message)
               } else {
@@ -2260,7 +2260,7 @@
         return `${data.id}::${data.type}`
       },
       generateLinkId: function (link) {
-        return `${link.source.id}::${link.target.id}`
+        return `${this._uid}${link.source.id}::${link.target.id}`
       },
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
