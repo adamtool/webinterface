@@ -1177,13 +1177,21 @@
         this.ltlParseStatus = ''
         this.ltlParseErrors = []
       },
-      editorMode: function () {
-        if (this.editorMode === 'Simulator') {
+      editorMode: function (newMode, oldMode) {
+        if (newMode === 'Simulator') {
           this.selectedTool = this.fireTransitionTool
-        } else if (this.selectedTool == this.fireTransitionTool &&
-          this.editorMode !== 'Simulator') {
+        } else if (this.selectedTool == this.fireTransitionTool && newMode !== 'Simulator') {
           // Prevent fireTransitionTool from being selected in Editor
           this.selectedTool = this.selectTool
+        }
+
+        if (newMode === 'Editor' && oldMode === 'Simulator') {
+          this.importGraph(this.graph)
+          this.updateD3()
+          this.gameSimulationState = {
+            graph: this.deepCopy(this.graph),
+            apt: this.petriNetApt
+          }
         }
       },
       selectedTool: function (tool) {
