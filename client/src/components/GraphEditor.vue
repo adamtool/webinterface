@@ -99,14 +99,13 @@
     <v-tooltip bottom>
       <template v-slot:activator="{ on }">
         <v-btn
-          icon
           color="blue"
           large
           light
           style="position: absolute; left: 20px; top: 20px; z-index: 5;"
           @click="resetSimulation"
           v-on="on">
-          <v-icon>refresh</v-icon>
+          Reset
         </v-btn>
       </template>
       Reset the simulation
