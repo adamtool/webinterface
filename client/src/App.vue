@@ -209,7 +209,6 @@
             <div style="position: relative; height: 100%; width: 100%;"
                  v-if="tabContentId === 'simulatorEditor'">
               <GraphEditor :graph='petriGame.net'
-                           :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
                            :editorMode='editorSimulatorMode'
                            ref='graphEditorPetriGame'
@@ -481,11 +480,6 @@
             nodes: []
           },
           uuid: 'abcfakeuuid123'
-        },
-        lastPetriGameTransitionFired: {
-          id: '___AAAAA fake transition ID',
-          successful: false,
-          timestamp: new Date(0)
         },
         isLeftPaneVisible: true,
         isLogVisible: false,
@@ -1268,11 +1262,6 @@
           petriNetId: this.petriGame.uuid,
           transitionId: transitionId
         }).then(response => {
-          this.lastPetriGameTransitionFired = {
-            id: transitionId,
-            successful: response.data.status === 'success',
-            timestamp: new Date()
-          }
           this.withErrorHandling(response, response => {
             logging.sendSuccessNotification('Fired transition ' + transitionId)
             this.petriGame.net = response.data.result

@@ -159,18 +159,6 @@
         type: Object,
         required: true
       },
-      lastTransitionFired: {
-        type: Object,
-        required: false,
-        default: function () {
-          return {
-            id: '___AAAAA fake transition ID', // ID of the transition
-            successful: false, // Was the transition successfully fired or did an error happen
-            timestamp: new Date(0) // When did it get fired (this enables reactivity in case the same
-            // transition gets fired twice in a row)
-          }
-        }
-      },
       petriNetId: {
         type: String,
         required: false
@@ -1174,42 +1162,6 @@
       }
     },
     watch: {
-      // When a transition gets fired (whether successful or not), it and its connected Places
-      // should flash red or green.
-      lastTransitionFired: function () {
-        const transitionD = this.nodes.find(d => d.id === this.lastTransitionFired.id)
-        const matchingTransitionEl = this.nodeElements.filter(nodeD => {
-          const isTheTransition = nodeD == transitionD
-          const isAnAffectedPlace = this.links.some(link =>
-            (link.source == transitionD && link.target == nodeD) ||
-            (link.target == transitionD && link.source == nodeD)
-          )
-          return isTheTransition || isAnAffectedPlace
-        })
-
-        // Instantly set the color to either red or green
-        matchingTransitionEl.attr('fill',
-          this.lastTransitionFired.successful ? '#00ff00' : '#ff0000')
-
-        // Mark the nodes as being mid-animation so they won't get messed up in updateD3()
-        matchingTransitionEl.each(d => d.hasScheduledAnimation = true)
-
-        // Gradually fade back to the normal color of the nodes
-        // Note to future maintainers: "transition()" refers here to the D3 concept of transitions,
-        // which are used for gradual animations like this.
-        // Unfortunately, this is a bit of a namespace conflict for us.  :D
-        matchingTransitionEl.transition()
-          .attr('fill', this.fillOfNodeElement)
-          .duration(1000)
-          .ease(d3.easeLinear)
-          // Then, in case the node's proper color has changed since the transition began, update it again
-          .transition()
-          .duration(0)
-          .attr('fill', this.fillOfNodeElement)
-          .on('end',
-            // Mark the node as no longer being mid-animation, so updateD3() may affect it again
-            () => matchingTransitionEl.each(d => d.hasScheduledAnimation = false))
-      },
       ltlFormula: function (formula) {
         if (this.selectedWinningCondition === 'LTL' && formula !== '') {
           this.parseLtlFormula()
@@ -1360,6 +1312,42 @@
       }
     },
     methods: {
+      // When a transition gets fired (whether successful or not), it and its connected Places
+      // should flash red or green.
+      showTransitionFired: function ({transitionId, wasSuccessful}) {
+        const transitionD = this.nodes.find(d => d.id === transitionId)
+        const matchingTransitionEl = this.nodeElements.filter(nodeD => {
+          const isTheTransition = nodeD == transitionD
+          const isAnAffectedPlace = this.links.some(link =>
+            (link.source == transitionD && link.target == nodeD) ||
+            (link.target == transitionD && link.source == nodeD)
+          )
+          return isTheTransition || isAnAffectedPlace
+        })
+
+        // Instantly set the color to either red or green
+        matchingTransitionEl.attr('fill',
+          wasSuccessful ? '#00ff00' : '#ff0000')
+
+        // Mark the nodes as being mid-animation so they won't get messed up in updateD3()
+        matchingTransitionEl.each(d => d.hasScheduledAnimation = true)
+
+        // Gradually fade back to the normal color of the nodes
+        // Note to future maintainers: "transition()" refers here to the D3 concept of transitions,
+        // which are used for gradual animations like this.
+        // Unfortunately, this is a bit of a namespace conflict for us.  :D
+        matchingTransitionEl.transition()
+          .attr('fill', this.fillOfNodeElement)
+          .duration(1000)
+          .ease(d3.easeLinear)
+          // Then, in case the node's proper color has changed since the transition began, update it again
+          .transition()
+          .duration(0)
+          .attr('fill', this.fillOfNodeElement)
+          .on('end',
+            // Mark the node as no longer being mid-animation, so updateD3() may affect it again
+            () => matchingTransitionEl.each(d => d.hasScheduledAnimation = false))
+      },
       resetSimulation: function () {
         this.importGraph(this.graph)
         this.gameSimulationState = {
@@ -1414,6 +1402,10 @@
             this.gameSimulationState = response.data.result
             this.importGraph(response.data.result.graph)
             this.updateD3()
+            this.showTransitionFired({
+              transitionId: d.id,
+              wasSuccessful: response.data.status === 'success'
+            })
           } else if (response.data.status === 'error') {
             logging.sendErrorNotification(response.data.message)
           } else {
