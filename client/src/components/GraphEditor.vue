@@ -1399,30 +1399,27 @@
         }
       }, 200),
       fireTransition: function (d) {
-        if (this.editorMode === 'Editor') {
-          this.$emit('fireTransition', d.id)
-        } else if (this.editorMode === 'Simulator') {
-          if (!this.gameSimulationState.apt) {
-            logging.sendErrorNotification('No APT available.  Can\'t simulate')
-            return
-          }
-          this.restEndpoints.fireTransitionPure({
-            apt: this.gameSimulationState.apt,
-            transitionId: d.id
-          }).then(response => {
-            if (response.data.status === 'success') {
-              this.gameSimulationState = response.data.result
-              this.importGraph(response.data.result.graph)
-              this.updateD3()
-            } else if (response.data.status === 'error') {
-              logging.sendErrorNotification(response.data.message)
-            } else {
-              logging.sendErrorNotification('Invalid response from server')
-            }
-          })
-        } else {
-          throw new Error('Called fireTransition in an unexpected editor mode: ' + this.editorMode)
+        if (!this.gameSimulationState.apt && !this.petriNetId) {
+          logging.sendErrorNotification('No APT nor petriNetId available.  Can\'t simulate')
+          return
         }
+        this.restEndpoints.fireTransitionPure({
+          // The server will simulate using the net represented in gameSimulationState if present,
+          // or it will fall back to the net given by petriNetId.
+          apt: this.gameSimulationState.apt,
+          petriNetId: this.petriNetId,
+          transitionId: d.id
+        }).then(response => {
+          if (response.data.status === 'success') {
+            this.gameSimulationState = response.data.result
+            this.importGraph(response.data.result.graph)
+            this.updateD3()
+          } else if (response.data.status === 'error') {
+            logging.sendErrorNotification(response.data.message)
+          } else {
+            logging.sendErrorNotification('Invalid response from server')
+          }
+        })
       },
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)

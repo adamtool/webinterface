@@ -692,8 +692,31 @@ public class App {
 
     private Object handleFireTransitionPure(Request req, Response res) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String apt = body.get("apt").getAsString();
-        String transitionId = body.get("transitionId").getAsString();
+        String apt;
+        JsonElement aptJson = body.get("apt");
+        JsonElement netIdJson = body.get("petriNetId");
+        JsonElement transitionIdJson = body.get("transitionId");
+        if (aptJson != null) {
+            apt = aptJson.getAsString();
+        } else if (netIdJson != null) {
+            String netId = netIdJson.getAsString();
+            PetriNetWithTransits pg = getPetriNet(netId);
+            try {
+                apt = pg.toAPT(true, true);
+            } catch (RenderException e) {
+                e.printStackTrace();
+                return errorResponse("An exception was thrown when converting the given " +
+                        "net to APT.  Check the server log for details: " + exceptionToString(e));
+            }
+        } else {
+            return errorResponse("Invalid request. No 'apt' or 'petriNetId' was provided.");
+        }
+
+        if (transitionIdJson == null) {
+            return errorResponse("Invalid request.  No 'transitionId' was provided.");
+        }
+
+        String transitionId = transitionIdJson.getAsString();
         PetriNetWithTransits pnwt;
         try {
             pnwt = PNWTTools.getPetriNetWithTransits(apt, true);
