@@ -96,6 +96,16 @@
       Save as SVG
     </v-tooltip>
 
+    <v-btn
+      color="blue"
+      light
+      small
+      style="position: absolute; left: 20px; top: 20px; z-index: 5;"
+      @click="resetSimulation"
+    >
+      Reset simulation
+    </v-btn>
+
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
     </svg>
