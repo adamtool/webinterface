@@ -96,15 +96,21 @@
       Save as SVG
     </v-tooltip>
 
-    <v-btn
-      color="blue"
-      light
-      small
-      style="position: absolute; left: 20px; top: 20px; z-index: 5;"
-      @click="resetSimulation"
-    >
-      Reset simulation
-    </v-btn>
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on }">
+        <v-btn
+          icon
+          color="blue"
+          large
+          light
+          style="position: absolute; left: 20px; top: 20px; z-index: 5;"
+          @click="resetSimulation"
+          v-on="on">
+          <v-icon>refresh</v-icon>
+        </v-btn>
+      </template>
+      Reset the simulation
+    </v-tooltip>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
@@ -345,7 +351,6 @@
               this.selectTool,
               this.fireTransitionTool,
               {type: 'divider'},
-              this.resetSimulationTool,
               ...this.viewTools
             ]
           case 'Editor':
@@ -379,14 +384,6 @@
           icon: 'offline_bolt',
           toolEnumName: 'fireTransitions',
           name: 'Fire transitions'
-        }
-      },
-      resetSimulationTool: function () {
-        return {
-          type: 'action',
-          name: 'Reset simulation',
-          icon: 'reorder',
-          action: this.resetSimulation
         }
       },
       drawingTools: function () {
