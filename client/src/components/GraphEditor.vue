@@ -1404,10 +1404,14 @@
             this.updateD3()
             this.showTransitionFired({
               transitionId: d.id,
-              wasSuccessful: response.data.status === 'success'
+              wasSuccessful: true
             })
             logging.sendSuccessNotification('Fired transition ' + d.id)
           } else if (response.data.status === 'error') {
+            this.showTransitionFired({
+              transitionId: d.id,
+              wasSuccessful: false
+            })
             logging.sendErrorNotification(response.data.message)
           } else {
             logging.sendErrorNotification('Invalid response from server')
