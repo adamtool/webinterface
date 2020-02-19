@@ -1406,6 +1406,7 @@
               transitionId: d.id,
               wasSuccessful: response.data.status === 'success'
             })
+            logging.sendSuccessNotification('Fired transition ' + d.id)
           } else if (response.data.status === 'error') {
             logging.sendErrorNotification(response.data.message)
           } else {

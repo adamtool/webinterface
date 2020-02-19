@@ -222,7 +222,6 @@
                            v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
                            v-on:toggleIsInitialTransit='toggleIsInitialTransit'
                            v-on:setIsSpecial='setIsSpecial'
-                           v-on:fireTransition='fireTransition'
                            v-on:setInitialToken='setInitialToken'
                            v-on:setWinningCondition='setWinningCondition'
                            v-on:setFairness='setFairness'
@@ -613,7 +612,6 @@
           'toggleEnvironmentPlace',
           'toggleIsInitialTransit',
           'setIsSpecial',
-          'fireTransition',
           'fireTransitionPure',
           'setInitialToken',
           'setWinningCondition',
@@ -1254,18 +1252,6 @@
           })
         }).catch(() => {
           logging.logError('Network error')
-        })
-      },
-      fireTransition: function (transitionId) {
-        console.log('firing transition with ID ' + transitionId)
-        this.restEndpoints.fireTransition({
-          petriNetId: this.petriGame.uuid,
-          transitionId: transitionId
-        }).then(response => {
-          this.withErrorHandling(response, response => {
-            logging.sendSuccessNotification('Fired transition ' + transitionId)
-            this.petriGame.net = response.data.result
-          })
         })
       },
       setInitialToken: function ({nodeId, tokens}) {
