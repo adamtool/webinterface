@@ -96,7 +96,9 @@
       Save as SVG
     </v-tooltip>
 
-    <v-tooltip bottom>
+    <v-tooltip bottom
+               v-if="this.gameSimulationState && this.editorMode === 'Simulator'"
+    >
       <template v-slot:activator="{ on }">
         <v-btn
           color="blue"
