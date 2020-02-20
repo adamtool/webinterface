@@ -219,10 +219,13 @@
     },
     data() {
       return {
-        gameSimulationState: {
-          graph: null,
-          apt: null
-        },
+        /*
+        gameSimulationState consists of an object:
+        {
+          graph: null,  // The same as our prop 'graph'
+          apt: null  // The apt corresponding to the graph
+        } */
+        gameSimulationState: null,
         dimensions: {
           width: 0,
           height: 0
@@ -269,10 +272,6 @@
       this.nodes = []
       this.links = []
       this.importGraph(this.graph)
-      this.gameSimulationState = {
-        graph: this.deepCopy(this.graph),
-        apt: this.petriNetApt
-      }
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
@@ -1194,10 +1193,6 @@
         if (newMode === 'Editor' && oldMode === 'Simulator') {
           this.importGraph(this.graph)
           this.updateD3()
-          this.gameSimulationState = {
-            graph: this.deepCopy(this.graph),
-            apt: this.petriNetApt
-          }
         }
       },
       selectedTool: function (tool) {
@@ -1298,12 +1293,6 @@
       useModelChecking: function () {
         this.updateD3()
       },
-      petriNetApt: function () {
-        this.gameSimulationState = {
-          graph: this.deepCopy(this.graph),
-          apt: this.petriNetApt
-        }
-      },
       graph: function (graph) {
         console.log('GraphEditor: graph changed:')
         console.log(graph)
@@ -1364,10 +1353,7 @@
       },
       resetSimulation: function () {
         this.importGraph(this.graph)
-        this.gameSimulationState = {
-          graph: this.deepCopy(this.graph),
-          apt: this.petriNetApt
-        }
+        this.gameSimulationState = null
         this.updateD3()
         logging.sendSuccessNotification('Reset the simulation.')
       },
@@ -1401,6 +1387,12 @@
         }
       }, 200),
       fireTransition: function (d) {
+        if (!this.gameSimulationState) {
+          this.gameSimulationState = {
+            graph: this.deepCopy(this.graph),
+            apt: this.petriNetApt
+          }
+        }
         if (!this.gameSimulationState.apt && !this.petriNetId) {
           logging.sendErrorNotification('No APT nor petriNetId available.  Can\'t simulate')
           return

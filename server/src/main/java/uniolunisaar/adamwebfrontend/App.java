@@ -696,7 +696,7 @@ public class App {
         JsonElement aptJson = body.get("apt");
         JsonElement netIdJson = body.get("petriNetId");
         JsonElement transitionIdJson = body.get("transitionId");
-        if (aptJson != null) {
+        if (aptJson != null && aptJson.isJsonPrimitive() && aptJson.getAsJsonPrimitive().isString() ) {
             apt = aptJson.getAsString();
         } else if (netIdJson != null) {
             String netId = netIdJson.getAsString();
