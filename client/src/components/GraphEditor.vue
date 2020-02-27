@@ -94,10 +94,10 @@
               style="padding-top: 0;"
       >
         <v-list-item-group
-          v-model="gameSimulationHistory.currentIndex"
+          v-model="gameSimulationHistory ? gameSimulationHistory.currentIndex : {index: 0}.index"
         >
           <v-list-item
-            v-for="(historyState, i) in gameSimulationHistory.stack"
+            v-for="(historyState, i) in visibleSimulationHistory.stack"
             :key="i"
           >
             <v-list-item-content>
@@ -429,6 +429,16 @@
       this.isDestroyed = true
     },
     computed: {
+      visibleSimulationHistory: function () {
+        return this.gameSimulationHistory || {
+          currentIndex: 0,
+          stack: [
+            {
+              transitionFired: '<start>'
+            }
+          ]
+        }
+      },
       toolPickerItems: function () {
         switch (this.editorMode) {
           case 'Viewer':
@@ -1488,7 +1498,7 @@
               {
                 graph: this.deepCopy(this.graph),
                 apt: this.petriNetApt,
-                transitionFired: null
+                transitionFired: '<start>'
               }
             ]
           }
