@@ -1195,6 +1195,8 @@
         if (newMode === 'Editor' && oldMode === 'Simulator') {
           this.importGraph(this.graph)
           this.updateD3()
+        } else if (newMode === 'Simulator' && oldMode === 'Editor') {
+          this.gameSimulationState = null
         }
       },
       selectedTool: function (tool) {
