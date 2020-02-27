@@ -89,6 +89,9 @@
       <v-card-title class="flex-grow-0 flex-shrink-0">
         Simulation History
       </v-card-title>
+      <v-card-text>Current index:
+        {{ gameSimulationHistory ? gameSimulationHistory.currentIndex : undefined }}
+      </v-card-text>
       <v-list dense
               class="overflow-y-auto"
               style="padding-top: 0;"
@@ -372,13 +375,17 @@
     },
     computed: {
       visibleSimulationHistory: function () {
-        return this.gameSimulationHistory || {
-          currentIndex: 0,
-          stack: [
-            {
-              transitionFired: '<start>'
-            }
-          ]
+        if (this.gameSimulationHistory) {
+          return this.gameSimulationHistory
+        } else {
+          return {
+            currentIndex: 0,
+            stack: [
+              {
+                transitionFired: '<start>'
+              }
+            ]
+          }
         }
       },
       toolPickerItems: function () {
@@ -1478,7 +1485,7 @@
               ...response.data.result,  // apt, graph
               transitionFired: transitionId
             }
-            this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1) + [newState]
+            this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1).concat([newState])
             this.gameSimulationHistory.currentIndex = currentIndex + 1
             this.importGraph(newState.graph)
             this.updateD3()
