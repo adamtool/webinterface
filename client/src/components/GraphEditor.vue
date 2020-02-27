@@ -87,12 +87,13 @@
       class="overflow-y-auto"
     >
       <v-card-subtitle>Simulation History</v-card-subtitle>
+      <v-card-text>Current index: {{ gameSimulationHistory.currentIndex }}</v-card-text>
       <v-list dense>
         <v-list-item-group
-          v-model="gameSimulationHistoryIndex"
+          v-model="gameSimulationHistory.currentIndex"
         >
           <v-list-item
-            v-for="(historyState, i) in gameSimulationHistory"
+            v-for="(historyState, i) in gameSimulationHistory.stack"
             :key="i"
           >
             <v-list-item-content>
@@ -252,47 +253,50 @@
         } */
         gameSimulationState: null,
         gameSimulationHistoryIndex: 0, // The index of the currently selected state in the history
-        gameSimulationHistory: [
-          {
-            transitionFired: '<start>'
-          },
-          {
-            transitionFired: 't0'
-          },
-          {
-            transitionFired: 't2'
-          },
-          {
-            transitionFired: 't1'
-          },
-          {
-            transitionFired: 't0'
-          },
-          {
-            transitionFired: 't2'
-          },
-          {
-            transitionFired: 't1'
-          },
-          {
-            transitionFired: 't0'
-          },
-          {
-            transitionFired: 't2'
-          },
-          {
-            transitionFired: 't1'
-          },
-          {
-            transitionFired: 't0'
-          },
-          {
-            transitionFired: 't2'
-          },
-          {
-            transitionFired: 't1'
-          }
-        ],
+        gameSimulationHistory: {
+          currentIndex: 0,
+          stack: [
+            {
+              transitionFired: '<start>'
+            },
+            {
+              transitionFired: 't0'
+            },
+            {
+              transitionFired: 't2'
+            },
+            {
+              transitionFired: 't1'
+            },
+            {
+              transitionFired: 't0'
+            },
+            {
+              transitionFired: 't2'
+            },
+            {
+              transitionFired: 't1'
+            },
+            {
+              transitionFired: 't0'
+            },
+            {
+              transitionFired: 't2'
+            },
+            {
+              transitionFired: 't1'
+            },
+            {
+              transitionFired: 't0'
+            },
+            {
+              transitionFired: 't2'
+            },
+            {
+              transitionFired: 't1'
+            }
+          ]
+        },
         dimensions: {
           width: 0,
           height: 0
