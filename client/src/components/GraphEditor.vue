@@ -80,6 +80,27 @@
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
 
+    <v-card
+      v-if="editorMode === 'Simulator'"
+      style="position: absolute; top: 75px; right: 10px; z-index: 5;
+             max-height: 80%;"
+      class="overflow-y-auto"
+    >
+      <v-card-subtitle>Simulation History</v-card-subtitle>
+      <v-list dense>
+        <v-list-item-group>
+          <v-list-item
+            v-for="(historyState, i) in gameSimulationHistory"
+            :key="i"
+          >
+            <v-list-item-content>
+              <v-list-item-title v-text="historyState.transitionFired"></v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-item-group>
+      </v-list>
+    </v-card>
+
     <v-tooltip bottom>
       <template v-slot:activator="{ on }">
         <v-btn
@@ -228,6 +249,47 @@
           apt: null  // The apt corresponding to the graph
         } */
         gameSimulationState: null,
+        gameSimulationHistory: [
+          {
+            transitionFired: '<start>'
+          },
+          {
+            transitionFired: 't0'
+          },
+          {
+            transitionFired: 't2'
+          },
+          {
+            transitionFired: 't1'
+          },
+          {
+            transitionFired: 't0'
+          },
+          {
+            transitionFired: 't2'
+          },
+          {
+            transitionFired: 't1'
+          },
+          {
+            transitionFired: 't0'
+          },
+          {
+            transitionFired: 't2'
+          },
+          {
+            transitionFired: 't1'
+          },
+          {
+            transitionFired: 't0'
+          },
+          {
+            transitionFired: 't2'
+          },
+          {
+            transitionFired: 't1'
+          }
+        ],
         dimensions: {
           width: 0,
           height: 0
