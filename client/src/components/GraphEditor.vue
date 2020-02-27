@@ -82,14 +82,16 @@
 
     <v-card
       v-if="editorMode === 'Simulator'"
-      style="position: absolute; top: 75px; right: 0px; bottom: 10px; z-index: 5;"
+      style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
+             padding: 6px; padding-top: 6px; padding-bottom: 6px; border-radius: 30px;"
       class="d-flex flex-column"
     >
-      <v-card-subtitle class="flex-grow-0 flex-shrink-0">
+      <v-card-title class="flex-grow-0 flex-shrink-0">
         Simulation History
-      </v-card-subtitle>
+      </v-card-title>
       <v-list dense
               class="overflow-y-auto"
+              style="padding-top: 0;"
       >
         <v-list-item-group
           v-model="gameSimulationHistory.currentIndex"
