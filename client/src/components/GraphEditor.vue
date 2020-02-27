@@ -249,75 +249,17 @@
     },
     data() {
       return {
-        gameSimulationHistory: {
-          currentIndex: 0, // The index of the currently selected state in the history
-          /*
-          Each game simulation state in this stack consists of an object:
-          {
-            graph: null,  // The same as our prop 'graph'
-            apt: null  // The apt corresponding to the graph
-            transitionFired: null // The transition fired from the previous state to reach this state
-          } */
-          stack: [
-            {
-              transitionFired: '<start>'
-            },
-            {
-              transitionFired: 't0'
-            },
-            {
-              transitionFired: 't2'
-            },
-            {
-              transitionFired: 't1'
-            },
-            {
-              transitionFired: 't0'
-            },
-            {
-              transitionFired: 't2'
-            },
-            {
-              transitionFired: 't1'
-            },
-            {
-              transitionFired: 't0'
-            },
-            {
-              transitionFired: 't2'
-            },
-            {
-              transitionFired: 't1'
-            },
-            {
-              transitionFired: 't0'
-            },
-            {
-              transitionFired: 't2'
-            },
-            {
-              transitionFired: 't1'
-            },
-            {
-              transitionFired: 't0'
-            },
-            {
-              transitionFired: 't2'
-            },
-            {
-              transitionFired: 't1'
-            },
-            {
-              transitionFired: 't0'
-            },
-            {
-              transitionFired: 't2'
-            },
-            {
-              transitionFired: 't1'
-            }
-          ]
-        },
+        gameSimulationHistory: null,
+        /* {
+             currentIndex: 0, // The index of the currently selected state in the history
+        Each game simulation state in this stack consists of an object:
+        {
+          graph: null,  // The same as our prop 'graph'
+          apt: null  // The apt corresponding to the graph
+          transitionFired: null // The transition fired from the previous state to reach this state
+        }
+        stack: []
+      },*/
         dimensions: {
           width: 0,
           height: 0
