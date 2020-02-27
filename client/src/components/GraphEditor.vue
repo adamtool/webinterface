@@ -87,7 +87,6 @@
       class="overflow-y-auto"
     >
       <v-card-subtitle>Simulation History</v-card-subtitle>
-      <v-card-text>Current index: {{ gameSimulationHistory.currentIndex }}</v-card-text>
       <v-list dense>
         <v-list-item-group
           v-model="gameSimulationHistory.currentIndex"
