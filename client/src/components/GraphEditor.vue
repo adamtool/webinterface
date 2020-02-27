@@ -88,7 +88,9 @@
     >
       <v-card-subtitle>Simulation History</v-card-subtitle>
       <v-list dense>
-        <v-list-item-group>
+        <v-list-item-group
+          v-model="gameSimulationHistoryIndex"
+        >
           <v-list-item
             v-for="(historyState, i) in gameSimulationHistory"
             :key="i"
@@ -249,6 +251,7 @@
           apt: null  // The apt corresponding to the graph
         } */
         gameSimulationState: null,
+        gameSimulationHistoryIndex: 0, // The index of the currently selected state in the history
         gameSimulationHistory: [
           {
             transitionFired: '<start>'
