@@ -82,12 +82,15 @@
 
     <v-card
       v-if="editorMode === 'Simulator'"
-      style="position: absolute; top: 75px; right: 10px; z-index: 5;
-             max-height: 80%;"
-      class="overflow-y-auto"
+      style="position: absolute; top: 75px; right: 0px; bottom: 10px; z-index: 5;"
+      class="d-flex flex-column"
     >
-      <v-card-subtitle>Simulation History</v-card-subtitle>
-      <v-list dense>
+      <v-card-subtitle class="flex-grow-0 flex-shrink-0">
+        Simulation History
+      </v-card-subtitle>
+      <v-list dense
+              class="overflow-y-auto"
+      >
         <v-list-item-group
           v-model="gameSimulationHistory.currentIndex"
         >
@@ -257,6 +260,24 @@
           stack: [
             {
               transitionFired: '<start>'
+            },
+            {
+              transitionFired: 't0'
+            },
+            {
+              transitionFired: 't2'
+            },
+            {
+              transitionFired: 't1'
+            },
+            {
+              transitionFired: 't0'
+            },
+            {
+              transitionFired: 't2'
+            },
+            {
+              transitionFired: 't1'
             },
             {
               transitionFired: 't0'
