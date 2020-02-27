@@ -125,7 +125,7 @@
     </v-tooltip>
 
     <v-tooltip bottom
-               v-if="this.gameSimulationState && this.editorMode === 'Simulator'"
+               v-if="this.gameSimulationHistory && this.editorMode === 'Simulator'"
     >
       <template v-slot:activator="{ on }">
         <v-btn
@@ -249,16 +249,15 @@
     },
     data() {
       return {
-        /*
-        gameSimulationState consists of an object:
-        {
-          graph: null,  // The same as our prop 'graph'
-          apt: null  // The apt corresponding to the graph
-        } */
-        gameSimulationState: null,
-        gameSimulationHistoryIndex: 0, // The index of the currently selected state in the history
         gameSimulationHistory: {
-          currentIndex: 0,
+          currentIndex: 0, // The index of the currently selected state in the history
+          /*
+          Each game simulation state in this stack consists of an object:
+          {
+            graph: null,  // The same as our prop 'graph'
+            apt: null  // The apt corresponding to the graph
+            transitionFired: null // The transition fired from the previous state to reach this state
+          } */
           stack: [
             {
               transitionFired: '<start>'
@@ -1287,7 +1286,7 @@
           this.importGraph(this.graph)
           this.updateD3()
         } else if (newMode === 'Simulator' && oldMode === 'Editor') {
-          this.gameSimulationState = null
+          this.gameSimulationHistory = null
         }
       },
       selectedTool: function (tool) {
@@ -1448,7 +1447,7 @@
       },
       resetSimulation: function () {
         this.importGraph(this.graph)
-        this.gameSimulationState = null
+        this.gameSimulationHistory = null
         this.updateD3()
         logging.sendSuccessNotification('Reset the simulation.')
       },
@@ -1482,26 +1481,54 @@
         }
       }, 200),
       fireTransition: function (d) {
-        if (!this.gameSimulationState) {
-          this.gameSimulationState = {
-            graph: this.deepCopy(this.graph),
-            apt: this.petriNetApt
+        if (!this.gameSimulationHistory) {
+          this.gameSimulationHistory = {
+            currentIndex: 0,
+            stack: [
+              {
+                graph: this.deepCopy(this.graph),
+                apt: this.petriNetApt,
+                transitionFired: null
+              }
+            ]
           }
         }
-        if (!this.gameSimulationState.apt && !this.petriNetId) {
-          logging.sendErrorNotification('No APT nor petriNetId available.  Can\'t simulate')
-          return
+        const {stack, currentIndex} = this.gameSimulationHistory
+        const currentState = stack[currentIndex]
+        if (!currentState.apt) {
+          // Nets in the editor do not have their APT always stored clientside, because sometimes,
+          // generating APT results in an unnecessary RenderException.  Instead, they are kept as
+          // persistent objects on the server addressed by UUIDs (petriNetId).
+          // So, when you switch from Editor to Simulator and want to fire a transition for the
+          // first time, the client will send this petriNetId instead of an APT string in order to
+          // bootstrap the simulation.
+          // After that, the relevant state of the simulation (pairs of APT & graph) is kept
+          // entirely client-side.
+          // TODO If the RenderException issue can be resolved, I would plan to store the editor
+          //  state as APT on the client all the time to reduce this complexity and make undo/redo
+          //  easy to implement.
+          const isUsingNetFromEditor = currentIndex === 0 && this.petriNetId
+          if (!isUsingNetFromEditor) {
+            logging.sendErrorNotification('No APT nor petriNetId available.  Can\'t simulate')
+            return
+          }
         }
+        const transitionId = d.id
         this.restEndpoints.fireTransitionPure({
-          // The server will simulate using the net represented in gameSimulationState if present,
-          // or it will fall back to the net given by petriNetId.
-          apt: this.gameSimulationState.apt,
+          // The server will simulate using the net represented in currentState.apt if present,
+          // or it will fall back to the net stored on the server addressed by petriNetId.
+          apt: currentState.apt,
           petriNetId: this.petriNetId,
-          transitionId: d.id
+          transitionId
         }).then(response => {
           if (response.data.status === 'success') {
-            this.gameSimulationState = response.data.result
-            this.importGraph(response.data.result.graph)
+            const newState = {
+              ...response.data.result,  // apt, graph
+              transitionFired: transitionId
+            }
+            this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1) + [newState]
+            this.gameSimulationHistory.currentIndex = currentIndex + 1
+            this.importGraph(newState.graph)
             this.updateD3()
             this.showTransitionFired({
               transitionId: d.id,
