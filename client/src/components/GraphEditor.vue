@@ -89,15 +89,14 @@
       <v-card-title class="flex-grow-0 flex-shrink-0">
         Simulation History
       </v-card-title>
-      <v-card-text>Current index:
-        {{ gameSimulationHistory ? gameSimulationHistory.currentIndex : undefined }}
+      <v-card-text>Current index: {{ gameSimulationHistory.currentIndex }}
       </v-card-text>
       <v-list dense
               class="overflow-y-auto"
               style="padding-top: 0;"
       >
         <v-list-item-group
-          v-model="gameSimulationHistory ? gameSimulationHistory.currentIndex : {index: 0}.index"
+          v-model="gameSimulationHistory.currentIndex"
         >
           <v-list-item
             v-for="(historyState, i) in visibleSimulationHistory.stack"
@@ -128,7 +127,7 @@
     </v-tooltip>
 
     <v-tooltip bottom
-               v-if="this.gameSimulationHistory && this.editorMode === 'Simulator'"
+               v-if="this.gameSimulationHistory.stack.length > 1 && this.editorMode === 'Simulator'"
     >
       <template v-slot:activator="{ on }">
         <v-btn
@@ -252,17 +251,7 @@
     },
     data() {
       return {
-        gameSimulationHistory: null,
-        /* {
-             currentIndex: 0, // The index of the currently selected state in the history
-        Each game simulation state in this stack consists of an object:
-        {
-          graph: null,  // The same as our prop 'graph'
-          apt: null  // The apt corresponding to the graph
-          transitionFired: null // The transition fired from the previous state to reach this state
-        }
-        stack: []
-      },*/
+        gameSimulationHistory: this.gameSimulationHistoryDefault(),
         dimensions: {
           width: 0,
           height: 0
@@ -375,7 +364,7 @@
     },
     computed: {
       visibleSimulationHistory: function () {
-        if (this.gameSimulationHistory) {
+        if (this.gameSimulationHistory.stack.length > 0) {
           return this.gameSimulationHistory
         } else {
           return {
@@ -1245,7 +1234,7 @@
           this.importGraph(this.graph)
           this.updateD3()
         } else if (newMode === 'Simulator' && oldMode === 'Editor') {
-          this.gameSimulationHistory = null
+          this.gameSimulationHistory = this.gameSimulationHistoryDefault()
         }
       },
       selectedTool: function (tool) {
@@ -1368,6 +1357,18 @@
       }
     },
     methods: {
+      gameSimulationHistoryDefault: function () {
+        return {
+          currentIndex: 0, // The index of the currently selected state in the history
+          /* Each game simulation state in this stack consists of an object:
+          {
+            graph: null,  // The same as our prop 'graph'
+            apt: null  // The apt corresponding to the graph
+            transitionFired: null // The transition fired from the previous state to reach this state
+          } */
+          stack: []
+        }
+      },
       // When a transition gets fired (whether successful or not), it and its connected Places
       // should flash red or green.
       showTransitionFired: function ({transitionId, wasSuccessful}) {
@@ -1406,7 +1407,7 @@
       },
       resetSimulation: function () {
         this.importGraph(this.graph)
-        this.gameSimulationHistory = null
+        this.gameSimulationHistory = this.gameSimulationHistoryDefault()
         this.updateD3()
         logging.sendSuccessNotification('Reset the simulation.')
       },
@@ -1440,7 +1441,7 @@
         }
       }, 200),
       fireTransition: function (d) {
-        if (!this.gameSimulationHistory) {
+        if (this.gameSimulationHistory.stack.length === 0) {
           this.gameSimulationHistory = {
             currentIndex: 0,
             stack: [
