@@ -193,9 +193,9 @@
     },
     watch: {
       selectedTool: function () {
-        console.log('selectedTool:')
-        console.log(this.selectedTool)
-        console.log(`is selectedTool a member of tools? ${this.tools.includes(this.selectedTool)}`)
+        // console.log('selectedTool:')
+        // console.log(this.selectedTool)
+        // console.log(`is selectedTool a member of tools? ${this.tools.includes(this.selectedTool)}`)
       }
     },
     methods: {

@@ -1203,9 +1203,9 @@
           })
           .on('end', () => {
             const [currentX, currentY] = this.mousePosZoom()
-            console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
-            console.log('selected nodes:')
-            console.log(this.selectedNodes)
+            // console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
+            // console.log('selected nodes:')
+            // console.log(this.selectedNodes)
             this.selectNodesPreview.attr('d', '')
           })
 
@@ -1905,7 +1905,6 @@
        * It causes our visualization to update accordingly, showing new nodes and removing deleted ones.
        */
       updateD3: function () {
-        console.log('updateD3()')
         // Write the IDs/labels of nodes underneath them.
         // TODO Prevent these from getting covered up by arrowheads.  Maybe add a background.
         // See https://stackoverflow.com/questions/15500894/background-color-of-text-in-svg
