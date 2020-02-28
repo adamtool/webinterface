@@ -1208,6 +1208,11 @@
       }
     },
     watch: {
+      'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
+        const currentState = this.gameSimulationHistory.stack[newIndex]
+        this.importGraph(currentState.graph)
+        this.updateD3()
+      },
       ltlFormula: function (formula) {
         if (this.selectedWinningCondition === 'LTL' && formula !== '') {
           this.parseLtlFormula()
