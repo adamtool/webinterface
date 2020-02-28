@@ -97,6 +97,7 @@
       >
         <v-list-item-group
           v-model="gameSimulationHistory.currentIndex"
+          mandatory
         >
           <v-list-item
             v-for="(historyState, i) in visibleSimulationHistory.stack"
