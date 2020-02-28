@@ -1224,9 +1224,9 @@
       'gameSimulationHistory.stack': function () {
         // We must wait until Vue updates the DOM in order to scroll to the true bottom of the log.
         Vue.nextTick(() => {
-          const el = this.$refs.simulationHistoryListEl.$el
-          if (el) { // The el may not exist if editorMode !== 'Simulator'
-            el.scrollTop = el.scrollHeight
+          const component = this.$refs.simulationHistoryListEl
+          if (component) { // The component/element may not exist if editorMode !== 'Simulator'
+            component.$el.scrollTop = component.$el.scrollHeight
           }
         })
       },
