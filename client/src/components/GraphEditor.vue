@@ -356,7 +356,11 @@
       Vue.nextTick(this.updateGraphEditorDimensions)
 
       // TODO move to created() hook?
-      this.selectedTool = this.toolPickerItems[0]
+      if (this.editorMode === 'Simulator') {
+        this.selectedTool = this.fireTransitionTool
+      } else {
+        this.selectedTool = this.toolPickerItems[0]
+      }
     },
     beforeDestroy: function () {
       console.log('beforeDestroy() hook called for GraphEditor with uid ' + this._uid)
