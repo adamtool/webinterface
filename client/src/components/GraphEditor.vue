@@ -104,7 +104,8 @@
             :key="i"
           >
             <v-list-item-content>
-              <v-list-item-title v-text="historyState.transitionFired"></v-list-item-title>
+              <v-list-item-title v-text="i === 0 ? '<start>' : historyState.transitionFired">
+              </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-item-group>
@@ -364,6 +365,8 @@
       this.isDestroyed = true
     },
     computed: {
+      // This is used in order to show a fake <start> state in the simulation history if no
+      // transitions have yet been fired.
       visibleSimulationHistory: function () {
         if (this.gameSimulationHistory.stack.length > 0) {
           return this.gameSimulationHistory
@@ -372,7 +375,7 @@
             currentIndex: 0,
             stack: [
               {
-                transitionFired: '<start>'
+                // An empty state which will be shown as <start> in the list
               }
             ]
           }
@@ -1454,7 +1457,7 @@
               {
                 graph: this.deepCopy(this.graph),
                 apt: this.petriNetApt,
-                transitionFired: '<start>'
+                transitionFired: null
               }
             ]
           }
