@@ -83,7 +83,7 @@
     <v-card
       v-if="editorMode === 'Simulator'"
       style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
-             padding: 6px; padding-top: 6px; padding-bottom: 6px; border-radius: 30px;"
+             padding: 6px; border-radius: 30px;"
       class="d-flex flex-column"
       @keyup.native="onSimulationHistoryKeydown"
       :tabIndex="-1"
@@ -91,10 +91,8 @@
       <v-card-title class="flex-grow-0 flex-shrink-0">
         Simulation History
       </v-card-title>
-      <v-card-text>Current index: {{ gameSimulationHistory.currentIndex }}
-      </v-card-text>
       <v-list dense
-              class="overflow-y-auto"
+              class="overflow-y-auto flex-grow-1"
               style="padding-top: 0;"
               @keyup.native="onSimulationHistoryKeydown"
       >
@@ -117,6 +115,22 @@
           </v-list-item>
         </v-list-item-group>
       </v-list>
+      <v-tooltip
+        bottom
+        v-if="gameSimulationHistory.stack.length > 1"
+      >
+        <template v-slot:activator="{ on }">
+          <v-btn
+            color="blue"
+            style="margin-top: 10px; margin-bottom: 5px; margin-left: 5px; margin-right: 5px;"
+            rounded
+            @click="resetSimulation"
+            v-on="on">
+            Reset
+          </v-btn>
+        </template>
+        Reset the simulation
+      </v-tooltip>
     </v-card>
 
     <v-tooltip bottom>
@@ -135,22 +149,6 @@
       Save as SVG
     </v-tooltip>
 
-    <v-tooltip bottom
-               v-if="this.gameSimulationHistory.stack.length > 1 && this.editorMode === 'Simulator'"
-    >
-      <template v-slot:activator="{ on }">
-        <v-btn
-          color="blue"
-          large
-          light
-          style="position: absolute; left: 20px; top: 20px; z-index: 5;"
-          @click="resetSimulation"
-          v-on="on">
-          Reset
-        </v-btn>
-      </template>
-      Reset the simulation
-    </v-tooltip>
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
