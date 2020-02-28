@@ -1358,8 +1358,10 @@
          this component.
          */
         this.importGraph(graph)
-
         this.updateD3()
+
+        // Reset the simulation as well
+        this.resetSimulation()
       },
       dimensions: function () {
         this.updateSvgDimensions()
