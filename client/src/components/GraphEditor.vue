@@ -85,6 +85,8 @@
       style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
              padding: 6px; padding-top: 6px; padding-bottom: 6px; border-radius: 30px;"
       class="d-flex flex-column"
+      @keyup.native="onSimulationHistoryKeydown"
+      :tabIndex="-1"
     >
       <v-card-title class="flex-grow-0 flex-shrink-0">
         Simulation History
@@ -94,16 +96,21 @@
       <v-list dense
               class="overflow-y-auto"
               style="padding-top: 0;"
+              @keyup.native="onSimulationHistoryKeydown"
       >
         <v-list-item-group
           v-model="gameSimulationHistory.currentIndex"
+          @keyup.native="onSimulationHistoryKeydown"
           mandatory
         >
           <v-list-item
             v-for="(historyState, i) in visibleSimulationHistory.stack"
             :key="i"
+            @keyup.native="onSimulationHistoryKeydown"
           >
-            <v-list-item-content>
+            <v-list-item-content
+              @keyup.native="onSimulationHistoryKeydown"
+            >
               <v-list-item-title v-text="i === 0 ? '<start>' : historyState.transitionFired">
               </v-list-item-title>
             </v-list-item-content>
@@ -1368,6 +1375,27 @@
       }
     },
     methods: {
+      onSimulationHistoryKeydown: function (event) {
+        logging.logObject(event)
+        switch (event.key) {
+          case 'ArrowUp':
+            this.simulationHistoryBack()
+            break
+          case 'ArrowDown':
+            this.simulationHistoryForward()
+            break
+        }
+      },
+      simulationHistoryBack: function () {
+        const {currentIndex} = this.gameSimulationHistory
+        this.gameSimulationHistory.currentIndex = Math.max(0, currentIndex - 1)
+      },
+      simulationHistoryForward: function () {
+        const {stack, currentIndex} = this.gameSimulationHistory
+        const newIndex = Math.min(stack.length - 1, currentIndex + 1)
+        const newIndexBounded = Math.max(0, newIndex)
+        this.gameSimulationHistory.currentIndex = newIndexBounded
+      },
       gameSimulationHistoryDefault: function () {
         return {
           currentIndex: 0, // The index of the currently selected state in the history
