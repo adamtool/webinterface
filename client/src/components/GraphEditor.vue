@@ -1228,8 +1228,10 @@
       },
       'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
         const currentState = this.gameSimulationHistory.stack[newIndex]
-        this.importGraph(currentState.graph)
-        this.updateD3()
+        if (currentState) { // Maybe the history has been reset and there is no 'current state'
+          this.importGraph(currentState.graph)
+          this.updateD3()
+        }
       },
       ltlFormula: function (formula) {
         if (this.selectedWinningCondition === 'LTL' && formula !== '') {
