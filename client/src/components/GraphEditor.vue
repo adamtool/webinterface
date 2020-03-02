@@ -1261,10 +1261,17 @@
         }
 
         if (newMode === 'Editor' && oldMode === 'Simulator') {
+          // Display the editor's current state
           this.importGraph(this.graph)
           this.updateD3()
         } else if (newMode === 'Simulator' && oldMode === 'Editor') {
-          this.gameSimulationHistory = this.gameSimulationHistoryDefault()
+          // Display the simulator's current state
+          const {currentIndex, stack} = this.gameSimulationHistory
+          const currentState = stack[currentIndex]
+          if (currentState) { // Maybe the history has been reset and there is no 'current state'
+            this.importGraph(currentState.graph)
+            this.updateD3()
+          }
         }
       },
       selectedTool: function (tool) {
