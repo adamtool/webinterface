@@ -8,6 +8,7 @@ import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
+import uniolunisaar.adam.ds.logics.ltl.ILTLFormula;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.CounterExample;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
@@ -143,6 +144,9 @@ public enum JobType {
                 settings.setOutputData(data);
 
                 PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(net, runFormula, settings);
+                // TODO #280 show the model checking formula of the model checking net
+                ILTLFormula modelCheckingFormula = AdamModelChecker.getModelCheckingFormula(
+                        net, modelCheckingNet, runFormula, settings);
                 return modelCheckingNet;
             }, net.getName());
         }
