@@ -6,6 +6,7 @@ import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
+import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.CounterExample;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
@@ -16,7 +17,6 @@ import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
 
 import java.util.Random;
 import java.util.UUID;
