@@ -5,14 +5,14 @@ import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.Flow;
+import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
+import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDState;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrinet.objectives.Condition;
 import uniolunisaar.adam.exceptions.pg.SolvingException;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
-import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolver;
-import uniolunisaar.adam.symbolic.bddapproach.solver.BDDSolverOptions;
+import uniolunisaar.adam.logic.pg.solver.symbolic.bddapproach.BDDSolver;
+import uniolunisaar.adam.logic.pg.solver.symbolic.bddapproach.BDDSolverOptions;
 
 import java.util.*;
 import java.util.stream.Collectors;

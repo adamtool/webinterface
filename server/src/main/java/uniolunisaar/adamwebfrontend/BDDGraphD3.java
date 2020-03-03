@@ -3,8 +3,8 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.Transition;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDGraph;
-import uniolunisaar.adam.symbolic.bddapproach.graph.BDDState;
+import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
+import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDState;
 
 import java.util.Collections;
 import java.util.HashMap;
