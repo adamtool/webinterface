@@ -115,6 +115,7 @@ public enum JobType {
     }, MODEL_CHECKING_NET {
         JsonElement serialize(Object result) {
             JsonObject json = new JsonObject();
+            // TODO #286 this should just be a PetriNet, not a PetriNetWithTransits
             PetriNetWithTransits pnwt = new PetriNetWithTransits((PetriNet) result);
             JsonElement netJson = PetriNetD3.ofPetriNetWithTransits(pnwt);
             json.add("graph", netJson);

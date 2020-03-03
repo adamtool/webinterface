@@ -691,6 +691,8 @@ public class App {
     }
 
     private Object handleFireTransitionPure(Request req, Response res) {
+        // TODO #286 Refactor this method to use PetriNet, PNWT, and PetriGame when appropriate
+        //      (It should not just always be PetriNetWithTransits.)
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String apt;
         JsonElement aptJson = body.get("apt");
