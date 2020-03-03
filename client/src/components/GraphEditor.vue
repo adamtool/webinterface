@@ -1541,6 +1541,7 @@
           petriNetId: this.petriNetId,
           transitionId
         }).then(response => {
+          // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
           if (response.data.status === 'success') {
             const newState = {
               ...response.data.result,  // apt, graph
