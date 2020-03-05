@@ -19,6 +19,7 @@ import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
+import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
 
 import java.util.Random;
@@ -103,7 +104,7 @@ public enum JobType {
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 String tempFilePrefix = getTempFilePrefix();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
-                        tempFilePrefix, false, false,false);
+                        tempFilePrefix, false, false, false);
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
@@ -115,14 +116,13 @@ public enum JobType {
     }, MODEL_CHECKING_NET {
         JsonElement serialize(Object result) {
             JsonObject json = new JsonObject();
-            // TODO #286 this should just be a PetriNet, not a PetriNetWithTransits
-            PetriNetWithTransits pnwt = new PetriNetWithTransits((PetriNet) result);
-            JsonElement netJson = PetriNetD3.ofPetriNetWithTransits(pnwt);
+            PetriNet net = (PetriNet) result;
+            JsonElement netJson = PetriNetD3.ofPetriNetWithTransits(net);
             json.add("graph", netJson);
 
             String apt;
             try {
-                apt = PNWTTools.getAPT(pnwt, true, true);
+                apt = Tools.getPN(net);
             } catch (RenderException e) {
                 throw new SerializationException(e);
             }
