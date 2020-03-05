@@ -24,6 +24,7 @@ import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.PGTools;
 import uniolunisaar.adam.util.PNWTTools;
 
 import java.io.IOException;
@@ -721,6 +722,8 @@ public class App {
         String transitionId = transitionIdJson.getAsString();
         PetriNetWithTransits pnwt;
         try {
+//            Tools.getPetriNetFromString()
+//            PGTools.getPetriGame()
             pnwt = PNWTTools.getPetriNetWithTransits(apt, true);
         } catch (ParseException | IOException e) {
             return errorResponse(exceptionToString(e));
@@ -729,6 +732,8 @@ public class App {
         fireTransition(pnwt, transitionId);
         String newApt;
         try {
+//            Tools.getPN()
+//            PGTools.getAPT()
             newApt = PNWTTools.getAPT(pnwt, true, true);
         } catch (RenderException e) {
             return errorResponse(exceptionToString(e));
