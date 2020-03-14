@@ -180,11 +180,14 @@ public class PetriNetD3 {
         // TODO Ask Manuel if the attribute "isBad" has been deprecated. I think we use isSpecial instead now.
         private final boolean isBad;
         private final long initialToken;
-        private final boolean isSpecial;
-        private final boolean isInitialTransit;
-        private final int partition;
         private final String fairness;
         private final boolean isReadyToFire;
+        // These properties only belong to PNWT
+        private boolean isSpecial;
+        private boolean isInitialTransit;
+        private int partition;
+        // These properties only belong to Petri Games
+        private GraphNodeType nodeType;
 
         private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
                              long initialToken, boolean isSpecial, boolean isInitialTransit,
@@ -216,41 +219,43 @@ public class PetriNetD3 {
                     -1, fairness, isReadyToFire);
         }
 
-        static PetriNetNode of(PetriNet net, Place place) {
+        static PetriNetNode fromPetriGamePlace(PetriGame game, Place place) {
+            PetriNetNode node = fromPNWTPlace(game, place);
+            boolean isEnvironment = game.isEnvironment(place);
+            GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
+            node.setNodeType(nodeType);
+            return node;
+        }
+
+        static PetriNetNode fromPNWTPlace(PetriNetWithTransits net, Place place) {
+            PetriNetNode node = fromPetriNetPlace(net, place);
+            int partition = net.hasPartition(place) ? net.getPartition(place) : -1;
+            node.setPartition(partition);
+            boolean isInitialTransit = net.isInitialTransit(place);
+            node.setIsInitialTransit(isInitialTransit);
+            boolean isSpecial;
+            try {
+                Condition.Objective objective = Adam.getCondition(net);
+                isSpecial = isSpecial(net, place, objective);
+            } catch (CouldNotFindSuitableConditionException e) {
+                isSpecial = false;
+            }
+            node.setIsSpecial(isSpecial);
+            return node;
+        }
+
+        static PetriNetNode fromPetriNetPlace(PetriNet net, Place place) {
             String id = place.getId();
             String label = id;
 
-            boolean isEnvironment;
-            if (net instanceof PetriGame) {
-                PetriGame game1 = (PetriGame) net;
-                isEnvironment = game1.isEnvironment(place);
-            } else {
-                isEnvironment = false;
-            }
             boolean isBad = PetriNetExtensionHandler.isBad(place);
             long initialToken = place.getInitialToken().getValue();
 
-            boolean isSpecial;
-            boolean isInitialTransit;
-            int partition;
-            if (net instanceof PetriNetWithTransits) {
-                PetriNetWithTransits pnwt = (PetriNetWithTransits) net;
-                try {
-                    Condition.Objective objective = Adam.getCondition(pnwt);
-                    isSpecial = isSpecial(pnwt, place, objective);
-                } catch (CouldNotFindSuitableConditionException e) {
-                    isSpecial = false;
-                }
-                isInitialTransit = pnwt.isInitialTransit(place);
-                partition = pnwt.hasPartition(place) ? pnwt.getPartition(place) : -1;
-            } else {
-                isSpecial = false;
-                isInitialTransit = false;
-                partition = -1;
-            }
+            boolean isSpecial = false;
+            boolean isInitialTransit = false;
+            int partition = -1;
 
-            GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
-
+            GraphNodeType nodeType = GraphNodeType.SYSPLACE;
 
             String fairness = "none"; // Places have no concept of fairness
             boolean isReadyToFire = false; // Places can't be fired, only Transitions can.
@@ -275,5 +280,20 @@ public class PetriNetD3 {
             }
         }
 
+        public void setIsInitialTransit(boolean isInitialTransit) {
+            this.isInitialTransit = isInitialTransit;
+        }
+
+        public void setPartition(int partition) {
+            this.partition = partition;
+        }
+
+        public void setIsSpecial(boolean isSpecial) {
+            this.isSpecial = isSpecial;
+        }
+
+        public void setNodeType(GraphNodeType nodeType) {
+            this.nodeType = nodeType;
+        }
     }
 }
