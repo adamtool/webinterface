@@ -144,8 +144,9 @@ public class PetriNetD3 {
     static class PetriNetLink extends GraphLink {
         private final String type = "petriNetLink";
         private final String transit; // Null if there is no transit given
-        private final Float transitHue; // In the interval (0, 1].  Null if no color should be used.
         private final boolean isInhibitorArc; // Is it an inhibitor arc?
+        // This is only present for PNWT and Petri Games
+        private Float transitHue; // In the interval (0, 1].  Null if no color should be used.
 
         private PetriNetLink(String sourceId, String targetId, String transit, Float transitHue, boolean isInhibitorArc) {
             super(sourceId, targetId);
@@ -154,25 +155,37 @@ public class PetriNetD3 {
             this.isInhibitorArc = isInhibitorArc;
         }
 
-        static PetriNetLink of(Flow flow, PetriNet net, String arcLabel) {
+        static PetriNetLink fromPetriGameFlow(Flow flow, PetriGame net, String arcLabel) {
+            return fromPNWTFlow(flow, net, arcLabel);
+        }
+
+        static PetriNetLink fromPNWTFlow(Flow flow, PetriNetWithTransits net, String arcLabel) {
+            PetriNetLink link = fromPetriNetFlow(flow, net, arcLabel);
+            if (!arcLabel.equals("")) {
+                // Give a unique color to each of the transits associated with a transition.
+                if (!arcLabel.contains(",")) { // Flows with multiple tokens are black.
+                    Transit init = net.getInitialTransit(flow.getTransition());
+                    int max = net.getTransits(flow.getTransition()).size() + ((init == null) ? 0 :
+                            init.getPostset().size() - 1);
+                    int id = Tools.calcStringIDSmallPrecedenceReverse(arcLabel);
+                    float transitHue = ((id + 1) * 1.f) / (max * 1.f);
+                    link.setTransitHue(transitHue);
+                }
+            }
+            return link;
+        }
+
+        static PetriNetLink fromPetriNetFlow(Flow flow, PetriNet net, String arcLabel) {
             String sourceId = flow.getSource().getId();
             String targetId = flow.getTarget().getId();
             boolean isInhibitorArc = PetriNetExtensionHandler.isInhibitor(flow);
             Float transitHue = null;
 
-            if (!arcLabel.equals("") && net instanceof PetriNetWithTransits) {
-                PetriNetWithTransits pnwt = (PetriNetWithTransits) net;
-                // Give a unique color to each of the transits associated with a transition.
-                if (!arcLabel.contains(",")) { // Flows with multiple tokens are black.
-                    Transit init = pnwt.getInitialTransit(flow.getTransition());
-                    int max = pnwt.getTransits(flow.getTransition()).size() + ((init == null) ? 0 :
-                            init.getPostset().size() - 1);
-                    int id = Tools.calcStringIDSmallPrecedenceReverse(arcLabel);
-                    transitHue = ((id + 1) * 1.f) / (max * 1.f);
-                }
-            }
-
             return new PetriNetLink(sourceId, targetId, arcLabel, transitHue, isInhibitorArc);
+        }
+
+        void setTransitHue(float transitHue) {
+            this.transitHue = transitHue;
         }
     }
 
@@ -202,7 +215,7 @@ public class PetriNetD3 {
             this.isReadyToFire = isReadyToFire;
         }
 
-        static PetriNetNode of(PetriNet net, Transition t) {
+        static PetriNetNode fromTransition(PetriNet net, Transition t) {
             String id = t.getId();
             String label = t.getLabel();
             String fairness;
