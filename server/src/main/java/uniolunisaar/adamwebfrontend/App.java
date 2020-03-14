@@ -24,6 +24,7 @@ import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.PGTools;
 import uniolunisaar.adam.util.PNWTTools;
 
 import java.io.IOException;
@@ -98,6 +99,8 @@ public class App {
         postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
         postWithPetriNetWithTransits("/fireTransition", this::handleFireTransition);
+
+        post("/fireTransitionPure", this::handleFireTransitionPure);
 
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
 
@@ -688,16 +691,71 @@ public class App {
         }
     }
 
+    private Object handleFireTransitionPure(Request req, Response res) {
+        // TODO #286 Refactor this method to use PetriNet, PNWT, and PetriGame when appropriate
+        //      (It should not just always be PetriNetWithTransits.)
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String apt;
+        JsonElement aptJson = body.get("apt");
+        JsonElement netIdJson = body.get("petriNetId");
+        JsonElement transitionIdJson = body.get("transitionId");
+        if (aptJson != null && aptJson.isJsonPrimitive() && aptJson.getAsJsonPrimitive().isString() ) {
+            apt = aptJson.getAsString();
+        } else if (netIdJson != null) {
+            String netId = netIdJson.getAsString();
+            PetriNetWithTransits pg = getPetriNet(netId);
+            try {
+                apt = pg.toAPT(true, true);
+            } catch (RenderException e) {
+                e.printStackTrace();
+                return errorResponse("An exception was thrown when converting the given " +
+                        "net to APT.  Check the server log for details: " + exceptionToString(e));
+            }
+        } else {
+            return errorResponse("Invalid request. No 'apt' or 'petriNetId' was provided.");
+        }
+
+        if (transitionIdJson == null) {
+            return errorResponse("Invalid request.  No 'transitionId' was provided.");
+        }
+
+        String transitionId = transitionIdJson.getAsString();
+        PetriNetWithTransits pnwt;
+        try {
+//            Tools.getPetriNetFromString()
+//            PGTools.getPetriGame()
+            pnwt = PNWTTools.getPetriNetWithTransits(apt, true);
+        } catch (ParseException | IOException e) {
+            return errorResponse(exceptionToString(e));
+        }
+
+        fireTransition(pnwt, transitionId);
+        String newApt;
+        try {
+//            Tools.getPN()
+//            PGTools.getAPT()
+            newApt = PNWTTools.getAPT(pnwt, true, true);
+        } catch (RenderException e) {
+            return errorResponse(exceptionToString(e));
+        }
+        JsonObject result = new JsonObject();
+        result.addProperty("apt", newApt);
+        result.add("graph", PetriNetD3.ofPetriNetWithTransits(pnwt));
+        return successResponse(result);
+    }
 
     private Object handleFireTransition(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String transitionId = body.get("transitionId").getAsString();
+        fireTransition(net, transitionId);
+        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
+    }
 
+    private void fireTransition(PetriNetWithTransits net, String transitionId) {
         Transition transition = net.getTransition(transitionId);
         Marking initialMarking = net.getInitialMarking();
         Marking newInitialMarking = transition.fire(initialMarking);
         net.setInitialMarking(newInitialMarking);
-        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
     }
 
     private Object handleSetFairness(Request req, Response res, PetriNetWithTransits net) {

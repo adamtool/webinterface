@@ -209,7 +209,6 @@
             <div style="position: relative; height: 100%; width: 100%;"
                  v-if="tabContentId === 'simulatorEditor'">
               <GraphEditor :graph='petriGame.net'
-                           :lastTransitionFired='lastPetriGameTransitionFired'
                            :petriNetId='petriGame.uuid'
                            :editorMode='editorSimulatorMode'
                            ref='graphEditorPetriGame'
@@ -223,11 +222,11 @@
                            v-on:toggleEnvironmentPlace='toggleEnvironmentPlace'
                            v-on:toggleIsInitialTransit='toggleIsInitialTransit'
                            v-on:setIsSpecial='setIsSpecial'
-                           v-on:fireTransition='fireTransition'
                            v-on:setInitialToken='setInitialToken'
                            v-on:setWinningCondition='setWinningCondition'
                            v-on:setFairness='setFairness'
                            v-on:setInhibitorArc='setInhibitorArc'
+                           :restEndpoints="restEndpoints"
                            :useModelChecking="useModelChecking"
                            :useDistributedSynthesis="useDistributedSynthesis"
                            :modelCheckingRoutes="modelCheckingRoutes"
@@ -278,6 +277,7 @@
               <JobTabItem
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
+                :restEndpoints="restEndpoints"
                 @loadPetriGameFromApt="parseAPTToPetriGame"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
@@ -480,11 +480,6 @@
           },
           uuid: 'abcfakeuuid123'
         },
-        lastPetriGameTransitionFired: {
-          id: '___AAAAA fake transition ID',
-          successful: false,
-          timestamp: new Date(0)
-        },
         isLeftPaneVisible: true,
         isLogVisible: false,
         showPhysicsControls: false,
@@ -617,7 +612,7 @@
           'toggleEnvironmentPlace',
           'toggleIsInitialTransit',
           'setIsSpecial',
-          'fireTransition',
+          'fireTransitionPure',
           'setInitialToken',
           'setWinningCondition',
           'setFairness',
@@ -1257,23 +1252,6 @@
           })
         }).catch(() => {
           logging.logError('Network error')
-        })
-      },
-      fireTransition: function (transitionId) {
-        console.log('firing transition with ID ' + transitionId)
-        this.restEndpoints.fireTransition({
-          petriNetId: this.petriGame.uuid,
-          transitionId: transitionId
-        }).then(response => {
-          this.lastPetriGameTransitionFired = {
-            id: transitionId,
-            successful: response.data.status === 'success',
-            timestamp: new Date()
-          }
-          this.withErrorHandling(response, response => {
-            logging.sendSuccessNotification('Fired transition ' + transitionId)
-            this.petriGame.net = response.data.result
-          })
         })
       },
       setInitialToken: function ({nodeId, tokens}) {

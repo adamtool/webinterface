@@ -2,11 +2,13 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.*;
 import uniol.apt.adt.pn.PetriNet;
+import uniol.apt.io.renderer.RenderException;
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
+import uniolunisaar.adam.ds.logics.ltl.ILTLFormula;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.CounterExample;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
@@ -17,6 +19,8 @@ import uniolunisaar.adam.ds.petrigame.PetriGame;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
+import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.PNWTTools;
 
 import java.util.Random;
 import java.util.UUID;
@@ -100,7 +104,7 @@ public enum JobType {
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 String tempFilePrefix = getTempFilePrefix();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
-                        tempFilePrefix, false, false,false);
+                        tempFilePrefix, false, false, false);
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
@@ -111,7 +115,19 @@ public enum JobType {
         }
     }, MODEL_CHECKING_NET {
         JsonElement serialize(Object result) {
-            return PetriNetD3.ofPetriNetWithTransits(new PetriNetWithTransits((PetriNet) result));
+            JsonObject json = new JsonObject();
+            PetriNet net = (PetriNet) result;
+            JsonElement netJson = PetriNetD3.ofPetriNetWithTransits(net);
+            json.add("graph", netJson);
+
+            String apt;
+            try {
+                apt = Tools.getPN(net);
+            } catch (RenderException e) {
+                throw new SerializationException(e);
+            }
+            json.addProperty("apt", apt);
+            return json;
         }
 
         Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params) {
@@ -129,6 +145,9 @@ public enum JobType {
                 settings.setOutputData(data);
 
                 PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(net, runFormula, settings);
+                // TODO #280 show the model checking formula of the model checking net
+                ILTLFormula modelCheckingFormula = AdamModelChecker.getModelCheckingFormula(
+                        net, modelCheckingNet, runFormula, settings);
                 return modelCheckingNet;
             }, net.getName());
         }

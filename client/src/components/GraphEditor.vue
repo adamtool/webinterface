@@ -80,6 +80,60 @@
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
 
+    <v-card
+      v-if="editorMode === 'Simulator'"
+      style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
+             padding: 6px; border-radius: 30px;"
+      class="d-flex flex-column"
+      @keyup.native="onSimulationHistoryKeydown"
+      :tabIndex="-1"
+    >
+      <v-card-title class="flex-grow-0 flex-shrink-0">
+        Simulation History
+      </v-card-title>
+      <v-list dense
+              class="overflow-y-auto flex-grow-1"
+              style="padding-top: 0;"
+              ref="simulationHistoryListEl"
+              @keyup.native="onSimulationHistoryKeydown"
+      >
+        <v-list-item-group
+          v-model="gameSimulationHistory.currentIndex"
+          @keyup.native="onSimulationHistoryKeydown"
+          mandatory
+        >
+          <v-list-item
+            v-for="(historyState, i) in visibleSimulationHistory.stack"
+            :key="i"
+            @keyup.native="onSimulationHistoryKeydown"
+          >
+            <v-list-item-content
+              @keyup.native="onSimulationHistoryKeydown"
+            >
+              <v-list-item-title v-text="i === 0 ? '<start>' : historyState.transitionFired">
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-item-group>
+      </v-list>
+      <v-tooltip
+        bottom
+        v-if="gameSimulationHistory.stack.length > 1"
+      >
+        <template v-slot:activator="{ on }">
+          <v-btn
+            color="blue"
+            style="margin-top: 10px; margin-bottom: 5px; margin-left: 5px; margin-right: 5px;"
+            rounded
+            @click="resetSimulation"
+            v-on="on">
+            Reset
+          </v-btn>
+        </template>
+        Reset the simulation
+      </v-tooltip>
+    </v-card>
+
     <v-tooltip bottom>
       <template v-slot:activator="{ on }">
         <v-btn
@@ -95,6 +149,7 @@
       </template>
       Save as SVG
     </v-tooltip>
+
 
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
@@ -147,21 +202,17 @@
       ToolPicker
     },
     props: {
-      graph: {
+      petriNetApt: {
+        type: String,
+        required: false // Present only for GraphEditors which display Petri Nets
+      },
+      restEndpoints: {
         type: Object,
         required: true
       },
-      lastTransitionFired: {
+      graph: {
         type: Object,
-        required: false,
-        default: function () {
-          return {
-            id: '___AAAAA fake transition ID', // ID of the transition
-            successful: false, // Was the transition successfully fired or did an error happen
-            timestamp: new Date(0) // When did it get fired (this enables reactivity in case the same
-            // transition gets fired twice in a row)
-          }
-        }
+        required: true
       },
       petriNetId: {
         type: String,
@@ -206,8 +257,9 @@
         default: 100
       }
     },
-    data () {
+    data() {
       return {
+        gameSimulationHistory: this.gameSimulationHistoryDefault(),
         dimensions: {
           width: 0,
           height: 0
@@ -234,7 +286,7 @@
         nodeRadius: 27,
         exportedGraphJson: {},
         lastUserClick: undefined,
-        simulation: d3.forceSimulation()
+        physicsSimulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
           .force('charge', d3.forceManyBody())
           //          .force('center', d3.forceCenter(width / 2, height / 2))
@@ -304,7 +356,11 @@
       Vue.nextTick(this.updateGraphEditorDimensions)
 
       // TODO move to created() hook?
-      this.selectedTool = this.toolPickerItems[0]
+      if (this.editorMode === 'Simulator') {
+        this.selectedTool = this.fireTransitionTool
+      } else {
+        this.selectedTool = this.toolPickerItems[0]
+      }
     },
     beforeDestroy: function () {
       console.log('beforeDestroy() hook called for GraphEditor with uid ' + this._uid)
@@ -313,12 +369,28 @@
       // This is an issue when, for example, the component is reloaded using Hot Reload during
       // development.
       console.log('Stopping forceSimulation')
-      this.simulation.stop()
+      this.physicsSimulation.stop()
       console.log('Removing resize event listener')
       window.removeEventListener('resize', this.updateGraphEditorDimensions)
       this.isDestroyed = true
     },
     computed: {
+      // This is used in order to show a fake <start> state in the simulation history if no
+      // transitions have yet been fired.
+      visibleSimulationHistory: function () {
+        if (this.gameSimulationHistory.stack.length > 0) {
+          return this.gameSimulationHistory
+        } else {
+          return {
+            currentIndex: 0,
+            stack: [
+              {
+                // An empty state which will be shown as <start> in the list
+              }
+            ]
+          }
+        }
+      },
       toolPickerItems: function () {
         switch (this.editorMode) {
           case 'Viewer':
@@ -985,9 +1057,9 @@
           },
           'drag': node => {
             snapToGrid = d3.event.sourceEvent.ctrlKey
-            // When the user drags a node, the simulation should start again in case it had been
-            // paused for inactivity.
-            this.simulation.alpha(0.7).restart()
+            // When the user drags a node, the physics simulation should start again in case it had
+            // been paused for inactivity.
+            this.physicsSimulation.alpha(0.7).restart()
             if (isSelectionDrag) {
               // To you, dear reader, this might seem overcomplicated.  You might ask, "Ann,
               // why didn't you simply write this:
@@ -1028,11 +1100,11 @@
           }
         }
 
-        function snap (x) {
+        function snap(x) {
           return roundToMiddle(60, x)
         }
 
-        function roundToMiddle (roundingNumber, x) {
+        function roundToMiddle(roundingNumber, x) {
           return x + (roundingNumber / 2 - (x % roundingNumber))
         }
       },
@@ -1071,7 +1143,7 @@
         // Your mouse cursor is at mouseX, mouseY.  You want to draw a flow that starts at startNode
         // and ends at another node which is close to the mouse cursor.  To figure out what eligible
         // end node is closest to the mouse, use this function.
-        function findFlowTarget (mousePos, startNode, nodes, links) {
+        function findFlowTarget(mousePos, startNode, nodes, links) {
           let nearestNode
           // Only nodes within this many units of the startNode will be under consideration.
           let minDistance = 50
@@ -1088,7 +1160,7 @@
           return nearestNode
 
           // Only create flows from Transition to Place or from Place to Transition
-          function isEligible (node) {
+          function isEligible(node) {
             const transitionToPlace = startNode.type === 'TRANSITION' &&
               ['SYSPLACE', 'ENVPLACE'].includes(node.type)
             const placeToTransition =
@@ -1131,13 +1203,13 @@
           })
           .on('end', () => {
             const [currentX, currentY] = this.mousePosZoom()
-            console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
-            console.log('selected nodes:')
-            console.log(this.selectedNodes)
+            // console.log(`did a drag drop on the background from ${startX},${startY} to ${currentX}, ${currentY}`)
+            // console.log('selected nodes:')
+            // console.log(this.selectedNodes)
             this.selectNodesPreview.attr('d', '')
           })
 
-        function findSelectedNodes (nodes, startX, startY, currentX, currentY) {
+        function findSelectedNodes(nodes, startX, startY, currentX, currentY) {
           return nodes.filter(node => {
             const xFits = (node.x > startX && node.x < currentX) ||
               (node.x < startX && node.x > currentX)
@@ -1149,41 +1221,21 @@
       }
     },
     watch: {
-      // When a transition gets fired (whether successful or not), it and its connected Places
-      // should flash red or green.
-      lastTransitionFired: function () {
-        const transitionD = this.nodes.find(d => d.id === this.lastTransitionFired.id)
-        const matchingTransitionEl = this.nodeElements.filter(nodeD => {
-          const isTheTransition = nodeD == transitionD
-          const isAnAffectedPlace = this.links.some(link =>
-            (link.source == transitionD && link.target == nodeD) ||
-            (link.target == transitionD && link.source == nodeD)
-          )
-          return isTheTransition || isAnAffectedPlace
+      'gameSimulationHistory.stack': function () {
+        // We must wait until Vue updates the DOM in order to scroll to the true bottom of the log.
+        Vue.nextTick(() => {
+          const component = this.$refs.simulationHistoryListEl
+          if (component) { // The component/element may not exist if editorMode !== 'Simulator'
+            component.$el.scrollTop = component.$el.scrollHeight
+          }
         })
-
-        // Instantly set the color to either red or green
-        matchingTransitionEl.attr('fill',
-          this.lastTransitionFired.successful ? '#00ff00' : '#ff0000')
-
-        // Mark the nodes as being mid-animation so they won't get messed up in updateD3()
-        matchingTransitionEl.each(d => d.hasScheduledAnimation = true)
-
-        // Gradually fade back to the normal color of the nodes
-        // Note to future maintainers: "transition()" refers here to the D3 concept of transitions,
-        // which are used for gradual animations like this.
-        // Unfortunately, this is a bit of a namespace conflict for us.  :D
-        matchingTransitionEl.transition()
-          .attr('fill', this.fillOfNodeElement)
-          .duration(1000)
-          .ease(d3.easeLinear)
-          // Then, in case the node's proper color has changed since the transition began, update it again
-          .transition()
-          .duration(0)
-          .attr('fill', this.fillOfNodeElement)
-          .on('end',
-            // Mark the node as no longer being mid-animation, so updateD3() may affect it again
-            () => matchingTransitionEl.each(d => d.hasScheduledAnimation = false))
+      },
+      'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
+        const currentState = this.gameSimulationHistory.stack[newIndex]
+        if (currentState) { // Maybe the history has been reset and there is no 'current state'
+          this.importGraph(currentState.graph)
+          this.updateD3()
+        }
       },
       ltlFormula: function (formula) {
         if (this.selectedWinningCondition === 'LTL' && formula !== '') {
@@ -1200,13 +1252,26 @@
         this.ltlParseStatus = ''
         this.ltlParseErrors = []
       },
-      editorMode: function () {
-        if (this.editorMode === 'Simulator') {
+      editorMode: function (newMode, oldMode) {
+        if (newMode === 'Simulator') {
           this.selectedTool = this.fireTransitionTool
-        } else if (this.selectedTool == this.fireTransitionTool &&
-          this.editorMode !== 'Simulator') {
+        } else if (this.selectedTool == this.fireTransitionTool && newMode !== 'Simulator') {
           // Prevent fireTransitionTool from being selected in Editor
           this.selectedTool = this.selectTool
+        }
+
+        if (newMode === 'Editor' && oldMode === 'Simulator') {
+          // Display the editor's current state
+          this.importGraph(this.graph)
+          this.updateD3()
+        } else if (newMode === 'Simulator' && oldMode === 'Editor') {
+          // Display the simulator's current state
+          const {currentIndex, stack} = this.gameSimulationHistory
+          const currentState = stack[currentIndex]
+          if (currentState) { // Maybe the history has been reset and there is no 'current state'
+            this.importGraph(currentState.graph)
+            this.updateD3()
+          }
         }
       },
       selectedTool: function (tool) {
@@ -1322,12 +1387,90 @@
          */
         this.importGraph(graph)
         this.updateD3()
+
+        // Reset the simulation as well
+        this.resetSimulation()
       },
       dimensions: function () {
         this.updateSvgDimensions()
       }
     },
     methods: {
+      onSimulationHistoryKeydown: function (event) {
+        logging.logObject(event)
+        switch (event.key) {
+          case 'ArrowUp':
+            this.simulationHistoryBack()
+            break
+          case 'ArrowDown':
+            this.simulationHistoryForward()
+            break
+        }
+      },
+      simulationHistoryBack: function () {
+        const {currentIndex} = this.gameSimulationHistory
+        this.gameSimulationHistory.currentIndex = Math.max(0, currentIndex - 1)
+      },
+      simulationHistoryForward: function () {
+        const {stack, currentIndex} = this.gameSimulationHistory
+        const newIndex = Math.min(stack.length - 1, currentIndex + 1)
+        const newIndexBounded = Math.max(0, newIndex)
+        this.gameSimulationHistory.currentIndex = newIndexBounded
+      },
+      gameSimulationHistoryDefault: function () {
+        return {
+          currentIndex: 0, // The index of the currently selected state in the history
+          /* Each game simulation state in this stack consists of an object:
+          {
+            graph: null,  // The same as our prop 'graph'
+            apt: null  // The apt corresponding to the graph
+            transitionFired: null // The transition fired from the previous state to reach this state
+          } */
+          stack: []
+        }
+      },
+      // When a transition gets fired (whether successful or not), it and its connected Places
+      // should flash red or green.
+      showTransitionFired: function ({transitionId, wasSuccessful}) {
+        const transitionD = this.nodes.find(d => d.id === transitionId)
+        const matchingTransitionEl = this.nodeElements.filter(nodeD => {
+          const isTheTransition = nodeD == transitionD
+          const isAnAffectedPlace = this.links.some(link =>
+            (link.source == transitionD && link.target == nodeD) ||
+            (link.target == transitionD && link.source == nodeD)
+          )
+          return isTheTransition || isAnAffectedPlace
+        })
+
+        // Instantly set the color to either red or green
+        matchingTransitionEl.attr('fill',
+          wasSuccessful ? '#00ff00' : '#ff0000')
+
+        // Mark the nodes as being mid-animation so they won't get messed up in updateD3()
+        matchingTransitionEl.each(d => d.hasScheduledAnimation = true)
+
+        // Gradually fade back to the normal color of the nodes
+        // Note to future maintainers: "transition()" refers here to the D3 concept of transitions,
+        // which are used for gradual animations like this.
+        // Unfortunately, this is a bit of a namespace conflict for us.  :D
+        matchingTransitionEl.transition()
+          .attr('fill', this.fillOfNodeElement)
+          .duration(1000)
+          .ease(d3.easeLinear)
+          // Then, in case the node's proper color has changed since the transition began, update it again
+          .transition()
+          .duration(0)
+          .attr('fill', this.fillOfNodeElement)
+          .on('end',
+            // Mark the node as no longer being mid-animation, so updateD3() may affect it again
+            () => matchingTransitionEl.each(d => d.hasScheduledAnimation = false))
+      },
+      resetSimulation: function () {
+        this.importGraph(this.graph)
+        this.gameSimulationHistory = this.gameSimulationHistoryDefault()
+        this.updateD3()
+        logging.sendSuccessNotification('Reset the simulation.')
+      },
       parseLtlFormula: debounce(async function () {
         console.log('Parsing Formula')
         // TODO Show 'running' status somehow in gui to distinguish it from 'success'
@@ -1358,7 +1501,71 @@
         }
       }, 200),
       fireTransition: function (d) {
-        this.$emit('fireTransition', d.id)
+        if (this.gameSimulationHistory.stack.length === 0) {
+          this.gameSimulationHistory = {
+            currentIndex: 0,
+            stack: [
+              {
+                graph: this.deepCopy(this.graph),
+                apt: this.petriNetApt,
+                transitionFired: null
+              }
+            ]
+          }
+        }
+        const {stack, currentIndex} = this.gameSimulationHistory
+        const currentState = stack[currentIndex]
+        if (!currentState.apt) {
+          // Nets in the editor do not have their APT always stored clientside, because sometimes,
+          // generating APT results in an unnecessary RenderException.  Instead, they are kept as
+          // persistent objects on the server addressed by UUIDs (petriNetId).
+          // So, when you switch from Editor to Simulator and want to fire a transition for the
+          // first time, the client will send this petriNetId instead of an APT string in order to
+          // bootstrap the simulation.
+          // After that, the relevant state of the simulation (pairs of APT & graph) is kept
+          // entirely client-side.
+          // TODO If the RenderException issue can be resolved, I would plan to store the editor
+          //  state as APT on the client all the time to reduce this complexity and make undo/redo
+          //  easy to implement.
+          const isUsingNetFromEditor = currentIndex === 0 && this.petriNetId
+          if (!isUsingNetFromEditor) {
+            logging.sendErrorNotification('No APT nor petriNetId available.  Can\'t simulate')
+            return
+          }
+        }
+        const transitionId = d.id
+        this.restEndpoints.fireTransitionPure({
+          // The server will simulate using the net represented in currentState.apt if present,
+          // or it will fall back to the net stored on the server addressed by petriNetId.
+          apt: currentState.apt,
+          petriNetId: this.petriNetId,
+          transitionId
+        }).then(response => {
+          // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
+          if (response.data.status === 'success') {
+            const newState = {
+              ...response.data.result,  // apt, graph
+              transitionFired: transitionId
+            }
+            this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1).concat([newState])
+            this.gameSimulationHistory.currentIndex = currentIndex + 1
+            this.importGraph(newState.graph)
+            this.updateD3()
+            this.showTransitionFired({
+              transitionId: d.id,
+              wasSuccessful: true
+            })
+            logging.sendSuccessNotification('Fired transition ' + d.id)
+          } else if (response.data.status === 'error') {
+            this.showTransitionFired({
+              transitionId: d.id,
+              wasSuccessful: false
+            })
+            logging.sendErrorNotification(response.data.message)
+          } else {
+            logging.sendErrorNotification('Invalid response from server')
+          }
+        })
       },
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
@@ -1482,10 +1689,10 @@
         const centerY = transform.invertY(this.dimensions.height / 2)
         // console.log(`Updating center force to coordinates: ${centerX}, ${centerY}`)
         // forceCenter is an alternative to forceX/forceY.  It works in a different way.  See D3's documentation.
-        // this.simulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
+        // this.physicsSimulation.force('center', d3.forceCenter(svgX / 2, svgY / 2))
         const centerStrength = 0.01
-        this.simulation.force('centerX', d3.forceX(centerX).strength(centerStrength))
-        this.simulation.force('centerY', d3.forceY(centerY).strength(centerStrength))
+        this.physicsSimulation.force('centerX', d3.forceX(centerX).strength(centerStrength))
+        this.physicsSimulation.force('centerY', d3.forceY(centerY).strength(centerStrength))
       },
       // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
@@ -1533,7 +1740,7 @@
             node.fy = null
           })
         }
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.alpha(0.7).restart()
       },
       // If you lost track of where the graph actually is, you can click this button and it will
       // zoom out far enough that all the nodes can be seen.  :)
@@ -1697,8 +1904,6 @@
           .attr('fill', 'none')
           .attr('stroke-width', 0) // TODO Only draw this border when we need it for 'stretching'
 
-        console.log('force simulation minimum alpha value: ' + this.simulation.alphaMin())
-
         this.updateD3()
 
 //        d3.selectAll('*').on('click', function (d) { console.log(d) })
@@ -1708,7 +1913,6 @@
        * It causes our visualization to update accordingly, showing new nodes and removing deleted ones.
        */
       updateD3: function () {
-        console.log('updateD3()')
         // Write the IDs/labels of nodes underneath them.
         // TODO Prevent these from getting covered up by arrowheads.  Maybe add a background.
         // See https://stackoverflow.com/questions/15500894/background-color-of-text-in-svg
@@ -1871,7 +2075,7 @@
           })
         const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
 
-        function partitionColorForPlace (place) {
+        function partitionColorForPlace(place) {
           const hueDegrees = place.partition / (maxPartition + 1) * 360
           console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
           const luminosity = place.type === 'SYSPLACE' ? 35 : 90
@@ -1982,12 +2186,12 @@
           'TRANSITION': this.nodeRadius * 1.6
         }
         // let ticksElapsed = 0 // For printing debug info
-        this.simulation.nodes(this.nodes).on('tick', () => {
-          // Debugging alpha value of simulation (used to pause it when it's not in use)
+        this.physicsSimulation.nodes(this.nodes).on('tick', () => {
+          // Debugging alpha value of physics simulation (used to pause it when it's not in use)
           // ticksElapsed++
           // if (ticksElapsed === 10) {
           //   ticksElapsed = 0
-          //   console.log(`Simulation alpha: ${this.simulation.alpha()}`)
+          //   console.log(`Simulation alpha: ${this.physicsSimulation.alpha()}`)
           // }
 
           // Make sure the D3 forceSimulation is only running if the Graph Editor is visible.
@@ -1995,11 +2199,11 @@
           const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
           if (!isSvgVisible) {
             // console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible: ' + this._uid)
-            this.simulation.stop()
+            this.physicsSimulation.stop()
             setTimeout(() => {
               if (!this.isDestroyed) {
                 // console.log('Restarting forceSimulation after 2 seconds')
-                this.simulation.restart()
+                this.physicsSimulation.restart()
               }
             }, 2000)
             return
@@ -2095,13 +2299,13 @@
               return d.pathLength / 2
             })
 
-          // Let the simulation know what links it is working with
-          this.simulation.force('link').links(this.links)
+          // Let the physics simulation know what links it is working with
+          this.physicsSimulation.force('link').links(this.links)
         })
         // Raise the temperature of the force simulation and restart it, because if the simulation
         // isn't running, the newly inserted nodes' positions will not get applied to the SVG,
         // and you won't be able to see them.
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.alpha(0.7).restart()
       },
       updateSelectionBorder: function () {
         // TODO Figure out why this sometimes yields a border from -999999 to 999999
@@ -2217,7 +2421,7 @@
         return `${data.id}::${data.type}`
       },
       generateLinkId: function (link) {
-        return `${link.source.id}::${link.target.id}`
+        return `${this._uid}${link.source.id}::${link.target.id}`
       },
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
@@ -2272,16 +2476,16 @@
         return this.svg.node().getBoundingClientRect().height
       },
       updateGravityStrength: function (strength) {
-        this.simulation.force('gravity').strength(strength)
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.force('gravity').strength(strength)
+        this.physicsSimulation.alpha(0.7).restart()
       },
       updateLinkStrength: function (strength) {
-        this.simulation.force('link').strength(strength)
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.force('link').strength(strength)
+        this.physicsSimulation.alpha(0.7).restart()
       },
       updateRepulsionStrength: function (strength) {
-        this.simulation.force('charge').strength(-strength)
-        this.simulation.alpha(0.7).restart()
+        this.physicsSimulation.force('charge').strength(-strength)
+        this.physicsSimulation.alpha(0.7).restart()
       },
       /**
        * Perform a deep copy of an arbitrary object.
@@ -2380,6 +2584,7 @@
     height: 100%;
     width: 100%;
     max-width: 100%;
+    /* TODO #282 fix this mismatched CSS property.  Simply delete it?  */
     display: relative;
     background-color: #fafafa;
   }

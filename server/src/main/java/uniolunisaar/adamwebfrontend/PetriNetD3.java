@@ -6,6 +6,7 @@ import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
 import uniolunisaar.adam.ds.petrinet.objectives.Condition;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
@@ -40,7 +41,7 @@ public class PetriNetD3 {
     /**
      * Extract all the information needed to display a PetriNet in our graph editor.
      *
-     * @param net                    - A PetriNet
+     * @param net                    - A PetriNet, PetriNetWithTransits, or PetriGame
      * @param shouldSendPositions    - We will send x/y coordinates for these nodes to the client.
      * @param shouldIncludeObjective - For Petri Games, we want to include the objective/winning
      *                               condition, but for other Petri Nets (e.g. those which represent winning strategies), the
@@ -49,7 +50,7 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement ofPetriNetWithXYCoordinates(PetriNetWithTransits net,
+    public static JsonElement ofPetriNetWithXYCoordinates(PetriNet net,
                                                           Set<Node> shouldSendPositions,
                                                           boolean shouldIncludeObjective) throws CouldNotFindSuitableConditionException {
         List<PetriNetLink> links = new ArrayList<>();
@@ -65,18 +66,12 @@ public class PetriNetD3 {
             nodes.add(transitionNode);
         }
 
-
-        Map<Flow, String> flowRelationFromTransitions = PNWTTools.getTransitRelationFromTransitions(net);
-        for (Flow flow : net.getEdges()) {
-            String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
-            PetriNetLink petriNetLink = PetriNetLink.of(flow, net, arcLabel);
-            links.add(petriNetLink);
-        }
-
-        Predicate<Node> hasPosition = (node) -> net.hasXCoord(node) && net.hasYCoord(node);
+        Predicate<Node> hasPosition =
+                (node) -> PetriNetExtensionHandler.hasXCoord(node) &&
+                        PetriNetExtensionHandler.hasYCoord(node);
         Function<Node, NodePosition> positionOfNode = (node) -> {
-            double x = net.getXCoord(node);
-            double y = net.getYCoord(node);
+            double x = PetriNetExtensionHandler.getXCoord(node);
+            double y = PetriNetExtensionHandler.getYCoord(node);
             return new NodePosition(x, y);
         };
 
@@ -88,14 +83,29 @@ public class PetriNetD3 {
 
         String objectiveString;
         String ltlFormulaString;
-        if (shouldIncludeObjective) {
-            Condition.Objective objective = Adam.getCondition(net);
-            boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
-                    objective.equals(Condition.Objective.A_REACHABILITY) ||
-                    objective.equals(Condition.Objective.A_SAFETY);
-            ltlFormulaString = canConvertToLtl ? AdamModelChecker.toFlowLTLFormula(net, objective) :
-                    "";
-            objectiveString = objective.toString();
+        if (net instanceof PetriNetWithTransits) {
+            PetriNetWithTransits pnwt = (PetriNetWithTransits) net;
+            Map<Flow, String> flowRelationFromTransitions =
+                    PNWTTools.getTransitRelationFromTransitions(pnwt);
+            for (Flow flow : net.getEdges()) {
+                String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
+                PetriNetLink petriNetLink = PetriNetLink.of(flow, net, arcLabel);
+                links.add(petriNetLink);
+            }
+
+            if (shouldIncludeObjective) {
+                Condition.Objective objective = Adam.getCondition(pnwt);
+                boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
+                        objective.equals(Condition.Objective.A_REACHABILITY) ||
+                        objective.equals(Condition.Objective.A_SAFETY);
+                ltlFormulaString = canConvertToLtl ?
+                        AdamModelChecker.toFlowLTLFormula(pnwt, objective) :
+                        "";
+                objectiveString = objective.toString();
+            } else {
+                objectiveString = "";
+                ltlFormulaString = "";
+            }
         } else {
             objectiveString = "";
             ltlFormulaString = "";
@@ -108,7 +118,7 @@ public class PetriNetD3 {
     /**
      * @return a JSON representation of a Petri Game. Does not include any X/Y coordinate annotations.
      */
-    public static JsonElement ofPetriNetWithTransits(PetriNetWithTransits net) throws SerializationException {
+    public static JsonElement ofPetriNetWithTransits(PetriNet net) throws SerializationException {
         try {
             return ofPetriNetWithXYCoordinates(net, new HashSet<>(), true);
         } catch (CouldNotFindSuitableConditionException e) {
@@ -138,19 +148,19 @@ public class PetriNetD3 {
             this.isInhibitorArc = isInhibitorArc;
         }
 
-        static PetriNetLink of(Flow flow, PetriNetWithTransits net, String arcLabel) {
+        static PetriNetLink of(Flow flow, PetriNet net, String arcLabel) {
             String sourceId = flow.getSource().getId();
             String targetId = flow.getTarget().getId();
-            boolean isInhibitorArc = net.isInhibitor(flow);
+            boolean isInhibitorArc = PetriNetExtensionHandler.isInhibitor(flow);
             Float transitHue = null;
 
-            if (!arcLabel.equals("")) {
+            if (!arcLabel.equals("") && net instanceof PetriNetWithTransits) {
+                PetriNetWithTransits pnwt = (PetriNetWithTransits) net;
                 // Give a unique color to each of the transits associated with a transition.
                 if (!arcLabel.contains(",")) { // Flows with multiple tokens are black.
-                    Transit init = net.getInitialTransit(flow.getTransition());
-                    int max =
-                            net.getTransits(flow.getTransition()).size() + ((init == null) ? 0 :
-                                    init.getPostset().size() - 1);
+                    Transit init = pnwt.getInitialTransit(flow.getTransition());
+                    int max = pnwt.getTransits(flow.getTransition()).size() + ((init == null) ? 0 :
+                            init.getPostset().size() - 1);
                     int id = Tools.calcStringIDSmallPrecedenceReverse(arcLabel);
                     transitHue = ((id + 1) * 1.f) / (max * 1.f);
                 }
@@ -183,13 +193,13 @@ public class PetriNetD3 {
             this.isReadyToFire = isReadyToFire;
         }
 
-        static PetriNetNode of(PetriNetWithTransits net, Transition t) {
+        static PetriNetNode of(PetriNet net, Transition t) {
             String id = t.getId();
             String label = t.getLabel();
             String fairness;
-            if (net.isStrongFair(t)) {
+            if (PetriNetExtensionHandler.isStrongFair(t)) {
                 fairness = "strong";
-            } else if (net.isWeakFair(t)) {
+            } else if (PetriNetExtensionHandler.isWeakFair(t)) {
                 fairness = "weak";
             } else {
                 fairness = "none";
@@ -200,7 +210,7 @@ public class PetriNetD3 {
                     -1, fairness, isReadyToFire);
         }
 
-        static PetriNetNode of(PetriNetWithTransits net, Place place) {
+        static PetriNetNode of(PetriNet net, Place place) {
             String id = place.getId();
             String label = id;
 
@@ -211,21 +221,30 @@ public class PetriNetD3 {
             } else {
                 isEnvironment = false;
             }
-            boolean isBad = net.isBad(place);
+            boolean isBad = PetriNetExtensionHandler.isBad(place);
             long initialToken = place.getInitialToken().getValue();
 
             boolean isSpecial;
-            try {
-                Condition.Objective objective = Adam.getCondition(net);
-                isSpecial = isSpecial(net, place, objective);
-            } catch (CouldNotFindSuitableConditionException e) {
+            boolean isInitialTransit;
+            int partition;
+            if (net instanceof PetriNetWithTransits) {
+                PetriNetWithTransits pnwt = (PetriNetWithTransits) net;
+                try {
+                    Condition.Objective objective = Adam.getCondition(pnwt);
+                    isSpecial = isSpecial(pnwt, place, objective);
+                } catch (CouldNotFindSuitableConditionException e) {
+                    isSpecial = false;
+                }
+                isInitialTransit = pnwt.isInitialTransit(place);
+                partition = pnwt.hasPartition(place) ? pnwt.getPartition(place) : -1;
+            } else {
                 isSpecial = false;
+                isInitialTransit = false;
+                partition = -1;
             }
 
-            boolean isInitialTransit = net.isInitialTransit(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;
 
-            int partition = net.hasPartition(place) ? net.getPartition(place) : -1;
 
             String fairness = "none"; // Places have no concept of fairness
             boolean isReadyToFire = false; // Places can't be fired, only Transitions can.
