@@ -612,7 +612,7 @@
           'toggleEnvironmentPlace',
           'toggleIsInitialTransit',
           'setIsSpecial',
-          'fireTransitionPure',
+          'fireTransition',
           'setInitialToken',
           'setWinningCondition',
           'setFairness',

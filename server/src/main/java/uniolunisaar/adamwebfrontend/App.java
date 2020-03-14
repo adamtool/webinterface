@@ -98,7 +98,7 @@ public class App {
 
         postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
-        post("/fireTransitionPure", this::handleFireTransitionPure);
+        post("/fireTransition", this::handleFireTransition);
 
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
 
@@ -689,7 +689,7 @@ public class App {
         }
     }
 
-    private Object handleFireTransitionPure(Request req, Response res) {
+    private Object handleFireTransition(Request req, Response res) {
         // TODO #286 Refactor this method to use PetriNet, PNWT, and PetriGame when appropriate
         //      (It should not just always be PetriNetWithTransits.)
         JsonObject body = parser.parse(req.body()).getAsJsonObject();

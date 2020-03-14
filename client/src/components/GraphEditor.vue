@@ -1534,7 +1534,7 @@
           }
         }
         const transitionId = d.id
-        this.restEndpoints.fireTransitionPure({
+        this.restEndpoints.fireTransition({
           // The server will simulate using the net represented in currentState.apt if present,
           // or it will fall back to the net stored on the server addressed by petriNetId.
           apt: currentState.apt,
