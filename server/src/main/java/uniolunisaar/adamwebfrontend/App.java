@@ -771,7 +771,7 @@ public class App {
         }
         JsonObject result = new JsonObject();
         result.addProperty("apt", newApt);
-        result.add("graph", PetriNetD3.ofPetriNetWithTransits(pn));
+        result.add("graph", PetriNetD3.ofNetWithoutObjective(pn));
         return successResponse(result);
     }
 
