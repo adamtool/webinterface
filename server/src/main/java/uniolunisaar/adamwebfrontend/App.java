@@ -98,8 +98,6 @@ public class App {
 
         postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
-        postWithPetriNetWithTransits("/fireTransition", this::handleFireTransition);
-
         post("/fireTransitionPure", this::handleFireTransitionPure);
 
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
@@ -742,13 +740,6 @@ public class App {
         result.addProperty("apt", newApt);
         result.add("graph", PetriNetD3.ofPetriNetWithTransits(pnwt));
         return successResponse(result);
-    }
-
-    private Object handleFireTransition(Request req, Response res, PetriNetWithTransits net) {
-        JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String transitionId = body.get("transitionId").getAsString();
-        fireTransition(net, transitionId);
-        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
     }
 
     private void fireTransition(PetriNetWithTransits net, String transitionId) {
