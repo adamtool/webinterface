@@ -27,7 +27,10 @@ public class PetriNetD3 {
     private final List<PetriNetLink> links;
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
+
+    // This is only present for some PNWT/PetriGames
     private final String winningCondition;
+    // This is only used by PNWT in the model checking case
     private final String ltlFormula;
 
     private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, String winningCondition, String ltlFormula) {
