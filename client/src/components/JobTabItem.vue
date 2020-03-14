@@ -59,7 +59,8 @@
   </div>
   <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
                netType="PETRI_GAME"
-               :graph="tab.result"
+               :graph="tab.result.graph"
+               :petriNetApt="tab.result.apt"
                editorMode="Viewer"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>

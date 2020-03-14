@@ -20,6 +20,7 @@ import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.PGTools;
 import uniolunisaar.adam.util.PNWTTools;
 
 import java.util.Random;
@@ -47,7 +48,19 @@ public enum JobType {
         }
     }, WINNING_STRATEGY {
         JsonElement serialize(Object result) {
-            return PetriNetD3.ofNetWithoutObjective((PetriGame) result);
+            JsonObject json = new JsonObject();
+            PetriGame game = (PetriGame) result;
+            JsonElement netJson = PetriNetD3.ofNetWithoutObjective(game);
+            json.add("graph", netJson);
+
+            String apt;
+            try {
+                apt = PGTools.getAPT(game, true, true);
+            } catch (RenderException e) {
+                throw new SerializationException(e);
+            }
+            json.addProperty("apt", apt);
+            return json;
         }
 
         Job<PetriGame> makeJob(PetriNetWithTransits net,
