@@ -83,15 +83,10 @@ public class PetriNetD3 {
 
         String objectiveString;
         String ltlFormulaString;
+        Map<Flow, String> flowRelationFromTransitions;
         if (net instanceof PetriNetWithTransits) {
             PetriNetWithTransits pnwt = (PetriNetWithTransits) net;
-            Map<Flow, String> flowRelationFromTransitions =
-                    PNWTTools.getTransitRelationFromTransitions(pnwt);
-            for (Flow flow : net.getEdges()) {
-                String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
-                PetriNetLink petriNetLink = PetriNetLink.of(flow, net, arcLabel);
-                links.add(petriNetLink);
-            }
+            flowRelationFromTransitions = PNWTTools.getTransitRelationFromTransitions(pnwt);
 
             if (shouldIncludeObjective) {
                 Condition.Objective objective = Adam.getCondition(pnwt);
@@ -109,6 +104,12 @@ public class PetriNetD3 {
         } else {
             objectiveString = "";
             ltlFormulaString = "";
+            flowRelationFromTransitions = new HashMap<>();
+        }
+        for (Flow flow : net.getEdges()) {
+            String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
+            PetriNetLink petriNetLink = PetriNetLink.of(flow, net, arcLabel);
+            links.add(petriNetLink);
         }
         PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objectiveString,
                 ltlFormulaString);
