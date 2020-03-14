@@ -218,6 +218,15 @@
         type: String,
         required: false
       },
+      netType: {
+        // The type of the petri net displayed in this GraphEditor instance.
+        // This corresponds to the 'NetType' enum on the server
+        type: String,
+        required: false,
+        validator: function (type) {
+          return ['PETRI_NET', 'PETRI_NET_WITH_TRANSITS', 'PETRI_GAME'].includes(type)
+        }
+      },
       shouldShowPhysicsControls: {
         type: Boolean,
         default: false
@@ -1539,7 +1548,8 @@
           // or it will fall back to the net stored on the server addressed by petriNetId.
           apt: currentState.apt,
           petriNetId: this.petriNetId,
-          transitionId
+          transitionId,
+          netType: this.netType
         }).then(response => {
           // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
           if (response.data.status === 'success') {
