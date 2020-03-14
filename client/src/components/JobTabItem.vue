@@ -61,7 +61,7 @@
                netType="PETRI_GAME"
                :graph="tab.result.graph"
                :petriNetApt="tab.result.apt"
-               editorMode="Viewer"
+               editorMode="Simulator"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
   <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
