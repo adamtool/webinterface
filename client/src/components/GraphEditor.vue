@@ -2544,17 +2544,22 @@
             fairness: 'none'
           })
         }
+        // TODO #294 re-enable firing transitions in 'editor' mode again
         const fireTransition = {
           title: 'Fire transition',
           action: this.fireTransition
         }
+        let items = []
+        if (this.editorMode === 'Simulator') {
+          items.push(fireTransition)
+        }
         switch (transitionNode.fairness) {
           case 'weak':
-            return [fireTransition, setStrongFair, removeFairness]
+            return items.concat([setStrongFair, removeFairness])
           case 'strong':
-            return [fireTransition, setWeakFair, removeFairness]
+            return items.concat([setWeakFair, removeFairness])
           case 'none':
-            return [fireTransition, setWeakFair, setStrongFair]
+            return items.concat([setWeakFair, setStrongFair])
           default:
             throw new Error(
               `Invalid value for fairness for the transition node ${transitionNode.id}:
