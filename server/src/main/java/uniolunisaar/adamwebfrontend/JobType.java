@@ -177,8 +177,9 @@ public enum JobType {
 
         Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
                                       JsonObject params) {
+            // TODO #293 consider refactoring
             if (!(petriGame1 instanceof PetriGame)) {
-                throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
+                throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
             }
             PetriGame petriGame = (PetriGame) petriGame1;
 
