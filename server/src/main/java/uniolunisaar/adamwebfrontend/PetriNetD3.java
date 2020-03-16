@@ -58,7 +58,7 @@ public class PetriNetD3 {
 
 
     public static JsonElement serializePetriNet(PetriNet net,
-                                                Set<Node> shouldSendPositions) throws CouldNotFindSuitableConditionException {
+                                                Set<Node> shouldSendPositions) {
         return ofNetWithXYCoordinates(net, shouldSendPositions, false,
                 PetriNetNode::fromPetriNetPlace,
                 PetriNetNode::fromTransition,
@@ -66,7 +66,7 @@ public class PetriNetD3 {
     }
 
     public static JsonElement serializePNWT(PetriNetWithTransits net,
-                                            Set<Node> shouldSendPositions) throws CouldNotFindSuitableConditionException {
+                                            Set<Node> shouldSendPositions) {
         return ofNetWithXYCoordinates(net, shouldSendPositions, false,
                 PetriNetNode::fromPNWTPlace,
                 PetriNetNode::fromTransition,
@@ -74,14 +74,13 @@ public class PetriNetD3 {
     }
 
     public static JsonElement serializePetriGame(PetriGame net,
-                                                 Set<Node> shouldSendPositions) throws CouldNotFindSuitableConditionException {
+                                                 Set<Node> shouldSendPositions) {
 
         return ofNetWithXYCoordinates(net, shouldSendPositions, false,
                 PetriNetNode::fromPetriGamePlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPetriGameFlow);
     }
-
 
 
     /**
@@ -102,7 +101,7 @@ public class PetriNetD3 {
             boolean shouldIncludeObjective,
             PlaceSerializer<T> placeSerializer,
             TransitionSerializer<T> transitionSerializer,
-            FlowSerializer<T> flowSerializer) throws CouldNotFindSuitableConditionException {
+            FlowSerializer<T> flowSerializer) throws SerializationException {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -139,7 +138,12 @@ public class PetriNetD3 {
             flowRelationFromTransitions = PNWTTools.getTransitRelationFromTransitions(pnwt);
 
             if (shouldIncludeObjective) {
-                Condition.Objective objective = Adam.getCondition(pnwt);
+                Condition.Objective objective;
+                try {
+                    objective = Adam.getCondition(pnwt);
+                } catch (CouldNotFindSuitableConditionException e) {
+                    throw new SerializationException(e);
+                }
                 boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
                         objective.equals(Condition.Objective.A_REACHABILITY) ||
                         objective.equals(Condition.Objective.A_SAFETY);

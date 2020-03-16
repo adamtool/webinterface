@@ -23,6 +23,7 @@ import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PGTools;
 import uniolunisaar.adam.util.PNWTTools;
 
+import java.util.HashSet;
 import java.util.Random;
 import java.util.UUID;
 
@@ -130,7 +131,8 @@ public enum JobType {
         JsonElement serialize(Object result) {
             JsonObject json = new JsonObject();
             PetriNet net = (PetriNet) result;
-            JsonElement netJson = PetriNetD3.ofPetriNetWithTransits(net);
+            // TODO #292 we would need to include X/Y coordinates here
+            JsonElement netJson = PetriNetD3.serializePetriNet(net, new HashSet<>());
             json.add("graph", netJson);
 
             String apt;
