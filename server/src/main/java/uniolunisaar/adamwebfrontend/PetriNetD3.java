@@ -292,8 +292,6 @@ public class PetriNetD3 {
         private boolean isSpecial;
         private boolean isInitialTransit;
         private int partition;
-        // These properties only belong to Petri Games
-        private GraphNodeType nodeType;
 
         private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
                              long initialToken, boolean isSpecial, boolean isInitialTransit,
@@ -399,7 +397,7 @@ public class PetriNetD3 {
         }
 
         public void setNodeType(GraphNodeType nodeType) {
-            this.nodeType = nodeType;
+            this.type = nodeType;
         }
     }
 }

@@ -8,7 +8,7 @@ package uniolunisaar.adamwebfrontend;
 public abstract class GraphNode {
     private final String id;
     private final String label;
-    private final GraphNodeType type;
+    protected GraphNodeType type;
 
     protected GraphNode(String id, String label, GraphNodeType type) {
         this.id = id;
