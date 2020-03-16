@@ -41,6 +41,49 @@ public class PetriNetD3 {
         this.ltlFormula = ltlFormula;
     }
 
+    @FunctionalInterface
+    interface FlowSerializer<T extends PetriNet> {
+        PetriNetLink serializeFlow(Flow flow, T net, String arcLabel);
+    }
+
+    @FunctionalInterface
+    interface PlaceSerializer<T extends PetriNet> {
+        PetriNetNode serializePlace(T net, Place place);
+    }
+
+    @FunctionalInterface
+    interface TransitionSerializer<T extends PetriNet> {
+        PetriNetNode serializeTransition(T net, Transition transition);
+    }
+
+
+    public static JsonElement serializePetriNet(PetriNet net,
+                                                Set<Node> shouldSendPositions) throws CouldNotFindSuitableConditionException {
+        return ofNetWithXYCoordinates(net, shouldSendPositions, false,
+                PetriNetNode::fromPetriNetPlace,
+                PetriNetNode::fromTransition,
+                PetriNetLink::fromPetriNetFlow);
+    }
+
+    public static JsonElement serializePNWT(PetriNetWithTransits net,
+                                            Set<Node> shouldSendPositions) throws CouldNotFindSuitableConditionException {
+        return ofNetWithXYCoordinates(net, shouldSendPositions, false,
+                PetriNetNode::fromPNWTPlace,
+                PetriNetNode::fromTransition,
+                PetriNetLink::fromPNWTFlow);
+    }
+
+    public static JsonElement serializePetriGame(PetriGame net,
+                                                 Set<Node> shouldSendPositions) throws CouldNotFindSuitableConditionException {
+
+        return ofNetWithXYCoordinates(net, shouldSendPositions, false,
+                PetriNetNode::fromPetriGamePlace,
+                PetriNetNode::fromTransition,
+                PetriNetLink::fromPetriGameFlow);
+    }
+
+
+
     /**
      * Extract all the information needed to display a PetriNet in our graph editor.
      *
@@ -53,19 +96,23 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static JsonElement ofPetriNetWithXYCoordinates(PetriNet net,
-                                                          Set<Node> shouldSendPositions,
-                                                          boolean shouldIncludeObjective) throws CouldNotFindSuitableConditionException {
+    public static <T extends PetriNet> JsonElement ofNetWithXYCoordinates(
+            T net,
+            Set<Node> shouldSendPositions,
+            boolean shouldIncludeObjective,
+            PlaceSerializer<T> placeSerializer,
+            TransitionSerializer<T> transitionSerializer,
+            FlowSerializer<T> flowSerializer) throws CouldNotFindSuitableConditionException {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
         for (Place place : net.getPlaces()) {
-            PetriNetNode placeNode = PetriNetNode.of(net, place);
+            PetriNetNode placeNode = placeSerializer.serializePlace(net, place);
             nodes.add(placeNode);
         }
 
         for (Transition transition : net.getTransitions()) {
-            PetriNetNode transitionNode = PetriNetNode.of(net, transition);
+            PetriNetNode transitionNode = transitionSerializer.serializeTransition(net, transition);
             nodes.add(transitionNode);
         }
 
@@ -111,7 +158,7 @@ public class PetriNetD3 {
         }
         for (Flow flow : net.getEdges()) {
             String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
-            PetriNetLink petriNetLink = PetriNetLink.of(flow, net, arcLabel);
+            PetriNetLink petriNetLink = flowSerializer.serializeFlow(flow, net, arcLabel);
             links.add(petriNetLink);
         }
         PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objectiveString,
