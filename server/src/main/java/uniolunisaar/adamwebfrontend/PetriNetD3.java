@@ -185,18 +185,6 @@ public class PetriNetD3 {
         return new Gson().toJsonTree(petriNetD3);
     }
 
-    /**
-     * @return a JSON representation of a Petri Net/PNWT/Petri Game. Does not include any X/Y
-     * coordinate annotations or winning condition.
-     */
-    public static JsonElement ofNetWithoutObjective(PetriNet net) throws SerializationException {
-        try {
-            return ofPetriNetWithXYCoordinates(net, new HashSet<>(), false);
-        } catch (CouldNotFindSuitableConditionException e) {
-            throw new SerializationException(e);
-        }
-    }
-
 
     static class PetriNetLink extends GraphLink {
         private final String type = "petriNetLink";
