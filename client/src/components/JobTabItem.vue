@@ -58,8 +58,10 @@
     </template>
   </div>
   <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
-               :graph="tab.result"
-               editorMode="Viewer"
+               netType="PETRI_GAME"
+               :graph="tab.result.graph"
+               :petriNetApt="tab.result.apt"
+               editorMode="Simulator"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
   <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
@@ -81,6 +83,8 @@
   <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
                :graph="tab.result.graph"
                :petriNetApt="tab.result.apt"
+               :useModelChecking="true"
+               netType="PETRI_NET"
                editorMode="Simulator"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>

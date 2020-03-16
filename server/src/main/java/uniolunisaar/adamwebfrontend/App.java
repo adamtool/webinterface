@@ -98,9 +98,7 @@ public class App {
 
         postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
-        postWithPetriNetWithTransits("/fireTransition", this::handleFireTransition);
-
-        post("/fireTransitionPure", this::handleFireTransitionPure);
+        post("/fireTransition", this::handleFireTransition);
 
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
 
@@ -119,6 +117,7 @@ public class App {
         return exceptionName + ": " + exception.getMessage();
     }
 
+    // TODO Refactor, see #293
     public static PetriGame promoteToPetriGame(PetriNetWithTransits net) {
         if (!(net instanceof PetriGame)) {
             throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
@@ -224,7 +223,7 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleParseApt(Request req, Response res) throws CouldNotFindSuitableConditionException {
+    private Object handleParseApt(Request req, Response res) {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         JsonObject params = body.getAsJsonObject().get("params").getAsJsonObject();
@@ -258,9 +257,19 @@ public class App {
         petriNets.put(netUuid, net);
         System.out.println("Generated petri net with ID " + netUuid);
 
-        JsonElement petriNetD3Json =
-                PetriNetD3.ofPetriNetWithXYCoordinates(net, net.getNodes(), true);
-        JsonElement serializedNet = PetriGameD3.of(petriNetD3Json, netUuid);
+        JsonElement netJson;
+        switch (netType) {
+            case "petriNetWithTransits":
+                netJson = PetriNetD3.serializePNWT(net, net.getNodes(), true);
+                break;
+            case "petriGame":
+                // TODO Refactor this route into two or three separate routes for PN, PNWT, and PG
+                netJson = PetriNetD3.serializePetriGame((PetriGame) net, net.getNodes(), true);
+                break;
+            default:
+                throw new IllegalArgumentException("Unrecognized net type: " + netType);
+        }
+        JsonElement serializedNet = PetriGameD3.of(netJson, netUuid);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
@@ -289,6 +298,7 @@ public class App {
         }
         UserContext userContext = userContextMap.get(browserUuid);
 
+        // TODO Refactor, see #293
         PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
         JobKey jobKey = new JobKey(
                 PNWTTools.getAPT(netCopy, true, true),
@@ -462,8 +472,8 @@ public class App {
         return responseJson.toString();
     }
 
-    // Update the X/Y coordinates of multiple nodes.  Send them back to the client to confirm it
-    // worked
+    // Update the X/Y coordinates of multiple nodes in a net in the editor.
+    // Send them back to the client to confirm it worked
     private Object handleUpdateXYCoordinates(Request req, Response res, PetriNetWithTransits petriNet) throws CouldNotFindSuitableConditionException {
         JsonElement body = parser.parse(req.body());
         JsonObject nodesXYCoordinatesJson =
@@ -473,13 +483,14 @@ public class App {
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
         PetriGameTools.saveXYCoordinates(petriNet, nodePositions);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithXYCoordinates(
-                petriNet, new HashSet<>(petriNet.getNodes()), true);
+        // Send all X/Y coordinates back to the client
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(
+                petriNet, new HashSet<>(petriNet.getNodes()));
 
         return successResponse(serializedNet);
     }
 
-    private Object handleInsertPlace(Request req, Response res, PetriNetWithTransits net) throws CouldNotFindSuitableConditionException {
+    private Object handleInsertPlace(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         double x = body.get("x").getAsDouble();
         double y = body.get("y").getAsDouble();
@@ -492,6 +503,7 @@ public class App {
                 node = net.createPlace();
                 break;
             case ENVPLACE:
+                // TODO #293 refactor
                 if (!(net instanceof PetriGame)) {
                     throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
                 } else {
@@ -510,8 +522,9 @@ public class App {
         net.setXCoord(node, x);
         net.setYCoord(node, y);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithXYCoordinates(
-                net, new HashSet<>(Collections.singletonList(node)), true);
+        // Send the x/y coordinate of the newly created node back to the client
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(
+                net, new HashSet<>(Collections.singletonList(node)));
 
         return successResponse(serializedNet);
     }
@@ -522,7 +535,7 @@ public class App {
 
         net.removeNode(nodeId);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -534,7 +547,7 @@ public class App {
         Node oldNode = net.getNode(nodeIdOld);
         net.rename(oldNode, nodeIdNew);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -542,6 +555,7 @@ public class App {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
 
+        // TODO #293 refactor
         if (!(net instanceof PetriGame)) {
             throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
         }
@@ -555,7 +569,7 @@ public class App {
             petriGame.setEnvironment(place);
         }
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(petriGame);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(petriGame);
         return successResponse(serializedNet);
     }
 
@@ -571,7 +585,7 @@ public class App {
             net.setInitialTransit(place);
         }
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -583,7 +597,8 @@ public class App {
         Place place = net.getPlace(nodeId);
         place.setInitialToken(tokens);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+
         return successResponse(serializedNet);
     }
 
@@ -600,7 +615,7 @@ public class App {
             net.removeSpecial(place, condition);
         }
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -611,7 +626,7 @@ public class App {
         Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
         PNWTTools.setConditionAnnotation(net, objective);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -621,7 +636,7 @@ public class App {
         String destination = body.get("destination").getAsString();
 
         net.createFlow(source, destination);
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -633,7 +648,7 @@ public class App {
 
         net.removeFlow(source, target);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -672,7 +687,7 @@ public class App {
             net.createInitialTransit(transitionId, postsetArray);
         }
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -691,18 +706,19 @@ public class App {
         }
     }
 
-    private Object handleFireTransitionPure(Request req, Response res) {
-        // TODO #286 Refactor this method to use PetriNet, PNWT, and PetriGame when appropriate
-        //      (It should not just always be PetriNetWithTransits.)
+    private Object handleFireTransition(Request req, Response res) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String apt;
         JsonElement aptJson = body.get("apt");
         JsonElement netIdJson = body.get("petriNetId");
         JsonElement transitionIdJson = body.get("transitionId");
-        if (aptJson != null && aptJson.isJsonPrimitive() && aptJson.getAsJsonPrimitive().isString() ) {
+        // netType should be a String representation of an element of the Enum NetType
+        JsonElement netTypeJson = body.get("netType");
+        if (aptJson != null && aptJson.isJsonPrimitive() && aptJson.getAsJsonPrimitive().isString()) {
             apt = aptJson.getAsString();
         } else if (netIdJson != null) {
             String netId = netIdJson.getAsString();
+
             PetriNetWithTransits pg = getPetriNet(netId);
             try {
                 apt = pg.toAPT(true, true);
@@ -718,40 +734,79 @@ public class App {
         if (transitionIdJson == null) {
             return errorResponse("Invalid request.  No 'transitionId' was provided.");
         }
+        NetType netType;
+        if (netTypeJson == null || !netTypeJson.isJsonPrimitive() || !netTypeJson.getAsJsonPrimitive().isString()) {
+            return errorResponse("Invalid request.  A 'netType' must be provided, and it should" +
+                    "correspond to one of the elements of the enum 'NetType'.");
+        } else {
+            try {
+                netType = NetType.valueOf(netTypeJson.getAsString());
+            } catch (IllegalArgumentException e) {
+                return errorResponse("The value provided for 'netType' does not match any of the " +
+                        "elements of the enum 'NetType'.");
+            }
+        }
 
         String transitionId = transitionIdJson.getAsString();
-        PetriNetWithTransits pnwt;
+        PetriNet pn;
         try {
-//            Tools.getPetriNetFromString()
-//            PGTools.getPetriGame()
-            pnwt = PNWTTools.getPetriNetWithTransits(apt, true);
-        } catch (ParseException | IOException e) {
+            switch (netType) {
+                case PETRI_NET:
+                    pn = Tools.getPetriNetFromString(apt);
+                    break;
+                case PETRI_NET_WITH_TRANSITS:
+                    pn = PNWTTools.getPetriNetWithTransits(apt, true);
+                    break;
+                case PETRI_GAME:
+                    pn = PGTools.getPetriGameFromAPTString(apt, true, true);
+                    break;
+                default:
+                    return errorResponse("Missing switch branch. Please send a bug report");
+            }
+        } catch (ParseException | IOException | CouldNotCalculateException | NotSupportedGameException e) {
             return errorResponse(exceptionToString(e));
         }
 
-        fireTransition(pnwt, transitionId);
+        fireTransition(pn, transitionId);
         String newApt;
         try {
-//            Tools.getPN()
-//            PGTools.getAPT()
-            newApt = PNWTTools.getAPT(pnwt, true, true);
+            switch (netType) {
+                case PETRI_NET:
+                    newApt = Tools.getPN(pn);
+                    break;
+                case PETRI_NET_WITH_TRANSITS:
+                    newApt = PNWTTools.getAPT((PetriNetWithTransits) pn, true, true);
+                    break;
+                case PETRI_GAME:
+                    newApt = PGTools.getAPT((PetriGame) pn, true, true);
+                    break;
+                default:
+                    return errorResponse("Missing switch branch.  Please file a bug report");
+            }
         } catch (RenderException e) {
             return errorResponse(exceptionToString(e));
         }
         JsonObject result = new JsonObject();
         result.addProperty("apt", newApt);
-        result.add("graph", PetriNetD3.ofPetriNetWithTransits(pnwt));
+        JsonElement graphJson;
+        switch (netType) {
+            case PETRI_NET:
+                graphJson = PetriNetD3.serializePetriNet(pn, new HashSet<>());
+                break;
+            case PETRI_NET_WITH_TRANSITS:
+                graphJson = PetriNetD3.serializePNWT((PetriNetWithTransits) pn, new HashSet<>(), false);
+                break;
+            case PETRI_GAME:
+                graphJson = PetriNetD3.serializePetriGame((PetriGame) pn, new HashSet<>(), false);
+                break;
+            default:
+                return errorResponse("Missing switch branch.  Please file a bug report");
+        }
+        result.add("graph", graphJson);
         return successResponse(result);
     }
 
-    private Object handleFireTransition(Request req, Response res, PetriNetWithTransits net) {
-        JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String transitionId = body.get("transitionId").getAsString();
-        fireTransition(net, transitionId);
-        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
-    }
-
-    private void fireTransition(PetriNetWithTransits net, String transitionId) {
+    private void fireTransition(PetriNet net, String transitionId) {
         Transition transition = net.getTransition(transitionId);
         Marking initialMarking = net.getInitialMarking();
         Marking newInitialMarking = transition.fire(initialMarking);
@@ -780,7 +835,7 @@ public class App {
             default:
                 throw new IllegalArgumentException("Unrecognized value for 'fairness': " + fairness);
         }
-        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
+        return successResponse(PetriNetD3.serializeEditorNet(net));
     }
 
     private Object handleSetInhibitorArc(Request req, Response response, PetriNetWithTransits net) {
@@ -802,7 +857,7 @@ public class App {
         } else {
             net.removeInhibitor(flow);
         }
-        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
+        return successResponse(PetriNetD3.serializeEditorNet(net));
     }
 
 }

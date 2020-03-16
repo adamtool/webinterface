@@ -20,8 +20,10 @@ import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.PGTools;
 import uniolunisaar.adam.util.PNWTTools;
 
+import java.util.HashSet;
 import java.util.Random;
 import java.util.UUID;
 
@@ -39,6 +41,7 @@ public enum JobType {
 
         Job<Boolean> makeJob(PetriNetWithTransits net,
                              JsonObject params) {
+            // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
@@ -47,11 +50,25 @@ public enum JobType {
         }
     }, WINNING_STRATEGY {
         JsonElement serialize(Object result) {
-            return PetriNetD3.ofNetWithoutObjective((PetriGame) result);
+            JsonObject json = new JsonObject();
+            PetriGame game = (PetriGame) result;
+            // TODO #292 include the positions of nodes here
+            JsonElement netJson = PetriNetD3.serializePetriGame(game, new HashSet<>(), false);
+            json.add("graph", netJson);
+
+            String apt;
+            try {
+                apt = PGTools.getAPT(game, true, true);
+            } catch (RenderException e) {
+                throw new SerializationException(e);
+            }
+            json.addProperty("apt", apt);
+            return json;
         }
 
         Job<PetriGame> makeJob(PetriNetWithTransits net,
                                JsonObject params) {
+            // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
@@ -67,6 +84,7 @@ public enum JobType {
 
         Job<BDDGraph> makeJob(PetriNetWithTransits net,
                               JsonObject params) {
+            // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
@@ -117,7 +135,8 @@ public enum JobType {
         JsonElement serialize(Object result) {
             JsonObject json = new JsonObject();
             PetriNet net = (PetriNet) result;
-            JsonElement netJson = PetriNetD3.ofPetriNetWithTransits(net);
+            // TODO #292 we would need to include X/Y coordinates here
+            JsonElement netJson = PetriNetD3.serializePetriNet(net, new HashSet<>());
             json.add("graph", netJson);
 
             String apt;

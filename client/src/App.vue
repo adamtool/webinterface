@@ -209,6 +209,7 @@
             <div style="position: relative; height: 100%; width: 100%;"
                  v-if="tabContentId === 'simulatorEditor'">
               <GraphEditor :graph='petriGame.net'
+                           :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :petriNetId='petriGame.uuid'
                            :editorMode='editorSimulatorMode'
                            ref='graphEditorPetriGame'
@@ -612,7 +613,7 @@
           'toggleEnvironmentPlace',
           'toggleIsInitialTransit',
           'setIsSpecial',
-          'fireTransitionPure',
+          'fireTransition',
           'setInitialToken',
           'setWinningCondition',
           'setFairness',

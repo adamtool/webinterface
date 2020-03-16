@@ -218,6 +218,15 @@
         type: String,
         required: false
       },
+      netType: {
+        // The type of the petri net displayed in this GraphEditor instance.
+        // This corresponds to the 'NetType' enum on the server
+        type: String,
+        required: false,
+        validator: function (type) {
+          return ['PETRI_NET', 'PETRI_NET_WITH_TRANSITS', 'PETRI_GAME'].includes(type)
+        }
+      },
       shouldShowPhysicsControls: {
         type: Boolean,
         default: false
@@ -1534,12 +1543,13 @@
           }
         }
         const transitionId = d.id
-        this.restEndpoints.fireTransitionPure({
+        this.restEndpoints.fireTransition({
           // The server will simulate using the net represented in currentState.apt if present,
           // or it will fall back to the net stored on the server addressed by petriNetId.
           apt: currentState.apt,
           petriNetId: this.petriNetId,
-          transitionId
+          transitionId,
+          netType: this.netType
         }).then(response => {
           // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
           if (response.data.status === 'success') {
@@ -2534,17 +2544,22 @@
             fairness: 'none'
           })
         }
+        // TODO #294 re-enable firing transitions in 'editor' mode again
         const fireTransition = {
           title: 'Fire transition',
           action: this.fireTransition
         }
+        let items = []
+        if (this.editorMode === 'Simulator') {
+          items.push(fireTransition)
+        }
         switch (transitionNode.fairness) {
           case 'weak':
-            return [fireTransition, setStrongFair, removeFairness]
+            return items.concat([setStrongFair, removeFairness])
           case 'strong':
-            return [fireTransition, setWeakFair, removeFairness]
+            return items.concat([setWeakFair, removeFairness])
           case 'none':
-            return [fireTransition, setWeakFair, setStrongFair]
+            return items.concat([setWeakFair, setStrongFair])
           default:
             throw new Error(
               `Invalid value for fairness for the transition node ${transitionNode.id}:
