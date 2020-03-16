@@ -57,16 +57,30 @@ public class PetriNetD3 {
     }
 
     /**
-     * @return a JSON representation of a Petri Net/PNWT/Petri Game in the editor.
-     * Does not include any X/Y coordinate annotations.
      * TODO This is some technical debt that was incurred due to implementation decisions made when
      * support for the model checking approach was added.  See #293
+     *
+     * @return a JSON representation of a Petri Net/PNWT/Petri Game in the editor.
+     * Does not include any X/Y coordinate annotations.
      */
     public static JsonElement serializeEditorNet(PetriNetWithTransits net) {
+        return serializeEditorNet(net, new HashSet<>());
+    }
+
+    /**
+     * TODO This is some technical debt that was incurred due to implementation decisions made when
+     * support for the model checking approach was added.  See #293
+     *
+     * @param includePositions the set of nodes whose x/y coordinates should be sent to the client
+     * @return a JSON representation of a Petri Net/PNWT/Petri Game in the editor.
+     * Includes the X/Y coordinates of the nodes specified in includePositions.
+     */
+    public static JsonElement serializeEditorNet(PetriNetWithTransits net,
+                                                 Set<Node> includePositions) {
         if (net instanceof PetriGame) {
-            return serializePetriGame((PetriGame) net, new HashSet<>(), true);
+            return serializePetriGame((PetriGame) net, includePositions, true);
         } else {
-            return serializePNWT(net, new HashSet<>(), true);
+            return serializePNWT(net, includePositions, true);
         }
     }
 

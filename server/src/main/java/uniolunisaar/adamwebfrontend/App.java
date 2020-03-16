@@ -471,8 +471,8 @@ public class App {
         return responseJson.toString();
     }
 
-    // Update the X/Y coordinates of multiple nodes.  Send them back to the client to confirm it
-    // worked
+    // Update the X/Y coordinates of multiple nodes in a net in the editor.
+    // Send them back to the client to confirm it worked
     private Object handleUpdateXYCoordinates(Request req, Response res, PetriNetWithTransits petriNet) throws CouldNotFindSuitableConditionException {
         JsonElement body = parser.parse(req.body());
         JsonObject nodesXYCoordinatesJson =
@@ -482,8 +482,9 @@ public class App {
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
         PetriGameTools.saveXYCoordinates(petriNet, nodePositions);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithXYCoordinates(
-                petriNet, new HashSet<>(petriNet.getNodes()), true);
+        // Send all X/Y coordinates back to the client
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(
+                petriNet, new HashSet<>(petriNet.getNodes()));
 
         return successResponse(serializedNet);
     }
@@ -519,8 +520,9 @@ public class App {
         net.setXCoord(node, x);
         net.setYCoord(node, y);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithXYCoordinates(
-                net, new HashSet<>(Collections.singletonList(node)), true);
+        // Send the x/y coordinate of the newly created node back to the client
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(
+                net, new HashSet<>(Collections.singletonList(node)));
 
         return successResponse(serializedNet);
     }
