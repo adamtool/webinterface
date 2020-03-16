@@ -264,7 +264,7 @@ public class App {
                 break;
             case "petriGame":
                 // TODO Refactor this route into two or three separate routes for PN, PNWT, and PG
-                netJson = PetriNetD3.serializePetriGame((PetriGame)net, net.getNodes(), true);
+                netJson = PetriNetD3.serializePetriGame((PetriGame) net, net.getNodes(), true);
                 break;
             default:
                 throw new IllegalArgumentException("Unrecognized net type: " + netType);
@@ -783,7 +783,21 @@ public class App {
         }
         JsonObject result = new JsonObject();
         result.addProperty("apt", newApt);
-        result.add("graph", PetriNetD3.ofNetWithoutObjective(pn));
+        JsonElement graphJson;
+        switch (netType) {
+            case PETRI_NET:
+                graphJson = PetriNetD3.serializePetriNet(pn, new HashSet<>());
+                break;
+            case PETRI_NET_WITH_TRANSITS:
+                graphJson = PetriNetD3.serializePNWT((PetriNetWithTransits) pn, new HashSet<>(), false);
+                break;
+            case PETRI_GAME:
+                graphJson = PetriNetD3.serializePetriGame((PetriGame) pn, new HashSet<>(), false);
+                break;
+            default:
+                return errorResponse("Missing switch branch.  Please file a bug report");
+        }
+        result.add("graph", graphJson);
         return successResponse(result);
     }
 

@@ -52,7 +52,8 @@ public enum JobType {
         JsonElement serialize(Object result) {
             JsonObject json = new JsonObject();
             PetriGame game = (PetriGame) result;
-            JsonElement netJson = PetriNetD3.ofNetWithoutObjective(game);
+            // TODO #292 include the positions of nodes here
+            JsonElement netJson = PetriNetD3.serializePetriGame(game, new HashSet<>(), false);
             json.add("graph", netJson);
 
             String apt;
