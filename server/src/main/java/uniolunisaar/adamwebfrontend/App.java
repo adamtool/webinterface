@@ -117,6 +117,7 @@ public class App {
         return exceptionName + ": " + exception.getMessage();
     }
 
+    // TODO Refactor, see #293
     public static PetriGame promoteToPetriGame(PetriNetWithTransits net) {
         if (!(net instanceof PetriGame)) {
             throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");

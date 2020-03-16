@@ -41,6 +41,7 @@ public enum JobType {
 
         Job<Boolean> makeJob(PetriNetWithTransits net,
                              JsonObject params) {
+            // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
@@ -66,6 +67,7 @@ public enum JobType {
 
         Job<PetriGame> makeJob(PetriNetWithTransits net,
                                JsonObject params) {
+            // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
@@ -81,6 +83,7 @@ public enum JobType {
 
         Job<BDDGraph> makeJob(PetriNetWithTransits net,
                               JsonObject params) {
+            // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
