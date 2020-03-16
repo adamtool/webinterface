@@ -56,11 +56,15 @@ public class PetriNetD3 {
         PetriNetNode serializeTransition(T net, Transition transition);
     }
 
-    /* TODO This is some technical debt that was incurred due to implementation decisions made when
-        support for the model checking approach was added.  See #293 */
+    /**
+     * @return a JSON representation of a Petri Net/PNWT/Petri Game in the editor.
+     * Does not include any X/Y coordinate annotations.
+     * TODO This is some technical debt that was incurred due to implementation decisions made when
+     * support for the model checking approach was added.  See #293
+     */
     public static JsonElement serializeEditorNet(PetriNetWithTransits net) {
         if (net instanceof PetriGame) {
-            return serializePetriGame((PetriGame)net, new HashSet<>(), true);
+            return serializePetriGame((PetriGame) net, new HashSet<>(), true);
         } else {
             return serializePNWT(net, new HashSet<>(), true);
         }

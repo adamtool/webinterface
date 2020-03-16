@@ -531,7 +531,7 @@ public class App {
 
         net.removeNode(nodeId);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -543,7 +543,7 @@ public class App {
         Node oldNode = net.getNode(nodeIdOld);
         net.rename(oldNode, nodeIdNew);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -564,7 +564,7 @@ public class App {
             petriGame.setEnvironment(place);
         }
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(petriGame);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(petriGame);
         return successResponse(serializedNet);
     }
 
@@ -580,7 +580,7 @@ public class App {
             net.setInitialTransit(place);
         }
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -592,7 +592,8 @@ public class App {
         Place place = net.getPlace(nodeId);
         place.setInitialToken(tokens);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+
         return successResponse(serializedNet);
     }
 
@@ -609,7 +610,7 @@ public class App {
             net.removeSpecial(place, condition);
         }
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -620,7 +621,7 @@ public class App {
         Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
         PNWTTools.setConditionAnnotation(net, objective);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -630,7 +631,7 @@ public class App {
         String destination = body.get("destination").getAsString();
 
         net.createFlow(source, destination);
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -642,7 +643,7 @@ public class App {
 
         net.removeFlow(source, target);
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -681,7 +682,7 @@ public class App {
             net.createInitialTransit(transitionId, postsetArray);
         }
 
-        JsonElement serializedNet = PetriNetD3.ofPetriNetWithTransits(net);
+        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -815,7 +816,7 @@ public class App {
             default:
                 throw new IllegalArgumentException("Unrecognized value for 'fairness': " + fairness);
         }
-        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
+        return successResponse(PetriNetD3.serializeEditorNet(net));
     }
 
     private Object handleSetInhibitorArc(Request req, Response response, PetriNetWithTransits net) {
@@ -837,7 +838,7 @@ public class App {
         } else {
             net.removeInhibitor(flow);
         }
-        return successResponse(PetriNetD3.ofPetriNetWithTransits(net));
+        return successResponse(PetriNetD3.serializeEditorNet(net));
     }
 
 }
