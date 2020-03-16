@@ -187,18 +187,6 @@ public class PetriNetD3 {
 
     /**
      * @return a JSON representation of a Petri Net/PNWT/Petri Game. Does not include any X/Y
-     * coordinate annotations.
-     */
-    public static JsonElement ofPetriNetWithTransits(PetriNet net) throws SerializationException {
-        try {
-            return ofPetriNetWithXYCoordinates(net, new HashSet<>(), true);
-        } catch (CouldNotFindSuitableConditionException e) {
-            throw new SerializationException(e);
-        }
-    }
-
-    /**
-     * @return a JSON representation of a Petri Net/PNWT/Petri Game. Does not include any X/Y
      * coordinate annotations or winning condition.
      */
     public static JsonElement ofNetWithoutObjective(PetriNet net) throws SerializationException {
