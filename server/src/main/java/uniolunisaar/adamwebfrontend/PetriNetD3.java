@@ -29,16 +29,22 @@ public class PetriNetD3 {
     private final Map<String, NodePosition> nodePositions;
 
     // This is only present for some PNWT/PetriGames
-    private final String winningCondition;
+    private String winningCondition;
     // This is only used by PNWT in the model checking case
-    private final String ltlFormula;
+    private String ltlFormula;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, String winningCondition, String ltlFormula) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
-        this.winningCondition = winningCondition;
+    }
+
+    public void setLtlFormula(String ltlFormula) {
         this.ltlFormula = ltlFormula;
+    }
+
+    public void setWinningCondition(String winningCondition) {
+        this.winningCondition = winningCondition;
     }
 
     @FunctionalInterface
@@ -72,7 +78,7 @@ public class PetriNetD3 {
      * support for the model checking approach was added.  See #293
      *
      * @param includePositions the set of nodes whose x/y coordinates should be sent to the client
-     * @return a JSON representation of a Petri Net/PNWT/Petri Game in the editor.
+     * @return a JSON-encoded representation of a Petri Net/PNWT/Petri Game in the editor.
      * Includes the X/Y coordinates of the nodes specified in includePositions.
      */
     public static JsonElement serializeEditorNet(PetriNetWithTransits net,
@@ -84,31 +90,92 @@ public class PetriNetD3 {
         }
     }
 
+    /**
+     * Serialize a plain Petri Net, as in a model checking net.
+     * @param net - The Petri Net
+     * @param shouldSendPositions - The set of Nodes whose X/Y coordinates should be set in the client.
+     * @return A JSON-encoded instance of this class
+     */
     public static JsonElement serializePetriNet(PetriNet net,
                                                 Set<Node> shouldSendPositions) {
-        return ofNetWithXYCoordinates(net, shouldSendPositions, false,
+        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPetriNetPlace,
                 PetriNetNode::fromTransition,
-                PetriNetLink::fromPetriNetFlow);
+                PetriNetLink::fromPetriNetFlow,
+                (ignored) -> new HashMap<>());
+        return new Gson().toJsonTree(netD3);
     }
 
+    /**
+     * Serialize a PetriNetWithTransits as in the model checking case.
+     * @param net - The PetriNetWithTransits
+     * @param shouldSendPositions - The set of Nodes whose X/Y coordinates should be set in the client.
+     * @param shouldIncludeObjective - For the PNWT you edit in the editor, we want to include the
+     *                               objective/winning condition, but for other Petri Nets (e.g.
+     *                               those which represent winning strategies), the annotation may
+     *                               not be present, and we shouldn't try to send it to the client.
+     * @return A JSON-encoded instance of this class
+     */
     public static JsonElement serializePNWT(PetriNetWithTransits net,
                                             Set<Node> shouldSendPositions,
                                             boolean shouldIncludeObjective) {
-        return ofNetWithXYCoordinates(net, shouldSendPositions, shouldIncludeObjective,
+        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPNWTPlace,
                 PetriNetNode::fromTransition,
-                PetriNetLink::fromPNWTFlow);
+                PetriNetLink::fromPNWTFlow,
+                PNWTTools::getTransitRelationFromTransitions);
+
+        // Add winning condition and, if applicable, LTL formula
+        if (shouldIncludeObjective) {
+            Condition.Objective objective;
+            try {
+                objective = Adam.getCondition(net);
+            } catch (CouldNotFindSuitableConditionException e) {
+                throw new SerializationException(e);
+            }
+            boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
+                    objective.equals(Condition.Objective.A_REACHABILITY) ||
+                    objective.equals(Condition.Objective.A_SAFETY);
+            String ltlFormulaString = canConvertToLtl ?
+                    AdamModelChecker.toFlowLTLFormula(net, objective) :
+                    "";
+            netD3.setLtlFormula(ltlFormulaString);
+            String objectiveString = objective.toString();
+            netD3.setWinningCondition(objectiveString);
+        }
+        return new Gson().toJsonTree(netD3);
     }
 
+    /**
+     * Serialize a Petri Game, as in the Synthesis case.
+     * @param net - The PetriGame
+     * @param shouldSendPositions - The set of Nodes whose X/Y coordinates should be set in the client.
+     * @param shouldIncludeObjective - For Petri Games, we want to include the objective/winning
+     *                               condition, but for other Petri Nets (e.g. those which represent winning strategies), the
+     *                               annotation may not be present, and we shouldn't try to send it to the client.
+     * @return A JSON-encoded instance of this class
+     */
     public static JsonElement serializePetriGame(PetriGame net,
                                                  Set<Node> shouldSendPositions,
                                                  boolean shouldIncludeObjective) {
 
-        return ofNetWithXYCoordinates(net, shouldSendPositions, shouldIncludeObjective,
+        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPetriGamePlace,
                 PetriNetNode::fromTransition,
-                PetriNetLink::fromPetriGameFlow);
+                PetriNetLink::fromPetriGameFlow,
+                PNWTTools::getTransitRelationFromTransitions);
+        // Add winning condition
+        if (shouldIncludeObjective) {
+            Condition.Objective objective;
+            try {
+                objective = Adam.getCondition(net);
+            } catch (CouldNotFindSuitableConditionException e) {
+                throw new SerializationException(e);
+            }
+            String objectiveString = objective.toString();
+            netD3.setWinningCondition(objectiveString);
+        }
+        return new Gson().toJsonTree(netD3);
     }
 
 
@@ -117,20 +184,17 @@ public class PetriNetD3 {
      *
      * @param net                    - A PetriNet, PetriNetWithTransits, or PetriGame
      * @param shouldSendPositions    - We will send x/y coordinates for these nodes to the client.
-     * @param shouldIncludeObjective - For Petri Games, we want to include the objective/winning
-     *                               condition, but for other Petri Nets (e.g. those which represent winning strategies), the
-     *                               annotation may not be present, and we shouldn't try to send it to the client.
      * @return A JSON object containing the relevant information from the PetriNet
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static <T extends PetriNet> JsonElement ofNetWithXYCoordinates(
+    public static <T extends PetriNet> PetriNetD3 ofNetWithXYCoordinates(
             T net,
             Set<Node> shouldSendPositions,
-            boolean shouldIncludeObjective,
             PlaceSerializer<T> placeSerializer,
             TransitionSerializer<T> transitionSerializer,
-            FlowSerializer<T> flowSerializer) throws SerializationException {
+            FlowSerializer<T> flowSerializer,
+            Function<T, Map<Flow, String>> getFlowRelationFromTransitions) throws SerializationException {
         List<PetriNetLink> links = new ArrayList<>();
         List<PetriNetNode> nodes = new ArrayList<>();
 
@@ -159,44 +223,14 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        String objectiveString;
-        String ltlFormulaString;
-        Map<Flow, String> flowRelationFromTransitions;
-        if (net instanceof PetriNetWithTransits) {
-            PetriNetWithTransits pnwt = (PetriNetWithTransits) net;
-            flowRelationFromTransitions = PNWTTools.getTransitRelationFromTransitions(pnwt);
-
-            if (shouldIncludeObjective) {
-                Condition.Objective objective;
-                try {
-                    objective = Adam.getCondition(pnwt);
-                } catch (CouldNotFindSuitableConditionException e) {
-                    throw new SerializationException(e);
-                }
-                boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
-                        objective.equals(Condition.Objective.A_REACHABILITY) ||
-                        objective.equals(Condition.Objective.A_SAFETY);
-                ltlFormulaString = canConvertToLtl ?
-                        AdamModelChecker.toFlowLTLFormula(pnwt, objective) :
-                        "";
-                objectiveString = objective.toString();
-            } else {
-                objectiveString = "";
-                ltlFormulaString = "";
-            }
-        } else {
-            objectiveString = "";
-            ltlFormulaString = "";
-            flowRelationFromTransitions = new HashMap<>();
-        }
+        Map<Flow, String> flowRelationFromTransitions = getFlowRelationFromTransitions.apply(net);
         for (Flow flow : net.getEdges()) {
             String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
             PetriNetLink petriNetLink = flowSerializer.serializeFlow(flow, net, arcLabel);
             links.add(petriNetLink);
         }
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, objectiveString,
-                ltlFormulaString);
-        return new Gson().toJsonTree(petriNetD3);
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
+        return petriNetD3;
     }
 
 
