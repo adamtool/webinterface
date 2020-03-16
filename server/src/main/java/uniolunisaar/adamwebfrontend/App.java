@@ -222,7 +222,7 @@ public class App {
         return responseJson.toString();
     }
 
-    private Object handleParseApt(Request req, Response res) throws CouldNotFindSuitableConditionException {
+    private Object handleParseApt(Request req, Response res) {
         JsonElement body = parser.parse(req.body());
         System.out.println("body: " + body.toString());
         JsonObject params = body.getAsJsonObject().get("params").getAsJsonObject();
@@ -256,9 +256,19 @@ public class App {
         petriNets.put(netUuid, net);
         System.out.println("Generated petri net with ID " + netUuid);
 
-        JsonElement petriNetD3Json =
-                PetriNetD3.ofPetriNetWithXYCoordinates(net, net.getNodes(), true);
-        JsonElement serializedNet = PetriGameD3.of(petriNetD3Json, netUuid);
+        JsonElement netJson;
+        switch (netType) {
+            case "petriNetWithTransits":
+                netJson = PetriNetD3.serializePNWT(net, net.getNodes(), true);
+                break;
+            case "petriGame":
+                // TODO Refactor this route into two or three separate routes for PN, PNWT, and PG
+                netJson = PetriNetD3.serializePetriGame((PetriGame)net, net.getNodes(), true);
+                break;
+            default:
+                throw new IllegalArgumentException("Unrecognized net type: " + netType);
+        }
+        JsonElement serializedNet = PetriGameD3.of(netJson, netUuid);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");

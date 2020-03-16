@@ -66,17 +66,19 @@ public class PetriNetD3 {
     }
 
     public static JsonElement serializePNWT(PetriNetWithTransits net,
-                                            Set<Node> shouldSendPositions) {
-        return ofNetWithXYCoordinates(net, shouldSendPositions, false,
+                                            Set<Node> shouldSendPositions,
+                                            boolean shouldIncludeObjective) {
+        return ofNetWithXYCoordinates(net, shouldSendPositions, shouldIncludeObjective,
                 PetriNetNode::fromPNWTPlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPNWTFlow);
     }
 
     public static JsonElement serializePetriGame(PetriGame net,
-                                                 Set<Node> shouldSendPositions) {
+                                                 Set<Node> shouldSendPositions,
+                                                 boolean shouldIncludeObjective) {
 
-        return ofNetWithXYCoordinates(net, shouldSendPositions, false,
+        return ofNetWithXYCoordinates(net, shouldSendPositions, shouldIncludeObjective,
                 PetriNetNode::fromPetriGamePlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPetriGameFlow);
