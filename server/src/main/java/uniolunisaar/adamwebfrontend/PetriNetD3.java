@@ -74,8 +74,8 @@ public class PetriNetD3 {
     }
 
     /**
-     * TODO This is some technical debt that was incurred due to implementation decisions made when
-     * support for the model checking approach was added.  See #293
+     * TODO #293 This is part of some technical debt that was incurred due to implementation
+     * decisions made when support for the model checking approach was added.
      *
      * @param includePositions the set of nodes whose x/y coordinates should be sent to the client
      * @return a JSON-encoded representation of a Petri Net/PNWT/Petri Game in the editor.

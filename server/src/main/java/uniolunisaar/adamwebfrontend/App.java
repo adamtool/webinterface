@@ -298,6 +298,7 @@ public class App {
         }
         UserContext userContext = userContextMap.get(browserUuid);
 
+        // TODO Refactor, see #293
         PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
         JobKey jobKey = new JobKey(
                 PNWTTools.getAPT(netCopy, true, true),
@@ -489,7 +490,7 @@ public class App {
         return successResponse(serializedNet);
     }
 
-    private Object handleInsertPlace(Request req, Response res, PetriNetWithTransits net) throws CouldNotFindSuitableConditionException {
+    private Object handleInsertPlace(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         double x = body.get("x").getAsDouble();
         double y = body.get("y").getAsDouble();
@@ -502,6 +503,7 @@ public class App {
                 node = net.createPlace();
                 break;
             case ENVPLACE:
+                // TODO #293 refactor
                 if (!(net instanceof PetriGame)) {
                     throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
                 } else {
@@ -553,6 +555,7 @@ public class App {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String nodeId = body.get("nodeId").getAsString();
 
+        // TODO #293 refactor
         if (!(net instanceof PetriGame)) {
             throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
         }
