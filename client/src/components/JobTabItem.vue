@@ -83,6 +83,7 @@
   <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
                :graph="tab.result.graph"
                :petriNetApt="tab.result.apt"
+               :useModelChecking="true"
                netType="PETRI_NET"
                editorMode="Simulator"
                :restEndpoints="restEndpoints"
