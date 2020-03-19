@@ -274,7 +274,6 @@
                       :transition="false"
                       :reverse-transition="false">
             <keep-alive>
-              <!--TODO replace anonymous functions with non-anonymous ones for performance reasons-->
               <JobTabItem
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
