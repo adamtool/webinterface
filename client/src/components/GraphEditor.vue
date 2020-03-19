@@ -218,6 +218,12 @@
         type: String,
         required: false
       },
+      // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
+      // In Java this is represented as a Map<String, Long>
+      petriNetMarking: {
+        type: Object,
+        required: false
+      },
       netType: {
         // The type of the petri net displayed in this GraphEditor instance.
         // This corresponds to the 'NetType' enum on the server
@@ -396,7 +402,10 @@
               {
                 // An empty state which will be shown as <start> in the list
               }
-            ]
+            ],
+            graph: {
+              fakeGraphShouldNotBeUsed: null // This 'graph' object should never be used
+            }
           }
         }
       },
@@ -1242,7 +1251,7 @@
       'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
         const currentState = this.gameSimulationHistory.stack[newIndex]
         if (currentState) { // Maybe the history has been reset and there is no 'current state'
-          this.importGraph(currentState.graph)
+          this.applyMarking(currentState.marking)
           this.updateD3()
         }
       },
@@ -1272,13 +1281,16 @@
         if (newMode === 'Editor' && oldMode === 'Simulator') {
           // Display the editor's current state
           this.importGraph(this.graph)
+          this.applyMarking(this.petriNetMarking)
           this.updateD3()
         } else if (newMode === 'Simulator' && oldMode === 'Editor') {
           // Display the simulator's current state
           const {currentIndex, stack} = this.gameSimulationHistory
           const currentState = stack[currentIndex]
           if (currentState) { // Maybe the history has been reset and there is no 'current state'
-            this.importGraph(currentState.graph)
+            // Show the 'graph' that the simulation is based on.
+            // It could be different from the graph shown in the editor
+            this.importGraph(gameSimulationHistory.graph)
             this.updateD3()
           }
         }
@@ -1431,11 +1443,14 @@
           currentIndex: 0, // The index of the currently selected state in the history
           /* Each game simulation state in this stack consists of an object:
           {
-            graph: null,  // The same as our prop 'graph'
-            apt: null  // The apt corresponding to the graph
+            marking: null, // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
             transitionFired: null // The transition fired from the previous state to reach this state
           } */
-          stack: []
+          stack: [],
+          graph: {
+            nodes: [],
+            links: []
+          }
         }
       },
       // When a transition gets fired (whether successful or not), it and its connected Places
@@ -1515,38 +1530,19 @@
             currentIndex: 0,
             stack: [
               {
-                graph: this.deepCopy(this.graph),
-                apt: this.petriNetApt,
+                marking: this.petriNetMarking,
                 transitionFired: null
               }
-            ]
+            ],
+            graph: this.deepCopy(this.graph)
           }
         }
         const {stack, currentIndex} = this.gameSimulationHistory
         const currentState = stack[currentIndex]
-        if (!currentState.apt) {
-          // Nets in the editor do not have their APT always stored clientside, because sometimes,
-          // generating APT results in an unnecessary RenderException.  Instead, they are kept as
-          // persistent objects on the server addressed by UUIDs (petriNetId).
-          // So, when you switch from Editor to Simulator and want to fire a transition for the
-          // first time, the client will send this petriNetId instead of an APT string in order to
-          // bootstrap the simulation.
-          // After that, the relevant state of the simulation (pairs of APT & graph) is kept
-          // entirely client-side.
-          // TODO If the RenderException issue can be resolved, I would plan to store the editor
-          //  state as APT on the client all the time to reduce this complexity and make undo/redo
-          //  easy to implement.
-          const isUsingNetFromEditor = currentIndex === 0 && this.petriNetId
-          if (!isUsingNetFromEditor) {
-            logging.sendErrorNotification('No APT nor petriNetId available.  Can\'t simulate')
-            return
-          }
-        }
+
         const transitionId = d.id
         this.restEndpoints.fireTransition({
-          // The server will simulate using the net represented in currentState.apt if present,
-          // or it will fall back to the net stored on the server addressed by petriNetId.
-          apt: currentState.apt,
+          preMarking: currentState.marking,
           petriNetId: this.petriNetId,
           transitionId,
           netType: this.netType
@@ -1554,12 +1550,12 @@
           // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
           if (response.data.status === 'success') {
             const newState = {
-              ...response.data.result,  // apt, graph
+              marking: response.data.result,
               transitionFired: transitionId
             }
             this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1).concat([newState])
             this.gameSimulationHistory.currentIndex = currentIndex + 1
-            this.importGraph(newState.graph)
+            this.applyMarking(newState.marking)
             this.updateD3()
             this.showTransitionFired({
               transitionId: d.id,
@@ -2329,6 +2325,12 @@
           const path = rectanglePath(...border)
           this.selectionBorder.attr('d', path)
         }
+      },
+      // Update the 'initialToken' in each graph element
+      applyMarking: function (marking) {
+        this.nodes.forEach(node => {
+          node.initialToken = marking[node.id]
+        })
       },
       /**
        * Perform a diff of the new graph against our existing graph, updating our graph in-place.

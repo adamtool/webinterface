@@ -709,7 +709,7 @@ public class App {
     private Object handleFireTransitionNew(Request req, Response res) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
 
-        JsonObject preMarkingJson = body.get("markings").getAsJsonObject();
+        JsonObject preMarkingJson = body.get("preMarking").getAsJsonObject();
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
         Map<String, Long> markingsMap = gson.fromJson(preMarkingJson, markingMapTypeToken);
