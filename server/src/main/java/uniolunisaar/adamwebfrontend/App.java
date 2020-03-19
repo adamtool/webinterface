@@ -706,6 +706,47 @@ public class App {
         }
     }
 
+    private Object handleFireTransitionNew(Request req, Response res) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        JsonObject preMarkingJson = body.get("markings").getAsJsonObject();
+        Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
+        }.getType();
+        Map<String, Long> markingsMap = gson.fromJson(preMarkingJson, markingMapTypeToken);
+
+        JsonElement transitionIdJson = body.get("transitionId");
+        String transitionId = transitionIdJson.getAsString();
+
+        PetriNet net = null; // TODO figure out how to get ahold of this
+        PetriNet netCopy = new PetriNet(net);
+        Transition transition = netCopy.getTransition(transitionId);
+        Marking preMarking = mapToMarking(markingsMap, net);
+        Marking postMarking = transition.fire(preMarking);
+
+        Map<String, Long> postMarkingMap = markingToMap(postMarking);
+        JsonElement postMarkingJson = gson.toJsonTree(postMarkingMap, markingMapTypeToken);
+        return successResponse(postMarkingJson);
+    }
+
+    private static Marking mapToMarking(Map<String, Long> map, PetriNet net) {
+        Marking marking = new Marking(net);
+        map.forEach((placeId, tokenCount) -> {
+            Place place = net.getPlace(placeId);
+            Token token = Token.valueOf(tokenCount);
+            marking.setTokenCount(place, token);
+        });
+        return marking;
+    }
+
+    private static Map<String, Long> markingToMap(Marking marking) {
+        Map<String, Long> map = new HashMap<>();
+        for (Place place : marking.getNet().getPlaces()) {
+            String placeId = place.getId();
+            Long tokenCount = marking.getToken(placeId).getValue();
+            map.put(placeId, tokenCount);
+        }
+        return map;
+    }
+
     private Object handleFireTransition(Request req, Response res) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String apt;
