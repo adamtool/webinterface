@@ -211,6 +211,7 @@
               <GraphEditor :graph='petriGame.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :petriNetId='petriGame.uuid'
+                           :petriNetMarking='petriGame.initialMarking'
                            :editorMode='editorSimulatorMode'
                            ref='graphEditorPetriGame'
                            v-on:dragDropEnd='onDragDropEnd'
@@ -473,12 +474,14 @@
           }
         ],
         visibleJobsRightSide: [],
+        // TODO 290 rename from 'petriGame' to something more suitable
         petriGame: {
           net: {
             links: [],
             nodes: []
           },
-          uuid: 'abcfakeuuid123'
+          uuid: 'abcfakeuuid123',
+          initialMarking: {}
         },
         isLeftPaneVisible: true,
         isLogVisible: false,
@@ -909,7 +912,7 @@
             case 'success':
               logging.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
               logging.logObject(response)
-              this.petriGame = response.data.graph
+              this.petriGame = response.data.petriGame
               this.aptParseStatus = 'success'
               this.aptParseError = ''
               this.aptParseErrorLineNumber = -1
@@ -1186,6 +1189,7 @@
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
+            // TODO 290 make sure 'petriGame.initialMarking' is also updated correctly
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
@@ -1262,6 +1266,7 @@
           tokens: tokens
         }).then(response => {
           this.withErrorHandling(response, response => {
+            // TODO 290 make sure 'petriGame.initialMarking' is also updated correctly
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
@@ -1289,6 +1294,7 @@
           y: nodeSpec.y
         }).then(response => {
           this.withErrorHandling(response, response => {
+            // TODO 290 make sure 'petriGame.initialMarking' is also updated correctly
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
@@ -1476,7 +1482,7 @@
      which correspond to a single v-tab-item.
      See my codepen https://codepen.io/annmygdala/pen/xxxpoNP  */
   .v-tabs-with-shared-content .v-tab--active:not(.selected-tab) {
-    color: rgba(0,0,0,.7);
+    color: rgba(0, 0, 0, .7);
   }
 
   .v-tabs-with-shared-content .v-tab {

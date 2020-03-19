@@ -269,11 +269,20 @@ public class App {
             default:
                 throw new IllegalArgumentException("Unrecognized net type: " + netType);
         }
-        JsonElement serializedNet = PetriGameD3.of(netJson, netUuid);
+        // Send the initial marking as well as the net
+        // TODO 290 remove the redundant 'initialMarking' property from the 'net' json's
+        //  'nodes', i.e. PetriNetNode.initialToken
+        Marking initialMarking = net.getInitialMarking();
+        Map<String, Long> initialMarkingMap = markingToMap(initialMarking);
+        Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
+        }.getType();
+        JsonElement initialMarkingJson = gson.toJsonTree(initialMarkingMap, markingMapTypeToken);
+        JsonElement serializedNet = PetriGameD3.of(netJson, netUuid, initialMarkingJson);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
-        responseJson.add("graph", serializedNet);
+        // TODO 293 rename from 'petriGame' to something more suitable
+        responseJson.add("petriGame", serializedNet);
         return responseJson.toString();
     }
 
