@@ -903,6 +903,7 @@
         this.restEndpoints.parseApt({
           params: {
             apt: apt,
+            // TODO 290 create new bug to use the enum 'NetType' for this argument
             netType: this.useModelChecking ? 'petriNetWithTransits' : 'petriGame'
           }
         }).then(response => {
