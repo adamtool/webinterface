@@ -98,7 +98,7 @@ public class App {
 
         postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
-        post("/fireTransition", this::handleFireTransition);
+        post("/fireTransition", this::handleFireTransitionNew);
 
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
 
@@ -740,6 +740,7 @@ public class App {
                 break;
             case PETRI_NET_WITH_TRANSITS:
                 netCopy = new PetriNetWithTransits((PetriNetWithTransits) net);
+                break;
             case PETRI_GAME:
                 netCopy = new PetriGame((PetriGame) net);
                 break;
