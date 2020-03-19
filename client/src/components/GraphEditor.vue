@@ -218,12 +218,6 @@
         type: String,
         required: false
       },
-      // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
-      // In Java this is represented as a Map<String, Long>
-      petriNetMarking: {
-        type: Object,
-        required: false
-      },
       netType: {
         // The type of the petri net displayed in this GraphEditor instance.
         // This corresponds to the 'NetType' enum on the server
@@ -321,6 +315,7 @@
       this.nodes = []
       this.links = []
       this.importGraph(this.graph)
+      this.applyMarking(this.graph.initialMarking)
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
@@ -1281,7 +1276,7 @@
         if (newMode === 'Editor' && oldMode === 'Simulator') {
           // Display the editor's current state
           this.importGraph(this.graph)
-          this.applyMarking(this.petriNetMarking)
+          this.applyMarking(this.graph.initialMarking)
           this.updateD3()
         } else if (newMode === 'Simulator' && oldMode === 'Editor') {
           // Display the simulator's current state
@@ -1291,6 +1286,7 @@
             // Show the 'graph' that the simulation is based on.
             // It could be different from the graph shown in the editor
             this.importGraph(gameSimulationHistory.graph)
+            this.applyMarking(currentState.marking)
             this.updateD3()
           }
         }
@@ -1407,6 +1403,7 @@
          this component.
          */
         this.importGraph(graph)
+        this.applyMarking(graph.initialMarking)
         this.updateD3()
 
         // Reset the simulation as well
@@ -1491,6 +1488,7 @@
       },
       resetSimulation: function () {
         this.importGraph(this.graph)
+        this.applyMarking(this.graph.initialMarking)
         this.gameSimulationHistory = this.gameSimulationHistoryDefault()
         this.updateD3()
         logging.sendSuccessNotification('Reset the simulation.')
@@ -1530,7 +1528,7 @@
             currentIndex: 0,
             stack: [
               {
-                marking: this.petriNetMarking,
+                marking: this.graph.initialMarking,
                 transitionFired: null
               }
             ],

@@ -211,7 +211,6 @@
               <GraphEditor :graph='petriGame.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :petriNetId='petriGame.uuid'
-                           :petriNetMarking='petriGame.initialMarking'
                            :editorMode='editorSimulatorMode'
                            ref='graphEditorPetriGame'
                            v-on:dragDropEnd='onDragDropEnd'
@@ -480,8 +479,7 @@
             links: [],
             nodes: []
           },
-          uuid: 'abcfakeuuid123',
-          initialMarking: {}
+          uuid: 'abcfakeuuid123'
         },
         isLeftPaneVisible: true,
         isLogVisible: false,
@@ -1189,7 +1187,6 @@
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO 290 make sure 'petriGame.initialMarking' is also updated correctly
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
@@ -1266,7 +1263,6 @@
           tokens: tokens
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO 290 make sure 'petriGame.initialMarking' is also updated correctly
             this.petriGame.net = response.data.result
           })
         }).catch(() => {
@@ -1294,7 +1290,6 @@
           y: nodeSpec.y
         }).then(response => {
           this.withErrorHandling(response, response => {
-            // TODO 290 make sure 'petriGame.initialMarking' is also updated correctly
             this.petriGame.net = response.data.result
           })
         }).catch(() => {

@@ -765,7 +765,8 @@ public class App {
         return marking;
     }
 
-    private static Map<String, Long> markingToMap(Marking marking) {
+    // TODO 290 move to 'PetriGameTools' package
+    public static Map<String, Long> markingToMap(Marking marking) {
         Map<String, Long> map = new HashMap<>();
         for (Place place : marking.getNet().getPlaces()) {
             String placeId = place.getId();
