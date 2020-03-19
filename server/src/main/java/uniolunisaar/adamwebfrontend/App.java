@@ -708,16 +708,35 @@ public class App {
 
     private Object handleFireTransitionNew(Request req, Response res) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
+
         JsonObject preMarkingJson = body.get("markings").getAsJsonObject();
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
         Map<String, Long> markingsMap = gson.fromJson(preMarkingJson, markingMapTypeToken);
 
-        JsonElement transitionIdJson = body.get("transitionId");
-        String transitionId = transitionIdJson.getAsString();
+        String transitionId = body.get("transitionId").getAsString();
 
-        PetriNet net = null; // TODO figure out how to get ahold of this
-        PetriNet netCopy = new PetriNet(net);
+        String petriNetId = body.get("petriNetId").getAsString();
+
+        NetType netType = NetType.valueOf(body.get("netType").getAsString());
+
+        // TODO Refactor (See #293)
+        // TODO Allow firing transitions in petri nets outside the editor
+        // (Model checking net / Winning Strategy)
+        PetriNet net = getPetriNet(petriNetId);
+        PetriNet netCopy = null;
+        switch (netType) {
+            case PETRI_NET:
+                netCopy = new PetriNet(net);
+                break;
+            case PETRI_NET_WITH_TRANSITS:
+                netCopy = new PetriNetWithTransits((PetriNetWithTransits) net);
+            case PETRI_GAME:
+                netCopy = new PetriGame((PetriGame) net);
+                break;
+        }
+
+        // Fire the transition in a copy of the net, leaving the original net alone
         Transition transition = netCopy.getTransition(transitionId);
         Marking preMarking = mapToMarking(markingsMap, net);
         Marking postMarking = transition.fire(preMarking);
