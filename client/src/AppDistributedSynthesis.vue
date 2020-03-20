@@ -1,8 +1,5 @@
 <template>
-  <!--TODO Make baseUrl different for dev / production-->
-  <!--baseUrl="http://localhost:4567"-->
-  <App baseUrl="http://localhost:4567"
-       :useModelChecking="false"
+  <App :useModelChecking="false"
        useDistributedSynthesis/>
 </template>
 
