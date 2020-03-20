@@ -85,7 +85,6 @@
       style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
              padding: 6px; border-radius: 30px;"
       class="d-flex flex-column"
-      @keyup.native="onSimulationHistoryKeydown"
       :tabIndex="-1"
     >
       <v-card-title class="flex-grow-0 flex-shrink-0">
@@ -95,20 +94,16 @@
               class="overflow-y-auto flex-grow-1"
               style="padding-top: 0;"
               ref="simulationHistoryListEl"
-              @keyup.native="onSimulationHistoryKeydown"
       >
         <v-list-item-group
           v-model="gameSimulationHistory.currentIndex"
-          @keyup.native="onSimulationHistoryKeydown"
           mandatory
         >
           <v-list-item
             v-for="(historyState, i) in visibleSimulationHistory.stack"
             :key="i"
-            @keyup.native="onSimulationHistoryKeydown"
           >
             <v-list-item-content
-              @keyup.native="onSimulationHistoryKeydown"
             >
               <v-list-item-title v-text="i === 0 ? '<start>' : historyState.transitionFired">
               </v-list-item-title>
@@ -1414,17 +1409,6 @@
       }
     },
     methods: {
-      // TODO 290 delete, unused
-      onSimulationHistoryKeydown: function (event) {
-        switch (event.key) {
-          case 'ArrowUp':
-            this.simulationHistoryBack()
-            break
-          case 'ArrowDown':
-            this.simulationHistoryForward()
-            break
-        }
-      },
       simulationHistoryBack: function () {
         const {currentIndex} = this.gameSimulationHistory
         this.gameSimulationHistory.currentIndex = Math.max(0, currentIndex - 1)
