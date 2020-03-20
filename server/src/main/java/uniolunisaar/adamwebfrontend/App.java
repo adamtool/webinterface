@@ -725,6 +725,7 @@ public class App {
      * provided by the client.  See if that Job exists, and if it does, and it is complete
      * with result type PetriNet (or PNWT, or PG), return the PetriNet.
      * *
+     *
      * @return The PetriNet produced by the job with the given key
      */
     private PetriNet getPetriNetFromJob(JsonObject requestBody) {
@@ -749,11 +750,11 @@ public class App {
     }
 
     private Object handleFireTransitionJob(Request req, Response res) {
-        return handleFireTransitionNew(req, res, this::getPetriNetFromJob);
+        return handleFireTransition(req, res, this::getPetriNetFromJob);
     }
 
     private Object handleFireTransitionEditor(Request req, Response res) {
-        return handleFireTransitionNew(req, res, this::getPetriNetFromEditor);
+        return handleFireTransition(req, res, this::getPetriNetFromEditor);
     }
 
 
@@ -766,7 +767,7 @@ public class App {
      *                        with different getters accordingly.
      *                        See getPetriNetFromEditor and getPetriNetFromJob
      */
-    private Object handleFireTransitionNew(Request req, Response res,
+    private Object handleFireTransition(Request req, Response res,
                                            Function<JsonObject, PetriNet> petriNetGetter) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
 
@@ -824,113 +825,6 @@ public class App {
         result.add("fireableTransitions", fireableTransitionsJson);
 
         return successResponse(result);
-    }
-
-    private Object handleFireTransition(Request req, Response res) {
-        JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        String apt;
-        JsonElement aptJson = body.get("apt");
-        JsonElement netIdJson = body.get("petriNetId");
-        JsonElement transitionIdJson = body.get("transitionId");
-        // netType should be a String representation of an element of the Enum NetType
-        JsonElement netTypeJson = body.get("netType");
-        if (aptJson != null && aptJson.isJsonPrimitive() && aptJson.getAsJsonPrimitive().isString()) {
-            apt = aptJson.getAsString();
-        } else if (netIdJson != null) {
-            String netId = netIdJson.getAsString();
-
-            PetriNetWithTransits pg = getPetriNet(netId);
-            try {
-                apt = pg.toAPT(true, true);
-            } catch (RenderException e) {
-                e.printStackTrace();
-                return errorResponse("An exception was thrown when converting the given " +
-                        "net to APT.  Check the server log for details: " + exceptionToString(e));
-            }
-        } else {
-            return errorResponse("Invalid request. No 'apt' or 'petriNetId' was provided.");
-        }
-
-        if (transitionIdJson == null) {
-            return errorResponse("Invalid request.  No 'transitionId' was provided.");
-        }
-        NetType netType;
-        if (netTypeJson == null || !netTypeJson.isJsonPrimitive() || !netTypeJson.getAsJsonPrimitive().isString()) {
-            return errorResponse("Invalid request.  A 'netType' must be provided, and it should" +
-                    "correspond to one of the elements of the enum 'NetType'.");
-        } else {
-            try {
-                netType = NetType.valueOf(netTypeJson.getAsString());
-            } catch (IllegalArgumentException e) {
-                return errorResponse("The value provided for 'netType' does not match any of the " +
-                        "elements of the enum 'NetType'.");
-            }
-        }
-
-        String transitionId = transitionIdJson.getAsString();
-        PetriNet pn;
-        try {
-            switch (netType) {
-                case PETRI_NET:
-                    pn = Tools.getPetriNetFromString(apt);
-                    break;
-                case PETRI_NET_WITH_TRANSITS:
-                    pn = PNWTTools.getPetriNetWithTransits(apt, true);
-                    break;
-                case PETRI_GAME:
-                    pn = PGTools.getPetriGameFromAPTString(apt, true, true);
-                    break;
-                default:
-                    return errorResponse("Missing switch branch. Please send a bug report");
-            }
-        } catch (ParseException | IOException | CouldNotCalculateException | NotSupportedGameException e) {
-            return errorResponse(exceptionToString(e));
-        }
-
-        fireTransition(pn, transitionId);
-        String newApt;
-        try {
-            switch (netType) {
-                case PETRI_NET:
-                    newApt = Tools.getPN(pn);
-                    break;
-                case PETRI_NET_WITH_TRANSITS:
-                    newApt = PNWTTools.getAPT((PetriNetWithTransits) pn, true, true);
-                    break;
-                case PETRI_GAME:
-                    newApt = PGTools.getAPT((PetriGame) pn, true, true);
-                    break;
-                default:
-                    return errorResponse("Missing switch branch.  Please file a bug report");
-            }
-        } catch (RenderException e) {
-            return errorResponse(exceptionToString(e));
-        }
-        JsonObject result = new JsonObject();
-        result.addProperty("apt", newApt);
-        JsonElement graphJson;
-        switch (netType) {
-            case PETRI_NET:
-                graphJson = PetriNetD3.serializePetriNet(pn, new HashSet<>());
-                break;
-            case PETRI_NET_WITH_TRANSITS:
-                graphJson = PetriNetD3.serializePNWT((PetriNetWithTransits) pn, new HashSet<>(), false);
-                break;
-            case PETRI_GAME:
-                graphJson = PetriNetD3.serializePetriGame((PetriGame) pn, new HashSet<>(), false);
-                break;
-            default:
-                return errorResponse("Missing switch branch.  Please file a bug report");
-        }
-        result.add("graph", graphJson);
-        return successResponse(result);
-    }
-
-    private void fireTransition(PetriNet net, String transitionId) {
-        Transition transition = net.getTransition(transitionId);
-        Marking initialMarking = net.getInitialMarking();
-        Marking newInitialMarking = transition.fire(initialMarking);
-        net.setInitialMarking(newInitialMarking);
     }
 
     private Object handleSetFairness(Request req, Response res, PetriNetWithTransits net) {
