@@ -763,16 +763,6 @@ public class App {
         return successResponse(postMarkingJson);
     }
 
-    private static Marking mapToMarking(Map<String, Long> map, PetriNet net) {
-        Marking marking = new Marking(net);
-        map.forEach((placeId, tokenCount) -> {
-            Place place = net.getPlace(placeId);
-            Token token = Token.valueOf(tokenCount);
-            marking.setTokenCount(place, token);
-        });
-        return marking;
-    }
-
     // TODO 290 move to 'PetriGameTools' package
     public static Map<String, Long> markingToMap(Marking marking) {
         Map<String, Long> map = new HashMap<>();
