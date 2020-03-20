@@ -101,6 +101,7 @@ public class App {
         postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
         post("/fireTransitionEditor", this::handleFireTransitionEditor);
+        post("/fireTransitionJob", this::handleFireTransitionJob);
 
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
 
@@ -720,6 +721,38 @@ public class App {
     private PetriNet getPetriNetFromEditor(JsonObject requestBody) {
         String petriNetId = requestBody.get("petriNetId").getAsString();
         return getPetriNet(petriNetId);
+    }
+
+    /**
+     * Get the user context of the client and look inside of it for a jobKey matching the one
+     * provided by the client.  See if that Job exists, and if it does, and it is complete
+     * with result type PetriNet (or PNWT, or PG), return the PetriNet.
+     * *
+     * @return The PetriNet produced by the job with the given key
+     */
+    private PetriNet getPetriNetFromJob(JsonObject requestBody) {
+        String browserUuidString = requestBody.getAsJsonObject().get("browserUuid").getAsString();
+        UUID browserUuid = UUID.fromString(browserUuidString);
+        if (!userContextMap.containsKey(browserUuid)) {
+            userContextMap.put(browserUuid, new UserContext(browserUuid));
+        }
+        UserContext userContext = userContextMap.get(browserUuid);
+
+        Type t = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = requestBody.getAsJsonObject().get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, t);
+        try {
+            return userContext.getPetriNetFromJob(jobKey);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("An exception was thrown when retrieving the petri net " +
+                    "on the server.  Please file a bug and include the server logs if possible.");
+        }
+    }
+
+    private Object handleFireTransitionJob(Request req, Response res) {
+        return handleFireTransitionNew(req, res, this::getPetriNetFromJob);
     }
 
     private Object handleFireTransitionEditor(Request req, Response res) {
