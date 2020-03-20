@@ -587,7 +587,7 @@
           'deleteJob',
           'toggleGraphGameBDDNodePostset',
           'toggleGraphGameBDDNodePreset',
-          'getAptOfPetriGame',
+          'getAptOfEditorNet',
           'updateXYCoordinates',
           'parseApt',
           'insertPlace',
@@ -1107,8 +1107,8 @@
       },
       // Return a promise with the return value of the new apt
       // TODO refactor 'withErrorHandling'. It's annoying to have to type 'return' twice.
-      getAptOfPetriGame: function () {
-        return this.restEndpoints.getAptOfPetriGame({
+      getAptOfEditorNet: function () {
+        return this.restEndpoints.getAptOfEditorNet({
           petriNetId: this.editorNet.uuid
         }).then(response => {
           return this.withErrorHandling(response, response => {
@@ -1119,7 +1119,7 @@
       // Save xy coordinates on the server and then get the new updated APT back
       savePetriGameAsAPT: function () {
         return this.saveXYCoordinatesOnServer()
-          .then(this.getAptOfPetriGame)
+          .then(this.getAptOfEditorNet)
           .then(apt => {
             this.apt = apt
           })

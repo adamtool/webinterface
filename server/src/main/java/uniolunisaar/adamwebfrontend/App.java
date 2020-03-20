@@ -73,7 +73,7 @@ public class App {
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
-        postWithPetriNetWithTransits("/getAptOfPetriGame", this::handleGetAptOfPetriGame);
+        postWithPetriNetWithTransits("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
 
         postWithPetriNetWithTransits("/updateXYCoordinates", this::handleUpdateXYCoordinates);
 
@@ -476,11 +476,9 @@ public class App {
         return responseJson.toString();
     }
 
-    // Get the APT representation of a given Petri Game/PetriNetWithTransits
-    private Object handleGetAptOfPetriGame(Request req, Response res, PetriNetWithTransits net)
+    // Get the APT representation of a given net from the editor
+    private Object handleGetAptOfEditorNet(Request req, Response res, PetriNetWithTransits net)
             throws RenderException {
-        JsonElement body = parser.parse(req.body());
-
         String apt = PNWTTools.getAPT(net, true, true);
         JsonElement aptJson = new JsonPrimitive(apt);
 
