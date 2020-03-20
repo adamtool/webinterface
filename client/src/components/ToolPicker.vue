@@ -124,11 +124,9 @@
         type: Array,
         required: true
       },
-      // TODO figure out initialization in App so that this validator can be used
       selectedTool: {
-        // type: Object,
-        // required: true,
-        // validator: tool => tools.includes(tool) && tool.type === 'tool'
+        type: Object,
+        required: true
       },
       // How many pixels should be left, top and bottom, between the edges of the tool picker and
       // the top/bottom edges of the parent element

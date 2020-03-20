@@ -704,7 +704,7 @@
           const errorMessage = 'An exception was thrown when opening the websocket connection to the server.  ' +
             'Server log messages may not be displayed.  Exception: ' + exception.message
           logging.sendErrorNotification(errorMessage)
-          throw new Error(errorMessage) // TODO make errors get caught by a global error handler
+          throw new Error(errorMessage)
         }
         socket.$on('message', message => {
           const messageParsed = JSON.parse(message)
@@ -770,10 +770,9 @@
           }
         })
         socket.$on('open', () => {
+          // Reload the job list when the socket connection to the server is established/reestablished
           this.updateWebSocketBrowserUuid()
-          // TODO Hack to reload the job list whenever the websocket connection is dropped and reacquired
-          // TODO Figure out why the connection keeps dropping!!
-          this.getListOfJobs() // TODO remove this
+          this.getListOfJobs()
           logging.sendSuccessNotification('Established the connection to the server')
         })
         return socket
@@ -862,7 +861,8 @@
         logging.logObject(file)
         const reader = new FileReader()
         reader.onloadend = () => {
-          // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
+          // TODO #299 Note that we do not verify that the file is reasonable (i.e. plain text, not
+          //  a binary or other weird file).
           logging.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
           this.onAptExampleSelected(reader.result)
         }
@@ -979,12 +979,12 @@
         logging.sendSuccessNotification(`Sent a request to check the formula "${formula}"`)
       },
       setLtlParseError: function (message) {
-        // TODO: This is currently kind of a mess with these variables being accessed and written to
+        // NOTE: This is currently kind of a mess with these variables being accessed and written to
         //  both here and inside of the GraphEditor component.  I think it might make sense to
-        //  put them into a central store... Maybe using VueX
+        //  put them into a central store somehow. -ann
         const graphEditorRef = this.$refs.graphEditorEditorTab[0]
         graphEditorRef.ltlParseStatus = 'error'
-        // clear error and then set it again in the next tick, so that the 'v-text-field'
+        // clear the error and then set it again in the next tick, so that the 'v-text-field'
         // component will do its "error" wiggle animation again if you cause another error after it
         // was already in an error state
         graphEditorRef.ltlParseErrors = []
@@ -1025,8 +1025,6 @@
           this.visibleJobsRightSide.push(jobKey)
         }
         // Switch to the tab
-        // TODO why doesn't the 'selected tab display' update right away?  I thought I fixed this
-        //   but apparently it is being strange again.
         const tabId = `tab-${JSON.stringify(jobKey)}`
         this.selectedTabRightSide = tabId
       },
@@ -1106,7 +1104,6 @@
         })
       },
       // Return a promise with the return value of the new apt
-      // TODO refactor 'withErrorHandling'. It's annoying to have to type 'return' twice.
       getAptOfEditorNet: function () {
         return this.restEndpoints.getAptOfEditorNet({
           petriNetId: this.editorNet.uuid
@@ -1320,8 +1317,6 @@
         this.apt = apt
         this.isLeftPaneVisible = true
       },
-      // TODO Throw an exception here so that the promises this function is used in do not get
-      // mistakenly fulfilled.
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
           case 'success':
