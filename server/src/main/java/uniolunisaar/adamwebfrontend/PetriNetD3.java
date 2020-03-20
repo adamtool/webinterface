@@ -230,11 +230,7 @@ public class PetriNetD3 {
                 ));
 
         Map<String, Long> initialMarkingMap = PetriGameTools.markingToMap(net.getInitialMarking());
-        Map<String, Boolean> fireableTransitions = new HashMap<>();
-        for (Transition t : net.getTransitions()) {
-            boolean isFireable = t.isFireable(net.getInitialMarking());
-            fireableTransitions.put(t.getId(), isFireable);
-        }
+        Map<String, Boolean> fireableTransitions = PetriGameTools.getFireableTransitions(net);
 
         Map<Flow, String> flowRelationFromTransitions = getFlowRelationFromTransitions.apply(net);
         for (Flow flow : net.getEdges()) {

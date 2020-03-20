@@ -24,7 +24,6 @@ import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
-import uniolunisaar.adam.util.PGTools;
 import uniolunisaar.adam.util.PNWTTools;
 
 import java.io.IOException;
@@ -813,11 +812,7 @@ public class App {
         JsonElement postMarkingJson = gson.toJsonTree(postMarkingMap, markingMapTypeToken);
         result.add("postMarking", postMarkingJson);
 
-        Map<String, Boolean> fireableTransitions = new HashMap<>();
-        for (Transition t : netCopy.getTransitions()) {
-            boolean isFireable = t.isFireable(netCopy.getInitialMarking());
-            fireableTransitions.put(t.getId(), isFireable);
-        }
+        Map<String, Boolean> fireableTransitions = PetriGameTools.getFireableTransitions(netCopy);
 
         JsonElement fireableTransitionsJson = gson.toJsonTree(fireableTransitions);
         result.add("fireableTransitions", fireableTransitionsJson);

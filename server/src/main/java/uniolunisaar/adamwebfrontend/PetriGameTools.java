@@ -1,8 +1,6 @@
 package uniolunisaar.adamwebfrontend;
 
-import uniol.apt.adt.pn.Marking;
-import uniol.apt.adt.pn.Node;
-import uniol.apt.adt.pn.Place;
+import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.util.AdamExtensions;
 
@@ -75,5 +73,18 @@ public class PetriGameTools {
             map.put(placeId, tokenCount);
         }
         return map;
+    }
+
+    /**
+     * @return A Map<String, Boolean> which indicates for each Transition in the net whether it
+     * is fireable or not.  The Strings are the Transitions' IDs.
+     */
+    public static Map<String, Boolean> getFireableTransitions(PetriNet petriNet) {
+        Map<String, Boolean> fireableTransitions = new HashMap<>();
+        for (Transition t : petriNet.getTransitions()) {
+            boolean isFireable = t.isFireable(petriNet.getInitialMarking());
+            fireableTransitions.put(t.getId(), isFireable);
+        }
+        return fireableTransitions;
     }
 }
