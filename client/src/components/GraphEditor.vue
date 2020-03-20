@@ -1409,6 +1409,7 @@
       }
     },
     methods: {
+      // TODO #295 allow moving back and forth in history with arrow keys
       simulationHistoryBack: function () {
         const {currentIndex} = this.gameSimulationHistory
         this.gameSimulationHistory.currentIndex = Math.max(0, currentIndex - 1)
