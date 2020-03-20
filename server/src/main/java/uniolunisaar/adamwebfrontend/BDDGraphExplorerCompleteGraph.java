@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import uniolunisaar.adam.ds.graph.Flow;
 import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
 import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDState;
+import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,7 +44,7 @@ public class BDDGraphExplorerCompleteGraph implements BDDGraphExplorer {
                     boolean isChildInvisible = !visibleStates.contains(child);
                     return isChildInvisible;
                 })).collect(Collectors.toSet());
-        return BDDGraphD3.ofSubsetOfBddGraph(
+        return BDDGraphClient.ofSubsetOfBddGraph(
                 visibleStates,
                 this.visibleFlows(),
                 this.postsetExpandedStates,
@@ -80,9 +81,6 @@ public class BDDGraphExplorerCompleteGraph implements BDDGraphExplorer {
                 Set<BDDState> newUnexploredStates = presetStream
                         .filter(s -> !visibleStates.contains(s)) // Don't expand the same state twice
                         .collect(Collectors.toSet());
-                // TODO Prevent visiting the same node twice?
-                // (If we expand node A, and node B is in preset(A) as well as postset(A), then
-                // B will get added twice to the stack of statesToExplore.)
                 statesToExplore.addAll(newUnexploredStates);
             }
         }

@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.wirerepresentations;
 
 /**
  * Represents a link in a directed graph that will be displayed using D3 in our client.

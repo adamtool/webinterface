@@ -75,7 +75,7 @@
         <hsc-menu-bar-item label="File">
           <hsc-menu-item
             :label="useModelChecking ? 'New Petri net with transits' : 'New Petri game'"
-            @click.native="newPetriGame"/>
+            @click.native="createNewEditorNet"/>
           <!--Have to use click.native so that the popup blocker isn't triggered-->
           <hsc-menu-item label="Load APT from file" @click.native="loadAptFromFile"/>
           <v-dialog
@@ -139,9 +139,6 @@
         </hsc-menu-bar-item>
         <hsc-menu-bar-item @click.native="isLogVisible = !isLogVisible; $refs.menubar.deactivate()"
                            :label="isLogVisible ? 'Hide log' : 'Show log'"/>
-        <!--TODO Grey out these buttons or something if these things have already been calculated.-->
-        <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-        <!--TODO For "calculateExistsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
       <button @click="showJobList = true"
               style="margin-left: 40px;">View jobs running on server
@@ -208,11 +205,11 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;"
                  v-if="tabContentId === 'simulatorEditor'">
-              <GraphEditor :graph='petriGame.net'
+              <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
-                           :petriNetId='petriGame.uuid'
+                           :petriNetId='editorNet.uuid'
                            :editorMode='editorSimulatorMode'
-                           ref='graphEditorPetriGame'
+                           ref='graphEditorEditorTab'
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
@@ -278,7 +275,7 @@
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
                 :restEndpoints="restEndpoints"
-                @loadPetriGameFromApt="parseAPTToPetriGame"
+                @loadEditorNetFromApt="parseAptForEditorNet"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
                 @toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
@@ -408,7 +405,7 @@
 
       this.socket = this.initializeWebSocket(0)
 
-      this.parseAPTToPetriGame(this.apt)
+      this.parseAptForEditorNet(this.apt)
       this.getListOfJobs()
     },
     mounted: function () {
@@ -473,8 +470,7 @@
           }
         ],
         visibleJobsRightSide: [],
-        // TODO 290 rename from 'petriGame' to something more suitable
-        petriGame: {
+        editorNet: {
           net: {
             links: [],
             nodes: []
@@ -510,7 +506,7 @@
         }
       },
       apt: function (apt) {
-        this.parseAPTToPetriGame(apt)
+        this.parseAptForEditorNet(apt)
       },
       aptParseStatus: function (status) {
         if (status === 'error') {
@@ -556,19 +552,6 @@
       baseUrl: function () {
         return process.env.NODE_ENV === 'development' ? 'http://localhost:4567' : ''
       },
-      // TODO figure out why this doesn't work
-      petriGameTabStyle: function () {
-        switch (this.petriGame.hasWinningStrategy) {
-          case undefined:
-            return ''
-          case true:
-            return 'background: lightgreen'
-          case false:
-            return 'background: lightred'
-          default:
-            return ''
-        }
-      },
       menuBarStyle: function () {
         const vuetifySidebarPadding = this.$vuetify.application.left
         return `border-radius: 0 0 4pt 0; padding-left: ${vuetifySidebarPadding + 10}px`
@@ -601,7 +584,7 @@
           'deleteJob',
           'toggleGraphGameBDDNodePostset',
           'toggleGraphGameBDDNodePreset',
-          'getAptOfPetriGame',
+          'getAptOfEditorNet',
           'updateXYCoordinates',
           'parseApt',
           'insertPlace',
@@ -631,7 +614,10 @@
         })
         return funs
       },
-      // TODO consider refactoring routes so they are handled more like this and less like the above
+      // TODO #301 Refactor to be the same as restEndpoints
+      //  There are different inconsistent interfaces for different routes because I have
+      // experimented, trying to find out the cleanest way to implement a RPC mechanism like this,
+      // and I have not yet cleaned it all up yet. -ann
       modelCheckingRoutes: function () {
         return modelCheckingRoutesFactory.withPathPrefix(this.baseUrl)
       },
@@ -675,13 +661,14 @@
         }
         if (tabName === 'APT Editor') {
           logging.logVerbose('Switched to APT editor')
-          this.savePetriGameAsAPT()
+          this.saveEditorNetAsAPT()
         }
 
         this.visibleTabContentsLeftSide = tabNameToContents[tabName]
         this.selectedTabNameLeftSide = tabName
       },
-      newPetriGame: function () {
+      // Create a new empty net in the editor
+      createNewEditorNet: function () {
         const apt = this.useModelChecking ? aptExampleEmptyModelChecking : aptExampleEmptySynthesis
         this.onAptExampleSelected(apt)
         const whatDoYouCallIt = this.useModelChecking ? 'Petri net with transits' : 'Petri game'
@@ -718,7 +705,7 @@
           const errorMessage = 'An exception was thrown when opening the websocket connection to the server.  ' +
             'Server log messages may not be displayed.  Exception: ' + exception.message
           logging.sendErrorNotification(errorMessage)
-          throw new Error(errorMessage) // TODO make errors get caught by a global error handler
+          throw new Error(errorMessage)
         }
         socket.$on('message', message => {
           const messageParsed = JSON.parse(message)
@@ -784,10 +771,9 @@
           }
         })
         socket.$on('open', () => {
+          // Reload the job list when the socket connection to the server is established/reestablished
           this.updateWebSocketBrowserUuid()
-          // TODO Hack to reload the job list whenever the websocket connection is dropped and reacquired
-          // TODO Figure out why the connection keeps dropping!!
-          this.getListOfJobs() // TODO remove this
+          this.getListOfJobs()
           logging.sendSuccessNotification('Established the connection to the server')
         })
         return socket
@@ -876,7 +862,8 @@
         logging.logObject(file)
         const reader = new FileReader()
         reader.onloadend = () => {
-          // TODO verify that the file is reasonable (i.e. plain text, not a binary or other weird file)
+          // TODO #299 Note that we do not verify that the file is reasonable (i.e. plain text, not
+          //  a binary or other weird file).
           logging.logVerbose('The file selected by the user is finished loading.  Updating text editor contents')
           this.onAptExampleSelected(reader.result)
         }
@@ -891,7 +878,7 @@
         if (isAptEditorOpen) {
           saveFileAs(this.apt, this.aptFilename)
         } else {
-          this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
+          this.saveEditorNetAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
         }
       },
       switchToAptEditor: function () {
@@ -899,20 +886,19 @@
       },
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
-      parseAPTToPetriGame: debounce(function (apt) {
+      parseAptForEditorNet: debounce(function (apt) {
         logging.logVerbose('Sending APT source code to backend.')
         this.restEndpoints.parseApt({
           params: {
             apt: apt,
-            // TODO 290 create new bug to use the enum 'NetType' for this argument
-            netType: this.useModelChecking ? 'petriNetWithTransits' : 'petriGame'
+            netType: this.useModelChecking ? 'PETRI_NET_WITH_TRANSITS' : 'PETRI_GAME'
           }
         }).then(response => {
           switch (response.data.status) {
             case 'success':
               logging.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
               logging.logObject(response)
-              this.petriGame = response.data.petriGame
+              this.editorNet = response.data.editorNet
               this.aptParseStatus = 'success'
               this.aptParseError = ''
               this.aptParseErrorLineNumber = -1
@@ -971,57 +957,57 @@
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
+        const formula = this.$refs.graphEditorEditorTab[0].ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
         }
-        this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_NET', {
+        this.queueJob(this.editorNet.uuid, 'MODEL_CHECKING_NET', {
           formula
         })
         logging.sendSuccessNotification('Sent a request to get the model checking net')
       },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
+        const formula = this.$refs.graphEditorEditorTab[0].ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
         }
-        this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_RESULT', {
+        this.queueJob(this.editorNet.uuid, 'MODEL_CHECKING_RESULT', {
           formula
         })
         logging.sendSuccessNotification(`Sent a request to check the formula "${formula}"`)
       },
       setLtlParseError: function (message) {
-        // TODO: This is currently kind of a mess with these variables being accessed and written to
+        // NOTE: This is currently kind of a mess with these variables being accessed and written to
         //  both here and inside of the GraphEditor component.  I think it might make sense to
-        //  put them into a central store... Maybe using VueX
-        const graphEditorRef = this.$refs.graphEditorPetriGame[0]
+        //  put them into a central store somehow. -ann
+        const graphEditorRef = this.$refs.graphEditorEditorTab[0]
         graphEditorRef.ltlParseStatus = 'error'
-        // clear error and then set it again in the next tick, so that the 'v-text-field'
+        // clear the error and then set it again in the next tick, so that the 'v-text-field'
         // component will do its "error" wiggle animation again if you cause another error after it
         // was already in an error state
         graphEditorRef.ltlParseErrors = []
         Vue.nextTick(() => {
-          this.$refs.graphEditorPetriGame[0].ltlParseErrors = [message]
+          this.$refs.graphEditorEditorTab[0].ltlParseErrors = [message]
         })
       },
       calculateExistsWinningStrategy: function () {
-        this.queueJob(this.petriGame.uuid, 'EXISTS_WINNING_STRATEGY', {})
+        this.queueJob(this.editorNet.uuid, 'EXISTS_WINNING_STRATEGY', {})
         logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')
       },
       calculateStrategyBDD: function () {
         this.$refs.menubar.deactivate()
-        this.queueJob(this.petriGame.uuid, 'WINNING_STRATEGY', {})
+        this.queueJob(this.editorNet.uuid, 'WINNING_STRATEGY', {})
         logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
       },
       calculateGraphStrategyBDD: function () {
-        this.queueJob(this.petriGame.uuid, 'GRAPH_STRATEGY_BDD', {})
+        this.queueJob(this.editorNet.uuid, 'GRAPH_STRATEGY_BDD', {})
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Strategy BDD')
       },
       calculateGraphGameBDD: function (incremental) {
-        this.queueJob(this.petriGame.uuid, 'GRAPH_GAME_BDD', {
+        this.queueJob(this.editorNet.uuid, 'GRAPH_GAME_BDD', {
           incremental
         })
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
@@ -1040,8 +1026,6 @@
           this.visibleJobsRightSide.push(jobKey)
         }
         // Switch to the tab
-        // TODO why doesn't the 'selected tab display' update right away?  I thought I fixed this
-        //   but apparently it is being strange again.
         const tabId = `tab-${JSON.stringify(jobKey)}`
         this.selectedTabRightSide = tabId
       },
@@ -1104,15 +1088,15 @@
       saveXYCoordinatesOnServer: function () {
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
-        // into the PetriGame object.
-        // TODO Don't use a ref for this.  Put the function inside of here.
-        const nodePositions = this.$refs.graphEditorPetriGame[0].getNodeXYCoordinates()
+        // into the PetriNetWithTransits/PetriGame on the server.
+        const nodePositions = this.$refs.graphEditorEditorTab[0].getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
-          this.withErrorHandling(response, response => {
-            // TODO assert that the x/y coordinates we recieve match those we sent?
+          return this.withErrorHandling(response, responseSuccess => {
+            // It was successful, we don't have to do anything
+            logging.logVerbose('saveXYCoordinatesOnServer was successful')
           })
         }, reason => {
           // This function gets called if the promise is rejected (i.e. the http request failed)
@@ -1121,10 +1105,9 @@
         })
       },
       // Return a promise with the return value of the new apt
-      // TODO refactor 'withErrorHandling'. It's annoying to have to type 'return' twice.
-      getAptOfPetriGame: function () {
-        return this.restEndpoints.getAptOfPetriGame({
-          petriNetId: this.petriGame.uuid
+      getAptOfEditorNet: function () {
+        return this.restEndpoints.getAptOfEditorNet({
+          petriNetId: this.editorNet.uuid
         }).then(response => {
           return this.withErrorHandling(response, response => {
             return response.data.apt
@@ -1132,9 +1115,9 @@
         })
       },
       // Save xy coordinates on the server and then get the new updated APT back
-      savePetriGameAsAPT: function () {
+      saveEditorNetAsAPT: function () {
         return this.saveXYCoordinatesOnServer()
-          .then(this.getAptOfPetriGame)
+          .then(this.getAptOfEditorNet)
           .then(apt => {
             this.apt = apt
           })
@@ -1142,12 +1125,12 @@
       createFlow: function (flowSpec) {
         console.log('processing createFlow event')
         this.restEndpoints.createFlow({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           source: flowSpec.source,
           destination: flowSpec.destination
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1156,13 +1139,13 @@
       createTransit: function ({source, transition, postset}) {
         console.log('processing createTransit event')
         this.restEndpoints.createTransit({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           source,
           transition,
           postset
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1171,12 +1154,12 @@
       deleteFlow: function ({sourceId, targetId}) {
         console.log('processing deleteFlow event')
         this.restEndpoints.deleteFlow({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           sourceId,
           targetId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1185,11 +1168,11 @@
       deleteNode: function (nodeId) {
         console.log('processing deleteNode event for node id ' + nodeId)
         this.restEndpoints.deleteNode({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1199,7 +1182,7 @@
         console.log('processing renameNode event')
         console.log(`renaming node '${idOld}' to '${idNew}'`)
         this.restEndpoints.renameNode({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeIdOld: idOld,
           nodeIdNew: idNew
         }).then(response => {
@@ -1211,7 +1194,7 @@
               x: xOld,
               y: yOld
             }
-            this.petriGame.net = newNet
+            this.editorNet.net = newNet
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1220,11 +1203,11 @@
       toggleEnvironmentPlace: function (nodeId) {
         console.log('processing toggleEnvironmentPlace event')
         this.restEndpoints.toggleEnvironmentPlace({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1233,11 +1216,11 @@
       toggleIsInitialTransit: function (nodeId) {
         console.log('processing toggleIsInitialTransit event')
         this.restEndpoints.toggleIsInitialTransit({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1246,12 +1229,12 @@
       setIsSpecial: function ({nodeId, newSpecialValue}) {
         console.log('processing setIsSpecial event')
         this.restEndpoints.setIsSpecial({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId,
           newSpecialValue
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1260,12 +1243,12 @@
       setInitialToken: function ({nodeId, tokens}) {
         console.log('processing setInitialToken event')
         this.restEndpoints.setInitialToken({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId: nodeId,
           tokens: tokens
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1273,11 +1256,11 @@
       },
       setWinningCondition: function (winningCondition) {
         this.restEndpoints.setWinningCondition({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           winningCondition: winningCondition
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1286,13 +1269,13 @@
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
         this.restEndpoints.insertPlace({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeType: nodeSpec.type,
           x: nodeSpec.x,
           y: nodeSpec.y
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1301,30 +1284,29 @@
       setFairness: function ({transitionId, fairness}) {
         logging.logVerbose(`setFairness(${transitionId}, ${fairness})`)
         this.restEndpoints.setFairness({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           transitionId,
           fairness
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         })
       },
       setInhibitorArc: function ({sourceId, targetId, isInhibitorArc}) {
         logging.logVerbose(`setInhibitorArc(${sourceId}, ${targetId}, ${isInhibitorArc})`)
         this.restEndpoints.setInhibitorArc({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           sourceId,
           targetId,
           isInhibitorArc
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         })
       },
       onDragDropEnd: function (graph) {
-        logging.logVerbose('App: Received dragDrop event from graph editor. Saving x/y coordinates.')
         this.saveXYCoordinatesOnServer()
       },
       onAptExampleSelected: function (apt) {
@@ -1332,12 +1314,10 @@
         // This needs to be handled differently than an incremental edit to an already loaded
         // Petri Game, because when we load a new APT file, we want all of the nodes' positions
         // to be reset.
-        this.$refs.graphEditorPetriGame[0].onLoadNewPetriGame()
+        this.$refs.graphEditorEditorTab[0].onLoadNewNet()
         this.apt = apt
         this.isLeftPaneVisible = true
       },
-      // TODO Throw an exception here so that the promises this function is used in do not get
-      // mistakenly fulfilled.
       withErrorHandling: function (response, onSuccessCallback) {
         switch (response.data.status) {
           case 'success':

@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.wirerepresentations;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -13,6 +13,8 @@ import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
+import uniolunisaar.adamwebfrontend.PetriNetTools;
+import uniolunisaar.adamwebfrontend.SerializationException;
 
 import java.util.*;
 import java.util.function.Function;
@@ -20,10 +22,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Represents the data needed to display a PetriNet in our graph editor.
- * This class is meant to be serialized using GSON and fed directly into our D3 code.
+ * Represents the data needed to represent a PetriNet or PNWT or PetriGame in the client.
+ * This class is meant to be serialized using GSON.
  */
-public class PetriNetD3 {
+public class PetriNetClient {
     private final List<PetriNetLink> links;
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
@@ -35,9 +37,9 @@ public class PetriNetD3 {
     // This is only used by PNWT in the model checking case
     private String ltlFormula;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String,
+    private PetriNetClient(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String,
             NodePosition> nodePositions, Map<String, Long> initialMarking,
-                       Map<String, Boolean> fireableTransitions) {
+                           Map<String, Boolean> fireableTransitions) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
@@ -69,9 +71,7 @@ public class PetriNetD3 {
     }
 
     /**
-     * TODO This is some technical debt that was incurred due to implementation decisions made when
-     * support for the model checking approach was added.  See #293
-     *
+     * TODO #293 See comment for the other method called serializeEditorNet below
      * @return a JSON representation of a Petri Net/PNWT/Petri Game in the editor.
      * Does not include any X/Y coordinate annotations.
      */
@@ -80,8 +80,10 @@ public class PetriNetD3 {
     }
 
     /**
-     * TODO #293 This is part of some technical debt that was incurred due to implementation
-     * decisions made when support for the model checking approach was added.
+     * TODO #293 This is not an ideal practice, to use a single method to serialize both PNWT
+     * and PetriGames, based on instanceof, but this is still present here in order to cope with
+     * some implementation decisions that were made as support for the model checking approach
+     * was added.
      *
      * @param includePositions the set of nodes whose x/y coordinates should be sent to the client
      * @return a JSON-encoded representation of a Petri Net/PNWT/Petri Game in the editor.
@@ -104,7 +106,7 @@ public class PetriNetD3 {
      */
     public static JsonElement serializePetriNet(PetriNet net,
                                                 Set<Node> shouldSendPositions) {
-        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
+        PetriNetClient netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPetriNetPlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPetriNetFlow,
@@ -125,7 +127,7 @@ public class PetriNetD3 {
     public static JsonElement serializePNWT(PetriNetWithTransits net,
                                             Set<Node> shouldSendPositions,
                                             boolean shouldIncludeObjective) {
-        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
+        PetriNetClient netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPNWTPlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPNWTFlow,
@@ -165,7 +167,7 @@ public class PetriNetD3 {
                                                  Set<Node> shouldSendPositions,
                                                  boolean shouldIncludeObjective) {
 
-        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
+        PetriNetClient netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPetriGamePlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPetriGameFlow,
@@ -194,7 +196,7 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static <T extends PetriNet> PetriNetD3 ofNetWithXYCoordinates(
+    public static <T extends PetriNet> PetriNetClient ofNetWithXYCoordinates(
             T net,
             Set<Node> shouldSendPositions,
             PlaceSerializer<T> placeSerializer,
@@ -229,8 +231,8 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        Map<String, Long> initialMarkingMap = PetriGameTools.markingToMap(net.getInitialMarking());
-        Map<String, Boolean> fireableTransitions = PetriGameTools.getFireableTransitions(net);
+        Map<String, Long> initialMarkingMap = PetriNetTools.markingToMap(net.getInitialMarking());
+        Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(net);
 
         Map<Flow, String> flowRelationFromTransitions = getFlowRelationFromTransitions.apply(net);
         for (Flow flow : net.getEdges()) {
@@ -238,8 +240,8 @@ public class PetriNetD3 {
             PetriNetLink petriNetLink = flowSerializer.serializeFlow(flow, net, arcLabel);
             links.add(petriNetLink);
         }
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, initialMarkingMap, fireableTransitions);
-        return petriNetD3;
+        PetriNetClient petriNetClient = new PetriNetClient(links, nodes, nodePositions, initialMarkingMap, fireableTransitions);
+        return petriNetClient;
     }
 
 
@@ -292,19 +294,16 @@ public class PetriNetD3 {
     }
 
     static class PetriNetNode extends GraphNode {
-        // TODO Ask Manuel if the attribute "isBad" has been deprecated. I think we use isSpecial instead now.
-        private final boolean isBad;
         private final String fairness;
         // These properties only belong to PNWT
         private boolean isSpecial;
         private boolean isInitialTransit;
         private int partition;
 
-        private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
+        private PetriNetNode(String id, String label, GraphNodeType type,
                              boolean isSpecial, boolean isInitialTransit,
                              int partition, String fairness) {
             super(id, label, type);
-            this.isBad = isBad;
             this.isSpecial = isSpecial;
             this.isInitialTransit = isInitialTransit;
             this.partition = partition;
@@ -323,7 +322,7 @@ public class PetriNetD3 {
                 fairness = "none";
             }
             // Transitions are never bad or special and have no tokens
-            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, false, false,
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, false,
                     -1, fairness);
         }
 
@@ -356,8 +355,6 @@ public class PetriNetD3 {
             String id = place.getId();
             String label = id;
 
-            boolean isBad = PetriNetExtensionHandler.isBad(place);
-
             boolean isSpecial = false;
             boolean isInitialTransit = false;
             int partition = -1;
@@ -366,7 +363,7 @@ public class PetriNetD3 {
 
             String fairness = "none"; // Places have no concept of fairness
 
-            return new PetriNetNode(id, label, nodeType, isBad, isSpecial,
+            return new PetriNetNode(id, label, nodeType, isSpecial,
                     isInitialTransit, partition, fairness);
         }
 

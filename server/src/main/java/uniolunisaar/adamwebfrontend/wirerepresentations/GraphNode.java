@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.wirerepresentations;
 
 /**
  * Represents a node in a graph that will be displayed in our client.

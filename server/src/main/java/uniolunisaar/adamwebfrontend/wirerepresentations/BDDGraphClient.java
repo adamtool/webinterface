@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.wirerepresentations;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -16,12 +16,12 @@ import java.util.stream.Collectors;
  * Represents the data needed to display a BDD graph in our client.
  * This class is meant to be serialized using GSON.
  */
-public class BDDGraphD3 {
+public class BDDGraphClient {
     private final Set<State> nodes;
     private final Set<Flow> links;
     private final Map<String, NodePosition> nodePositions;
 
-    private BDDGraphD3(Set<State> states, Set<Flow> flows) {
+    private BDDGraphClient(Set<State> states, Set<Flow> flows) {
         this.nodes = states;
         this.links = flows;
         this.nodePositions = new HashMap<>();
@@ -63,8 +63,8 @@ public class BDDGraphD3 {
         Set<Flow> links = flows.stream()
                 .map((uniolunisaar.adam.ds.graph.Flow flow) -> Flow.of(flow))
                 .collect(Collectors.toSet());
-        BDDGraphD3 bddGraphD3 = new BDDGraphD3(nodes, links);
-        return new Gson().toJsonTree(bddGraphD3);
+        BDDGraphClient bddGraphClient = new BDDGraphClient(nodes, links);
+        return new Gson().toJsonTree(bddGraphClient);
     }
 
 
@@ -110,15 +110,12 @@ public class BDDGraphD3 {
                     isPresetExpanded,
                     hasInvisibleParents,
                     hasInvisibleChildren);
-            // TODO Isbad dicke schwarze Rahmen
-            // TODO isGood doppelter Rahmen (nicht so dick)
-            // TODO See Graphenspiele Beispiele in den Besipielen
         }
 
         private State(int id, boolean isMcut, boolean isGood, boolean isBad, String content,
                       boolean isPostsetExpanded, boolean isPresetExpanded, boolean hasInvisibleParents,
                       boolean hasInvisibleChildren) {
-            super(Integer.toString(id), Integer.toString(id), GraphNodeType.GRAPH_STRATEGY_BDD_STATE);
+            super(Integer.toString(id), Integer.toString(id), GraphNodeType.BDD_GRAPH_STATE);
             this.isMcut = isMcut;
             this.isGood = isGood;
             this.isBad = isBad;

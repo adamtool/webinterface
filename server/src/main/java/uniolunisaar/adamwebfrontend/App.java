@@ -25,6 +25,8 @@ import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
+import uniolunisaar.adamwebfrontend.jobsystem.*;
+import uniolunisaar.adamwebfrontend.wirerepresentations.*;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -71,7 +73,7 @@ public class App {
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
-        postWithPetriNetWithTransits("/getAptOfPetriGame", this::handleGetAptOfPetriGame);
+        postWithPetriNetWithTransits("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
 
         postWithPetriNetWithTransits("/updateXYCoordinates", this::handleUpdateXYCoordinates);
 
@@ -118,7 +120,7 @@ public class App {
         return exceptionName + ": " + exception.getMessage();
     }
 
-    // TODO Refactor, see #293
+    // TODO #293 refactor
     public static PetriGame promoteToPetriGame(PetriNetWithTransits net) {
         if (!(net instanceof PetriGame)) {
             throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
@@ -229,16 +231,21 @@ public class App {
         System.out.println("body: " + body.toString());
         JsonObject params = body.getAsJsonObject().get("params").getAsJsonObject();
         String apt = params.get("apt").getAsString();
-        String netType = params.get("netType").getAsString();
+        NetType netType = NetType.valueOf(params.get("netType").getAsString());
         PetriNetWithTransits net;
         try {
             switch (netType) {
-                case "petriNetWithTransits":
+                case PETRI_NET_WITH_TRANSITS:
                     net = AdamModelChecker.getPetriNetWithTransits(apt);
                     break;
-                case "petriGame":
+                case PETRI_GAME:
                     net = AdamSynthesizer.getPetriGame(apt);
                     break;
+                case PETRI_NET:
+                    throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is " +
+                            "this a mistake?  (In model checking mode, we expect to see " +
+                            "PETRI_NET_WITH_TRANSITS here, and in synthesis, PETRI_GAME." +
+                            "Please file a bug report.");
                 default:
                     throw new IllegalArgumentException("Unrecognized net type: " + netType);
             }
@@ -260,28 +267,31 @@ public class App {
 
         JsonElement netJson;
         switch (netType) {
-            case "petriNetWithTransits":
-                netJson = PetriNetD3.serializePNWT(net, net.getNodes(), true);
+            case PETRI_NET_WITH_TRANSITS:
+                netJson = PetriNetClient.serializePNWT(net, net.getNodes(), true);
                 break;
-            case "petriGame":
-                // TODO Refactor this route into two or three separate routes for PN, PNWT, and PG
-                netJson = PetriNetD3.serializePetriGame((PetriGame) net, net.getNodes(), true);
+            case PETRI_GAME:
+                netJson = PetriNetClient.serializePetriGame((PetriGame) net, net.getNodes(), true);
                 break;
+            case PETRI_NET:
+                throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is " +
+                        "this a mistake?  (In model checking mode, we expect to see " +
+                        "PETRI_NET_WITH_TRANSITS here, and in synthesis, PETRI_GAME." +
+                        "Please file a bug report.");
             default:
                 throw new IllegalArgumentException("Unrecognized net type: " + netType);
         }
         // Send the initial marking as well as the net
         Marking initialMarking = net.getInitialMarking();
-        Map<String, Long> initialMarkingMap = PetriGameTools.markingToMap(initialMarking);
+        Map<String, Long> initialMarkingMap = PetriNetTools.markingToMap(initialMarking);
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
         JsonElement initialMarkingJson = gson.toJsonTree(initialMarkingMap, markingMapTypeToken);
-        JsonElement serializedNet = PetriGameD3.of(netJson, netUuid, initialMarkingJson);
+        JsonElement serializedNet = EditorNetClient.of(netJson, netUuid, initialMarkingJson);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
-        // TODO 293 rename from 'petriGame' to something more suitable
-        responseJson.add("petriGame", serializedNet);
+        responseJson.add("editorNet", serializedNet);
         return responseJson.toString();
     }
 
@@ -306,16 +316,13 @@ public class App {
         }
         UserContext userContext = userContextMap.get(browserUuid);
 
-        // TODO Refactor, see #293
+        // TODO #293 refactor
         PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
         JobKey jobKey = new JobKey(
                 PNWTTools.getAPT(netCopy, true, true),
                 jobParams,
                 jobType
         );
-        // TODO refactor so the client just sends us APT?  (IE dont give the client
-        //  a reference to a specific PetriGame object on the server)
-        //  This would allow the client to simply send us a 'jobKey' by itself to queue a job.
 
         // Check if this job has already been requested
         if (userContext.hasJobWithKey(jobKey)) {
@@ -346,8 +353,6 @@ public class App {
         /*
          When the job's status changes, a websocket message should be sent to the client,
          which contains the updated job list entry for this job.
-         TODO Distinguish between different kinds of events (e.g. old status -> new status)
-         in order to provide nice notifications about specific jobs
          */
         job.addObserver((Job ignored) -> {
             JsonObject message = new JsonObject();
@@ -466,11 +471,9 @@ public class App {
         return responseJson.toString();
     }
 
-    // Get the APT representation of a given Petri Game/PetriNetWithTransits
-    private Object handleGetAptOfPetriGame(Request req, Response res, PetriNetWithTransits net)
+    // Get the APT representation of a given net from the editor
+    private Object handleGetAptOfEditorNet(Request req, Response res, PetriNetWithTransits net)
             throws RenderException {
-        JsonElement body = parser.parse(req.body());
-
         String apt = PNWTTools.getAPT(net, true, true);
         JsonElement aptJson = new JsonPrimitive(apt);
 
@@ -489,10 +492,10 @@ public class App {
         Type type = new TypeToken<Map<String, NodePosition>>() {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
-        PetriGameTools.saveXYCoordinates(petriNet, nodePositions);
+        PetriNetTools.saveXYCoordinates(petriNet, nodePositions);
 
         // Send all X/Y coordinates back to the client
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(
                 petriNet, new HashSet<>(petriNet.getNodes()));
 
         return successResponse(serializedNet);
@@ -524,14 +527,14 @@ public class App {
             case TRANSITION:
                 node = net.createTransition();
                 break;
-            case GRAPH_STRATEGY_BDD_STATE:
-                return errorResponse("You can't insert a GRAPH_STRATEGY_BDD_STATE into a Petri Game.");
+            case BDD_GRAPH_STATE:
+                return errorResponse("You can't insert a BDD_GRAPH_STATE into a Petri Game.");
         }
         net.setXCoord(node, x);
         net.setYCoord(node, y);
 
         // Send the x/y coordinate of the newly created node back to the client
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(
                 net, new HashSet<>(Collections.singletonList(node)));
 
         return successResponse(serializedNet);
@@ -543,7 +546,7 @@ public class App {
 
         net.removeNode(nodeId);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -555,7 +558,7 @@ public class App {
         Node oldNode = net.getNode(nodeIdOld);
         net.rename(oldNode, nodeIdNew);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -577,7 +580,7 @@ public class App {
             petriGame.setEnvironment(place);
         }
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(petriGame);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(petriGame);
         return successResponse(serializedNet);
     }
 
@@ -593,7 +596,7 @@ public class App {
             net.setInitialTransit(place);
         }
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -605,7 +608,7 @@ public class App {
         Place place = net.getPlace(nodeId);
         place.setInitialToken(tokens);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -623,7 +626,7 @@ public class App {
             net.removeSpecial(place, condition);
         }
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -634,7 +637,7 @@ public class App {
         Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
         PNWTTools.setConditionAnnotation(net, objective);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -644,7 +647,7 @@ public class App {
         String destination = body.get("destination").getAsString();
 
         net.createFlow(source, destination);
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -656,7 +659,7 @@ public class App {
 
         net.removeFlow(source, target);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -695,7 +698,7 @@ public class App {
             net.createInitialTransit(transitionId, postsetArray);
         }
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -777,7 +780,7 @@ public class App {
 
         NetType netType = NetType.valueOf(body.get("netType").getAsString());
 
-        // TODO Refactor (See #293)
+        // TODO #293 refactor
         // Fire the transition in a copy of the net, leaving the original net alone
         PetriNet originalNet = petriNetGetter.apply(body);
         PetriNet netCopy;
@@ -808,11 +811,11 @@ public class App {
 
         // Send the new marking and set of fireable transitions to the client
         JsonObject result = new JsonObject();
-        Map<String, Long> postMarkingMap = PetriGameTools.markingToMap(postMarking);
+        Map<String, Long> postMarkingMap = PetriNetTools.markingToMap(postMarking);
         JsonElement postMarkingJson = gson.toJsonTree(postMarkingMap, markingMapTypeToken);
         result.add("postMarking", postMarkingJson);
 
-        Map<String, Boolean> fireableTransitions = PetriGameTools.getFireableTransitions(netCopy);
+        Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(netCopy);
 
         JsonElement fireableTransitionsJson = gson.toJsonTree(fireableTransitions);
         result.add("fireableTransitions", fireableTransitionsJson);
@@ -842,7 +845,7 @@ public class App {
             default:
                 throw new IllegalArgumentException("Unrecognized value for 'fairness': " + fairness);
         }
-        return successResponse(PetriNetD3.serializeEditorNet(net));
+        return successResponse(PetriNetClient.serializeEditorNet(net));
     }
 
     private Object handleSetInhibitorArc(Request req, Response response, PetriNetWithTransits net) {
@@ -864,7 +867,7 @@ public class App {
         } else {
             net.removeInhibitor(flow);
         }
-        return successResponse(PetriNetD3.serializeEditorNet(net));
+        return successResponse(PetriNetClient.serializeEditorNet(net));
     }
 
 }

@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.jobsystem;
 
 import com.google.gson.*;
 import uniol.apt.adt.pn.PetriNet;
@@ -8,7 +8,6 @@ import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
-import uniolunisaar.adam.ds.logics.ltl.ILTLFormula;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.CounterExample;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
@@ -21,10 +20,11 @@ import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PGTools;
-import uniolunisaar.adam.util.PNWTTools;
+import uniolunisaar.adamwebfrontend.*;
+import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
+import uniolunisaar.adamwebfrontend.wirerepresentations.PetriNetClient;
 
 import java.util.HashSet;
-import java.util.Random;
 import java.util.UUID;
 
 import static uniolunisaar.adamwebfrontend.App.exceptionToString;
@@ -39,9 +39,9 @@ public enum JobType {
             return new JsonPrimitive((boolean) result);
         }
 
-        Job<Boolean> makeJob(PetriNetWithTransits net,
-                             JsonObject params) {
-            // TODO refactor, see #293
+        public Job<Boolean> makeJob(PetriNetWithTransits net,
+                                    JsonObject params) {
+            // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
@@ -53,7 +53,7 @@ public enum JobType {
             JsonObject json = new JsonObject();
             PetriGame game = (PetriGame) result;
             // TODO #292 include the positions of nodes here
-            JsonElement netJson = PetriNetD3.serializePetriGame(game, new HashSet<>(), false);
+            JsonElement netJson = PetriNetClient.serializePetriGame(game, new HashSet<>(), false);
             json.add("graph", netJson);
 
             String apt;
@@ -66,25 +66,25 @@ public enum JobType {
             return json;
         }
 
-        Job<PetriGame> makeJob(PetriNetWithTransits net,
-                               JsonObject params) {
-            // TODO refactor, see #293
+        public Job<PetriGame> makeJob(PetriNetWithTransits net,
+                                      JsonObject params) {
+            // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
-                PetriGameTools.removeXAndYCoordinates(strategyBDD);
+                PetriNetTools.removeXAndYCoordinates(strategyBDD);
                 return strategyBDD;
             }, petriGame.getName());
         }
 
     }, GRAPH_STRATEGY_BDD {
         JsonElement serialize(Object result) {
-            return BDDGraphD3.ofWholeBddGraph((BDDGraph) result);
+            return BDDGraphClient.ofWholeBddGraph((BDDGraph) result);
         }
 
-        Job<BDDGraph> makeJob(PetriNetWithTransits net,
-                              JsonObject params) {
-            // TODO refactor, see #293
+        public Job<BDDGraph> makeJob(PetriNetWithTransits net,
+                                     JsonObject params) {
+            // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
@@ -111,7 +111,7 @@ public enum JobType {
             return resultJson;
         }
 
-        Job<Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>> makeJob(
+        public Job<Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>> makeJob(
                 PetriNetWithTransits net,
                 JsonObject params) {
             String formula = params.get("formula").getAsString();
@@ -136,7 +136,7 @@ public enum JobType {
             JsonObject json = new JsonObject();
             PetriNet net = (PetriNet) result;
             // TODO #292 we would need to include X/Y coordinates here
-            JsonElement netJson = PetriNetD3.serializePetriNet(net, new HashSet<>());
+            JsonElement netJson = PetriNetClient.serializePetriNet(net, new HashSet<>());
             json.add("graph", netJson);
 
             String apt;
@@ -149,13 +149,13 @@ public enum JobType {
             return json;
         }
 
-        Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params) {
+        public Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
 
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
-                // TODO display statistics in UI
+                // These statistics could be shown in the UI, but for now, they are not visible.
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 String tempFilePrefix = getTempFilePrefix();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
@@ -170,8 +170,8 @@ public enum JobType {
                 // For example, take the example 'Net.apt' with the formula 'A F p0'.
                 // I got this exception: uniol.apt.adt.exception.NoSuchNodeException: Node
                 // '<init_tfl>-0' does not exist in graph 'sdn_mc'
-//                ILTLFormula modelCheckingFormula = AdamModelChecker.getModelCheckingFormula(
-//                        net, modelCheckingNet, runFormula, settings);
+                // ILTLFormula modelCheckingFormula = AdamModelChecker.getModelCheckingFormula(
+                // net, modelCheckingNet, runFormula, settings);
                 return modelCheckingNet;
             }, net.getName());
         }
@@ -180,8 +180,8 @@ public enum JobType {
             return ((BDDGraphExplorer) result).getVisibleGraph();
         }
 
-        Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
-                                      JsonObject params) {
+        public Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
+                                             JsonObject params) {
             // TODO #293 consider refactoring
             if (!(petriGame1 instanceof PetriGame)) {
                 throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
@@ -221,7 +221,7 @@ public enum JobType {
 
     abstract JsonElement serialize(Object result) throws SerializationException;
 
-    abstract Job<?> makeJob(PetriNetWithTransits net, JsonObject params);
+    public abstract Job<?> makeJob(PetriNetWithTransits net, JsonObject params);
 
     // Serialize a statistics object, including only its primitive and String fields
     public static JsonElement serializeStatistics(AdamCircuitFlowLTLMCStatistics stats) {

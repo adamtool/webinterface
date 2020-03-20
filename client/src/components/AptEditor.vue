@@ -129,7 +129,6 @@
         return this.syntaxErrorLineIndex + this.aptParseErrorColumnNumber +
           (this.aptParseErrorLineNumber === 1 ? 0 : 1)
       },
-      // TODO consider consolidating line number and column number properties in this format?
       errorLocation: function () {
         return {
           column: this.aptParseErrorColumnNumber,

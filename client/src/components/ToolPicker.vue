@@ -124,7 +124,10 @@
         type: Array,
         required: true
       },
-      // TODO figure out initialization in App so that this validator can be used
+      // Because of the way this prop is initialized in GraphViewer right now, the validator can't
+      // currently be used, because the value starts off as 'undefined'.  The validator would spit
+      // out an error in the browser's console log every time you load the page if validation
+      // were enabled.
       selectedTool: {
         // type: Object,
         // required: true,

@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <!--TODO Provide visual feedback when HTTP request is in progress, similar to APT editor-->
+    <!--TODO #297 Provide visual feedback when HTTP request is in progress, similar to APT editor-->
     <v-container fluid
                  style="
                  z-index: 5;
@@ -180,7 +180,7 @@
   import {saveFileAs} from '../fileutilities'
   import {layoutNodes} from '../autoLayout'
   import {noOpImplementation} from '../modelCheckingRoutes'
-  import {rectanglePath, arcPath, loopPath, containingBorder, pathForLink} from '../svgFunctions'
+  import {rectanglePath, arcPath, loopPath, pathForLink} from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import {debounce} from 'underscore'
@@ -281,9 +281,8 @@
         drawTransitPreviewSource: undefined,
         drawTransitPreviewTransition: undefined,
         drawTransitPreviewPostset: [],
-        // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
-        // TODO figure out how to initialize.  Should be element of toolPickerItems
+        // selectedTool should be an element of toolPickerItems
         selectedTool: undefined,
         backgroundClickMode: 'cancelSelection',
         backgroundDragDropMode: 'selectNodes',
@@ -347,7 +346,7 @@
         const height = parent.clientHeight
         if (width === 0 || height === 0) {
           return // Ignore spurious resizes that lead to the graph editor vanishing
-          // TODO this seems to be a bug in the css-element-queries library?
+          // this seems to be a bug in the css-element-queries library, maybe?
           // Or we are doing something strange and unsupported, maybe
         }
         this.dimensions = {
@@ -364,7 +363,6 @@
       // It needs to get resized once immediately after mounting
       Vue.nextTick(this.updateGraphEditorDimensions)
 
-      // TODO move to created() hook?
       if (this.editorMode === 'Simulator') {
         this.selectedTool = this.fireTransitionTool
       } else {
@@ -605,8 +603,6 @@
           contextMenuFun(d)
         }
       },
-      // TODO Consider turning these 'computed functions' into methods.  (I think the result would
-      //  be more or less the same.)
       contextMenuItems: function () {
         return (d) => {
           if (d.type === 'petriNetLink') {
@@ -688,7 +684,6 @@
           return itemsForSynthesis.concat(itemsForBothModes)
         }
       },
-      // TODO consider making these all methods?  And putting them next to contextMenuItemsTransition
       contextMenuItemsSelection: function () {
         return [
           {
@@ -727,7 +722,6 @@
           }
         ]
       },
-      // TODO Figure out why Strategy BDD/Graph Strat BDD / GGBDD nodes still spawn at 0,0 ???
       nodeSpawnPoint: function () {
         if (this.lastUserClick) {
           return this.lastUserClick
@@ -810,8 +804,7 @@
       onNodeClick: function () {
         return (d) => {
           d3.event.stopPropagation()
-          // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
-          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+          if (d.type === 'BDD_GRAPH_STATE') {
             // Expand or collapse the postset of the State that has been clicked.
             // Freeze the State's position
             d.fx = d.x
@@ -834,8 +827,7 @@
           d3.event.preventDefault() // Prevent the right click menu from appearing
           d3.event.stopPropagation()
           console.log(d)
-          // TODO refactor duplicate code?
-          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+          if (d.type === 'BDD_GRAPH_STATE') {
             // Freeze the State's position
             d.fx = d.x
             d.fy = d.y
@@ -898,19 +890,8 @@
         let transition
         let postset = new Set()
 
-        // Log our state and also display it using D3
-        // TODO consider refactoring this handler into its own module and using an event/callback-based
-        // interface.  It's kind of spaghettilike to be updating these global variables here that
-        // are used in updateD3.  Those parts of updateD3() that pertain to this tool could probably
-        // be refactored out into their own method, I reckon, into which you could pass the values
-        // of drawTransitPreviewSource, drawTransitPreviewLinks, etc.  That way, they would no
-        // longer need to be global variables like they are now.
-        // You would use it like this:
-        // const handler = drawTransitHandler()
-        //   .onChange({source, transition, postset} => this.updateTransitPreview(source, transition, postset))
-        // Whereby the Vue instance method updateTransitPreview would pass everything into D3.
-        // -Ann
-        const logCurrentState = () => {
+        // Log our state and also update the view
+        const logCurrentStateAndUpdateView = () => {
           const src = source ? source.id : 'none'
           const trans = transition ? transition.id : 'none'
           const targetList = Array.from(postset).map(t => t.id).join(', ')
@@ -972,14 +953,14 @@
                   transition = d
                   state = 2
                 }
-                logCurrentState()
+                logCurrentStateAndUpdateView()
                 break
               }
               case 1: {
                 if (d.type === 'TRANSITION') {
                   transition = d
                   state = 2
-                  logCurrentState()
+                  logCurrentStateAndUpdateView()
                 } else {
                   logging.logVerbose('DrawTransit: Please click on a transition.')
                 }
@@ -992,7 +973,7 @@
                   } else {
                     postset.add(d)
                   }
-                  logCurrentState()
+                  logCurrentStateAndUpdateView()
                 } else {
                   logging.logVerbose('DrawTransit: Click on Places to specify a postset and press Enter ' +
                     'to create the transit.  Press Esc to abort.')
@@ -1203,8 +1184,6 @@
             const event = d3.event.sourceEvent // d3.event is a drag event; its sourceEvent is a mouseMove
             if (event.ctrlKey) {
               // Emulate Windows Explorer's well-known ctrl + drag-select behavior
-              // TODO Consider instead using ctrl to add to a selection and alt to remove from it, a la photoshop
-              // TODO Update selection when ctrl is pressed or released, even if no more drag events arrive
               const newNodes = nodesInRectangle.filter(n => !previousSelection.includes(n))
               const oldNodes = previousSelection.filter(n => !nodesInRectangle.includes(n))
               const xor = newNodes.concat(oldNodes)
@@ -1291,8 +1270,6 @@
         }
       },
       selectedTool: function (tool) {
-        // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
-        // That would be more declarative and Vue-like, I think.  -Ann
         if (tool.toolEnumName !== 'drawTransit') {
           this.drawTransitHandler.reset()
         }
@@ -1302,7 +1279,7 @@
             this.backgroundDragDropMode = 'selectNodes'
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
-            // TODO make it possible to select a set of links
+            // TODO #257 make it possible to select a set of links
             this.linkClickMode = 'doNothing'
             break
           }
@@ -1484,8 +1461,8 @@
       },
       parseLtlFormula: debounce(async function () {
         console.log('Parsing Formula')
-        // TODO Show 'running' status somehow in gui to distinguish it from 'success'
-        // TODO Implement a timeout in case the server takes a really long time to respond
+        // TODO #297 Show 'running' status somehow in gui to distinguish it from 'success'
+        // TODO #297 Implement a timeout in case the server takes a really long time to respond
         this.ltlParseStatus = 'running'
         this.ltlParseErrors = []
         try {
@@ -1622,7 +1599,6 @@
       // callback with whatever text the user entered.
       // This is meant to be called in a mouse click handler so that the text input box appears by
       // the mouse cursor.
-      // TODO Make this look better
       getTextInput: function (label, callback) {
         const [mouseX, mouseY] = this.mousePosZoom()
         const fo = this.container.append('foreignObject')
@@ -1656,7 +1632,7 @@
       },
       deleteSelectedNodes: function () {
         console.log('deleting selected nodes')
-        // TODO There's a bug here. If we send a bunch of requests in a row, the responses may come
+        // TODO #237 There's a bug here. If we send a bunch of requests in a row, the responses may come
         // out of order, leaving us // in an inconsistent state with the server.
         // A possible solution: Just send a single request with a set of node IDs to be deleted.
         this.selectedNodes.forEach(node => {
@@ -1670,7 +1646,7 @@
         const transform = d3.zoomTransform(this.svg.node())
         return transform.invert(mousePos)
       },
-      onLoadNewPetriGame: function () {
+      onLoadNewNet: function () {
         // When we load a new petri game, the positions of nodes from the previously loaded Petri Game
         // should not be carried over.
         this.randomizeAllNodesPositions()
@@ -1702,7 +1678,6 @@
         this.physicsSimulation.force('centerX', d3.forceX(centerX).strength(centerStrength))
         this.physicsSimulation.force('centerY', d3.forceY(centerY).strength(centerStrength))
       },
-      // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
         const boundingRect = this.svg.node().getBoundingClientRect()
         // There is a transformation applied to the SVG container using d3-zoom.
@@ -1906,11 +1881,6 @@
           .attr('stroke', 'black')
           .attr('fill', 'none')
           .attr('stroke-width', 2)
-        // This is the border drawn around all selected nodes.
-        this.selectionBorder = this.container.append('path')
-          .attr('stroke', '#000099')
-          .attr('fill', 'none')
-          .attr('stroke-width', 0) // TODO Only draw this border when we need it for 'stretching'
 
         this.updateD3()
 
@@ -1922,7 +1892,7 @@
        */
       updateD3: function () {
         // Write the IDs/labels of nodes underneath them.
-        // TODO Prevent these from getting covered up by arrowheads.  Maybe add a background.
+        // TODO #298 Prevent these from getting covered up by arrowheads.  Maybe add a background.
         // See https://stackoverflow.com/questions/15500894/background-color-of-text-in-svg
         const newLabelElements = this.labelGroup
           .selectAll('text')
@@ -1956,8 +1926,8 @@
           .attr('text-anchor', 'middle')
           .attr('dy', '-8')
           .attr('font-family', '\'Inconsolata\', monospace')
-          // TODO Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
-          // TODO This means that our text will end up all on one line.  In Firefox it's ok, though.
+          // TODO #208 Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
+          // This means that our text will end up all on one line.  In Firefox it's ok, though.
           .style('white-space', 'pre')
         newContentElements.exit().remove()
         this.contentElements = contentEnter.merge(newContentElements)
@@ -1967,12 +1937,12 @@
               return 28
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
               return 20
-            } else if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            } else if (node.type === 'BDD_GRAPH_STATE') {
               return 15
             }
           })
           .text(node => {
-            if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            if (node.type === 'BDD_GRAPH_STATE') {
               // Figure out how long the widest line of the content is to determine node width later
               const lines = node.content.split('\n')
               const numberOfLines = lines.length
@@ -2059,14 +2029,14 @@
           .attr('width', this.calculateNodeWidth)
           .attr('height', this.calculateNodeHeight)
           .attr('stroke', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            if (d.type === 'BDD_GRAPH_STATE') {
               return d.isGood ? 'green' : 'black'
             } else {
               return 'black'
             }
           })
           .attr('stroke-dasharray', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && d.isGood) {
+            if (d.type === 'BDD_GRAPH_STATE' && d.isGood) {
               return '20,10'
             } else if ((d.type === 'ENVPLACE' || d.type === 'SYSPLACE') && d.isInitialTransit) {
               return '10,10'
@@ -2075,7 +2045,7 @@
             }
           })
           .attr('stroke-width', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            if (d.type === 'BDD_GRAPH_STATE') {
               return d.isBad || d.isGood ? 5 : 2
             } else {
               return 2
@@ -2227,12 +2197,11 @@
             .attr('transform', node => `translate(${node.x},${node.y})`)
           this.labelElements
             .attr('x', node => node.x)
-            // TODO Use function mentioned in other TODO to determine where the bottom of the node is
             .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
           this.contentElements
             .attr('x', node => node.x)
             .attr('y', node => {
-              if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              if (node.type === 'BDD_GRAPH_STATE') {
                 return node.y - this.calculateNodeHeight(node) / 2 + 30
               } else {
                 return node.y - this.calculateNodeHeight(node) / 2 + 38
@@ -2259,11 +2228,6 @@
             .attr('transform', d => {
               return `translate(${d.x},${d.y})`
             })
-
-          // TODO implement super cool feature to stretch and shrink a selection (moving all nodes proportionally)
-          // But for now don't use this function because the border, if drawn incorrectly, messes
-          // up the "zoom to fit all nodes" functionality
-          // this.updateSelectionBorder()
 
           // Update links to match the nodes' new positions
           this.linkElements
@@ -2294,9 +2258,7 @@
               }
             })
 
-          // TODO Position inhibitor arc circles
-          // (I guess it makes sense to create/destroy them inside of updateD3 and then position
-          // them here.)
+          // Position inhibitor arc circles
           this.inhibitorArcCircleElements.attr('transform',
             (d) => `translate(${d.inhibitorArcCircleCenter.x},${d.inhibitorArcCircleCenter.y})`
           )
@@ -2315,21 +2277,11 @@
         // and you won't be able to see them.
         this.physicsSimulation.alpha(0.7).restart()
       },
-      updateSelectionBorder: function () {
-        // TODO Figure out why this sometimes yields a border from -999999 to 999999
-        if (this.selectedNodes.length === 0) {
-          this.selectionBorder.attr('d', '')
-        } else {
-          const domNodeElements = this.nodeElements
-            .filter(this.selectedNodes.includes)
-            .nodes()
-          const border = containingBorder(domNodeElements)
-          const path = rectanglePath(...border)
-          this.selectionBorder.attr('d', path)
-        }
-      },
-      // Update the marking view
+      // Update the marking view for the petri net being shown
       applyMarking: function (marking, fireableTransitions) {
+        if (!marking || !fireableTransitions) {
+          return // for example, BDDs do not have markings or lists of fireable transitions
+        }
         this.nodes.forEach(node => {
           node.initialToken = marking[node.id]
           node.isReadyToFire = fireableTransitions[node.id]
@@ -2338,7 +2290,6 @@
       /**
        * Perform a diff of the new graph against our existing graph, updating our graph in-place.
        * Delete nodes/links that are gone, update nodes that have changed, add new nodes/links.
-       * TODO Validate the graphJson; make sure it has all the properties we expect to see.
        */
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
@@ -2368,8 +2319,6 @@
         newNodes.forEach(newNode => {
           const nodeIsAlreadyPresent = this.nodes.some(oldNode => oldNode.id === newNode.id)
           if (!nodeIsAlreadyPresent) {
-            // TODO Consider fixing nodes for which "isPostsetExpanded" is true.  Right now, nodes tend to
-            // get pushed around in a disorienting way when their children are added to the graph.
             // Randomize the position slightly to stop the nodes from flying away from each other
             newNode.x = this.nodeSpawnPoint.x + (Math.random() - 0.5) * 40
             newNode.y = this.nodeSpawnPoint.y + (Math.random() - 0.5) * 40
@@ -2379,8 +2328,6 @@
 
         // Apply the x/y coordinates that are given to us by the server
         // Note that this freezes the nodes.
-        // TODO Consider allowing some nodes to be frozen and others to be free-floating
-        // TODO (This would require a boolean AdamExtension to be added)
         this.nodes.forEach(node => {
           if (newNodePositions.hasOwnProperty(node.id)) {
             // logging.logVerbose('updating x/y coordinates of this node: ' + node.id)
@@ -2424,13 +2371,11 @@
             this.links.push(newLinkWithReferences)
           }
         })
-        // TODO document how this works.  It's a fiddly bit of state management to ensure that
+        // Note: This represents a fiddly bit of state management to ensure that
         // nodes spawn under the mouse cursor if triggered by a user clicking, but otherwise, they
-        // should spawn at the center of the SVG (e.g. upon editing the APT).
+        // should spawn at the center of the SVG (e.g. upon adding a new Place while editing the APT).
         // Maybe a better solution would be to send to the server the x/y coordinates of the click
         // so that they can be automatically added to the new nodes that are created by the click.
-        // (At the time of writing (23.04.2018), the only nodes that are added by clicking are Graph
-        // Game BDD States when a State is clicked on to show its preset/postset.
         this.lastUserClick = undefined
       },
       keyFunction: function (data) {
@@ -2442,7 +2387,6 @@
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
           return d.maxContentLineLength * 8 + 10
-          // return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
         } else {
           return this.nodeRadius * 2
         }
@@ -2450,7 +2394,6 @@
       calculateNodeHeight: function (d) {
         if (d.content !== undefined) {
           return d.numberOfLines * 20
-          // return 90 // TODO Make height expand to fit text
         } else {
           return this.nodeRadius * 2
         }
@@ -2479,10 +2422,11 @@
             default:
               return 'white'
           }
-        } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
+        } else if (data.type === 'BDD_GRAPH_STATE') {
           return data.isMcut ? 'white' : 'lightgrey'
         } else {
-          return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
+          throw new Error('No appropriate fill color found for the given datum: ' +
+            JSON.stringify(data))
         }
       },
       svgWidth: function () {
@@ -2507,26 +2451,11 @@
        * Perform a deep copy of an arbitrary object.
        * This has some caveats.
        * See https://stackoverflow.com/questions/20662319/javascript-deep-copy-using-json
-       * TODO: Consider refactoring this out into its own little module if a similar trick is used in other components.
        * @param object
        * @returns A deep copy/clone of object
        */
       deepCopy: function (object) {
         return JSON.parse(JSON.stringify(object))
-      },
-      // TODO Explain what this function is for
-      calculateNodeOffset: function (data) {
-        if (data.type === 'ENVPLACE') {
-          // Node is a circle
-          return this.nodeRadius
-        } else if (data.type === 'SYSPLACE') {
-          return this.nodeRadius
-        } else if (data.type === 'TRANSITION') {
-          // Node is a rectangle
-          return this.calculateNodeHeight(data)
-        } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
-          return this.calculateNodeHeight(data)
-        }
       },
       contextMenuItemsTransition: function (transitionNode) {
         const setWeakFair = {
@@ -2600,8 +2529,6 @@
 
 
   .graph-editor {
-    /*TODO Make the graph editor use up exactly as much space as is given to it.*/
-    /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/
     height: 100%;
     width: 100%;
     max-width: 100%;

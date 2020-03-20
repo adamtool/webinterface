@@ -2,6 +2,7 @@ package uniolunisaar.adamwebfrontend;
 
 import spark.Request;
 import spark.Response;
+import uniolunisaar.adamwebfrontend.jobsystem.UserContext;
 
 @FunctionalInterface
 public interface RouteWithUserContext {

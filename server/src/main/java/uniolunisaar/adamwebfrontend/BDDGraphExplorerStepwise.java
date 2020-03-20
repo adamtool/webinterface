@@ -13,6 +13,7 @@ import uniolunisaar.adam.exceptions.pg.SolvingException;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.pg.solver.symbolic.bddapproach.BDDSolver;
 import uniolunisaar.adam.logic.pg.solver.symbolic.bddapproach.BDDSolverOptions;
+import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,9 +70,6 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                 Set<BDDState> newUnexploredStates = presetStream
                         .filter(s -> !visibleStates.contains(s)) // Don't expand the same state twice
                         .collect(Collectors.toSet());
-                // TODO Prevent visiting the same node twice?
-                // (If we expand node A, and node B is in preset(A) as well as postset(A), then
-                // B will get added twice to the stack of statesToExplore.)
                 statesToExplore.addAll(newUnexploredStates);
             }
         }
@@ -111,7 +109,7 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                                 return isChildInvisible;
                             });
                 }).collect(Collectors.toSet());
-        return BDDGraphD3.ofSubsetOfBddGraph(
+        return BDDGraphClient.ofSubsetOfBddGraph(
                 visibleStates,
                 this.visibleFlows(),
                 this.postsetExpandedStates,

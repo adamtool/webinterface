@@ -3,7 +3,7 @@ export {
   pointOnCircle
 }
 
-// TODO Find out what the license is for this piece of code.  (I've emailed Rob.)
+// TODO #300 Find out what the license is for this piece of code.  (I've emailed Rob.)
 /**
  * Finds the intersection point between
  *     * the rectangle

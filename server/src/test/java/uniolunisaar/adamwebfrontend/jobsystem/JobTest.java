@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.jobsystem;
 
 import org.junit.Test;
 
@@ -13,7 +13,7 @@ import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static uniolunisaar.adamwebfrontend.JobStatus.*;
+import static uniolunisaar.adamwebfrontend.jobsystem.JobStatus.*;
 
 /**
  * Test the class Job

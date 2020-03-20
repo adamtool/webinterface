@@ -3,16 +3,17 @@ package uniolunisaar.adamwebfrontend;
 import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.util.AdamExtensions;
+import uniolunisaar.adamwebfrontend.wirerepresentations.NodePosition;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * This class just has some useful static methods for dealing with Petri Games
- * and the x/y coordinates that we save inside of them.
+ * This class just has some useful static methods for dealing with Petri Nets which are used
+ * in different places throughout the code base
  */
-public class PetriGameTools {
+public class PetriNetTools {
     /**
      * This is a workaround for a "feature" in ADAM.  Right now, the X/Y coordinates stored in a
      * Petri Game can be accidentally copied over into its Strategy BDD.  This ends up with the
