@@ -281,9 +281,8 @@
         drawTransitPreviewSource: undefined,
         drawTransitPreviewTransition: undefined,
         drawTransitPreviewPostset: [],
-        // TODO consider using a set instead of an array to prevent bugs from happening
         selectedNodes: [],
-        // TODO figure out how to initialize.  Should be element of toolPickerItems
+        // selectedTool should be an element of toolPickerItems
         selectedTool: undefined,
         backgroundClickMode: 'cancelSelection',
         backgroundDragDropMode: 'selectNodes',
@@ -347,7 +346,7 @@
         const height = parent.clientHeight
         if (width === 0 || height === 0) {
           return // Ignore spurious resizes that lead to the graph editor vanishing
-          // TODO this seems to be a bug in the css-element-queries library?
+          // this seems to be a bug in the css-element-queries library, maybe?
           // Or we are doing something strange and unsupported, maybe
         }
         this.dimensions = {
@@ -364,7 +363,6 @@
       // It needs to get resized once immediately after mounting
       Vue.nextTick(this.updateGraphEditorDimensions)
 
-      // TODO move to created() hook?
       if (this.editorMode === 'Simulator') {
         this.selectedTool = this.fireTransitionTool
       } else {
@@ -605,8 +603,6 @@
           contextMenuFun(d)
         }
       },
-      // TODO Consider turning these 'computed functions' into methods.  (I think the result would
-      //  be more or less the same.)
       contextMenuItems: function () {
         return (d) => {
           if (d.type === 'petriNetLink') {
@@ -688,7 +684,6 @@
           return itemsForSynthesis.concat(itemsForBothModes)
         }
       },
-      // TODO consider making these all methods?  And putting them next to contextMenuItemsTransition
       contextMenuItemsSelection: function () {
         return [
           {
@@ -834,7 +829,6 @@
           d3.event.preventDefault() // Prevent the right click menu from appearing
           d3.event.stopPropagation()
           console.log(d)
-          // TODO refactor duplicate code?
           if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
             // Freeze the State's position
             d.fx = d.x
@@ -1203,8 +1197,6 @@
             const event = d3.event.sourceEvent // d3.event is a drag event; its sourceEvent is a mouseMove
             if (event.ctrlKey) {
               // Emulate Windows Explorer's well-known ctrl + drag-select behavior
-              // TODO Consider instead using ctrl to add to a selection and alt to remove from it, a la photoshop
-              // TODO Update selection when ctrl is pressed or released, even if no more drag events arrive
               const newNodes = nodesInRectangle.filter(n => !previousSelection.includes(n))
               const oldNodes = previousSelection.filter(n => !nodesInRectangle.includes(n))
               const xor = newNodes.concat(oldNodes)
@@ -1302,7 +1294,7 @@
             this.backgroundDragDropMode = 'selectNodes'
             this.leftClickMode = 'selectNode'
             this.dragDropMode = 'moveNode'
-            // TODO make it possible to select a set of links
+            // TODO #257 make it possible to select a set of links
             this.linkClickMode = 'doNothing'
             break
           }
@@ -1484,8 +1476,8 @@
       },
       parseLtlFormula: debounce(async function () {
         console.log('Parsing Formula')
-        // TODO Show 'running' status somehow in gui to distinguish it from 'success'
-        // TODO Implement a timeout in case the server takes a really long time to respond
+        // TODO #297 Show 'running' status somehow in gui to distinguish it from 'success'
+        // TODO #297 Implement a timeout in case the server takes a really long time to respond
         this.ltlParseStatus = 'running'
         this.ltlParseErrors = []
         try {
@@ -1622,7 +1614,6 @@
       // callback with whatever text the user entered.
       // This is meant to be called in a mouse click handler so that the text input box appears by
       // the mouse cursor.
-      // TODO Make this look better
       getTextInput: function (label, callback) {
         const [mouseX, mouseY] = this.mousePosZoom()
         const fo = this.container.append('foreignObject')
@@ -1656,7 +1647,7 @@
       },
       deleteSelectedNodes: function () {
         console.log('deleting selected nodes')
-        // TODO There's a bug here. If we send a bunch of requests in a row, the responses may come
+        // TODO #297 There's a bug here. If we send a bunch of requests in a row, the responses may come
         // out of order, leaving us // in an inconsistent state with the server.
         // A possible solution: Just send a single request with a set of node IDs to be deleted.
         this.selectedNodes.forEach(node => {
@@ -1702,7 +1693,6 @@
         this.physicsSimulation.force('centerX', d3.forceX(centerX).strength(centerStrength))
         this.physicsSimulation.force('centerY', d3.forceY(centerY).strength(centerStrength))
       },
-      // TODO Run this whenever a new graph is loaded.  (But not upon changes to an existing graph)
       autoLayout: function () {
         const boundingRect = this.svg.node().getBoundingClientRect()
         // There is a transformation applied to the SVG container using d3-zoom.
