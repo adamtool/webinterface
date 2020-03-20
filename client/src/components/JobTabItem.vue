@@ -30,7 +30,7 @@
     <v-card-actions>
       <v-btn
         color="blue lighten-3"
-        @click="$emit('loadPetriGameFromApt', tab.jobKey.canonicalApt)"
+        @click="$emit('loadEditorNetFromApt', tab.jobKey.canonicalApt)"
       >
         View Petri Game
       </v-btn>
@@ -163,7 +163,7 @@
     <v-card-actions>
       <v-btn
         color="blue lighten-3"
-        @click="$emit('loadPetriGameFromApt', tab.jobKey.canonicalApt)"
+        @click="$emit('loadEditorNetFromApt', tab.jobKey.canonicalApt)"
       >
         View Petri Game
       </v-btn>

@@ -278,7 +278,7 @@
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
                 :restEndpoints="restEndpoints"
-                @loadPetriGameFromApt="parseAptForEditorNet"
+                @loadEditorNetFromApt="parseAptForEditorNet"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
                 @toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
@@ -1090,8 +1090,7 @@
       saveXYCoordinatesOnServer: function () {
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
-        // into the PetriGame object.
-        // TODO Don't use a ref for this.  Put the function inside of here.
+        // into the PetriNetWithTransits/PetriGame on the server.
         const nodePositions = this.$refs.graphEditorEditorTab[0].getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
           petriNetId: this.editorNet.uuid,
