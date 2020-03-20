@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class App {
     private final Gson gson = new Gson();
@@ -732,35 +733,48 @@ public class App {
         // TODO Refactor (See #293)
         // TODO Allow firing transitions in petri nets outside the editor
         // (Model checking net / Winning Strategy)
-        PetriNet net = getPetriNet(petriNetId);
+        // Fire the transition in a copy of the net, leaving the original net alone
+        PetriNet originalNet = getPetriNet(petriNetId);
         PetriNet netCopy;
         switch (netType) {
             case PETRI_NET:
-                netCopy = new PetriNet(net);
+                netCopy = new PetriNet(originalNet);
                 break;
             case PETRI_NET_WITH_TRANSITS:
-                netCopy = new PetriNetWithTransits((PetriNetWithTransits) net);
+                netCopy = new PetriNetWithTransits((PetriNetWithTransits) originalNet);
                 break;
             case PETRI_GAME:
-                netCopy = new PetriGame((PetriGame) net);
+                netCopy = new PetriGame((PetriGame) originalNet);
                 break;
             default:
                 return errorResponse("Missing switch branch. Please send a bug report");
         }
 
-        // Fire the transition in a copy of the net, leaving the original net alone
         Transition transition = netCopy.getTransition(transitionId);
         // Apply the given marking to the net
         preMarkingMap.forEach((placeId, tokenCount) -> {
             Place place = netCopy.getPlace(placeId);
             place.setInitialToken(tokenCount);
         });
+        // Fire the transition and save it to the net
         Marking preMarking = netCopy.getInitialMarking();
         Marking postMarking = transition.fire(preMarking);
+        netCopy.setInitialMarking(postMarking);
 
+        // Send the new marking and set of fireable transitions to the client
+        JsonObject result = new JsonObject();
         Map<String, Long> postMarkingMap = markingToMap(postMarking);
         JsonElement postMarkingJson = gson.toJsonTree(postMarkingMap, markingMapTypeToken);
-        return successResponse(postMarkingJson);
+        result.add("postMarking", postMarkingJson);
+
+        List<String> fireableTransitions = netCopy.getTransitions().stream()
+                .filter(t -> t.isFireable(postMarking))
+                .map(t -> t.getId())
+                .collect(Collectors.toCollection(ArrayList::new));
+        JsonElement fireableTransitionsJson = gson.toJsonTree(fireableTransitions);
+        result.add("fireableTransitions", fireableTransitionsJson);
+
+        return successResponse(result);
     }
 
     // TODO 290 move to 'PetriGameTools' package

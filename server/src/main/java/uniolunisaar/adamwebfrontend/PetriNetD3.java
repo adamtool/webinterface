@@ -296,7 +296,6 @@ public class PetriNetD3 {
         // TODO Ask Manuel if the attribute "isBad" has been deprecated. I think we use isSpecial instead now.
         private final boolean isBad;
         private final String fairness;
-        private final boolean isReadyToFire;
         // These properties only belong to PNWT
         private boolean isSpecial;
         private boolean isInitialTransit;
@@ -304,14 +303,13 @@ public class PetriNetD3 {
 
         private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
                              boolean isSpecial, boolean isInitialTransit,
-                             int partition, String fairness, boolean isReadyToFire) {
+                             int partition, String fairness) {
             super(id, label, type);
             this.isBad = isBad;
             this.isSpecial = isSpecial;
             this.isInitialTransit = isInitialTransit;
             this.partition = partition;
             this.fairness = fairness;
-            this.isReadyToFire = isReadyToFire;
         }
 
         static PetriNetNode fromTransition(PetriNet net, Transition t) {
@@ -325,12 +323,9 @@ public class PetriNetD3 {
             } else {
                 fairness = "none";
             }
-            // TODO 290 Send this along with markings to the client for proper display when
-            //  firing transitions
-            boolean isReadyToFire = t.isFireable(net.getInitialMarking());
             // Transitions are never bad or special and have no tokens
             return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, false, false,
-                    -1, fairness, isReadyToFire);
+                    -1, fairness);
         }
 
         static PetriNetNode fromPetriGamePlace(PetriGame game, Place place) {
@@ -371,10 +366,9 @@ public class PetriNetD3 {
             GraphNodeType nodeType = GraphNodeType.SYSPLACE;
 
             String fairness = "none"; // Places have no concept of fairness
-            boolean isReadyToFire = false; // Places can't be fired, only Transitions can.
 
             return new PetriNetNode(id, label, nodeType, isBad, isSpecial,
-                    isInitialTransit, partition, fairness, isReadyToFire);
+                    isInitialTransit, partition, fairness);
         }
 
         static boolean isSpecial(PetriNetWithTransits game, Place place, Condition.Objective objective) {

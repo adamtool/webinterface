@@ -315,7 +315,7 @@
       this.nodes = []
       this.links = []
       this.importGraph(this.graph)
-      this.applyMarking(this.graph.initialMarking)
+      this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
@@ -1246,7 +1246,7 @@
       'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
         const currentState = this.gameSimulationHistory.stack[newIndex]
         if (currentState) { // Maybe the history has been reset and there is no 'current state'
-          this.applyMarking(currentState.marking)
+          this.applyMarking(currentState.marking, currentState.fireableTransitions)
           this.updateD3()
         }
       },
@@ -1276,7 +1276,7 @@
         if (newMode === 'Editor' && oldMode === 'Simulator') {
           // Display the editor's current state
           this.importGraph(this.graph)
-          this.applyMarking(this.graph.initialMarking)
+          this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
           this.updateD3()
         } else if (newMode === 'Simulator' && oldMode === 'Editor') {
           // Display the simulator's current state
@@ -1286,7 +1286,7 @@
             // Show the 'graph' that the simulation is based on.
             // It could be different from the graph shown in the editor
             this.importGraph(this.gameSimulationHistory.graph)
-            this.applyMarking(currentState.marking)
+            this.applyMarking(currentState.marking, currentState.fireableTransitions)
             this.updateD3()
           }
         }
@@ -1403,7 +1403,7 @@
          this component.
          */
         this.importGraph(graph)
-        this.applyMarking(graph.initialMarking)
+        this.applyMarking(graph.initialMarking, graph.fireableTransitions)
         this.updateD3()
 
         // Reset the simulation as well
@@ -1488,7 +1488,7 @@
       },
       resetSimulation: function () {
         this.importGraph(this.graph)
-        this.applyMarking(this.graph.initialMarking)
+        this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
         this.gameSimulationHistory = this.gameSimulationHistoryDefault()
         this.updateD3()
         logging.sendSuccessNotification('Reset the simulation.')
@@ -1529,6 +1529,7 @@
             stack: [
               {
                 marking: this.graph.initialMarking,
+                fireableTransitions: this.graph.fireableTransitions,
                 transitionFired: null
               }
             ],
@@ -1548,12 +1549,13 @@
           // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
           if (response.data.status === 'success') {
             const newState = {
-              marking: response.data.result,
+              marking: response.data.result.postMarking,
+              fireableTransitions: response.data.result.fireableTransitions,
               transitionFired: transitionId
             }
             this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1).concat([newState])
             this.gameSimulationHistory.currentIndex = currentIndex + 1
-            this.applyMarking(newState.marking)
+            this.applyMarking(newState.marking, newState.fireableTransitions)
             this.updateD3()
             this.showTransitionFired({
               transitionId: d.id,
@@ -1945,7 +1947,7 @@
         // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup
           .selectAll('text')
-          .data(this.nodes.filter(node => node.content !== undefined || node.initialToken !== undefined), this.keyFunction)
+          .data(this.nodes, this.keyFunction)
         const contentEnter = newContentElements
           .enter().append('text')
           .call(this.applyNodeEventHandler)
@@ -2324,10 +2326,14 @@
           this.selectionBorder.attr('d', path)
         }
       },
-      // Update the 'initialToken' in each graph element
-      applyMarking: function (marking) {
+      // Update the marking view
+      applyMarking: function (marking, fireableTransitions) {
+        console.log('applyMarking')
+        console.log(fireableTransitions)
         this.nodes.forEach(node => {
           node.initialToken = marking[node.id]
+          // TODO 290 fix O(n^2) behavior
+          node.isReadyToFire = fireableTransitions.some(transitionId => transitionId === node.id)
         })
       },
       /**
@@ -2337,6 +2343,7 @@
        */
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
+        this.fireableTransitions = graphJsonCopy.fireableTransitions
         this.winningCondition = graphJsonCopy.winningCondition
         // There is only a ltlFormula sent from server to client iff winningCondition != LTL.
         // (Other winning conditions get translated to LTL formulas using  e.g. AdamModelChecker.toFlowLTLFormula.)
