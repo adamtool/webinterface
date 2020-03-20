@@ -208,9 +208,9 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;"
                  v-if="tabContentId === 'simulatorEditor'">
-              <GraphEditor :graph='petriGame.net'
+              <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
-                           :petriNetId='petriGame.uuid'
+                           :petriNetId='editorNet.uuid'
                            :editorMode='editorSimulatorMode'
                            ref='graphEditorPetriGame'
                            v-on:dragDropEnd='onDragDropEnd'
@@ -473,8 +473,7 @@
           }
         ],
         visibleJobsRightSide: [],
-        // TODO 290 rename from 'petriGame' to something more suitable
-        petriGame: {
+        editorNet: {
           net: {
             links: [],
             nodes: []
@@ -555,19 +554,6 @@
       // relative URLs will be used.
       baseUrl: function () {
         return process.env.NODE_ENV === 'development' ? 'http://localhost:4567' : ''
-      },
-      // TODO figure out why this doesn't work
-      petriGameTabStyle: function () {
-        switch (this.petriGame.hasWinningStrategy) {
-          case undefined:
-            return ''
-          case true:
-            return 'background: lightgreen'
-          case false:
-            return 'background: lightred'
-          default:
-            return ''
-        }
       },
       menuBarStyle: function () {
         const vuetifySidebarPadding = this.$vuetify.application.left
@@ -911,7 +897,7 @@
             case 'success':
               logging.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
               logging.logObject(response)
-              this.petriGame = response.data.petriGame
+              this.editorNet = response.data.editorNet
               this.aptParseStatus = 'success'
               this.aptParseError = ''
               this.aptParseErrorLineNumber = -1
@@ -975,7 +961,7 @@
           this.setLtlParseError('Please enter a formula to check.')
           return
         }
-        this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_NET', {
+        this.queueJob(this.editorNet.uuid, 'MODEL_CHECKING_NET', {
           formula
         })
         logging.sendSuccessNotification('Sent a request to get the model checking net')
@@ -987,7 +973,7 @@
           this.setLtlParseError('Please enter a formula to check.')
           return
         }
-        this.queueJob(this.petriGame.uuid, 'MODEL_CHECKING_RESULT', {
+        this.queueJob(this.editorNet.uuid, 'MODEL_CHECKING_RESULT', {
           formula
         })
         logging.sendSuccessNotification(`Sent a request to check the formula "${formula}"`)
@@ -1007,20 +993,20 @@
         })
       },
       calculateExistsWinningStrategy: function () {
-        this.queueJob(this.petriGame.uuid, 'EXISTS_WINNING_STRATEGY', {})
+        this.queueJob(this.editorNet.uuid, 'EXISTS_WINNING_STRATEGY', {})
         logging.sendSuccessNotification('Sent a request to the server to see if there is a winning strategy')
       },
       calculateStrategyBDD: function () {
         this.$refs.menubar.deactivate()
-        this.queueJob(this.petriGame.uuid, 'WINNING_STRATEGY', {})
+        this.queueJob(this.editorNet.uuid, 'WINNING_STRATEGY', {})
         logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
       },
       calculateGraphStrategyBDD: function () {
-        this.queueJob(this.petriGame.uuid, 'GRAPH_STRATEGY_BDD', {})
+        this.queueJob(this.editorNet.uuid, 'GRAPH_STRATEGY_BDD', {})
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Strategy BDD')
       },
       calculateGraphGameBDD: function (incremental) {
-        this.queueJob(this.petriGame.uuid, 'GRAPH_GAME_BDD', {
+        this.queueJob(this.editorNet.uuid, 'GRAPH_GAME_BDD', {
           incremental
         })
         logging.sendSuccessNotification('Sent request to server to calculate the Graph Game BDD')
@@ -1107,7 +1093,7 @@
         // TODO Don't use a ref for this.  Put the function inside of here.
         const nodePositions = this.$refs.graphEditorPetriGame[0].getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1123,7 +1109,7 @@
       // TODO refactor 'withErrorHandling'. It's annoying to have to type 'return' twice.
       getAptOfPetriGame: function () {
         return this.restEndpoints.getAptOfPetriGame({
-          petriNetId: this.petriGame.uuid
+          petriNetId: this.editorNet.uuid
         }).then(response => {
           return this.withErrorHandling(response, response => {
             return response.data.apt
@@ -1141,12 +1127,12 @@
       createFlow: function (flowSpec) {
         console.log('processing createFlow event')
         this.restEndpoints.createFlow({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           source: flowSpec.source,
           destination: flowSpec.destination
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1155,13 +1141,13 @@
       createTransit: function ({source, transition, postset}) {
         console.log('processing createTransit event')
         this.restEndpoints.createTransit({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           source,
           transition,
           postset
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1170,12 +1156,12 @@
       deleteFlow: function ({sourceId, targetId}) {
         console.log('processing deleteFlow event')
         this.restEndpoints.deleteFlow({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           sourceId,
           targetId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1184,11 +1170,11 @@
       deleteNode: function (nodeId) {
         console.log('processing deleteNode event for node id ' + nodeId)
         this.restEndpoints.deleteNode({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1198,7 +1184,7 @@
         console.log('processing renameNode event')
         console.log(`renaming node '${idOld}' to '${idNew}'`)
         this.restEndpoints.renameNode({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeIdOld: idOld,
           nodeIdNew: idNew
         }).then(response => {
@@ -1210,7 +1196,7 @@
               x: xOld,
               y: yOld
             }
-            this.petriGame.net = newNet
+            this.editorNet.net = newNet
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1219,11 +1205,11 @@
       toggleEnvironmentPlace: function (nodeId) {
         console.log('processing toggleEnvironmentPlace event')
         this.restEndpoints.toggleEnvironmentPlace({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1232,11 +1218,11 @@
       toggleIsInitialTransit: function (nodeId) {
         console.log('processing toggleIsInitialTransit event')
         this.restEndpoints.toggleIsInitialTransit({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1245,12 +1231,12 @@
       setIsSpecial: function ({nodeId, newSpecialValue}) {
         console.log('processing setIsSpecial event')
         this.restEndpoints.setIsSpecial({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId,
           newSpecialValue
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1259,12 +1245,12 @@
       setInitialToken: function ({nodeId, tokens}) {
         console.log('processing setInitialToken event')
         this.restEndpoints.setInitialToken({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeId: nodeId,
           tokens: tokens
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1272,11 +1258,11 @@
       },
       setWinningCondition: function (winningCondition) {
         this.restEndpoints.setWinningCondition({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           winningCondition: winningCondition
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1285,13 +1271,13 @@
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
         this.restEndpoints.insertPlace({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           nodeType: nodeSpec.type,
           x: nodeSpec.x,
           y: nodeSpec.y
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         }).catch(() => {
           logging.logError('Network error')
@@ -1300,25 +1286,25 @@
       setFairness: function ({transitionId, fairness}) {
         logging.logVerbose(`setFairness(${transitionId}, ${fairness})`)
         this.restEndpoints.setFairness({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           transitionId,
           fairness
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         })
       },
       setInhibitorArc: function ({sourceId, targetId, isInhibitorArc}) {
         logging.logVerbose(`setInhibitorArc(${sourceId}, ${targetId}, ${isInhibitorArc})`)
         this.restEndpoints.setInhibitorArc({
-          petriNetId: this.petriGame.uuid,
+          petriNetId: this.editorNet.uuid,
           sourceId,
           targetId,
           isInhibitorArc
         }).then(response => {
           this.withErrorHandling(response, response => {
-            this.petriGame.net = response.data.result
+            this.editorNet.net = response.data.result
           })
         })
       },

@@ -285,12 +285,11 @@ public class App {
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
         JsonElement initialMarkingJson = gson.toJsonTree(initialMarkingMap, markingMapTypeToken);
-        JsonElement serializedNet = PetriGameD3.of(netJson, netUuid, initialMarkingJson);
+        JsonElement serializedNet = EditorNetClient.of(netJson, netUuid, initialMarkingJson);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
-        // TODO 293 rename from 'petriGame' to something more suitable
-        responseJson.add("petriGame", serializedNet);
+        responseJson.add("editorNet", serializedNet);
         return responseJson.toString();
     }
 
