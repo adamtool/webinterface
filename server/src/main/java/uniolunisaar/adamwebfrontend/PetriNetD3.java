@@ -27,16 +27,22 @@ public class PetriNetD3 {
     private final List<PetriNetLink> links;
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
+    private final Map<String, Long> initialMarking;
+    private final Map<String, Boolean> fireableTransitions;
 
     // This is only present for some PNWT/PetriGames
     private String winningCondition;
     // This is only used by PNWT in the model checking case
     private String ltlFormula;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String,
+            NodePosition> nodePositions, Map<String, Long> initialMarking,
+                       Map<String, Boolean> fireableTransitions) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
+        this.initialMarking = initialMarking;
+        this.fireableTransitions = fireableTransitions;
     }
 
     public void setLtlFormula(String ltlFormula) {
@@ -223,13 +229,16 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
+        Map<String, Long> initialMarkingMap = PetriGameTools.markingToMap(net.getInitialMarking());
+        Map<String, Boolean> fireableTransitions = PetriGameTools.getFireableTransitions(net);
+
         Map<Flow, String> flowRelationFromTransitions = getFlowRelationFromTransitions.apply(net);
         for (Flow flow : net.getEdges()) {
             String arcLabel = flowRelationFromTransitions.getOrDefault(flow, "");
             PetriNetLink petriNetLink = flowSerializer.serializeFlow(flow, net, arcLabel);
             links.add(petriNetLink);
         }
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions);
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, initialMarkingMap, fireableTransitions);
         return petriNetD3;
     }
 
@@ -285,25 +294,21 @@ public class PetriNetD3 {
     static class PetriNetNode extends GraphNode {
         // TODO Ask Manuel if the attribute "isBad" has been deprecated. I think we use isSpecial instead now.
         private final boolean isBad;
-        private final long initialToken;
         private final String fairness;
-        private final boolean isReadyToFire;
         // These properties only belong to PNWT
         private boolean isSpecial;
         private boolean isInitialTransit;
         private int partition;
 
         private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
-                             long initialToken, boolean isSpecial, boolean isInitialTransit,
-                             int partition, String fairness, boolean isReadyToFire) {
+                             boolean isSpecial, boolean isInitialTransit,
+                             int partition, String fairness) {
             super(id, label, type);
             this.isBad = isBad;
-            this.initialToken = initialToken;
             this.isSpecial = isSpecial;
             this.isInitialTransit = isInitialTransit;
             this.partition = partition;
             this.fairness = fairness;
-            this.isReadyToFire = isReadyToFire;
         }
 
         static PetriNetNode fromTransition(PetriNet net, Transition t) {
@@ -317,10 +322,9 @@ public class PetriNetD3 {
             } else {
                 fairness = "none";
             }
-            boolean isReadyToFire = t.isFireable(net.getInitialMarking());
             // Transitions are never bad or special and have no tokens
-            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, -1, false, false,
-                    -1, fairness, isReadyToFire);
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, false, false,
+                    -1, fairness);
         }
 
         static PetriNetNode fromPetriGamePlace(PetriGame game, Place place) {
@@ -353,7 +357,6 @@ public class PetriNetD3 {
             String label = id;
 
             boolean isBad = PetriNetExtensionHandler.isBad(place);
-            long initialToken = place.getInitialToken().getValue();
 
             boolean isSpecial = false;
             boolean isInitialTransit = false;
@@ -362,10 +365,9 @@ public class PetriNetD3 {
             GraphNodeType nodeType = GraphNodeType.SYSPLACE;
 
             String fairness = "none"; // Places have no concept of fairness
-            boolean isReadyToFire = false; // Places can't be fired, only Transitions can.
 
-            return new PetriNetNode(id, label, nodeType, isBad, initialToken, isSpecial,
-                    isInitialTransit, partition, fairness, isReadyToFire);
+            return new PetriNetNode(id, label, nodeType, isBad, isSpecial,
+                    isInitialTransit, partition, fairness);
         }
 
         static boolean isSpecial(PetriNetWithTransits game, Place place, Condition.Objective objective) {

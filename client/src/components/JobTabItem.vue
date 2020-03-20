@@ -60,7 +60,7 @@
   <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
                netType="PETRI_GAME"
                :graph="tab.result.graph"
-               :petriNetApt="tab.result.apt"
+               :jobKey="tab.jobKey"
                editorMode="Simulator"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
@@ -69,7 +69,6 @@
                editorMode="Viewer"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
-  <!--TODO replace anonymous functions with non-anonymous ones for performance reasons-->
   <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
                :graph='tab.result'
                editorMode="Viewer"
@@ -82,7 +81,7 @@
                :gravityStrengthDefault="300"/>
   <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
                :graph="tab.result.graph"
-               :petriNetApt="tab.result.apt"
+               :jobKey="tab.jobKey"
                :useModelChecking="true"
                netType="PETRI_NET"
                editorMode="Simulator"

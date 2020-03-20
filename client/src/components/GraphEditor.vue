@@ -85,7 +85,6 @@
       style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
              padding: 6px; border-radius: 30px;"
       class="d-flex flex-column"
-      @keyup.native="onSimulationHistoryKeydown"
       :tabIndex="-1"
     >
       <v-card-title class="flex-grow-0 flex-shrink-0">
@@ -95,20 +94,16 @@
               class="overflow-y-auto flex-grow-1"
               style="padding-top: 0;"
               ref="simulationHistoryListEl"
-              @keyup.native="onSimulationHistoryKeydown"
       >
         <v-list-item-group
           v-model="gameSimulationHistory.currentIndex"
-          @keyup.native="onSimulationHistoryKeydown"
           mandatory
         >
           <v-list-item
             v-for="(historyState, i) in visibleSimulationHistory.stack"
             :key="i"
-            @keyup.native="onSimulationHistoryKeydown"
           >
             <v-list-item-content
-              @keyup.native="onSimulationHistoryKeydown"
             >
               <v-list-item-title v-text="i === 0 ? '<start>' : historyState.transitionFired">
               </v-list-item-title>
@@ -202,10 +197,6 @@
       ToolPicker
     },
     props: {
-      petriNetApt: {
-        type: String,
-        required: false // Present only for GraphEditors which display Petri Nets
-      },
       restEndpoints: {
         type: Object,
         required: true
@@ -214,8 +205,16 @@
         type: Object,
         required: true
       },
+      // This prop is only present for PetriGames / PetriNetWithTransits which are created in the
+      // editor.  It's a UUID corresponding to the Map<UUID, PetriNet> in the server
       petriNetId: {
         type: String,
+        required: false
+      },
+      // This prop is only present for model checking nets, winning strategies, etc. which are
+      // created via the 'Job' system
+      jobKey: {
+        type: Object,
         required: false
       },
       netType: {
@@ -315,6 +314,7 @@
       this.nodes = []
       this.links = []
       this.importGraph(this.graph)
+      this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
       this.initializeD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
@@ -396,7 +396,10 @@
               {
                 // An empty state which will be shown as <start> in the list
               }
-            ]
+            ],
+            graph: {
+              fakeGraphShouldNotBeUsed: null // This 'graph' object should never be used
+            }
           }
         }
       },
@@ -1242,7 +1245,7 @@
       'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
         const currentState = this.gameSimulationHistory.stack[newIndex]
         if (currentState) { // Maybe the history has been reset and there is no 'current state'
-          this.importGraph(currentState.graph)
+          this.applyMarking(currentState.marking, currentState.fireableTransitions)
           this.updateD3()
         }
       },
@@ -1272,13 +1275,17 @@
         if (newMode === 'Editor' && oldMode === 'Simulator') {
           // Display the editor's current state
           this.importGraph(this.graph)
+          this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
           this.updateD3()
         } else if (newMode === 'Simulator' && oldMode === 'Editor') {
           // Display the simulator's current state
           const {currentIndex, stack} = this.gameSimulationHistory
           const currentState = stack[currentIndex]
           if (currentState) { // Maybe the history has been reset and there is no 'current state'
-            this.importGraph(currentState.graph)
+            // Show the 'graph' that the simulation is based on.
+            // It could be different from the graph shown in the editor
+            this.importGraph(this.gameSimulationHistory.graph)
+            this.applyMarking(currentState.marking, currentState.fireableTransitions)
             this.updateD3()
           }
         }
@@ -1395,6 +1402,7 @@
          this component.
          */
         this.importGraph(graph)
+        this.applyMarking(graph.initialMarking, graph.fireableTransitions)
         this.updateD3()
 
         // Reset the simulation as well
@@ -1405,17 +1413,7 @@
       }
     },
     methods: {
-      onSimulationHistoryKeydown: function (event) {
-        logging.logObject(event)
-        switch (event.key) {
-          case 'ArrowUp':
-            this.simulationHistoryBack()
-            break
-          case 'ArrowDown':
-            this.simulationHistoryForward()
-            break
-        }
-      },
+      // TODO #295 allow moving back and forth in history with arrow keys
       simulationHistoryBack: function () {
         const {currentIndex} = this.gameSimulationHistory
         this.gameSimulationHistory.currentIndex = Math.max(0, currentIndex - 1)
@@ -1431,11 +1429,14 @@
           currentIndex: 0, // The index of the currently selected state in the history
           /* Each game simulation state in this stack consists of an object:
           {
-            graph: null,  // The same as our prop 'graph'
-            apt: null  // The apt corresponding to the graph
+            marking: null, // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
             transitionFired: null // The transition fired from the previous state to reach this state
           } */
-          stack: []
+          stack: [],
+          graph: {
+            nodes: [],
+            links: []
+          }
         }
       },
       // When a transition gets fired (whether successful or not), it and its connected Places
@@ -1476,6 +1477,7 @@
       },
       resetSimulation: function () {
         this.importGraph(this.graph)
+        this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
         this.gameSimulationHistory = this.gameSimulationHistoryDefault()
         this.updateD3()
         logging.sendSuccessNotification('Reset the simulation.')
@@ -1515,51 +1517,47 @@
             currentIndex: 0,
             stack: [
               {
-                graph: this.deepCopy(this.graph),
-                apt: this.petriNetApt,
+                marking: this.graph.initialMarking,
+                fireableTransitions: this.graph.fireableTransitions,
                 transitionFired: null
               }
-            ]
+            ],
+            graph: this.deepCopy(this.graph)
           }
         }
         const {stack, currentIndex} = this.gameSimulationHistory
         const currentState = stack[currentIndex]
-        if (!currentState.apt) {
-          // Nets in the editor do not have their APT always stored clientside, because sometimes,
-          // generating APT results in an unnecessary RenderException.  Instead, they are kept as
-          // persistent objects on the server addressed by UUIDs (petriNetId).
-          // So, when you switch from Editor to Simulator and want to fire a transition for the
-          // first time, the client will send this petriNetId instead of an APT string in order to
-          // bootstrap the simulation.
-          // After that, the relevant state of the simulation (pairs of APT & graph) is kept
-          // entirely client-side.
-          // TODO If the RenderException issue can be resolved, I would plan to store the editor
-          //  state as APT on the client all the time to reduce this complexity and make undo/redo
-          //  easy to implement.
-          const isUsingNetFromEditor = currentIndex === 0 && this.petriNetId
-          if (!isUsingNetFromEditor) {
-            logging.sendErrorNotification('No APT nor petriNetId available.  Can\'t simulate')
-            return
-          }
-        }
+
         const transitionId = d.id
-        this.restEndpoints.fireTransition({
-          // The server will simulate using the net represented in currentState.apt if present,
-          // or it will fall back to the net stored on the server addressed by petriNetId.
-          apt: currentState.apt,
-          petriNetId: this.petriNetId,
-          transitionId,
-          netType: this.netType
-        }).then(response => {
+        let requestPromise
+        if (this.petriNetId) {
+          requestPromise = this.restEndpoints.fireTransitionEditor({
+            preMarking: currentState.marking,
+            petriNetId: this.petriNetId,
+            transitionId,
+            netType: this.netType
+          })
+        } else if (this.jobKey) {
+          requestPromise = this.restEndpoints.fireTransitionJob({
+            preMarking: currentState.marking,
+            jobKey: this.jobKey,
+            transitionId,
+            netType: this.netType
+          })
+        } else {
+          throw new Error('No petriNetId or jobKey present.  The simulation can\'t be run.')
+        }
+        requestPromise.then(response => {
           // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
           if (response.data.status === 'success') {
             const newState = {
-              ...response.data.result,  // apt, graph
+              marking: response.data.result.postMarking,
+              fireableTransitions: response.data.result.fireableTransitions,
               transitionFired: transitionId
             }
             this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1).concat([newState])
             this.gameSimulationHistory.currentIndex = currentIndex + 1
-            this.importGraph(newState.graph)
+            this.applyMarking(newState.marking, newState.fireableTransitions)
             this.updateD3()
             this.showTransitionFired({
               transitionId: d.id,
@@ -1951,7 +1949,7 @@
         // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup
           .selectAll('text')
-          .data(this.nodes.filter(node => node.content !== undefined || node.initialToken !== undefined), this.keyFunction)
+          .data(this.nodes, this.keyFunction)
         const contentEnter = newContentElements
           .enter().append('text')
           .call(this.applyNodeEventHandler)
@@ -2330,6 +2328,13 @@
           this.selectionBorder.attr('d', path)
         }
       },
+      // Update the marking view
+      applyMarking: function (marking, fireableTransitions) {
+        this.nodes.forEach(node => {
+          node.initialToken = marking[node.id]
+          node.isReadyToFire = fireableTransitions[node.id]
+        })
+      },
       /**
        * Perform a diff of the new graph against our existing graph, updating our graph in-place.
        * Delete nodes/links that are gone, update nodes that have changed, add new nodes/links.
@@ -2337,6 +2342,7 @@
        */
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
+        this.fireableTransitions = graphJsonCopy.fireableTransitions
         this.winningCondition = graphJsonCopy.winningCondition
         // There is only a ltlFormula sent from server to client iff winningCondition != LTL.
         // (Other winning conditions get translated to LTL formulas using  e.g. AdamModelChecker.toFlowLTLFormula.)

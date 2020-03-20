@@ -274,7 +274,6 @@
                       :transition="false"
                       :reverse-transition="false">
             <keep-alive>
-              <!--TODO replace anonymous functions with non-anonymous ones for performance reasons-->
               <JobTabItem
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
@@ -474,6 +473,7 @@
           }
         ],
         visibleJobsRightSide: [],
+        // TODO 290 rename from 'petriGame' to something more suitable
         petriGame: {
           net: {
             links: [],
@@ -613,7 +613,8 @@
           'toggleEnvironmentPlace',
           'toggleIsInitialTransit',
           'setIsSpecial',
-          'fireTransition',
+          'fireTransitionEditor',
+          'fireTransitionJob',
           'setInitialToken',
           'setWinningCondition',
           'setFairness',
@@ -903,6 +904,7 @@
         this.restEndpoints.parseApt({
           params: {
             apt: apt,
+            // TODO 290 create new bug to use the enum 'NetType' for this argument
             netType: this.useModelChecking ? 'petriNetWithTransits' : 'petriGame'
           }
         }).then(response => {
@@ -910,7 +912,7 @@
             case 'success':
               logging.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
               logging.logObject(response)
-              this.petriGame = response.data.graph
+              this.petriGame = response.data.petriGame
               this.aptParseStatus = 'success'
               this.aptParseError = ''
               this.aptParseErrorLineNumber = -1
@@ -1477,7 +1479,7 @@
      which correspond to a single v-tab-item.
      See my codepen https://codepen.io/annmygdala/pen/xxxpoNP  */
   .v-tabs-with-shared-content .v-tab--active:not(.selected-tab) {
-    color: rgba(0,0,0,.7);
+    color: rgba(0, 0, 0, .7);
   }
 
   .v-tabs-with-shared-content .v-tab {

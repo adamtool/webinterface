@@ -71,7 +71,13 @@ public class Job<T> {
                 throw e;
             }
         }, executorService);
-        this.futurePair.getSecond().whenComplete((result, exception) -> this.fireJobStatusChanged());
+        this.futurePair.getSecond().whenComplete((result, exception) -> {
+            this.fireJobStatusChanged();
+            if (exception != null) {
+                System.err.println("A job failed with an exception.  Stack track below.");
+                exception.printStackTrace();
+            }
+        });
     }
 
     public void cancel() {

@@ -165,8 +165,13 @@ public enum JobType {
 
                 PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(net, runFormula, settings);
                 // TODO #280 show the model checking formula of the model checking net
-                ILTLFormula modelCheckingFormula = AdamModelChecker.getModelCheckingFormula(
-                        net, modelCheckingNet, runFormula, settings);
+                // For some reason this seems to cause exceptions sometimes, so it is commented out
+                // until it comes time to implement this feature.
+                // For example, take the example 'Net.apt' with the formula 'A F p0'.
+                // I got this exception: uniol.apt.adt.exception.NoSuchNodeException: Node
+                // '<init_tfl>-0' does not exist in graph 'sdn_mc'
+//                ILTLFormula modelCheckingFormula = AdamModelChecker.getModelCheckingFormula(
+//                        net, modelCheckingNet, runFormula, settings);
                 return modelCheckingNet;
             }, net.getName());
         }

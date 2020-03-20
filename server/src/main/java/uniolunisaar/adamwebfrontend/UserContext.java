@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.tools.Logger;
 
 import java.io.PrintStream;
@@ -157,5 +158,19 @@ public class UserContext {
             throw new IllegalArgumentException("The given jobKey doesn't correspond to a Graph Game BDD.");
         }
         return (Job<BDDGraphExplorer>) jobsByKey.get(jobKey);
+    }
+
+    public PetriNet getPetriNetFromJob(JobKey jobKey) throws ExecutionException, InterruptedException {
+        if (jobKey.getJobType() != JobType.MODEL_CHECKING_NET &&
+                jobKey.getJobType() != JobType.WINNING_STRATEGY) {
+            throw new IllegalArgumentException("The given jobKey doesn't match a Job that would " +
+                    "produce a Petri Net.  Its 'type' is " + jobKey.getJobType().toString());
+        }
+        Job<?> job = jobsByKey.get(jobKey);
+        if (!job.isFinished()) {
+            throw new IllegalArgumentException("The given job is not finished, so the PetriNet it" +
+                    " will produce can not be accessed yet.");
+        }
+        return (PetriNet)job.getResult();
     }
 }
