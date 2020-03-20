@@ -890,19 +890,8 @@
         let transition
         let postset = new Set()
 
-        // Log our state and also display it using D3
-        // TODO consider refactoring this handler into its own module and using an event/callback-based
-        // interface.  It's kind of spaghettilike to be updating these global variables here that
-        // are used in updateD3.  Those parts of updateD3() that pertain to this tool could probably
-        // be refactored out into their own method, I reckon, into which you could pass the values
-        // of drawTransitPreviewSource, drawTransitPreviewLinks, etc.  That way, they would no
-        // longer need to be global variables like they are now.
-        // You would use it like this:
-        // const handler = drawTransitHandler()
-        //   .onChange({source, transition, postset} => this.updateTransitPreview(source, transition, postset))
-        // Whereby the Vue instance method updateTransitPreview would pass everything into D3.
-        // -Ann
-        const logCurrentState = () => {
+        // Log our state and also update the view
+        const logCurrentStateAndUpdateView = () => {
           const src = source ? source.id : 'none'
           const trans = transition ? transition.id : 'none'
           const targetList = Array.from(postset).map(t => t.id).join(', ')
@@ -964,14 +953,14 @@
                   transition = d
                   state = 2
                 }
-                logCurrentState()
+                logCurrentStateAndUpdateView()
                 break
               }
               case 1: {
                 if (d.type === 'TRANSITION') {
                   transition = d
                   state = 2
-                  logCurrentState()
+                  logCurrentStateAndUpdateView()
                 } else {
                   logging.logVerbose('DrawTransit: Please click on a transition.')
                 }
@@ -984,7 +973,7 @@
                   } else {
                     postset.add(d)
                   }
-                  logCurrentState()
+                  logCurrentStateAndUpdateView()
                 } else {
                   logging.logVerbose('DrawTransit: Click on Places to specify a postset and press Enter ' +
                     'to create the transit.  Press Esc to abort.')
