@@ -2318,8 +2318,11 @@
           this.selectionBorder.attr('d', path)
         }
       },
-      // Update the marking view
+      // Update the marking view for the petri net being shown
       applyMarking: function (marking, fireableTransitions) {
+        if (!marking || !fireableTransitions) {
+          return // for example, BDDs do not have markings or lists of fireable transitions
+        }
         this.nodes.forEach(node => {
           node.initialToken = marking[node.id]
           node.isReadyToFire = fireableTransitions[node.id]
