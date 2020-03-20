@@ -283,7 +283,7 @@ public class App {
         }
         // Send the initial marking as well as the net
         Marking initialMarking = net.getInitialMarking();
-        Map<String, Long> initialMarkingMap = PetriGameTools.markingToMap(initialMarking);
+        Map<String, Long> initialMarkingMap = PetriNetTools.markingToMap(initialMarking);
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
         JsonElement initialMarkingJson = gson.toJsonTree(initialMarkingMap, markingMapTypeToken);
@@ -499,7 +499,7 @@ public class App {
         Type type = new TypeToken<Map<String, NodePosition>>() {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
-        PetriGameTools.saveXYCoordinates(petriNet, nodePositions);
+        PetriNetTools.saveXYCoordinates(petriNet, nodePositions);
 
         // Send all X/Y coordinates back to the client
         JsonElement serializedNet = PetriNetClient.serializeEditorNet(
@@ -818,11 +818,11 @@ public class App {
 
         // Send the new marking and set of fireable transitions to the client
         JsonObject result = new JsonObject();
-        Map<String, Long> postMarkingMap = PetriGameTools.markingToMap(postMarking);
+        Map<String, Long> postMarkingMap = PetriNetTools.markingToMap(postMarking);
         JsonElement postMarkingJson = gson.toJsonTree(postMarkingMap, markingMapTypeToken);
         result.add("postMarking", postMarkingJson);
 
-        Map<String, Boolean> fireableTransitions = PetriGameTools.getFireableTransitions(netCopy);
+        Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(netCopy);
 
         JsonElement fireableTransitionsJson = gson.toJsonTree(fireableTransitions);
         result.add("fireableTransitions", fireableTransitionsJson);

@@ -13,7 +13,7 @@ import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
-import uniolunisaar.adamwebfrontend.PetriGameTools;
+import uniolunisaar.adamwebfrontend.PetriNetTools;
 import uniolunisaar.adamwebfrontend.SerializationException;
 
 import java.util.*;
@@ -231,8 +231,8 @@ public class PetriNetClient {
                         Node::getId, positionOfNode
                 ));
 
-        Map<String, Long> initialMarkingMap = PetriGameTools.markingToMap(net.getInitialMarking());
-        Map<String, Boolean> fireableTransitions = PetriGameTools.getFireableTransitions(net);
+        Map<String, Long> initialMarkingMap = PetriNetTools.markingToMap(net.getInitialMarking());
+        Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(net);
 
         Map<Flow, String> flowRelationFromTransitions = getFlowRelationFromTransitions.apply(net);
         for (Flow flow : net.getEdges()) {

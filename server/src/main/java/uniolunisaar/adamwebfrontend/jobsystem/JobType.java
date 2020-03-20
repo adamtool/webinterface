@@ -72,7 +72,7 @@ public enum JobType {
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
-                PetriGameTools.removeXAndYCoordinates(strategyBDD);
+                PetriNetTools.removeXAndYCoordinates(strategyBDD);
                 return strategyBDD;
             }, petriGame.getName());
         }
