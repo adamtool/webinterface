@@ -1,9 +1,12 @@
 package uniolunisaar.adamwebfrontend;
 
+import uniol.apt.adt.pn.Marking;
 import uniol.apt.adt.pn.Node;
+import uniol.apt.adt.pn.Place;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.util.AdamExtensions;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -58,5 +61,19 @@ public class PetriGameTools {
                         "The x/y coordinates are missing for the node " + node);
             }
         }
+    }
+
+    /**
+     * Transform the Marking of a PetriNet into a Map<String, Long> that associates each Place's ID
+     * with the number of tokens at the Place.
+     */
+    public static Map<String, Long> markingToMap(Marking marking) {
+        Map<String, Long> map = new HashMap<>();
+        for (Place place : marking.getNet().getPlaces()) {
+            String placeId = place.getId();
+            Long tokenCount = marking.getToken(placeId).getValue();
+            map.put(placeId, tokenCount);
+        }
+        return map;
     }
 }

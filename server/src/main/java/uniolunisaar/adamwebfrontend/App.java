@@ -32,7 +32,6 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class App {
     private final Gson gson = new Gson();
@@ -274,7 +273,7 @@ public class App {
         }
         // Send the initial marking as well as the net
         Marking initialMarking = net.getInitialMarking();
-        Map<String, Long> initialMarkingMap = markingToMap(initialMarking);
+        Map<String, Long> initialMarkingMap = PetriGameTools.markingToMap(initialMarking);
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
         JsonElement initialMarkingJson = gson.toJsonTree(initialMarkingMap, markingMapTypeToken);
@@ -811,7 +810,7 @@ public class App {
 
         // Send the new marking and set of fireable transitions to the client
         JsonObject result = new JsonObject();
-        Map<String, Long> postMarkingMap = markingToMap(postMarking);
+        Map<String, Long> postMarkingMap = PetriGameTools.markingToMap(postMarking);
         JsonElement postMarkingJson = gson.toJsonTree(postMarkingMap, markingMapTypeToken);
         result.add("postMarking", postMarkingJson);
 
@@ -825,17 +824,6 @@ public class App {
         result.add("fireableTransitions", fireableTransitionsJson);
 
         return successResponse(result);
-    }
-
-    // TODO 290 move to 'PetriGameTools' package
-    public static Map<String, Long> markingToMap(Marking marking) {
-        Map<String, Long> map = new HashMap<>();
-        for (Place place : marking.getNet().getPlaces()) {
-            String placeId = place.getId();
-            Long tokenCount = marking.getToken(placeId).getValue();
-            map.put(placeId, tokenCount);
-        }
-        return map;
     }
 
     private Object handleFireTransition(Request req, Response res) {

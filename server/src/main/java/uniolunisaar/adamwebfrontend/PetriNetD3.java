@@ -229,7 +229,7 @@ public class PetriNetD3 {
                         Node::getId, positionOfNode
                 ));
 
-        Map<String, Long> initialMarkingMap = App.markingToMap(net.getInitialMarking());
+        Map<String, Long> initialMarkingMap = PetriGameTools.markingToMap(net.getInitialMarking());
         Map<String, Boolean> fireableTransitions = new HashMap<>();
         for (Transition t : net.getTransitions()) {
             boolean isFireable = t.isFireable(net.getInitialMarking());
