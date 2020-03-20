@@ -229,16 +229,21 @@ public class App {
         System.out.println("body: " + body.toString());
         JsonObject params = body.getAsJsonObject().get("params").getAsJsonObject();
         String apt = params.get("apt").getAsString();
-        String netType = params.get("netType").getAsString();
+        NetType netType = NetType.valueOf(params.get("netType").getAsString());
         PetriNetWithTransits net;
         try {
             switch (netType) {
-                case "petriNetWithTransits":
+                case PETRI_NET_WITH_TRANSITS:
                     net = AdamModelChecker.getPetriNetWithTransits(apt);
                     break;
-                case "petriGame":
+                case PETRI_GAME:
                     net = AdamSynthesizer.getPetriGame(apt);
                     break;
+                case PETRI_NET:
+                    throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is " +
+                            "this a mistake?  (In model checking mode, we expect to see " +
+                            "PETRI_NET_WITH_TRANSITS here, and in synthesis, PETRI_GAME." +
+                            "Please file a bug report.");
                 default:
                     throw new IllegalArgumentException("Unrecognized net type: " + netType);
             }
@@ -260,13 +265,17 @@ public class App {
 
         JsonElement netJson;
         switch (netType) {
-            case "petriNetWithTransits":
+            case PETRI_NET_WITH_TRANSITS:
                 netJson = PetriNetD3.serializePNWT(net, net.getNodes(), true);
                 break;
-            case "petriGame":
-                // TODO Refactor this route into two or three separate routes for PN, PNWT, and PG
+            case PETRI_GAME:
                 netJson = PetriNetD3.serializePetriGame((PetriGame) net, net.getNodes(), true);
                 break;
+            case PETRI_NET:
+                throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is " +
+                        "this a mistake?  (In model checking mode, we expect to see " +
+                        "PETRI_NET_WITH_TRANSITS here, and in synthesis, PETRI_GAME." +
+                        "Please file a bug report.");
             default:
                 throw new IllegalArgumentException("Unrecognized net type: " + netType);
         }
