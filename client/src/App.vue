@@ -139,9 +139,6 @@
         </hsc-menu-bar-item>
         <hsc-menu-bar-item @click.native="isLogVisible = !isLogVisible; $refs.menubar.deactivate()"
                            :label="isLogVisible ? 'Hide log' : 'Show log'"/>
-        <!--TODO Grey out these buttons or something if these things have already been calculated.-->
-        <!--TODO Maybe add a little indicator for each one: "not yet calculated", "in progress", "Finished"-->
-        <!--TODO For "calculateExistsWinningStrategy," it could even say whether or not a strategy exists.-->
       </hsc-menu-bar>
       <button @click="showJobList = true"
               style="margin-left: 40px;">View jobs running on server
@@ -617,7 +614,9 @@
         })
         return funs
       },
-      // TODO consider refactoring routes so they are handled more like this and less like the above
+      // TODO 296 There are different inconsistent interfaces for different routes because I have
+      // experimented, trying to find out the cleanest way to implement a RPC mechanism like this,
+      // and I have not yet cleaned it all up yet. -ann
       modelCheckingRoutes: function () {
         return modelCheckingRoutesFactory.withPathPrefix(this.baseUrl)
       },

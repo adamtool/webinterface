@@ -1270,8 +1270,6 @@
         }
       },
       selectedTool: function (tool) {
-        // TODO Instead of watching selectedTool, create a computed property 'eventHandlers'.
-        // That would be more declarative and Vue-like, I think.  -Ann
         if (tool.toolEnumName !== 'drawTransit') {
           this.drawTransitHandler.reset()
         }
@@ -2412,7 +2410,6 @@
       calculateNodeWidth: function (d) {
         if (d.content !== undefined) {
           return d.maxContentLineLength * 8 + 10
-          // return 125 // TODO Make width expand to fit text (use fixed width font if necessary)
         } else {
           return this.nodeRadius * 2
         }
@@ -2420,7 +2417,6 @@
       calculateNodeHeight: function (d) {
         if (d.content !== undefined) {
           return d.numberOfLines * 20
-          // return 90 // TODO Make height expand to fit text
         } else {
           return this.nodeRadius * 2
         }
@@ -2452,7 +2448,8 @@
         } else if (data.type === 'BDD_GRAPH_STATE') {
           return data.isMcut ? 'white' : 'lightgrey'
         } else {
-          return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
+          throw new Error('No appropriate fill color found for the given datum: ' +
+            JSON.stringify(data))
         }
       },
       svgWidth: function () {
@@ -2477,26 +2474,11 @@
        * Perform a deep copy of an arbitrary object.
        * This has some caveats.
        * See https://stackoverflow.com/questions/20662319/javascript-deep-copy-using-json
-       * TODO: Consider refactoring this out into its own little module if a similar trick is used in other components.
        * @param object
        * @returns A deep copy/clone of object
        */
       deepCopy: function (object) {
         return JSON.parse(JSON.stringify(object))
-      },
-      // TODO Explain what this function is for
-      calculateNodeOffset: function (data) {
-        if (data.type === 'ENVPLACE') {
-          // Node is a circle
-          return this.nodeRadius
-        } else if (data.type === 'SYSPLACE') {
-          return this.nodeRadius
-        } else if (data.type === 'TRANSITION') {
-          // Node is a rectangle
-          return this.calculateNodeHeight(data)
-        } else if (data.type === 'BDD_GRAPH_STATE') {
-          return this.calculateNodeHeight(data)
-        }
       },
       contextMenuItemsTransition: function (transitionNode) {
         const setWeakFair = {
@@ -2570,8 +2552,6 @@
 
 
   .graph-editor {
-    /*TODO Make the graph editor use up exactly as much space as is given to it.*/
-    /*For some reason, when I set this to 100%,it does not grow to fill the space available.*/
     height: 100%;
     width: 100%;
     max-width: 100%;
