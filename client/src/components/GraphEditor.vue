@@ -722,7 +722,6 @@
           }
         ]
       },
-      // TODO Figure out why Strategy BDD/Graph Strat BDD / GGBDD nodes still spawn at 0,0 ???
       nodeSpawnPoint: function () {
         if (this.lastUserClick) {
           return this.lastUserClick
@@ -1912,7 +1911,7 @@
        */
       updateD3: function () {
         // Write the IDs/labels of nodes underneath them.
-        // TODO Prevent these from getting covered up by arrowheads.  Maybe add a background.
+        // TODO #298 Prevent these from getting covered up by arrowheads.  Maybe add a background.
         // See https://stackoverflow.com/questions/15500894/background-color-of-text-in-svg
         const newLabelElements = this.labelGroup
           .selectAll('text')
@@ -1946,8 +1945,8 @@
           .attr('text-anchor', 'middle')
           .attr('dy', '-8')
           .attr('font-family', '\'Inconsolata\', monospace')
-          // TODO Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
-          // TODO This means that our text will end up all on one line.  In Firefox it's ok, though.
+          // TODO #208 Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
+          // This means that our text will end up all on one line.  In Firefox it's ok, though.
           .style('white-space', 'pre')
         newContentElements.exit().remove()
         this.contentElements = contentEnter.merge(newContentElements)
@@ -2217,7 +2216,6 @@
             .attr('transform', node => `translate(${node.x},${node.y})`)
           this.labelElements
             .attr('x', node => node.x)
-            // TODO Use function mentioned in other TODO to determine where the bottom of the node is
             .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
           this.contentElements
             .attr('x', node => node.x)
@@ -2284,9 +2282,7 @@
               }
             })
 
-          // TODO Position inhibitor arc circles
-          // (I guess it makes sense to create/destroy them inside of updateD3 and then position
-          // them here.)
+          // Position inhibitor arc circles
           this.inhibitorArcCircleElements.attr('transform',
             (d) => `translate(${d.inhibitorArcCircleCenter.x},${d.inhibitorArcCircleCenter.y})`
           )
@@ -2331,7 +2327,6 @@
       /**
        * Perform a diff of the new graph against our existing graph, updating our graph in-place.
        * Delete nodes/links that are gone, update nodes that have changed, add new nodes/links.
-       * TODO Validate the graphJson; make sure it has all the properties we expect to see.
        */
       importGraph: function (graphJson) {
         const graphJsonCopy = this.deepCopy(graphJson)
@@ -2361,8 +2356,6 @@
         newNodes.forEach(newNode => {
           const nodeIsAlreadyPresent = this.nodes.some(oldNode => oldNode.id === newNode.id)
           if (!nodeIsAlreadyPresent) {
-            // TODO Consider fixing nodes for which "isPostsetExpanded" is true.  Right now, nodes tend to
-            // get pushed around in a disorienting way when their children are added to the graph.
             // Randomize the position slightly to stop the nodes from flying away from each other
             newNode.x = this.nodeSpawnPoint.x + (Math.random() - 0.5) * 40
             newNode.y = this.nodeSpawnPoint.y + (Math.random() - 0.5) * 40
@@ -2372,8 +2365,6 @@
 
         // Apply the x/y coordinates that are given to us by the server
         // Note that this freezes the nodes.
-        // TODO Consider allowing some nodes to be frozen and others to be free-floating
-        // TODO (This would require a boolean AdamExtension to be added)
         this.nodes.forEach(node => {
           if (newNodePositions.hasOwnProperty(node.id)) {
             // logging.logVerbose('updating x/y coordinates of this node: ' + node.id)
@@ -2417,7 +2408,7 @@
             this.links.push(newLinkWithReferences)
           }
         })
-        // TODO document how this works.  It's a fiddly bit of state management to ensure that
+        // TODO Refactor this?  It's a fiddly bit of state management to ensure that
         // nodes spawn under the mouse cursor if triggered by a user clicking, but otherwise, they
         // should spawn at the center of the SVG (e.g. upon editing the APT).
         // Maybe a better solution would be to send to the server the x/y coordinates of the click
