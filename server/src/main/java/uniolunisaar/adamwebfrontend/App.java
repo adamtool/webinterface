@@ -266,10 +266,10 @@ public class App {
         JsonElement netJson;
         switch (netType) {
             case PETRI_NET_WITH_TRANSITS:
-                netJson = PetriNetD3.serializePNWT(net, net.getNodes(), true);
+                netJson = PetriNetClient.serializePNWT(net, net.getNodes(), true);
                 break;
             case PETRI_GAME:
-                netJson = PetriNetD3.serializePetriGame((PetriGame) net, net.getNodes(), true);
+                netJson = PetriNetClient.serializePetriGame((PetriGame) net, net.getNodes(), true);
                 break;
             case PETRI_NET:
                 throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is " +
@@ -500,7 +500,7 @@ public class App {
         PetriGameTools.saveXYCoordinates(petriNet, nodePositions);
 
         // Send all X/Y coordinates back to the client
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(
                 petriNet, new HashSet<>(petriNet.getNodes()));
 
         return successResponse(serializedNet);
@@ -539,7 +539,7 @@ public class App {
         net.setYCoord(node, y);
 
         // Send the x/y coordinate of the newly created node back to the client
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(
                 net, new HashSet<>(Collections.singletonList(node)));
 
         return successResponse(serializedNet);
@@ -551,7 +551,7 @@ public class App {
 
         net.removeNode(nodeId);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -563,7 +563,7 @@ public class App {
         Node oldNode = net.getNode(nodeIdOld);
         net.rename(oldNode, nodeIdNew);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -585,7 +585,7 @@ public class App {
             petriGame.setEnvironment(place);
         }
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(petriGame);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(petriGame);
         return successResponse(serializedNet);
     }
 
@@ -601,7 +601,7 @@ public class App {
             net.setInitialTransit(place);
         }
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -613,7 +613,7 @@ public class App {
         Place place = net.getPlace(nodeId);
         place.setInitialToken(tokens);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -631,7 +631,7 @@ public class App {
             net.removeSpecial(place, condition);
         }
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -642,7 +642,7 @@ public class App {
         Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
         PNWTTools.setConditionAnnotation(net, objective);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -652,7 +652,7 @@ public class App {
         String destination = body.get("destination").getAsString();
 
         net.createFlow(source, destination);
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -664,7 +664,7 @@ public class App {
 
         net.removeFlow(source, target);
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);
     }
 
@@ -703,7 +703,7 @@ public class App {
             net.createInitialTransit(transitionId, postsetArray);
         }
 
-        JsonElement serializedNet = PetriNetD3.serializeEditorNet(net);
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
 
         return successResponse(serializedNet);
     }
@@ -850,7 +850,7 @@ public class App {
             default:
                 throw new IllegalArgumentException("Unrecognized value for 'fairness': " + fairness);
         }
-        return successResponse(PetriNetD3.serializeEditorNet(net));
+        return successResponse(PetriNetClient.serializeEditorNet(net));
     }
 
     private Object handleSetInhibitorArc(Request req, Response response, PetriNetWithTransits net) {
@@ -872,7 +872,7 @@ public class App {
         } else {
             net.removeInhibitor(flow);
         }
-        return successResponse(PetriNetD3.serializeEditorNet(net));
+        return successResponse(PetriNetClient.serializeEditorNet(net));
     }
 
 }

@@ -8,7 +8,6 @@ import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
-import uniolunisaar.adam.ds.logics.ltl.ILTLFormula;
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunFormula;
 import uniolunisaar.adam.ds.modelchecking.CounterExample;
 import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
@@ -21,10 +20,8 @@ import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PGTools;
-import uniolunisaar.adam.util.PNWTTools;
 
 import java.util.HashSet;
-import java.util.Random;
 import java.util.UUID;
 
 import static uniolunisaar.adamwebfrontend.App.exceptionToString;
@@ -53,7 +50,7 @@ public enum JobType {
             JsonObject json = new JsonObject();
             PetriGame game = (PetriGame) result;
             // TODO #292 include the positions of nodes here
-            JsonElement netJson = PetriNetD3.serializePetriGame(game, new HashSet<>(), false);
+            JsonElement netJson = PetriNetClient.serializePetriGame(game, new HashSet<>(), false);
             json.add("graph", netJson);
 
             String apt;
@@ -79,7 +76,7 @@ public enum JobType {
 
     }, GRAPH_STRATEGY_BDD {
         JsonElement serialize(Object result) {
-            return BDDGraphD3.ofWholeBddGraph((BDDGraph) result);
+            return BDDGraphClient.ofWholeBddGraph((BDDGraph) result);
         }
 
         Job<BDDGraph> makeJob(PetriNetWithTransits net,
@@ -136,7 +133,7 @@ public enum JobType {
             JsonObject json = new JsonObject();
             PetriNet net = (PetriNet) result;
             // TODO #292 we would need to include X/Y coordinates here
-            JsonElement netJson = PetriNetD3.serializePetriNet(net, new HashSet<>());
+            JsonElement netJson = PetriNetClient.serializePetriNet(net, new HashSet<>());
             json.add("graph", netJson);
 
             String apt;

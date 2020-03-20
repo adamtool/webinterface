@@ -20,10 +20,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Represents the data needed to display a PetriNet in our graph editor.
- * This class is meant to be serialized using GSON and fed directly into our D3 code.
+ * Represents the data needed to represent a PetriNet or PNWT or PetriGame in the client.
+ * This class is meant to be serialized using GSON.
  */
-public class PetriNetD3 {
+public class PetriNetClient {
     private final List<PetriNetLink> links;
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
@@ -35,9 +35,9 @@ public class PetriNetD3 {
     // This is only used by PNWT in the model checking case
     private String ltlFormula;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String,
+    private PetriNetClient(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String,
             NodePosition> nodePositions, Map<String, Long> initialMarking,
-                       Map<String, Boolean> fireableTransitions) {
+                           Map<String, Boolean> fireableTransitions) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
@@ -104,7 +104,7 @@ public class PetriNetD3 {
      */
     public static JsonElement serializePetriNet(PetriNet net,
                                                 Set<Node> shouldSendPositions) {
-        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
+        PetriNetClient netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPetriNetPlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPetriNetFlow,
@@ -125,7 +125,7 @@ public class PetriNetD3 {
     public static JsonElement serializePNWT(PetriNetWithTransits net,
                                             Set<Node> shouldSendPositions,
                                             boolean shouldIncludeObjective) {
-        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
+        PetriNetClient netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPNWTPlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPNWTFlow,
@@ -165,7 +165,7 @@ public class PetriNetD3 {
                                                  Set<Node> shouldSendPositions,
                                                  boolean shouldIncludeObjective) {
 
-        PetriNetD3 netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
+        PetriNetClient netD3 = ofNetWithXYCoordinates(net, shouldSendPositions,
                 PetriNetNode::fromPetriGamePlace,
                 PetriNetNode::fromTransition,
                 PetriNetLink::fromPetriGameFlow,
@@ -194,7 +194,7 @@ public class PetriNetD3 {
      * <p>
      * See https://github.com/d3/d3-force
      */
-    public static <T extends PetriNet> PetriNetD3 ofNetWithXYCoordinates(
+    public static <T extends PetriNet> PetriNetClient ofNetWithXYCoordinates(
             T net,
             Set<Node> shouldSendPositions,
             PlaceSerializer<T> placeSerializer,
@@ -238,8 +238,8 @@ public class PetriNetD3 {
             PetriNetLink petriNetLink = flowSerializer.serializeFlow(flow, net, arcLabel);
             links.add(petriNetLink);
         }
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, initialMarkingMap, fireableTransitions);
-        return petriNetD3;
+        PetriNetClient petriNetClient = new PetriNetClient(links, nodes, nodePositions, initialMarkingMap, fireableTransitions);
+        return petriNetClient;
     }
 
 
