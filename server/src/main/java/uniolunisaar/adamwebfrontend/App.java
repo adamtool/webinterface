@@ -721,7 +721,7 @@ public class App {
         JsonObject preMarkingJson = body.get("preMarking").getAsJsonObject();
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
-        Map<String, Long> markingsMap = gson.fromJson(preMarkingJson, markingMapTypeToken);
+        Map<String, Long> preMarkingMap = gson.fromJson(preMarkingJson, markingMapTypeToken);
 
         String transitionId = body.get("transitionId").getAsString();
 
@@ -733,7 +733,7 @@ public class App {
         // TODO Allow firing transitions in petri nets outside the editor
         // (Model checking net / Winning Strategy)
         PetriNet net = getPetriNet(petriNetId);
-        PetriNet netCopy = null;
+        PetriNet netCopy;
         switch (netType) {
             case PETRI_NET:
                 netCopy = new PetriNet(net);
@@ -744,11 +744,18 @@ public class App {
             case PETRI_GAME:
                 netCopy = new PetriGame((PetriGame) net);
                 break;
+            default:
+                return errorResponse("Missing switch branch. Please send a bug report");
         }
 
         // Fire the transition in a copy of the net, leaving the original net alone
         Transition transition = netCopy.getTransition(transitionId);
-        Marking preMarking = mapToMarking(markingsMap, net);
+        // Apply the given marking to the net
+        preMarkingMap.forEach((placeId, tokenCount) -> {
+            Place place = netCopy.getPlace(placeId);
+            place.setInitialToken(tokenCount);
+        });
+        Marking preMarking = netCopy.getInitialMarking();
         Marking postMarking = transition.fire(preMarking);
 
         Map<String, Long> postMarkingMap = markingToMap(postMarking);
