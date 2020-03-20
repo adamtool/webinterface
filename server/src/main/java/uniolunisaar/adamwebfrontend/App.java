@@ -273,8 +273,6 @@ public class App {
                 throw new IllegalArgumentException("Unrecognized net type: " + netType);
         }
         // Send the initial marking as well as the net
-        // TODO 290 remove the redundant 'initialMarking' property from the 'net' json's
-        //  'nodes', i.e. PetriNetNode.initialToken
         Marking initialMarking = net.getInitialMarking();
         Map<String, Long> initialMarkingMap = markingToMap(initialMarking);
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
@@ -783,8 +781,6 @@ public class App {
         NetType netType = NetType.valueOf(body.get("netType").getAsString());
 
         // TODO Refactor (See #293)
-        // TODO #290 Allow firing transitions in petri nets outside the editor (MC net / Winning
-        //  Strategy)
         // Fire the transition in a copy of the net, leaving the original net alone
         PetriNet originalNet = petriNetGetter.apply(body);
         PetriNet netCopy;
