@@ -41,7 +41,7 @@ public enum JobType {
 
         public Job<Boolean> makeJob(PetriNetWithTransits net,
                                     JsonObject params) {
-            // TODO refactor, see #293
+            // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
@@ -68,7 +68,7 @@ public enum JobType {
 
         public Job<PetriGame> makeJob(PetriNetWithTransits net,
                                       JsonObject params) {
-            // TODO refactor, see #293
+            // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
@@ -84,7 +84,7 @@ public enum JobType {
 
         public Job<BDDGraph> makeJob(PetriNetWithTransits net,
                                      JsonObject params) {
-            // TODO refactor, see #293
+            // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
@@ -155,7 +155,7 @@ public enum JobType {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
 
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
-                // TODO display statistics in UI
+                // These statistics could be shown in the UI, but for now, they are not visible.
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 String tempFilePrefix = getTempFilePrefix();
                 AdamCircuitFlowLTLMCOutputData data = new AdamCircuitFlowLTLMCOutputData(
@@ -170,8 +170,8 @@ public enum JobType {
                 // For example, take the example 'Net.apt' with the formula 'A F p0'.
                 // I got this exception: uniol.apt.adt.exception.NoSuchNodeException: Node
                 // '<init_tfl>-0' does not exist in graph 'sdn_mc'
-//                ILTLFormula modelCheckingFormula = AdamModelChecker.getModelCheckingFormula(
-//                        net, modelCheckingNet, runFormula, settings);
+                // ILTLFormula modelCheckingFormula = AdamModelChecker.getModelCheckingFormula(
+                // net, modelCheckingNet, runFormula, settings);
                 return modelCheckingNet;
             }, net.getName());
         }

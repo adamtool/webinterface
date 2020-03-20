@@ -120,7 +120,7 @@ public class App {
         return exceptionName + ": " + exception.getMessage();
     }
 
-    // TODO Refactor, see #293
+    // TODO #293 refactor
     public static PetriGame promoteToPetriGame(PetriNetWithTransits net) {
         if (!(net instanceof PetriGame)) {
             throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
@@ -316,16 +316,13 @@ public class App {
         }
         UserContext userContext = userContextMap.get(browserUuid);
 
-        // TODO Refactor, see #293
+        // TODO #293 refactor
         PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
         JobKey jobKey = new JobKey(
                 PNWTTools.getAPT(netCopy, true, true),
                 jobParams,
                 jobType
         );
-        // TODO refactor so the client just sends us APT?  (IE dont give the client
-        //  a reference to a specific PetriGame object on the server)
-        //  This would allow the client to simply send us a 'jobKey' by itself to queue a job.
 
         // Check if this job has already been requested
         if (userContext.hasJobWithKey(jobKey)) {
@@ -356,8 +353,6 @@ public class App {
         /*
          When the job's status changes, a websocket message should be sent to the client,
          which contains the updated job list entry for this job.
-         TODO Distinguish between different kinds of events (e.g. old status -> new status)
-         in order to provide nice notifications about specific jobs
          */
         job.addObserver((Job ignored) -> {
             JsonObject message = new JsonObject();
@@ -785,7 +780,7 @@ public class App {
 
         NetType netType = NetType.valueOf(body.get("netType").getAsString());
 
-        // TODO Refactor (See #293)
+        // TODO #293 refactor
         // Fire the transition in a copy of the net, leaving the original net alone
         PetriNet originalNet = petriNetGetter.apply(body);
         PetriNet netCopy;

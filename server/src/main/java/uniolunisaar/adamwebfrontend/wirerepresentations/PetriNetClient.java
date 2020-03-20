@@ -71,9 +71,7 @@ public class PetriNetClient {
     }
 
     /**
-     * TODO This is some technical debt that was incurred due to implementation decisions made when
-     * support for the model checking approach was added.  See #293
-     *
+     * TODO #293 See comment for the other method called serializeEditorNet below
      * @return a JSON representation of a Petri Net/PNWT/Petri Game in the editor.
      * Does not include any X/Y coordinate annotations.
      */
@@ -82,8 +80,10 @@ public class PetriNetClient {
     }
 
     /**
-     * TODO #293 This is part of some technical debt that was incurred due to implementation
-     * decisions made when support for the model checking approach was added.
+     * TODO #293 This is not an ideal practice, to use a single method to serialize both PNWT
+     * and PetriGames, based on instanceof, but this is still present here in order to cope with
+     * some implementation decisions that were made as support for the model checking approach
+     * was added.
      *
      * @param includePositions the set of nodes whose x/y coordinates should be sent to the client
      * @return a JSON-encoded representation of a Petri Net/PNWT/Petri Game in the editor.
@@ -294,19 +294,16 @@ public class PetriNetClient {
     }
 
     static class PetriNetNode extends GraphNode {
-        // TODO Ask Manuel if the attribute "isBad" has been deprecated. I think we use isSpecial instead now.
-        private final boolean isBad;
         private final String fairness;
         // These properties only belong to PNWT
         private boolean isSpecial;
         private boolean isInitialTransit;
         private int partition;
 
-        private PetriNetNode(String id, String label, GraphNodeType type, boolean isBad,
+        private PetriNetNode(String id, String label, GraphNodeType type,
                              boolean isSpecial, boolean isInitialTransit,
                              int partition, String fairness) {
             super(id, label, type);
-            this.isBad = isBad;
             this.isSpecial = isSpecial;
             this.isInitialTransit = isInitialTransit;
             this.partition = partition;
@@ -325,7 +322,7 @@ public class PetriNetClient {
                 fairness = "none";
             }
             // Transitions are never bad or special and have no tokens
-            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, false, false,
+            return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, false,
                     -1, fairness);
         }
 
@@ -358,8 +355,6 @@ public class PetriNetClient {
             String id = place.getId();
             String label = id;
 
-            boolean isBad = PetriNetExtensionHandler.isBad(place);
-
             boolean isSpecial = false;
             boolean isInitialTransit = false;
             int partition = -1;
@@ -368,7 +363,7 @@ public class PetriNetClient {
 
             String fairness = "none"; // Places have no concept of fairness
 
-            return new PetriNetNode(id, label, nodeType, isBad, isSpecial,
+            return new PetriNetNode(id, label, nodeType, isSpecial,
                     isInitialTransit, partition, fairness);
         }
 

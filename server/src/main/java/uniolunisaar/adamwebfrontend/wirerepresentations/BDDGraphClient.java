@@ -110,9 +110,6 @@ public class BDDGraphClient {
                     isPresetExpanded,
                     hasInvisibleParents,
                     hasInvisibleChildren);
-            // TODO Isbad dicke schwarze Rahmen
-            // TODO isGood doppelter Rahmen (nicht so dick)
-            // TODO See Graphenspiele Beispiele in den Besipielen
         }
 
         private State(int id, boolean isMcut, boolean isGood, boolean isBad, String content,
