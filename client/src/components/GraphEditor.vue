@@ -197,10 +197,6 @@
       ToolPicker
     },
     props: {
-      petriNetApt: {
-        type: String,
-        required: false // Present only for GraphEditors which display Petri Nets
-      },
       restEndpoints: {
         type: Object,
         required: true
@@ -209,8 +205,16 @@
         type: Object,
         required: true
       },
+      // This prop is only present for PetriGames / PetriNetWithTransits which are created in the
+      // editor.  It's a UUID corresponding to the Map<UUID, PetriNet> in the server
       petriNetId: {
         type: String,
+        required: false
+      },
+      // This prop is only present for model checking nets, winning strategies, etc. which are
+      // created via the 'Job' system
+      jobKey: {
+        type: Object,
         required: false
       },
       netType: {
@@ -1525,13 +1529,25 @@
         const currentState = stack[currentIndex]
 
         const transitionId = d.id
-        // TODO 290 use fireTransitionJob when appropriate
-        this.restEndpoints.fireTransitionEditor({
-          preMarking: currentState.marking,
-          petriNetId: this.petriNetId,
-          transitionId,
-          netType: this.netType
-        }).then(response => {
+        let requestPromise
+        if (this.petriNetId) {
+          requestPromise = this.restEndpoints.fireTransitionEditor({
+            preMarking: currentState.marking,
+            petriNetId: this.petriNetId,
+            transitionId,
+            netType: this.netType
+          })
+        } else if (this.jobKey) {
+          requestPromise = this.restEndpoints.fireTransitionJob({
+            preMarking: currentState.marking,
+            jobKey: this.jobKey,
+            transitionId,
+            netType: this.netType
+          })
+        } else {
+          throw new Error('No petriNetId or jobKey present.  The simulation can\'t be run.')
+        }
+        requestPromise.then(response => {
           // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
           if (response.data.status === 'success') {
             const newState = {

@@ -614,7 +614,7 @@
           'toggleIsInitialTransit',
           'setIsSpecial',
           'fireTransitionEditor',
-          // TODO #290 add fireTransitionJob
+          'fireTransitionJob',
           'setInitialToken',
           'setWinningCondition',
           'setFairness',
