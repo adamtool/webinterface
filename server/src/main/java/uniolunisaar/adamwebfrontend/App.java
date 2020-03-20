@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class App {
@@ -99,7 +100,7 @@ public class App {
 
         postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
 
-        post("/fireTransition", this::handleFireTransitionNew);
+        post("/fireTransitionEditor", this::handleFireTransitionEditor);
 
         postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
 
@@ -716,7 +717,27 @@ public class App {
         }
     }
 
-    private Object handleFireTransitionNew(Request req, Response res) {
+    private PetriNet getPetriNetFromEditor(JsonObject requestBody) {
+        String petriNetId = requestBody.get("petriNetId").getAsString();
+        return getPetriNet(petriNetId);
+    }
+
+    private Object handleFireTransitionEditor(Request req, Response res) {
+        return handleFireTransitionNew(req, res, this::getPetriNetFromEditor);
+    }
+
+
+    /**
+     * @param petriNetGetter: We may want to operate upon PetriNets from the editor, which are
+     *                        stored in the Map<UUID, PetriNet> petriNets, or upon
+     *                        model checking nets / winning strategies, which are stored in Jobs in
+     *                        individual users' UserContexts.  There are two corresponding
+     *                        routes ('/fireTransitionEditor' and '/fireTransitionJob') implemented
+     *                        with different getters accordingly.
+     *                        See getPetriNetFromEditor and getPetriNetFromJob
+     */
+    private Object handleFireTransitionNew(Request req, Response res,
+                                           Function<JsonObject, PetriNet> petriNetGetter) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
 
         JsonObject preMarkingJson = body.get("preMarking").getAsJsonObject();
@@ -726,15 +747,13 @@ public class App {
 
         String transitionId = body.get("transitionId").getAsString();
 
-        String petriNetId = body.get("petriNetId").getAsString();
-
         NetType netType = NetType.valueOf(body.get("netType").getAsString());
 
         // TODO Refactor (See #293)
-        // TODO Allow firing transitions in petri nets outside the editor
-        // (Model checking net / Winning Strategy)
+        // TODO #290 Allow firing transitions in petri nets outside the editor (MC net / Winning
+        //  Strategy)
         // Fire the transition in a copy of the net, leaving the original net alone
-        PetriNet originalNet = getPetriNet(petriNetId);
+        PetriNet originalNet = petriNetGetter.apply(body);
         PetriNet netCopy;
         switch (netType) {
             case PETRI_NET:

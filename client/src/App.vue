@@ -613,7 +613,8 @@
           'toggleEnvironmentPlace',
           'toggleIsInitialTransit',
           'setIsSpecial',
-          'fireTransition',
+          'fireTransitionEditor',
+          // TODO #290 add fireTransitionJob
           'setInitialToken',
           'setWinningCondition',
           'setFairness',

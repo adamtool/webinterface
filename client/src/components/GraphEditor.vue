@@ -1525,7 +1525,8 @@
         const currentState = stack[currentIndex]
 
         const transitionId = d.id
-        this.restEndpoints.fireTransition({
+        // TODO 290 use fireTransitionJob when appropriate
+        this.restEndpoints.fireTransitionEditor({
           preMarking: currentState.marking,
           petriNetId: this.petriNetId,
           transitionId,
