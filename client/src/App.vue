@@ -614,7 +614,8 @@
         })
         return funs
       },
-      // TODO 296 There are different inconsistent interfaces for different routes because I have
+      // TODO #301 Refactor to be the same as restEndpoints
+      //  There are different inconsistent interfaces for different routes because I have
       // experimented, trying to find out the cleanest way to implement a RPC mechanism like this,
       // and I have not yet cleaned it all up yet. -ann
       modelCheckingRoutes: function () {
