@@ -28,17 +28,19 @@ public class PetriNetD3 {
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
     private final Map<String, Long> initialMarking;
+    private final Set<String> fireableTransitions;
 
     // This is only present for some PNWT/PetriGames
     private String winningCondition;
     // This is only used by PNWT in the model checking case
     private String ltlFormula;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, Map<String, Long> initialMarking) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, Map<String, Long> initialMarking, Set<String> fireableTransitions) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
         this.initialMarking = initialMarking;
+        this.fireableTransitions = fireableTransitions;
     }
 
     public void setLtlFormula(String ltlFormula) {
@@ -226,6 +228,10 @@ public class PetriNetD3 {
                 ));
 
         Map<String, Long> initialMarkingMap = App.markingToMap(net.getInitialMarking());
+        Set<String> fireableTransitions = net.getTransitions().stream()
+                .filter(transition -> transition.isFireable(net.getInitialMarking()))
+                .map(transition -> transition.getId())
+                .collect(Collectors.toCollection(HashSet::new));
 
         Map<Flow, String> flowRelationFromTransitions = getFlowRelationFromTransitions.apply(net);
         for (Flow flow : net.getEdges()) {
@@ -233,7 +239,7 @@ public class PetriNetD3 {
             PetriNetLink petriNetLink = flowSerializer.serializeFlow(flow, net, arcLabel);
             links.add(petriNetLink);
         }
-        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, initialMarkingMap);
+        PetriNetD3 petriNetD3 = new PetriNetD3(links, nodes, nodePositions, initialMarkingMap, fireableTransitions);
         return petriNetD3;
     }
 
@@ -319,6 +325,8 @@ public class PetriNetD3 {
             } else {
                 fairness = "none";
             }
+            // TODO 290 Send this along with markings to the client for proper display when
+            //  firing transitions
             boolean isReadyToFire = t.isFireable(net.getInitialMarking());
             // Transitions are never bad or special and have no tokens
             return new PetriNetNode(id, label, GraphNodeType.TRANSITION, false, false, false,
