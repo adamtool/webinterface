@@ -819,10 +819,12 @@ public class App {
         JsonElement postMarkingJson = gson.toJsonTree(postMarkingMap, markingMapTypeToken);
         result.add("postMarking", postMarkingJson);
 
-        List<String> fireableTransitions = netCopy.getTransitions().stream()
-                .filter(t -> t.isFireable(postMarking))
-                .map(t -> t.getId())
-                .collect(Collectors.toCollection(ArrayList::new));
+        Map<String, Boolean> fireableTransitions = new HashMap<>();
+        for (Transition t : netCopy.getTransitions()) {
+            boolean isFireable = t.isFireable(netCopy.getInitialMarking());
+            fireableTransitions.put(t.getId(), isFireable);
+        }
+
         JsonElement fireableTransitionsJson = gson.toJsonTree(fireableTransitions);
         result.add("fireableTransitions", fireableTransitionsJson);
 

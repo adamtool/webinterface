@@ -2332,8 +2332,7 @@
       applyMarking: function (marking, fireableTransitions) {
         this.nodes.forEach(node => {
           node.initialToken = marking[node.id]
-          // TODO 290 fix O(n^2) behavior
-          node.isReadyToFire = fireableTransitions.some(transitionId => transitionId === node.id)
+          node.isReadyToFire = fireableTransitions[node.id]
         })
       },
       /**

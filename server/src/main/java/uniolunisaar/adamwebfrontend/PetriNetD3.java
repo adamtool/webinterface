@@ -28,14 +28,16 @@ public class PetriNetD3 {
     private final List<PetriNetNode> nodes;
     private final Map<String, NodePosition> nodePositions;
     private final Map<String, Long> initialMarking;
-    private final Set<String> fireableTransitions;
+    private final Map<String, Boolean> fireableTransitions;
 
     // This is only present for some PNWT/PetriGames
     private String winningCondition;
     // This is only used by PNWT in the model checking case
     private String ltlFormula;
 
-    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String, NodePosition> nodePositions, Map<String, Long> initialMarking, Set<String> fireableTransitions) {
+    private PetriNetD3(List<PetriNetLink> links, List<PetriNetNode> nodes, Map<String,
+            NodePosition> nodePositions, Map<String, Long> initialMarking,
+                       Map<String, Boolean> fireableTransitions) {
         this.links = links;
         this.nodes = nodes;
         this.nodePositions = nodePositions;
@@ -228,10 +230,11 @@ public class PetriNetD3 {
                 ));
 
         Map<String, Long> initialMarkingMap = App.markingToMap(net.getInitialMarking());
-        Set<String> fireableTransitions = net.getTransitions().stream()
-                .filter(transition -> transition.isFireable(net.getInitialMarking()))
-                .map(transition -> transition.getId())
-                .collect(Collectors.toCollection(HashSet::new));
+        Map<String, Boolean> fireableTransitions = new HashMap<>();
+        for (Transition t : net.getTransitions()) {
+            boolean isFireable = t.isFireable(net.getInitialMarking());
+            fireableTransitions.put(t.getId(), isFireable);
+        }
 
         Map<Flow, String> flowRelationFromTransitions = getFlowRelationFromTransitions.apply(net);
         for (Flow flow : net.getEdges()) {
