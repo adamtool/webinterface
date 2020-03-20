@@ -1414,8 +1414,8 @@
       }
     },
     methods: {
+      // TODO 290 delete, unused
       onSimulationHistoryKeydown: function (event) {
-        logging.logObject(event)
         switch (event.key) {
           case 'ArrowUp':
             this.simulationHistoryBack()
@@ -2328,8 +2328,6 @@
       },
       // Update the marking view
       applyMarking: function (marking, fireableTransitions) {
-        console.log('applyMarking')
-        console.log(fireableTransitions)
         this.nodes.forEach(node => {
           node.initialToken = marking[node.id]
           // TODO 290 fix O(n^2) behavior
