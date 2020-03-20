@@ -806,6 +806,12 @@ public class App {
         });
         // Fire the transition and save it to the net
         Marking preMarking = netCopy.getInitialMarking();
+        if (!transition.isFireable(preMarking)) {
+            JsonObject response = errorResponseObject("The transition " + transitionId +
+                    " is not fireable in the given marking.");
+            response.addProperty("errorType", "TRANSITION_NOT_FIREABLE");
+            return response;
+        }
         Marking postMarking = transition.fire(preMarking);
         netCopy.setInitialMarking(postMarking);
 

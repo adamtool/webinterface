@@ -1525,7 +1525,6 @@
           throw new Error('No petriNetId or jobKey present.  The simulation can\'t be run.')
         }
         requestPromise.then(response => {
-          // TODO #281 Distinguish between 'ParseError' and 'can't fire in this marking'
           if (response.data.status === 'success') {
             const newState = {
               marking: response.data.result.postMarking,
@@ -1542,10 +1541,12 @@
             })
             logging.sendSuccessNotification('Fired transition ' + d.id)
           } else if (response.data.status === 'error') {
-            this.showTransitionFired({
-              transitionId: d.id,
-              wasSuccessful: false
-            })
+            if (response.data.errorType === 'TRANSITION_NOT_FIREABLE') {
+              this.showTransitionFired({
+                transitionId: d.id,
+                wasSuccessful: false
+              })
+            }
             logging.sendErrorNotification(response.data.message)
           } else {
             logging.sendErrorNotification('Invalid response from server')
