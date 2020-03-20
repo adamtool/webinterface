@@ -1096,8 +1096,9 @@
           petriNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
-          this.withErrorHandling(response, response => {
-            // TODO assert that the x/y coordinates we recieve match those we sent?
+          return this.withErrorHandling(response, responseSuccess => {
+            // It was successful, we don't have to do anything
+            logging.logVerbose('saveXYCoordinatesOnServer was successful')
           })
         }, reason => {
           // This function gets called if the promise is rejected (i.e. the http request failed)
@@ -1309,7 +1310,6 @@
         })
       },
       onDragDropEnd: function (graph) {
-        logging.logVerbose('App: Received dragDrop event from graph editor. Saving x/y coordinates.')
         this.saveXYCoordinatesOnServer()
       },
       onAptExampleSelected: function (apt) {
