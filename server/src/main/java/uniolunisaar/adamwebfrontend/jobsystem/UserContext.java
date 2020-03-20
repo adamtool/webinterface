@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.jobsystem;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -6,14 +6,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.tools.Logger;
+import uniolunisaar.adamwebfrontend.BDDGraphExplorer;
+import uniolunisaar.adamwebfrontend.LogWebSocket;
 
 import java.io.PrintStream;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 
-import static uniolunisaar.adamwebfrontend.JobStatus.COMPLETED;
-import static uniolunisaar.adamwebfrontend.JobStatus.FAILED;
+import static uniolunisaar.adamwebfrontend.jobsystem.JobStatus.COMPLETED;
+import static uniolunisaar.adamwebfrontend.jobsystem.JobStatus.FAILED;
 
 /**
  * Stores data related to a single user session

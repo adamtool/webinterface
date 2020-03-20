@@ -1,7 +1,6 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.jobsystem;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.junit.Test;
 import uniol.apt.io.parser.ParseException;
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.AdamModelChecker;

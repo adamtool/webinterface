@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.jobsystem;
 
 import com.google.gson.*;
 import uniol.apt.adt.pn.PetriNet;
@@ -20,6 +20,7 @@ import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PGTools;
+import uniolunisaar.adamwebfrontend.*;
 import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 import uniolunisaar.adamwebfrontend.wirerepresentations.PetriNetClient;
 
@@ -38,8 +39,8 @@ public enum JobType {
             return new JsonPrimitive((boolean) result);
         }
 
-        Job<Boolean> makeJob(PetriNetWithTransits net,
-                             JsonObject params) {
+        public Job<Boolean> makeJob(PetriNetWithTransits net,
+                                    JsonObject params) {
             // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
@@ -65,8 +66,8 @@ public enum JobType {
             return json;
         }
 
-        Job<PetriGame> makeJob(PetriNetWithTransits net,
-                               JsonObject params) {
+        public Job<PetriGame> makeJob(PetriNetWithTransits net,
+                                      JsonObject params) {
             // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
@@ -81,8 +82,8 @@ public enum JobType {
             return BDDGraphClient.ofWholeBddGraph((BDDGraph) result);
         }
 
-        Job<BDDGraph> makeJob(PetriNetWithTransits net,
-                              JsonObject params) {
+        public Job<BDDGraph> makeJob(PetriNetWithTransits net,
+                                     JsonObject params) {
             // TODO refactor, see #293
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
@@ -110,7 +111,7 @@ public enum JobType {
             return resultJson;
         }
 
-        Job<Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>> makeJob(
+        public Job<Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>> makeJob(
                 PetriNetWithTransits net,
                 JsonObject params) {
             String formula = params.get("formula").getAsString();
@@ -148,7 +149,7 @@ public enum JobType {
             return json;
         }
 
-        Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params) {
+        public Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
@@ -179,8 +180,8 @@ public enum JobType {
             return ((BDDGraphExplorer) result).getVisibleGraph();
         }
 
-        Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
-                                      JsonObject params) {
+        public Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
+                                             JsonObject params) {
             // TODO #293 consider refactoring
             if (!(petriGame1 instanceof PetriGame)) {
                 throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
@@ -220,7 +221,7 @@ public enum JobType {
 
     abstract JsonElement serialize(Object result) throws SerializationException;
 
-    abstract Job<?> makeJob(PetriNetWithTransits net, JsonObject params);
+    public abstract Job<?> makeJob(PetriNetWithTransits net, JsonObject params);
 
     // Serialize a statistics object, including only its primitive and String fields
     public static JsonElement serializeStatistics(AdamCircuitFlowLTLMCStatistics stats) {

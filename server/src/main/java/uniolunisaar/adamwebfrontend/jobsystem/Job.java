@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.jobsystem;
 
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.tools.processHandling.ProcessPool;
@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.concurrent.*;
 
-import static uniolunisaar.adamwebfrontend.JobStatus.*;
+import static uniolunisaar.adamwebfrontend.jobsystem.JobStatus.*;
 
 /**
  * This class represents a possibly long-running calculation that should run in its own thread.
