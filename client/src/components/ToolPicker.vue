@@ -124,9 +124,14 @@
         type: Array,
         required: true
       },
+      // Because of the way this prop is initialized in GraphViewer right now, the validator can't
+      // currently be used, because the value starts off as 'undefined'.  The validator would spit
+      // out an error in the browser's console log every time you load the page if validation
+      // were enabled.
       selectedTool: {
-        type: Object,
-        required: true
+        // type: Object,
+        // required: true,
+        // validator: tool => tools.includes(tool) && tool.type === 'tool'
       },
       // How many pixels should be left, top and bottom, between the edges of the tool picker and
       // the top/bottom edges of the parent element
