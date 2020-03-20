@@ -118,7 +118,7 @@ public class BDDGraphClient {
         private State(int id, boolean isMcut, boolean isGood, boolean isBad, String content,
                       boolean isPostsetExpanded, boolean isPresetExpanded, boolean hasInvisibleParents,
                       boolean hasInvisibleChildren) {
-            super(Integer.toString(id), Integer.toString(id), GraphNodeType.GRAPH_STRATEGY_BDD_STATE);
+            super(Integer.toString(id), Integer.toString(id), GraphNodeType.BDD_GRAPH_STATE);
             this.isMcut = isMcut;
             this.isGood = isGood;
             this.isBad = isBad;

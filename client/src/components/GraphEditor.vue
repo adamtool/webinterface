@@ -804,8 +804,7 @@
       onNodeClick: function () {
         return (d) => {
           d3.event.stopPropagation()
-          // TODO Rename this from GRAPH_STRATEGY_BDD_STATE to BDD_GRAPH_STATE
-          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+          if (d.type === 'BDD_GRAPH_STATE') {
             // Expand or collapse the postset of the State that has been clicked.
             // Freeze the State's position
             d.fx = d.x
@@ -828,7 +827,7 @@
           d3.event.preventDefault() // Prevent the right click menu from appearing
           d3.event.stopPropagation()
           console.log(d)
-          if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+          if (d.type === 'BDD_GRAPH_STATE') {
             // Freeze the State's position
             d.fx = d.x
             d.fy = d.y
@@ -1956,12 +1955,12 @@
               return 28
             } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
               return 20
-            } else if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            } else if (node.type === 'BDD_GRAPH_STATE') {
               return 15
             }
           })
           .text(node => {
-            if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            if (node.type === 'BDD_GRAPH_STATE') {
               // Figure out how long the widest line of the content is to determine node width later
               const lines = node.content.split('\n')
               const numberOfLines = lines.length
@@ -2048,14 +2047,14 @@
           .attr('width', this.calculateNodeWidth)
           .attr('height', this.calculateNodeHeight)
           .attr('stroke', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            if (d.type === 'BDD_GRAPH_STATE') {
               return d.isGood ? 'green' : 'black'
             } else {
               return 'black'
             }
           })
           .attr('stroke-dasharray', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE' && d.isGood) {
+            if (d.type === 'BDD_GRAPH_STATE' && d.isGood) {
               return '20,10'
             } else if ((d.type === 'ENVPLACE' || d.type === 'SYSPLACE') && d.isInitialTransit) {
               return '10,10'
@@ -2064,7 +2063,7 @@
             }
           })
           .attr('stroke-width', d => {
-            if (d.type === 'GRAPH_STRATEGY_BDD_STATE') {
+            if (d.type === 'BDD_GRAPH_STATE') {
               return d.isBad || d.isGood ? 5 : 2
             } else {
               return 2
@@ -2220,7 +2219,7 @@
           this.contentElements
             .attr('x', node => node.x)
             .attr('y', node => {
-              if (node.type === 'GRAPH_STRATEGY_BDD_STATE') {
+              if (node.type === 'BDD_GRAPH_STATE') {
                 return node.y - this.calculateNodeHeight(node) / 2 + 30
               } else {
                 return node.y - this.calculateNodeHeight(node) / 2 + 38
@@ -2461,7 +2460,7 @@
             default:
               return 'white'
           }
-        } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
+        } else if (data.type === 'BDD_GRAPH_STATE') {
           return data.isMcut ? 'white' : 'lightgrey'
         } else {
           return 'black' // TODO Throw some kind of exception or error.  This should be an exhaustive pattern match
@@ -2506,7 +2505,7 @@
         } else if (data.type === 'TRANSITION') {
           // Node is a rectangle
           return this.calculateNodeHeight(data)
-        } else if (data.type === 'GRAPH_STRATEGY_BDD_STATE') {
+        } else if (data.type === 'BDD_GRAPH_STATE') {
           return this.calculateNodeHeight(data)
         }
       },

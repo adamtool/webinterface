@@ -532,8 +532,8 @@ public class App {
             case TRANSITION:
                 node = net.createTransition();
                 break;
-            case GRAPH_STRATEGY_BDD_STATE:
-                return errorResponse("You can't insert a GRAPH_STRATEGY_BDD_STATE into a Petri Game.");
+            case BDD_GRAPH_STATE:
+                return errorResponse("You can't insert a BDD_GRAPH_STATE into a Petri Game.");
         }
         net.setXCoord(node, x);
         net.setYCoord(node, y);

@@ -145,7 +145,7 @@ function pathForLink (d, options) {
         break
       }
       case 'TRANSITION':
-      case 'GRAPH_STRATEGY_BDD_STATE': {
+      case 'BDD_GRAPH_STATE': {
         // The target node is a rectangle.
         targetPoint = pointOnRect(
           d.source.x,
