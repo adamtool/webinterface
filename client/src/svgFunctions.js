@@ -41,36 +41,6 @@ function loopPath (x1, y1, x2, y2) {
   return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
 }
 
-// Return the rectangular bounding box surrounding a set of dom nodes (e.g. svg elements)
-function containingBorder (domNodes) {
-  let xMin = 9999999
-  let yMin = 9999999
-  let xMax = -9999999
-  let yMax = -9999999
-  domNodes.forEach(domNode => {
-    // const rect = this.getBoundingClientRect()
-    // const {left: x0, right: x1, top: y0, bottom: y1} = rect
-    const bbox = transformedBoundingBox(domNode)
-    const {x: x0, y: y0, width, height} = bbox
-    const x1 = x0 + width
-    const y1 = y0 + height
-
-    if (x0 < xMin) {
-      xMin = x0
-    }
-    if (x1 > xMax) {
-      xMax = x1
-    }
-    if (y0 < yMin) {
-      yMin = y0
-    }
-    if (y1 > yMax) {
-      yMax = y1
-    }
-  })
-  return [xMin, yMin, xMax, yMax]
-}
-
 // Calculate the bounding box of an element with respect to its parent element
 function transformedBoundingBox (el) {
   var bb = el.getBBox()
@@ -186,5 +156,5 @@ function pathForLink (d, options) {
 }
 
 export {
-  rectanglePath, arcPath, loopPath, containingBorder, pathForLink
+  rectanglePath, arcPath, loopPath, pathForLink
 }

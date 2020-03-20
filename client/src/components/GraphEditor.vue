@@ -180,7 +180,7 @@
   import {saveFileAs} from '../fileutilities'
   import {layoutNodes} from '../autoLayout'
   import {noOpImplementation} from '../modelCheckingRoutes'
-  import {rectanglePath, arcPath, loopPath, containingBorder, pathForLink} from '../svgFunctions'
+  import {rectanglePath, arcPath, loopPath, pathForLink} from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import {debounce} from 'underscore'
@@ -1632,7 +1632,7 @@
       },
       deleteSelectedNodes: function () {
         console.log('deleting selected nodes')
-        // TODO #297 There's a bug here. If we send a bunch of requests in a row, the responses may come
+        // TODO #237 There's a bug here. If we send a bunch of requests in a row, the responses may come
         // out of order, leaving us // in an inconsistent state with the server.
         // A possible solution: Just send a single request with a set of node IDs to be deleted.
         this.selectedNodes.forEach(node => {
@@ -1881,11 +1881,6 @@
           .attr('stroke', 'black')
           .attr('fill', 'none')
           .attr('stroke-width', 2)
-        // This is the border drawn around all selected nodes.
-        this.selectionBorder = this.container.append('path')
-          .attr('stroke', '#000099')
-          .attr('fill', 'none')
-          .attr('stroke-width', 0) // TODO Only draw this border when we need it for 'stretching'
 
         this.updateD3()
 
@@ -2234,11 +2229,6 @@
               return `translate(${d.x},${d.y})`
             })
 
-          // TODO implement super cool feature to stretch and shrink a selection (moving all nodes proportionally)
-          // But for now don't use this function because the border, if drawn incorrectly, messes
-          // up the "zoom to fit all nodes" functionality
-          // this.updateSelectionBorder()
-
           // Update links to match the nodes' new positions
           this.linkElements
             .attr('d', d => {
@@ -2286,19 +2276,6 @@
         // isn't running, the newly inserted nodes' positions will not get applied to the SVG,
         // and you won't be able to see them.
         this.physicsSimulation.alpha(0.7).restart()
-      },
-      updateSelectionBorder: function () {
-        // TODO Figure out why this sometimes yields a border from -999999 to 999999
-        if (this.selectedNodes.length === 0) {
-          this.selectionBorder.attr('d', '')
-        } else {
-          const domNodeElements = this.nodeElements
-            .filter(this.selectedNodes.includes)
-            .nodes()
-          const border = containingBorder(domNodeElements)
-          const path = rectanglePath(...border)
-          this.selectionBorder.attr('d', path)
-        }
       },
       // Update the marking view for the petri net being shown
       applyMarking: function (marking, fireableTransitions) {
