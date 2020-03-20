@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.wirerepresentations;
 
 // Some routes (e.g. /fireTransition) may operate upon one of several different types of nets.
 // This enum has one entry for each possible type.

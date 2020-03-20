@@ -20,6 +20,8 @@ import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.modelchecking.circuits.ModelCheckerFlowLTL;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PGTools;
+import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
+import uniolunisaar.adamwebfrontend.wirerepresentations.PetriNetClient;
 
 import java.util.HashSet;
 import java.util.UUID;

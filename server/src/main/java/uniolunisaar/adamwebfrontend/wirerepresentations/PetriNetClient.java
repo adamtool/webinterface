@@ -1,4 +1,4 @@
-package uniolunisaar.adamwebfrontend;
+package uniolunisaar.adamwebfrontend.wirerepresentations;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -13,6 +13,8 @@ import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
+import uniolunisaar.adamwebfrontend.PetriGameTools;
+import uniolunisaar.adamwebfrontend.SerializationException;
 
 import java.util.*;
 import java.util.function.Function;

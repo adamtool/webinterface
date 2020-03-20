@@ -25,6 +25,7 @@ import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
+import uniolunisaar.adamwebfrontend.wirerepresentations.*;
 
 import java.io.IOException;
 import java.lang.reflect.Type;

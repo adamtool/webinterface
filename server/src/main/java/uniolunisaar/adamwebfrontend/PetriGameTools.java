@@ -3,6 +3,7 @@ package uniolunisaar.adamwebfrontend;
 import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.util.AdamExtensions;
+import uniolunisaar.adamwebfrontend.wirerepresentations.NodePosition;
 
 import java.util.HashMap;
 import java.util.Map;
