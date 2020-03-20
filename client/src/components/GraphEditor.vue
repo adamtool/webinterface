@@ -1285,7 +1285,7 @@
           if (currentState) { // Maybe the history has been reset and there is no 'current state'
             // Show the 'graph' that the simulation is based on.
             // It could be different from the graph shown in the editor
-            this.importGraph(gameSimulationHistory.graph)
+            this.importGraph(this.gameSimulationHistory.graph)
             this.applyMarking(currentState.marking)
             this.updateD3()
           }
