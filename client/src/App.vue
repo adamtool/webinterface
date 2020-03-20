@@ -278,7 +278,7 @@
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
                 :restEndpoints="restEndpoints"
-                @loadPetriGameFromApt="parseAPTToPetriGame"
+                @loadPetriGameFromApt="parseAptForEditorNet"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
                 @toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
@@ -408,7 +408,7 @@
 
       this.socket = this.initializeWebSocket(0)
 
-      this.parseAPTToPetriGame(this.apt)
+      this.parseAptForEditorNet(this.apt)
       this.getListOfJobs()
     },
     mounted: function () {
@@ -509,7 +509,7 @@
         }
       },
       apt: function (apt) {
-        this.parseAPTToPetriGame(apt)
+        this.parseAptForEditorNet(apt)
       },
       aptParseStatus: function (status) {
         if (status === 'error') {
@@ -886,7 +886,7 @@
       },
       // Send APT to backend and parse it, then display the resulting Petri Game.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
-      parseAPTToPetriGame: debounce(function (apt) {
+      parseAptForEditorNet: debounce(function (apt) {
         logging.logVerbose('Sending APT source code to backend.')
         this.restEndpoints.parseApt({
           params: {
