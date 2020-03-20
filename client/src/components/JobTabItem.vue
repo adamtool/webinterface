@@ -69,7 +69,6 @@
                editorMode="Viewer"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"/>
-  <!--TODO replace anonymous functions with non-anonymous ones for performance reasons-->
   <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
                :graph='tab.result'
                editorMode="Viewer"
