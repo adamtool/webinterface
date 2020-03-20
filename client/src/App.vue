@@ -212,7 +212,7 @@
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :petriNetId='editorNet.uuid'
                            :editorMode='editorSimulatorMode'
-                           ref='graphEditorPetriGame'
+                           ref='graphEditorEditorTab'
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
@@ -957,7 +957,7 @@
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
+        const formula = this.$refs.graphEditorEditorTab[0].ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
@@ -969,7 +969,7 @@
       },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorPetriGame[0].ltlFormula
+        const formula = this.$refs.graphEditorEditorTab[0].ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
@@ -983,14 +983,14 @@
         // TODO: This is currently kind of a mess with these variables being accessed and written to
         //  both here and inside of the GraphEditor component.  I think it might make sense to
         //  put them into a central store... Maybe using VueX
-        const graphEditorRef = this.$refs.graphEditorPetriGame[0]
+        const graphEditorRef = this.$refs.graphEditorEditorTab[0]
         graphEditorRef.ltlParseStatus = 'error'
         // clear error and then set it again in the next tick, so that the 'v-text-field'
         // component will do its "error" wiggle animation again if you cause another error after it
         // was already in an error state
         graphEditorRef.ltlParseErrors = []
         Vue.nextTick(() => {
-          this.$refs.graphEditorPetriGame[0].ltlParseErrors = [message]
+          this.$refs.graphEditorEditorTab[0].ltlParseErrors = [message]
         })
       },
       calculateExistsWinningStrategy: function () {
@@ -1092,7 +1092,7 @@
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriGame object.
         // TODO Don't use a ref for this.  Put the function inside of here.
-        const nodePositions = this.$refs.graphEditorPetriGame[0].getNodeXYCoordinates()
+        const nodePositions = this.$refs.graphEditorEditorTab[0].getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
           petriNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions
@@ -1318,7 +1318,7 @@
         // This needs to be handled differently than an incremental edit to an already loaded
         // Petri Game, because when we load a new APT file, we want all of the nodes' positions
         // to be reset.
-        this.$refs.graphEditorPetriGame[0].onLoadNewNet()
+        this.$refs.graphEditorEditorTab[0].onLoadNewNet()
         this.apt = apt
         this.isLeftPaneVisible = true
       },
