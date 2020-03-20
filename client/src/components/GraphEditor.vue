@@ -1670,7 +1670,7 @@
         const transform = d3.zoomTransform(this.svg.node())
         return transform.invert(mousePos)
       },
-      onLoadNewPetriGame: function () {
+      onLoadNewNet: function () {
         // When we load a new petri game, the positions of nodes from the previously loaded Petri Game
         // should not be carried over.
         this.randomizeAllNodesPositions()

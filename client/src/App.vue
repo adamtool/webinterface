@@ -75,7 +75,7 @@
         <hsc-menu-bar-item label="File">
           <hsc-menu-item
             :label="useModelChecking ? 'New Petri net with transits' : 'New Petri game'"
-            @click.native="newPetriGame"/>
+            @click.native="createNewEditorNet"/>
           <!--Have to use click.native so that the popup blocker isn't triggered-->
           <hsc-menu-item label="Load APT from file" @click.native="loadAptFromFile"/>
           <v-dialog
@@ -667,7 +667,8 @@
         this.visibleTabContentsLeftSide = tabNameToContents[tabName]
         this.selectedTabNameLeftSide = tabName
       },
-      newPetriGame: function () {
+      // Create a new empty net in the editor
+      createNewEditorNet: function () {
         const apt = this.useModelChecking ? aptExampleEmptyModelChecking : aptExampleEmptySynthesis
         this.onAptExampleSelected(apt)
         const whatDoYouCallIt = this.useModelChecking ? 'Petri net with transits' : 'Petri game'
@@ -1317,7 +1318,7 @@
         // This needs to be handled differently than an incremental edit to an already loaded
         // Petri Game, because when we load a new APT file, we want all of the nodes' positions
         // to be reset.
-        this.$refs.graphEditorPetriGame[0].onLoadNewPetriGame()
+        this.$refs.graphEditorPetriGame[0].onLoadNewNet()
         this.apt = apt
         this.isLeftPaneVisible = true
       },
