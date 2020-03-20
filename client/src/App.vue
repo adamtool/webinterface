@@ -661,7 +661,7 @@
         }
         if (tabName === 'APT Editor') {
           logging.logVerbose('Switched to APT editor')
-          this.savePetriGameAsAPT()
+          this.saveEditorNetAsAPT()
         }
 
         this.visibleTabContentsLeftSide = tabNameToContents[tabName]
@@ -877,7 +877,7 @@
         if (isAptEditorOpen) {
           saveFileAs(this.apt, this.aptFilename)
         } else {
-          this.savePetriGameAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
+          this.saveEditorNetAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
         }
       },
       switchToAptEditor: function () {
@@ -1117,7 +1117,7 @@
         })
       },
       // Save xy coordinates on the server and then get the new updated APT back
-      savePetriGameAsAPT: function () {
+      saveEditorNetAsAPT: function () {
         return this.saveXYCoordinatesOnServer()
           .then(this.getAptOfEditorNet)
           .then(apt => {
