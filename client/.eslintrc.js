@@ -9,7 +9,6 @@ module.exports = {
   env: {
     browser: true,
   },
-  // TODO Consider using vue/recommended linting rules
   // 'extends': 'plugin:vue/recommended',
   'extends': 'plugin:vue/base',
   // required to lint *.vue files

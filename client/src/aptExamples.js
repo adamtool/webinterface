@@ -8,7 +8,6 @@ const aptFileTreeSynthesis = {
   children: []
 }
 
-// TODO Import model checking examples
 const aptFileTreeModelChecking = {
   type: 'directory',
   name: 'root',
