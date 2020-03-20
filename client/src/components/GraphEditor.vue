@@ -2408,13 +2408,11 @@
             this.links.push(newLinkWithReferences)
           }
         })
-        // TODO Refactor this?  It's a fiddly bit of state management to ensure that
+        // Note: This represents a fiddly bit of state management to ensure that
         // nodes spawn under the mouse cursor if triggered by a user clicking, but otherwise, they
-        // should spawn at the center of the SVG (e.g. upon editing the APT).
+        // should spawn at the center of the SVG (e.g. upon adding a new Place while editing the APT).
         // Maybe a better solution would be to send to the server the x/y coordinates of the click
         // so that they can be automatically added to the new nodes that are created by the click.
-        // (At the time of writing (23.04.2018), the only nodes that are added by clicking are Graph
-        // Game BDD States when a State is clicked on to show its preset/postset.
         this.lastUserClick = undefined
       },
       keyFunction: function (data) {
