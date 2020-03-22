@@ -931,10 +931,10 @@
       switchToAptEditor: function () {
         this.switchToTab('APT Editor')
       },
-      // Send APT to backend and parse it, then display the resulting Petri Game.
+      // Send APT to the server to be parsed, then update the net displayed in the editor.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAptForEditorNet: debounce(function (apt) {
-        logging.logVerbose('Sending APT source code to backend.')
+        logging.logVerbose('Sending APT to server.')
         this.restEndpoints.parseApt({
           params: {
             apt: apt,
@@ -943,7 +943,7 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              logging.logVerbose('Successfully parsed APT. Received Petri Game from backend.')
+              logging.logVerbose('Successfully parsed APT.')
               logging.logObject(response)
               this.editorNet = response.data.editorNet
               this.aptParseStatus = 'success'
@@ -1120,6 +1120,8 @@
           jobKey,
           stateId
         }).then(response => {
+          // The view will update itself reactively when a response arrives over the websocket
+          // via 'jobStatusChanged'.
         })
       },
       toggleGraphGameStatePreset: function (stateId, jobKey) {
@@ -1127,6 +1129,8 @@
           jobKey,
           stateId
         }).then(response => {
+          // The view will update itself reactively when a response arrives over the websocket
+          // via 'jobStatusChanged'.
         })
       },
       onAptEditorInput: function (apt) {
