@@ -521,20 +521,6 @@
         // between v-tab and v-tab-item, so it only requires these two variables.
         selectedTabRightSide: '', // Which tab is visible right now
         visibleJobsRightSide: [], // Which tabs are open. Equivalent to List<JobKey> on the server
-
-        // Validate whether the given string represents a uuidv4.
-        // TODO #296 put this in its own module
-        validateBrowserUuid: uuidString => {
-          const pattern =
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-          if (pattern.test(uuidString)) {
-            return true
-          } else {
-            return 'The given string does not represent a valid UUID of the form ' +
-              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
-              '8 and b.'
-          }
-        }
       }
     },
     watch: {
@@ -689,6 +675,18 @@
       }
     },
     methods: {
+      // Validate whether the given string represents a uuidv4.
+      validateBrowserUuid: function (uuidString) {
+          const pattern =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          if (pattern.test(uuidString)) {
+            return true
+          } else {
+            return 'The given string does not represent a valid UUID of the form ' +
+              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
+              '8 and b.'
+          }
+      },
       classOfTab: function (tab) {
         return this.selectedTabNameLeftSide === tab.name ? 'selected-tab' : '';
       },
