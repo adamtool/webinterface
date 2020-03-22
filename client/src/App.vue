@@ -137,8 +137,8 @@
           <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
                          @click="showPartitions = !showPartitions"/>
         </hsc-menu-bar-item>
-        <hsc-menu-bar-item @click.native="isLogVisible = !isLogVisible; $refs.menubar.deactivate()"
-                           :label="isLogVisible ? 'Hide log' : 'Show log'"/>
+        <hsc-menu-bar-item @click.native="showLogWindow = !showLogWindow; $refs.menubar.deactivate()"
+                           :label="showLogWindow ? 'Hide log' : 'Show log'"/>
       </hsc-menu-bar>
       <button @click="showJobList = true"
               style="margin-left: 40px;">View jobs running on server
@@ -296,7 +296,7 @@
                   closeButton
                   :minWidth="200"
                   :minHeight="100"
-                  :isOpen.sync="isLogVisible"
+                  :isOpen.sync="showLogWindow"
                   title="Log"
                   style="z-index: 9999">
         <LogViewer
@@ -414,48 +414,95 @@
     },
     data: function () {
       return {
-        // Validate whether the given string represents a uuidv4.
-        validateBrowserUuid: uuidString => {
-          const pattern =
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-          if (pattern.test(uuidString)) {
-            return true
-          } else {
-            return 'The given string does not represent a valid UUID of the form ' +
-              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
-              '8 and b.'
-          }
-        },
-        browserUuid: 'browser uuid not yet loaded. (Should have been initialized in mounted hook)',
-        browserUuidEntry: '',
-        aptFilename: 'apt.txt',
-        showSaveAptModal: false,
-        // True iff the modal dialog with the list of jobs is visible
-        showJobList: false,
-        showAboutModal: false,
-        jobListings: [], // Listings for all enqueued/finished jobs
+        // The contents of the APT editor
         apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
         aptParseErrorLineNumber: -1,
         aptParseErrorColumnNumber: -1,
-        // This shows temporary notifications after events happen, e.g. if an error happens when trying to solve a net
+
+        // The net displayed in the graph editor/simulator.
+        // Corresponds to the class 'EditorNetClient' on the server
+        editorNet: {
+          net: {
+            links: [],
+            nodes: []
+          },
+          uuid: 'abcfakeuuid123',
+          initialMarking: {}
+        },
+
+        // The following flags show/hide various windows / modal dialogs.
+        // They are bound two-way with 'v-model'
+        showLogWindow: false,
+        showSaveAptModal: false,
+        showJobList: false,
+        showAboutModal: false,
+        // The contents of the 'save apt' filename box
+        aptFilename: 'apt.txt',
+
+        // The contents of the 'notification bar' at the bottom of the window, e.g. error messages
+        // and warnings and other feedback
         notificationMessage: '',
         notificationColor: '',
-        // This creates a link that the user can click in the notification bar to do a certain action.
+        // Some notifications may contain a link that the user can click to quickly do a certain action.
         quickAction: {
           actionName: '',
           action: () => {
           }
         },
+
+        // These are global flags which are applied to all graph viewer instances in all tabs
+        showPhysicsControls: false,
+        showPartitions: false,
+
+        // This uuid is a key of the 'Map<UUID, UserContext> userContextMap' on the server.
+        // Each UserContext object represents a separate job queue and list of queued/completed jobs.
+        // The client generates its own uuid when the app is loaded for the first time.
+        browserUuid: 'browser uuid not yet loaded. (Should have been initialized in mounted hook)',
+        browserUuidEntry: '',
+        // the list of enqueued/running/finished jobs seen by this client.
+        // Corresponds to the output of UserContext::getJobList on the server.
+        jobListings: [],
+
+        // The main window is split into two resizable panes, left and right, using Split.js.
+        // See "API" section on https://nathancahill.github.io/Split.js/
+        // The instance returned by the 'Split' function of Split.js.
+        horizontalSplit: undefined,
+        // The relative percentage sizes of the two sides of the screen
+        horizontalSplitSizes: [50, 50],
+        // True iff the left-hand pane of the split (Petri Game/Simulator/APT Editor) is snapped shut
+        isLeftPaneVisible: true,
+        // The left-hand pane automatically snaps shut if it is shrunk to this percentage of its
+        // maximum width
+        leftPaneMinWidth: 7.65,
+
+        // The tabs on the left and right sides of the screen are displayed using Vuetify's
+        // 'v-tabs' component.
+
+        // I'm playing some games with Vuetify here.
+        // In order to avoid any discontinuous jumps when switching between the 'Simulator' and the
+        // 'Petri Game' tabs, those two tabs should actually refer to the very same 'GraphEditor'
+        // instance.
+        // To do that, I want to make three 'v-tab' tabs -- 'Petri Game', 'Simulator', and
+        // 'APT Editor' -- and I want to have them address only two instances of 'v-tab-item'
+        // among them.
+        // TODO #296 put the mapping here
+        // Which 'v-tab-item' is currently visible
+        visibleTabContentsLeftSide: 'simulatorEditor',
+        // Each one of these corresponds to a 'v-tab-item'
         tabContentsLeftSide: [
           'simulatorEditor',
           'aptEditor'
         ],
+        // Which 'v-tab' is selected on the left side
+        selectedTabNameLeftSide: 'Petri Game',
+        // Each one of these corresponds to a 'v-tab'
         tabsLeftSide: [
           {
             name: 'Petri Game',
             uuid: uuidv4(),
+            // TODO #296 DRY the mapping between v-tab and v-tab-item here
             tabContentId: 'simulatorEditor',
           },
           {
@@ -469,25 +516,25 @@
             tabContentId: 'aptEditor',
           }
         ],
-        visibleJobsRightSide: [],
-        editorNet: {
-          net: {
-            links: [],
-            nodes: []
-          },
-          uuid: 'abcfakeuuid123'
-        },
-        isLeftPaneVisible: true,
-        isLogVisible: false,
-        showPhysicsControls: false,
-        showPartitions: false,
-        horizontalSplit: undefined,  // See "API" section on https://nathancahill.github.io/Split.js/
-        horizontalSplitSizes: [50, 50],
-        leftPaneMinWidth: 7.65, // Percentage of flexbox container's width
-        // Name of the currently selected tab.  'tab-<uuid>'
-        visibleTabContentsLeftSide: 'simulatorEditor',
-        selectedTabNameLeftSide: 'Petri Game',
-        selectedTabRightSide: ''
+
+        // The tab situation on the right hand side is much more straightforward, with a 1:1 mapping
+        // between v-tab and v-tab-item, so it only requires these two variables.
+        selectedTabRightSide: '', // Which tab is visible right now
+        visibleJobsRightSide: [], // Which tabs are open. Equivalent to List<JobKey> on the server
+
+        // Validate whether the given string represents a uuidv4.
+        // TODO #296 put this in its own module
+        validateBrowserUuid: uuidString => {
+          const pattern =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          if (pattern.test(uuidString)) {
+            return true
+          } else {
+            return 'The given string does not represent a valid UUID of the form ' +
+              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
+              '8 and b.'
+          }
+        }
       }
     },
     watch: {
