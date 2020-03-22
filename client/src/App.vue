@@ -675,72 +675,6 @@
       }
     },
     methods: {
-      // Validate whether the given string represents a uuidv4.
-      validateBrowserUuid: function (uuidString) {
-          const pattern =
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-          if (pattern.test(uuidString)) {
-            return true
-          } else {
-            return 'The given string does not represent a valid UUID of the form ' +
-              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
-              '8 and b.'
-          }
-      },
-      classOfTab: function (tab) {
-        return this.selectedTabNameLeftSide === tab.name ? 'selected-tab' : '';
-      },
-      switchToTab: function (tabName) {
-        console.log(`switchToTab(${tabName})`)
-        const tabNameToContents = {
-          'Petri Game': 'simulatorEditor',
-          'Simulator': 'simulatorEditor',
-          'APT Editor': 'aptEditor'
-        }
-        if (!tabNameToContents.hasOwnProperty(tabName)) {
-          throw new Error('Unrecognized tab name: ' + tabName)
-        }
-        if (tabName === this.selectedTabNameLeftSide) {
-          console.log('This tab was already selected')
-          return
-        }
-        if (tabName === 'APT Editor') {
-          logging.logVerbose('Switched to APT editor')
-          this.saveEditorNetAsAPT()
-        }
-
-        this.visibleTabContentsLeftSide = tabNameToContents[tabName]
-        this.selectedTabNameLeftSide = tabName
-      },
-      // Create a new empty net in the editor
-      createNewEditorNet: function () {
-        const apt = this.useModelChecking ? aptExampleEmptyModelChecking : aptExampleEmptySynthesis
-        this.onAptExampleSelected(apt)
-        const whatDoYouCallIt = this.useModelChecking ? 'Petri net with transits' : 'Petri game'
-        logging.sendSuccessNotification('Loaded a new empty ' + whatDoYouCallIt)
-      },
-      closeTab: function (tab) {
-        console.log(`closeTab(${tab.name})`)
-        if (tab.jobStatus === 'RUNNING') {
-          this.cancelJob(tab.jobKey)
-        } else {
-          this.visibleJobsRightSide =
-            this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
-        }
-      },
-      onTabChosen: function (evt) {
-        console.log('onTabChosen')
-      },
-      tabDragStart: function (evt) {
-        console.log('tabDragStart')
-      },
-      tabDragEnd: function (evt) {
-        console.log('tabDragEnd')
-        console.log(evt)
-        const newTabRight = this.tabsRightSide[evt.newIndex]
-        const newTabIdRight = `tab-${newTabRight.uuid}`
-        this.selectedTabRightSide = newTabIdRight
-      },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
         let socket
@@ -843,6 +777,72 @@
             window.localStorage.setItem('browserUuid', this.browserUuid)
           }
         }
+      },
+      // Validate whether the given string represents a uuidv4.
+      validateBrowserUuid: function (uuidString) {
+          const pattern =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          if (pattern.test(uuidString)) {
+            return true
+          } else {
+            return 'The given string does not represent a valid UUID of the form ' +
+              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
+              '8 and b.'
+          }
+      },
+      classOfTab: function (tab) {
+        return this.selectedTabNameLeftSide === tab.name ? 'selected-tab' : '';
+      },
+      switchToTab: function (tabName) {
+        console.log(`switchToTab(${tabName})`)
+        const tabNameToContents = {
+          'Petri Game': 'simulatorEditor',
+          'Simulator': 'simulatorEditor',
+          'APT Editor': 'aptEditor'
+        }
+        if (!tabNameToContents.hasOwnProperty(tabName)) {
+          throw new Error('Unrecognized tab name: ' + tabName)
+        }
+        if (tabName === this.selectedTabNameLeftSide) {
+          console.log('This tab was already selected')
+          return
+        }
+        if (tabName === 'APT Editor') {
+          logging.logVerbose('Switched to APT editor')
+          this.saveEditorNetAsAPT()
+        }
+
+        this.visibleTabContentsLeftSide = tabNameToContents[tabName]
+        this.selectedTabNameLeftSide = tabName
+      },
+      // Create a new empty net in the editor
+      createNewEditorNet: function () {
+        const apt = this.useModelChecking ? aptExampleEmptyModelChecking : aptExampleEmptySynthesis
+        this.onAptExampleSelected(apt)
+        const whatDoYouCallIt = this.useModelChecking ? 'Petri net with transits' : 'Petri game'
+        logging.sendSuccessNotification('Loaded a new empty ' + whatDoYouCallIt)
+      },
+      closeTab: function (tab) {
+        console.log(`closeTab(${tab.name})`)
+        if (tab.jobStatus === 'RUNNING') {
+          this.cancelJob(tab.jobKey)
+        } else {
+          this.visibleJobsRightSide =
+            this.visibleJobsRightSide.filter(jobKey => !isEqual(jobKey, tab.jobKey))
+        }
+      },
+      onTabChosen: function (evt) {
+        console.log('onTabChosen')
+      },
+      tabDragStart: function (evt) {
+        console.log('tabDragStart')
+      },
+      tabDragEnd: function (evt) {
+        console.log('tabDragEnd')
+        console.log(evt)
+        const newTabRight = this.tabsRightSide[evt.newIndex]
+        const newTabIdRight = `tab-${newTabRight.uuid}`
+        this.selectedTabRightSide = newTabIdRight
       },
       onClickSaveAptMenuItem: function () {
         // There is a delay here so that the click event doesn't immediately close the
