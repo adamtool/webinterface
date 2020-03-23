@@ -1452,6 +1452,9 @@
           return isTheTransition || isAnAffectedPlace
         })
 
+        // Cancel the currently running animation, if any
+        matchingTransitionEl.interrupt()
+
         // Instantly set the color to either red or green
         matchingTransitionEl.attr('fill',
           wasSuccessful ? '#00ff00' : '#ff0000')
