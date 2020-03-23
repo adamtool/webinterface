@@ -44,17 +44,17 @@
                     correspond
                     to a randomly generated unique ID that is stored in your local storage.
                   </div>
-                  <div>Your unique ID is {{ browserUuid }}.</div>
+                  <div>Your unique ID is {{ clientUuid }}.</div>
                   <div>
                     If you use multiple browsers, you can share one unique ID between them in
                     order to have the same list of jobs appear in all of your browsers.
                   </div>
                   <v-text-field
-                    v-model="browserUuidEntry"
-                    :rules="[validateBrowserUuid]"
+                    v-model="clientUuidEntry"
+                    :rules="[validateClientUuid]"
                     label="Other Browser UUID"/>
                   <v-btn
-                    @click="saveBrowserUuid">
+                    @click="saveClientUuid">
                     Use other UUID
                   </v-btn>
                 </v-expansion-panel-content>
@@ -384,12 +384,13 @@
       useModelChecking: ${this.useModelChecking}
       baseurl: ${this.baseUrl}`)
 
-      // Save a uuid to identify this browser in the future (e.g. to only show Jobs belonging to this user)
-      if (window.localStorage.getItem('browserUuid') === null) {
-        window.localStorage.setItem('browserUuid', uuidv4())
+      // Load our 'clientUuid' which identifies this client to the server
+      // If it's not there, generate a new random one.
+      if (window.localStorage.getItem('clientUuid') === null) {
+        window.localStorage.setItem('clientUuid', uuidv4())
       }
-      this.browserUuid = window.localStorage.getItem('browserUuid')
-      console.log(`browserUuid: ${this.browserUuid}`)
+      this.clientUuid = window.localStorage.getItem('clientUuid')
+      console.log(`clientUuid: ${this.clientUuid}`)
 
       logging.subscribeErrorNotification(({message, actionName, action}) => {
         this.showNotification(message, '#cc0000')
@@ -456,11 +457,11 @@
         showPhysicsControls: false,
         showPartitions: false,
 
-        // This uuid is a key of the 'Map<UUID, UserContext> userContextMap' on the server.
+        // This uuid is a key of the 'Map<UUID, UserContext>' on the server.
         // Each UserContext object represents a separate job queue and list of queued/completed jobs.
         // The client generates its own uuid when the app is loaded for the first time.
-        browserUuid: 'browser uuid not yet loaded. (Should have been initialized in mounted hook)',
-        browserUuidEntry: '',
+        clientUuid: 'client uuid not yet loaded. (Should have been initialized in mounted hook)',
+        clientUuidEntry: '',
         // the list of enqueued/running/finished jobs seen by this client.
         // Corresponds to the output of UserContext::getJobList on the server.
         jobListings: [],
@@ -524,12 +525,12 @@
       }
     },
     watch: {
-      // When the browser UUID is changed, we should reload the list of jobs and tell the server
-      // we want to subscribe to notifications corresponding to our new UUIUD
-      browserUuid: function () {
+      // When our client UUID is changed, we should reload the list of jobs and tell the server
+      // we want to subscribe to job status updates and ADAM's logs corresponding to our new UUID
+      clientUuid: function () {
         this.getListOfJobs()
         if (this.socket.isReady()) {
-          this.updateWebSocketBrowserUuid()
+          this.updateWebSocketClientUuid()
         }
       },
       // When we open the modal dialog, we should reload the list of jobs
@@ -641,7 +642,7 @@
           funs[endpointName] = (options) => {
             return axios.post(this.baseUrl + '/' + endpointName, {
               ...options,
-              browserUuid: this.browserUuid
+              clientUuid: this.clientUuid
             })
           }
         })
@@ -751,35 +752,36 @@
         })
         socket.$on('open', () => {
           // Reload the job list when the socket connection to the server is established/reestablished
-          this.updateWebSocketBrowserUuid()
+          this.updateWebSocketClientUuid()
           this.getListOfJobs()
           logging.sendSuccessNotification('Established the connection to the server')
         })
         return socket
       },
-      updateWebSocketBrowserUuid: function () {
+      // Tell the server our clientUuid so that it will send us ADAM's log output for our jobs
+      updateWebSocketClientUuid: function () {
         // Make sure we get notifications from the server corresponding to our unique session ID
         this.socket.send(JSON.stringify({
-          browserUuid: this.browserUuid
+          clientUuid: this.clientUuid
         }))
       },
-      saveBrowserUuid: function () {
-        if (this.browserUuidEntry === this.browserUuid) {
+      saveClientUuid: function () {
+        if (this.clientUuidEntry === this.clientUuid) {
           return
         }
-        if (this.validateBrowserUuid(this.browserUuidEntry) === true) {
+        if (this.validateClientUuid(this.clientUuidEntry) === true) {
           const noJobsAreListed = this.jobListings.length === 0
           if (noJobsAreListed || confirm(
             'Changing your browser\'s UUID will cause your current list of jobs to disappear.  ' +
-            'The only way to get them back is to re-enter your current UUID (' + this.browserUuid +
+            'The only way to get them back is to re-enter your current UUID (' + this.clientUuid +
             ').  Are you sure?')) {
-            this.browserUuid = this.browserUuidEntry
-            window.localStorage.setItem('browserUuid', this.browserUuid)
+            this.clientUuid = this.clientUuidEntry
+            window.localStorage.setItem('clientUuid', this.clientUuid)
           }
         }
       },
       // Validate whether the given string represents a uuidv4.
-      validateBrowserUuid: function (uuidString) {
+      validateClientUuid: function (uuidString) {
           const pattern =
             /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
           if (pattern.test(uuidString)) {

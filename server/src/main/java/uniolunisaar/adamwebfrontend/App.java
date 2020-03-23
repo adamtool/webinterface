@@ -38,7 +38,7 @@ public class App {
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
 
-    // Map from clientside-generated browserUuid to browser-specific job queue
+    // Map from clientside-generated clientUuid to each client's personal job queue
     private final Map<UUID, UserContext> userContexts = new ConcurrentHashMap<>();
 
     // The nets displayed in the editor tab on the client correspond to objects stored in this map.
@@ -136,9 +136,9 @@ public class App {
     private void postWithUserContext(String path, RouteWithUserContext handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
-            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
-            UUID browserUuid = UUID.fromString(browserUuidString);
-            UserContext uc = getUserContext(browserUuid);
+            String clientUuidString = body.getAsJsonObject().get("clientUuid").getAsString();
+            UUID clientUuid = UUID.fromString(clientUuidString);
+            UserContext uc = getUserContext(clientUuid);
             Object answer = handler.handle(req, res, uc);
             return answer;
         });
@@ -727,9 +727,9 @@ public class App {
          * @return The PetriNet produced by the job with the given key
          */
         Function<JsonObject, PetriNet> getPetriNetFromJob = (JsonObject requestBody) -> {
-            String browserUuidString = requestBody.getAsJsonObject().get("browserUuid").getAsString();
-            UUID browserUuid = UUID.fromString(browserUuidString);
-            UserContext userContext = getUserContext(browserUuid);
+            String clientUuidString = requestBody.getAsJsonObject().get("clientUuid").getAsString();
+            UUID clientUuid = UUID.fromString(clientUuidString);
+            UserContext userContext = getUserContext(clientUuid);
 
             Type t = new TypeToken<JobKey>() {
             }.getType();
@@ -763,9 +763,10 @@ public class App {
      *                        stored in the Map<UUID, PetriNet> editorNets, or upon
      *                        model checking nets / winning strategies, which are stored in Jobs in
      *                        individual users' UserContexts and are referenced by the combination
-     *                        of browserUUID and JobKey.  There are two corresponding
-     *                        routes ('/fireTransitionEditor' and '/fireTransitionJob') implemented
-     *                        with different getters accordingly.
+     *                        of clientUuid and JobKey.
+     *                        Accordingly, there are two corresponding routes
+     *                        ('/fireTransitionEditor' and '/fireTransitionJob') which are
+     *                        implemented using different getters.
      */
     private Object handleFireTransition(Request req, Response res,
                                         Function<JsonObject, PetriNet> petriNetGetter) {

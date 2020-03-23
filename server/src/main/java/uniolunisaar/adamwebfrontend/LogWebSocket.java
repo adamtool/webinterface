@@ -169,10 +169,10 @@ public class LogWebSocket {
     public void message(Session session, String message) {
         JsonObject messageJson = parser.parse(message).getAsJsonObject();
 
-        if (messageJson.has("browserUuid")) {
-            String browserUuidString = messageJson.get("browserUuid").getAsString();
-            UUID browserUuid = UUID.fromString(browserUuidString);
-            sessionUuids.put(session, browserUuid);
+        if (messageJson.has("clientUuid")) {
+            String clientUuidString = messageJson.get("clientUuid").getAsString();
+            UUID clientUuid = UUID.fromString(clientUuidString);
+            sessionUuids.put(session, clientUuid);
         } else if (messageJson.has("type") && messageJson.get("type").getAsString().equals("pong")) {
 //            System.out.println("Got pong from client");
         } else {
