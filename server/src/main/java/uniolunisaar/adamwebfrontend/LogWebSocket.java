@@ -26,12 +26,16 @@ public class LogWebSocket {
     // Store sessions if you want to, for example, broadcast a message to all users
     private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
     private static final JsonParser parser = new JsonParser();
+    // Map from websocket Sessions to client UUIDs.  Each session will only receive messages
+    // addressed to the clientUuid under which it is registered.
+    // Clients can register themselves by sending a message { clientUuid: ... } via websocket.
     private static final ConcurrentHashMap<Session, UUID> sessionUuids = new ConcurrentHashMap<>();
-    // Queue of messages meant to be pushed to clients: Pair<UserContext UUID, message>.
-    // The messages need to be sent in their own thread, asynchronously, because, for example, if
-    // the messages are sent in the same thread that a Job is running in, that Thread can get
-    // interrupted if the Job gets canceled, and that causes the Websocket to be closed with a
-    // 'EofException', since Jetty recognizes that its Thread has been interrupted.
+    // Queue of messages which should be pushed to clients: For example, log output from ADAM or
+    // notifications when jobs are complete.
+    // The messages need to be sent in a separate thread like this because, for example, if
+    // the messages were sent in the very same thread that a Job was running in, that Thread would
+    // get interrupted if the Job got canceled, and that would cause the Websocket to be closed
+    // with a 'EofException' by Jetty.
     private static final BlockingQueue<Pair<UUID, JsonElement>> messageQueue =
             new LinkedBlockingQueue<>();
 
@@ -170,6 +174,7 @@ public class LogWebSocket {
         JsonObject messageJson = parser.parse(message).getAsJsonObject();
 
         if (messageJson.has("clientUuid")) {
+            // Associate the client's session with the given clientUuid
             String clientUuidString = messageJson.get("clientUuid").getAsString();
             UUID clientUuid = UUID.fromString(clientUuidString);
             sessionUuids.put(session, clientUuid);
