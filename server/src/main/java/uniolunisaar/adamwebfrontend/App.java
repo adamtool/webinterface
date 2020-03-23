@@ -92,6 +92,7 @@ public class App {
         postWithEditorNet("/setInitialToken", this::handleSetInitialToken);
 
         postWithEditorNet("/setWinningCondition", this::handleSetWinningCondition);
+
         postWithEditorNet("/createFlow", this::handleCreateFlow);
 
         postWithEditorNet("/deleteFlow", this::handleDeleteFlow);
@@ -100,12 +101,12 @@ public class App {
 
         postWithEditorNet("/parseLtlFormula", this::handleParseLtlFormula);
 
-        post("/fireTransitionEditor", this::handleFireTransitionEditor);
-        post("/fireTransitionJob", this::handleFireTransitionJob);
-
         postWithEditorNet("/setFairness", this::handleSetFairness);
 
         postWithEditorNet("/setInhibitorArc", this::handleSetInhibitorArc);
+
+        post("/fireTransitionEditor", this::handleFireTransitionEditor);
+        post("/fireTransitionJob", this::handleFireTransitionJob);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
