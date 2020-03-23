@@ -41,9 +41,9 @@ public class App {
     // Map from clientside-generated browserUuid to browser-specific job queue
     private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
 
-    // Whenever we load a PetriGame or PetriNetWithTransits (in the model checking case) from APT,
-    // we put it into this hashmap with a server-generated UUID as a key.
-    private final Map<UUID, PetriNetWithTransits> petriNets = new ConcurrentHashMap<>();
+    // The nets displayed in the editor tab on the client correspond to objects stored in this map.
+    // The UUIDs are generated on the server upon parsing APT.
+    private final Map<UUID, PetriNetWithTransits> editorNets = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         new App().startServer();
@@ -156,19 +156,19 @@ public class App {
             JsonElement body = parser.parse(req.body());
             String netUuidString = body.getAsJsonObject().get("petriNetId").getAsString();
             UUID netUuid = UUID.fromString(netUuidString);
-            PetriNetWithTransits pg = getPetriNet(netUuid);
+            PetriNetWithTransits pg = getEditorNet(netUuid);
             Object answer = handler.handle(req, res, pg);
             return answer;
         });
     }
 
-    private PetriNetWithTransits getPetriNet(UUID uuid) {
-        if (!petriNets.containsKey(uuid)) {
+    private PetriNetWithTransits getEditorNet(UUID uuid) {
+        if (!editorNets.containsKey(uuid)) {
             throw new IllegalArgumentException("We have no PG/PetriNetWithTransits with the given UUID.  " +
                     "You might see this error if the server has been restarted after you opened the " +
                     "web UI.");
         }
-        return petriNets.get(uuid);
+        return editorNets.get(uuid);
     }
 
     private static void enableCORS() {
@@ -263,7 +263,7 @@ public class App {
         }
 
         UUID netUuid = UUID.randomUUID();
-        petriNets.put(netUuid, net);
+        editorNets.put(netUuid, net);
         System.out.println("Generated petri net with ID " + netUuid.toString());
 
         JsonElement netJson;
@@ -304,7 +304,7 @@ public class App {
         String netId = requestBody.get("petriNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
         // This throws an exception if the Petri Net's not there
-        PetriNetWithTransits net = getPetriNet(UUID.fromString(netId));
+        PetriNetWithTransits net = getEditorNet(UUID.fromString(netId));
 
         String jobTypeString = requestBody.get("jobType").getAsString();
         JobType jobType = JobType.valueOf(jobTypeString);
@@ -751,7 +751,7 @@ public class App {
     private Object handleFireTransitionEditor(Request req, Response res) {
         Function<JsonObject, PetriNet> getPetriNetFromEditor = (JsonObject requestBody) -> {
             String petriNetId = requestBody.get("petriNetId").getAsString();
-            return getPetriNet(UUID.fromString(petriNetId));
+            return getEditorNet(UUID.fromString(petriNetId));
         };
         return handleFireTransition(req, res, getPetriNetFromEditor);
     }
@@ -761,7 +761,7 @@ public class App {
      * Simulate firing a transition in a given petri net with a given marking, and return the new
      * marking that would result.
      * @param petriNetGetter: We may want to operate upon PetriNets from the editor, which are
-     *                        stored in the Map<UUID, PetriNet> petriNets, or upon
+     *                        stored in the Map<UUID, PetriNet> editorNets, or upon
      *                        model checking nets / winning strategies, which are stored in Jobs in
      *                        individual users' UserContexts and are referenced by the combination
      *                        of browserUUID and JobKey.  There are two corresponding
