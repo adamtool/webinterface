@@ -131,25 +131,22 @@ public class App {
     /**
      * Register a POST route where the browserUuid is automatically extracted from each request body
      * and the corresponding UserContext is retrieved.
-     * This way, the handler function does not have to handle this frequently repeated operation.
      */
     private void postWithUserContext(String path, RouteWithUserContext handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
             String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContexts.containsKey(browserUuid)) {
-                userContexts.put(browserUuid, new UserContext(browserUuid));
-            }
-            UserContext uc = userContexts.get(browserUuid);
+            UserContext uc = getUserContext(browserUuid);
             Object answer = handler.handle(req, res, uc);
             return answer;
         });
     }
 
     /**
-     * Register a POST route that operates upon a PetriNetWithTransits.
-     * This wrapper handles the parsing of the petriNetId parameter from the request.
+     * Register a POST route that operates upon a PetriNetWithTransits, given the corresponding
+     * UUID in the 'petriNetId' field of the request body.
+     * TODO 296 rename
      */
     private void postWithPetriNetWithTransits(String path, RouteWithPetriNetWithTransits handler) {
         post(path, (req, res) -> {
@@ -162,6 +159,9 @@ public class App {
         });
     }
 
+    /**
+     * @return The editor net corresponding to the given UUID
+     */
     private PetriNetWithTransits getEditorNet(UUID uuid) {
         if (!editorNets.containsKey(uuid)) {
             throw new IllegalArgumentException("We have no PG/PetriNetWithTransits with the given UUID.  " +
@@ -169,6 +169,17 @@ public class App {
                     "web UI.");
         }
         return editorNets.get(uuid);
+    }
+
+    /**
+     * @return the UserContext corresponding to the given client UUID.
+     * If there isn't any UserContext object for the given UUID, create one.
+     */
+    private UserContext getUserContext(UUID clientUuid) {
+        if (!userContexts.containsKey(clientUuid)) {
+            userContexts.put(clientUuid, new UserContext(clientUuid));
+        }
+        return userContexts.get(clientUuid);
     }
 
     private static void enableCORS() {
@@ -303,19 +314,14 @@ public class App {
         JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
         String netId = requestBody.get("petriNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
-        // This throws an exception if the Petri Net's not there
         PetriNetWithTransits net = getEditorNet(UUID.fromString(netId));
 
         String jobTypeString = requestBody.get("jobType").getAsString();
         JobType jobType = JobType.valueOf(jobTypeString);
 
-        // If there isn't a UserContext object for the given browserUuid, create one.
         String browserUuidString = requestBody.get("browserUuid").getAsString();
         UUID browserUuid = UUID.fromString(browserUuidString);
-        if (!userContexts.containsKey(browserUuid)) {
-            userContexts.put(browserUuid, new UserContext(browserUuid));
-        }
-        UserContext userContext = userContexts.get(browserUuid);
+        UserContext userContext = getUserContext(browserUuid);
 
         // TODO #293 refactor
         PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
@@ -728,10 +734,7 @@ public class App {
         Function<JsonObject, PetriNet> getPetriNetFromJob = (JsonObject requestBody) -> {
             String browserUuidString = requestBody.getAsJsonObject().get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContexts.containsKey(browserUuid)) {
-                userContexts.put(browserUuid, new UserContext(browserUuid));
-            }
-            UserContext userContext = userContexts.get(browserUuid);
+            UserContext userContext = getUserContext(browserUuid);
 
             Type t = new TypeToken<JobKey>() {
             }.getType();
@@ -760,6 +763,7 @@ public class App {
     /**
      * Simulate firing a transition in a given petri net with a given marking, and return the new
      * marking that would result.
+     *
      * @param petriNetGetter: We may want to operate upon PetriNets from the editor, which are
      *                        stored in the Map<UUID, PetriNet> editorNets, or upon
      *                        model checking nets / winning strategies, which are stored in Jobs in
