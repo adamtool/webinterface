@@ -7,7 +7,7 @@ import com.google.gson.JsonObject;
 import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adamwebfrontend.BDDGraphExplorer;
-import uniolunisaar.adamwebfrontend.LogWebSocket;
+import uniolunisaar.adamwebfrontend.WebSocketHandler;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -54,16 +54,20 @@ public class UserContext {
         // session's ThreadGroup.
         // This only needs to be done once per ThreadGroup.
         // (Logger.getInstance() returns a ThreadGroup-local instance.)
-        this.printStreamVerbose = LogWebSocket.makePrintStream(1, this.clientUuid);
-        this.printStreamNormal = LogWebSocket.makePrintStream(2, this.clientUuid);
-        this.printStreamWarning = LogWebSocket.makePrintStream(3, this.clientUuid);
-        this.printStreamError = LogWebSocket.makePrintStream(4, this.clientUuid);
+        this.printStreamVerbose = WebSocketHandler.makePrintStream(1, this.clientUuid);
+        this.printStreamNormal = WebSocketHandler.makePrintStream(2, this.clientUuid);
+        this.printStreamWarning = WebSocketHandler.makePrintStream(3, this.clientUuid);
+        this.printStreamError = WebSocketHandler.makePrintStream(4, this.clientUuid);
         this.executorService.submit(() -> {
             Logger.getInstance().setVerboseMessageStream(printStreamVerbose);
             Logger.getInstance().setShortMessageStream(printStreamNormal);
             Logger.getInstance().setWarningStream(printStreamWarning);
             Logger.getInstance().setErrorStream(printStreamError);
         });
+    }
+
+    public UUID getClientUuid() {
+        return clientUuid;
     }
 
     public JsonArray getJobList() {
@@ -152,7 +156,7 @@ public class UserContext {
         JsonObject jobDeletedMessage = new JsonObject();
         jobDeletedMessage.addProperty("type", "jobDeleted");
         jobDeletedMessage.add("jobKey", new Gson().toJsonTree(jobKey));
-        LogWebSocket.queueWebsocketMessage(this.clientUuid, jobDeletedMessage);
+        WebSocketHandler.queueWebsocketMessage(this.clientUuid, jobDeletedMessage);
     }
 
     public Job<BDDGraphExplorer> getGraphGameBDDJob(JobKey jobKey) {

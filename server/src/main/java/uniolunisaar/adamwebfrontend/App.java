@@ -38,30 +38,30 @@ public class App {
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
 
-    // Map from clientside-generated browserUuid to browser-specific list of running Jobs
-    private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
+    // Map from clientside-generated clientUuid to each client's personal job queue
+    private final Map<UUID, UserContext> userContexts = new ConcurrentHashMap<>();
 
-    // Whenever we load a PetriGame or PetriNetWithTransits (in the model checking case) from APT,
-    // we put it into this hashmap with a server-generated UUID as a key.
-    private final Map<String, PetriNetWithTransits> petriNets = new ConcurrentHashMap<>();
+    // The nets displayed in the editor tab on the client correspond to objects stored in this map.
+    // The UUIDs are generated on the server upon parsing APT.
+    private final Map<UUID, PetriNetWithTransits> editorNets = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         new App().startServer();
     }
 
     public void startServer() {
-        webSocket("/log", LogWebSocket.class);
+        webSocket("/log", WebSocketHandler.class);
 
         staticFiles.location("/static");
         enableCORS();
-        LogWebSocket.startPingThread();
-        LogWebSocket.startMessageQueueThread();
+        WebSocketHandler.startPingThread();
+        WebSocketHandler.startMessageQueueThread();
 
         get("/hello", (req, res) -> "Hello World");
 
         post("/parseApt", this::handleParseApt);
 
-        post("/queueJob", this::handleQueueJob);
+        postWithUserContext("/queueJob", this::handleQueueJob);
 
         postWithUserContext("/getListOfJobs", this::handleGetListOfJobs);
 
@@ -73,39 +73,40 @@ public class App {
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
-        postWithPetriNetWithTransits("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
+        postWithEditorNet("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
 
-        postWithPetriNetWithTransits("/updateXYCoordinates", this::handleUpdateXYCoordinates);
+        postWithEditorNet("/updateXYCoordinates", this::handleUpdateXYCoordinates);
 
-        postWithPetriNetWithTransits("/insertPlace", this::handleInsertPlace);
+        postWithEditorNet("/insertPlace", this::handleInsertPlace);
 
-        postWithPetriNetWithTransits("/deleteNode", this::handleDeleteNode);
+        postWithEditorNet("/deleteNode", this::handleDeleteNode);
 
-        postWithPetriNetWithTransits("/renameNode", this::handleRenameNode);
+        postWithEditorNet("/renameNode", this::handleRenameNode);
 
-        postWithPetriNetWithTransits("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
+        postWithEditorNet("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
 
-        postWithPetriNetWithTransits("/toggleIsInitialTransit", this::handleToggleIsInitialTransit);
+        postWithEditorNet("/toggleIsInitialTransit", this::handleToggleIsInitialTransit);
 
-        postWithPetriNetWithTransits("/setIsSpecial", this::handleSetIsSpecial);
+        postWithEditorNet("/setIsSpecial", this::handleSetIsSpecial);
 
-        postWithPetriNetWithTransits("/setInitialToken", this::handleSetInitialToken);
+        postWithEditorNet("/setInitialToken", this::handleSetInitialToken);
 
-        postWithPetriNetWithTransits("/setWinningCondition", this::handleSetWinningCondition);
-        postWithPetriNetWithTransits("/createFlow", this::handleCreateFlow);
+        postWithEditorNet("/setWinningCondition", this::handleSetWinningCondition);
 
-        postWithPetriNetWithTransits("/deleteFlow", this::handleDeleteFlow);
+        postWithEditorNet("/createFlow", this::handleCreateFlow);
 
-        postWithPetriNetWithTransits("/createTransit", this::handleCreateTransit);
+        postWithEditorNet("/deleteFlow", this::handleDeleteFlow);
 
-        postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
+        postWithEditorNet("/createTransit", this::handleCreateTransit);
+
+        postWithEditorNet("/parseLtlFormula", this::handleParseLtlFormula);
+
+        postWithEditorNet("/setFairness", this::handleSetFairness);
+
+        postWithEditorNet("/setInhibitorArc", this::handleSetInhibitorArc);
 
         post("/fireTransitionEditor", this::handleFireTransitionEditor);
         post("/fireTransitionJob", this::handleFireTransitionJob);
-
-        postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
-
-        postWithPetriNetWithTransits("/setInhibitorArc", this::handleSetInhibitorArc);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -129,45 +130,55 @@ public class App {
     }
 
     /**
-     * Register a POST route where the browserUuid is automatically extracted from each request body
-     * and the corresponding UserContext is retrieved.
-     * This way, the handler function does not have to handle this frequently repeated operation.
+     * Shorthand to register a route that operates upon a specific client's UserContext, given the
+     * client's UUID.
      */
     private void postWithUserContext(String path, RouteWithUserContext handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
-            String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
-            UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
-            }
-            UserContext uc = userContextMap.get(browserUuid);
+            String clientUuidString = body.getAsJsonObject().get("clientUuid").getAsString();
+            UUID clientUuid = UUID.fromString(clientUuidString);
+            UserContext uc = getUserContext(clientUuid);
             Object answer = handler.handle(req, res, uc);
             return answer;
         });
     }
 
     /**
-     * Register a POST route that operates upon a PetriNetWithTransits.
-     * This wrapper handles the parsing of the petriNetId parameter from the request.
+     * Register a route that operates upon a net in the editor, given the net's UUID.
      */
-    private void postWithPetriNetWithTransits(String path, RouteWithPetriNetWithTransits handler) {
+    private void postWithEditorNet(String path, EditorNetRoute handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
-            String netId = body.getAsJsonObject().get("petriNetId").getAsString();
-            PetriNetWithTransits pg = getPetriNet(netId);
+            String netUuidString = body.getAsJsonObject().get("petriNetId").getAsString();
+            UUID netUuid = UUID.fromString(netUuidString);
+            PetriNetWithTransits pg = getEditorNet(netUuid);
             Object answer = handler.handle(req, res, pg);
             return answer;
         });
     }
 
-    private PetriNetWithTransits getPetriNet(String uuid) {
-        if (!petriNets.containsKey(uuid)) {
+    /**
+     * @return The editor net corresponding to the given UUID
+     */
+    private PetriNetWithTransits getEditorNet(UUID uuid) {
+        if (!editorNets.containsKey(uuid)) {
             throw new IllegalArgumentException("We have no PG/PetriNetWithTransits with the given UUID.  " +
                     "You might see this error if the server has been restarted after you opened the " +
                     "web UI.");
         }
-        return petriNets.get(uuid);
+        return editorNets.get(uuid);
+    }
+
+    /**
+     * @return the UserContext corresponding to the given client UUID.
+     * If there isn't any UserContext object for the given UUID, create one.
+     */
+    private UserContext getUserContext(UUID clientUuid) {
+        if (!userContexts.containsKey(clientUuid)) {
+            userContexts.put(clientUuid, new UserContext(clientUuid));
+        }
+        return userContexts.get(clientUuid);
     }
 
     private static void enableCORS() {
@@ -261,9 +272,9 @@ public class App {
             return errorResponse;
         }
 
-        String netUuid = UUID.randomUUID().toString();
-        petriNets.put(netUuid, net);
-        System.out.println("Generated petri net with ID " + netUuid);
+        UUID netUuid = UUID.randomUUID();
+        editorNets.put(netUuid, net);
+        System.out.println("Generated petri net with ID " + netUuid.toString());
 
         JsonElement netJson;
         switch (netType) {
@@ -287,7 +298,7 @@ public class App {
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
         JsonElement initialMarkingJson = gson.toJsonTree(initialMarkingMap, markingMapTypeToken);
-        JsonElement serializedNet = EditorNetClient.of(netJson, netUuid, initialMarkingJson);
+        JsonElement serializedNet = EditorNetClient.of(netJson, netUuid.toString(), initialMarkingJson);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
@@ -296,25 +307,16 @@ public class App {
     }
 
 
-    private Object handleQueueJob(Request req, Response res) throws RenderException {
-        // Read request parameters.  Get the Petri Net that should be operated upon and the
-        // UserContext of the client making the request.
+    private Object handleQueueJob(Request req, Response res, UserContext userContext) throws RenderException {
+        // Read request parameters.  Get the Petri Net that should be operated upon and the other
+        // parameters/settings for the job to be run
         JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
         String netId = requestBody.get("petriNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
-        // This throws an exception if the Petri Net's not there
-        PetriNetWithTransits net = getPetriNet(netId);
+        PetriNetWithTransits net = getEditorNet(UUID.fromString(netId));
 
         String jobTypeString = requestBody.get("jobType").getAsString();
         JobType jobType = JobType.valueOf(jobTypeString);
-
-        // If there isn't a UserContext object for the given browserUuid, create one.
-        String browserUuidString = requestBody.get("browserUuid").getAsString();
-        UUID browserUuid = UUID.fromString(browserUuidString);
-        if (!userContextMap.containsKey(browserUuid)) {
-            userContextMap.put(browserUuid, new UserContext(browserUuid));
-        }
-        UserContext userContext = userContextMap.get(browserUuid);
 
         // TODO #293 refactor
         PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
@@ -358,7 +360,7 @@ public class App {
             JsonObject message = new JsonObject();
             message.addProperty("type", "jobStatusChanged");
             message.add("jobListing", userContext.jobListEntry(job, jobKey));
-            LogWebSocket.queueWebsocketMessage(browserUuid, message);
+            WebSocketHandler.queueWebsocketMessage(userContext.getClientUuid(), message);
         });
 
         JsonObject jobListing = userContext.jobListEntry(job, jobKey);
@@ -725,12 +727,9 @@ public class App {
          * @return The PetriNet produced by the job with the given key
          */
         Function<JsonObject, PetriNet> getPetriNetFromJob = (JsonObject requestBody) -> {
-            String browserUuidString = requestBody.getAsJsonObject().get("browserUuid").getAsString();
-            UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
-            }
-            UserContext userContext = userContextMap.get(browserUuid);
+            String clientUuidString = requestBody.getAsJsonObject().get("clientUuid").getAsString();
+            UUID clientUuid = UUID.fromString(clientUuidString);
+            UserContext userContext = getUserContext(clientUuid);
 
             Type t = new TypeToken<JobKey>() {
             }.getType();
@@ -750,7 +749,7 @@ public class App {
     private Object handleFireTransitionEditor(Request req, Response res) {
         Function<JsonObject, PetriNet> getPetriNetFromEditor = (JsonObject requestBody) -> {
             String petriNetId = requestBody.get("petriNetId").getAsString();
-            return getPetriNet(petriNetId);
+            return getEditorNet(UUID.fromString(petriNetId));
         };
         return handleFireTransition(req, res, getPetriNetFromEditor);
     }
@@ -759,13 +758,15 @@ public class App {
     /**
      * Simulate firing a transition in a given petri net with a given marking, and return the new
      * marking that would result.
+     *
      * @param petriNetGetter: We may want to operate upon PetriNets from the editor, which are
-     *                        stored in the Map<UUID, PetriNet> petriNets, or upon
+     *                        stored in the Map<UUID, PetriNet> editorNets, or upon
      *                        model checking nets / winning strategies, which are stored in Jobs in
      *                        individual users' UserContexts and are referenced by the combination
-     *                        of browserUUID and JobKey.  There are two corresponding
-     *                        routes ('/fireTransitionEditor' and '/fireTransitionJob') implemented
-     *                        with different getters accordingly.
+     *                        of clientUuid and JobKey.
+     *                        Accordingly, there are two corresponding routes
+     *                        ('/fireTransitionEditor' and '/fireTransitionJob') which are
+     *                        implemented using different getters.
      */
     private Object handleFireTransition(Request req, Response res,
                                         Function<JsonObject, PetriNet> petriNetGetter) {
