@@ -61,7 +61,7 @@ public class App {
 
         post("/parseApt", this::handleParseApt);
 
-        post("/queueJob", this::handleQueueJob);
+        postWithUserContext("/queueJob", this::handleQueueJob);
 
         postWithUserContext("/getListOfJobs", this::handleGetListOfJobs);
 
@@ -307,9 +307,9 @@ public class App {
     }
 
 
-    private Object handleQueueJob(Request req, Response res) throws RenderException {
-        // Read request parameters.  Get the Petri Net that should be operated upon and the
-        // UserContext of the client making the request.
+    private Object handleQueueJob(Request req, Response res, UserContext userContext) throws RenderException {
+        // Read request parameters.  Get the Petri Net that should be operated upon and the other
+        // parameters/settings for the job to be run
         JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
         String netId = requestBody.get("petriNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
@@ -317,10 +317,6 @@ public class App {
 
         String jobTypeString = requestBody.get("jobType").getAsString();
         JobType jobType = JobType.valueOf(jobTypeString);
-
-        String browserUuidString = requestBody.get("browserUuid").getAsString();
-        UUID browserUuid = UUID.fromString(browserUuidString);
-        UserContext userContext = getUserContext(browserUuid);
 
         // TODO #293 refactor
         PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
@@ -364,7 +360,7 @@ public class App {
             JsonObject message = new JsonObject();
             message.addProperty("type", "jobStatusChanged");
             message.add("jobListing", userContext.jobListEntry(job, jobKey));
-            LogWebSocket.queueWebsocketMessage(browserUuid, message);
+            LogWebSocket.queueWebsocketMessage(userContext.getClientUuid(), message);
         });
 
         JsonObject jobListing = userContext.jobListEntry(job, jobKey);

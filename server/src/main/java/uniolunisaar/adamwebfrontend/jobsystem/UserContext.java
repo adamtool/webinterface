@@ -66,6 +66,10 @@ public class UserContext {
         });
     }
 
+    public UUID getClientUuid() {
+        return clientUuid;
+    }
+
     public JsonArray getJobList() {
         JsonArray jobListJson = new JsonArray();
         for (JobKey jobKey : this.jobsByKey.keySet()) {
