@@ -39,7 +39,7 @@ public class App {
     private final JsonParser parser = new JsonParser();
 
     // Map from clientside-generated browserUuid to browser-specific job queue
-    private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
+    private final Map<UUID, UserContext> userContexts = new ConcurrentHashMap<>();
 
     // The nets displayed in the editor tab on the client correspond to objects stored in this map.
     // The UUIDs are generated on the server upon parsing APT.
@@ -138,10 +138,10 @@ public class App {
             JsonElement body = parser.parse(req.body());
             String browserUuidString = body.getAsJsonObject().get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
+            if (!userContexts.containsKey(browserUuid)) {
+                userContexts.put(browserUuid, new UserContext(browserUuid));
             }
-            UserContext uc = userContextMap.get(browserUuid);
+            UserContext uc = userContexts.get(browserUuid);
             Object answer = handler.handle(req, res, uc);
             return answer;
         });
@@ -312,10 +312,10 @@ public class App {
         // If there isn't a UserContext object for the given browserUuid, create one.
         String browserUuidString = requestBody.get("browserUuid").getAsString();
         UUID browserUuid = UUID.fromString(browserUuidString);
-        if (!userContextMap.containsKey(browserUuid)) {
-            userContextMap.put(browserUuid, new UserContext(browserUuid));
+        if (!userContexts.containsKey(browserUuid)) {
+            userContexts.put(browserUuid, new UserContext(browserUuid));
         }
-        UserContext userContext = userContextMap.get(browserUuid);
+        UserContext userContext = userContexts.get(browserUuid);
 
         // TODO #293 refactor
         PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
@@ -728,10 +728,10 @@ public class App {
         Function<JsonObject, PetriNet> getPetriNetFromJob = (JsonObject requestBody) -> {
             String browserUuidString = requestBody.getAsJsonObject().get("browserUuid").getAsString();
             UUID browserUuid = UUID.fromString(browserUuidString);
-            if (!userContextMap.containsKey(browserUuid)) {
-                userContextMap.put(browserUuid, new UserContext(browserUuid));
+            if (!userContexts.containsKey(browserUuid)) {
+                userContexts.put(browserUuid, new UserContext(browserUuid));
             }
-            UserContext userContext = userContextMap.get(browserUuid);
+            UserContext userContext = userContexts.get(browserUuid);
 
             Type t = new TypeToken<JobKey>() {
             }.getType();
