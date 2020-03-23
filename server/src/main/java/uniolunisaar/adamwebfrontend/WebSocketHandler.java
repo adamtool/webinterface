@@ -19,10 +19,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Handles WebSocket connections for sending ADAM's text output to the client
+ * Handles all WebSocket connections.
+ * ADAM's log output is pushed over websocket, as are the notifications when jobs start and finish.
  */
 @WebSocket
-public class LogWebSocket {
+public class WebSocketHandler {
     // Store sessions if you want to, for example, broadcast a message to all users
     private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
     private static final JsonParser parser = new JsonParser();

@@ -50,12 +50,12 @@ public class App {
     }
 
     public void startServer() {
-        webSocket("/log", LogWebSocket.class);
+        webSocket("/log", WebSocketHandler.class);
 
         staticFiles.location("/static");
         enableCORS();
-        LogWebSocket.startPingThread();
-        LogWebSocket.startMessageQueueThread();
+        WebSocketHandler.startPingThread();
+        WebSocketHandler.startMessageQueueThread();
 
         get("/hello", (req, res) -> "Hello World");
 
@@ -360,7 +360,7 @@ public class App {
             JsonObject message = new JsonObject();
             message.addProperty("type", "jobStatusChanged");
             message.add("jobListing", userContext.jobListEntry(job, jobKey));
-            LogWebSocket.queueWebsocketMessage(userContext.getClientUuid(), message);
+            WebSocketHandler.queueWebsocketMessage(userContext.getClientUuid(), message);
         });
 
         JsonObject jobListing = userContext.jobListEntry(job, jobKey);
