@@ -206,7 +206,7 @@
         required: true
       },
       // This prop is only present for PetriGames / PetriNetWithTransits which are created in the
-      // editor.  It's a UUID corresponding to the Map<UUID, PetriNet> in the server
+      // editor.  It's a UUID corresponding to the Map<UUID, PetriNetWithTransits> in the server
       petriNetId: {
         type: String,
         required: false
@@ -267,32 +267,49 @@
     },
     data() {
       return {
+        // The history of markings and transitions fired if a net is being simulated
         gameSimulationHistory: this.gameSimulationHistoryDefault(),
+        // The dimensions of this GraphEditor instance's parent element, in pixels
         dimensions: {
           width: 0,
           height: 0
         },
+        // The actual winning condition, if any, of the net being shown
         winningCondition: '',
+        // The winning condition currently selected in the drop-down menu
         selectedWinningCondition: '',
         ltlFormula: '', // The LTL or Flow-LTL formula corresponding to our winning condition
         ltlParseErrors: [], // If there is a server-side error parsing the formula, it gets put in here
-        ltlParseStatus: 'success',
+        ltlParseStatus: 'success', // 'success', 'error', or 'running'
+
+        // The current state of the 'draw transit' tool
         drawTransitPreviewLinks: [],
         drawTransitPreviewSource: undefined,
         drawTransitPreviewTransition: undefined,
         drawTransitPreviewPostset: [],
+
+        // The set of nodes that are currently selected via ctrl+click and/or click+drag.
+        // Should only contain elements of 'this.nodes'.
         selectedNodes: [],
-        // selectedTool should be an element of toolPickerItems
+        // The currently selected tool in the tool picker.
+        // It should be an element of toolPickerItems.
         selectedTool: undefined,
+
+        // All the various event handlers which are set according to the currently selected tool
+        // in the tool picker.
         backgroundClickMode: 'cancelSelection',
         backgroundDragDropMode: 'selectNodes',
         leftClickMode: 'selectNode',
         dragDropMode: 'moveNode',
         linkClickMode: 'doNothing',
         nodeTypeToInsert: 'SYSPLACE',
-        nodeRadius: 27,
-        exportedGraphJson: {},
+
+        // Stores the coordinates of the last place the user clicked.
+        // { x: ..., y: ...}
         lastUserClick: undefined,
+
+        // The force-directed graph layout which has nodes attract/repel each other
+        // https://github.com/d3/d3-force
         physicsSimulation: d3.forceSimulation()
           .force('gravity', d3.forceManyBody().distanceMin(1000))
           .force('charge', d3.forceManyBody())
@@ -302,6 +319,8 @@
           .alphaMin(0.002)
           .alpha(0.7)
           .alphaTarget(0),
+
+        // Parameters for the force layout
         repulsionStrength: this.repulsionStrengthDefault,
         linkStrength: this.linkStrengthDefault,
         gravityStrength: this.gravityStrengthDefault
@@ -382,6 +401,10 @@
       this.isDestroyed = true
     },
     computed: {
+      // Determines the size of nodes in the graph
+      nodeRadius: function () {
+        return 27;
+      },
       // This is used in order to show a fake <start> state in the simulation history if no
       // transitions have yet been fired.
       visibleSimulationHistory: function () {
