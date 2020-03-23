@@ -38,12 +38,12 @@ public class App {
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
 
-    // Map from clientside-generated browserUuid to browser-specific list of running Jobs
+    // Map from clientside-generated browserUuid to browser-specific job queue
     private final Map<UUID, UserContext> userContextMap = new ConcurrentHashMap<>();
 
     // Whenever we load a PetriGame or PetriNetWithTransits (in the model checking case) from APT,
     // we put it into this hashmap with a server-generated UUID as a key.
-    private final Map<String, PetriNetWithTransits> petriNets = new ConcurrentHashMap<>();
+    private final Map<UUID, PetriNetWithTransits> petriNets = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         new App().startServer();
@@ -154,14 +154,15 @@ public class App {
     private void postWithPetriNetWithTransits(String path, RouteWithPetriNetWithTransits handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
-            String netId = body.getAsJsonObject().get("petriNetId").getAsString();
-            PetriNetWithTransits pg = getPetriNet(netId);
+            String netUuidString = body.getAsJsonObject().get("petriNetId").getAsString();
+            UUID netUuid = UUID.fromString(netUuidString);
+            PetriNetWithTransits pg = getPetriNet(netUuid);
             Object answer = handler.handle(req, res, pg);
             return answer;
         });
     }
 
-    private PetriNetWithTransits getPetriNet(String uuid) {
+    private PetriNetWithTransits getPetriNet(UUID uuid) {
         if (!petriNets.containsKey(uuid)) {
             throw new IllegalArgumentException("We have no PG/PetriNetWithTransits with the given UUID.  " +
                     "You might see this error if the server has been restarted after you opened the " +
@@ -261,9 +262,9 @@ public class App {
             return errorResponse;
         }
 
-        String netUuid = UUID.randomUUID().toString();
+        UUID netUuid = UUID.randomUUID();
         petriNets.put(netUuid, net);
-        System.out.println("Generated petri net with ID " + netUuid);
+        System.out.println("Generated petri net with ID " + netUuid.toString());
 
         JsonElement netJson;
         switch (netType) {
@@ -287,7 +288,7 @@ public class App {
         Type markingMapTypeToken = new TypeToken<Map<String, Long>>() {
         }.getType();
         JsonElement initialMarkingJson = gson.toJsonTree(initialMarkingMap, markingMapTypeToken);
-        JsonElement serializedNet = EditorNetClient.of(netJson, netUuid, initialMarkingJson);
+        JsonElement serializedNet = EditorNetClient.of(netJson, netUuid.toString(), initialMarkingJson);
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
@@ -303,7 +304,7 @@ public class App {
         String netId = requestBody.get("petriNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
         // This throws an exception if the Petri Net's not there
-        PetriNetWithTransits net = getPetriNet(netId);
+        PetriNetWithTransits net = getPetriNet(UUID.fromString(netId));
 
         String jobTypeString = requestBody.get("jobType").getAsString();
         JobType jobType = JobType.valueOf(jobTypeString);
@@ -750,7 +751,7 @@ public class App {
     private Object handleFireTransitionEditor(Request req, Response res) {
         Function<JsonObject, PetriNet> getPetriNetFromEditor = (JsonObject requestBody) -> {
             String petriNetId = requestBody.get("petriNetId").getAsString();
-            return getPetriNet(petriNetId);
+            return getPetriNet(UUID.fromString(petriNetId));
         };
         return handleFireTransition(req, res, getPetriNetFromEditor);
     }
