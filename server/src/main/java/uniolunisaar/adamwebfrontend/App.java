@@ -73,39 +73,39 @@ public class App {
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
-        postWithPetriNetWithTransits("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
+        postWithEditorNet("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
 
-        postWithPetriNetWithTransits("/updateXYCoordinates", this::handleUpdateXYCoordinates);
+        postWithEditorNet("/updateXYCoordinates", this::handleUpdateXYCoordinates);
 
-        postWithPetriNetWithTransits("/insertPlace", this::handleInsertPlace);
+        postWithEditorNet("/insertPlace", this::handleInsertPlace);
 
-        postWithPetriNetWithTransits("/deleteNode", this::handleDeleteNode);
+        postWithEditorNet("/deleteNode", this::handleDeleteNode);
 
-        postWithPetriNetWithTransits("/renameNode", this::handleRenameNode);
+        postWithEditorNet("/renameNode", this::handleRenameNode);
 
-        postWithPetriNetWithTransits("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
+        postWithEditorNet("/toggleEnvironmentPlace", this::handleToggleEnvironmentPlace);
 
-        postWithPetriNetWithTransits("/toggleIsInitialTransit", this::handleToggleIsInitialTransit);
+        postWithEditorNet("/toggleIsInitialTransit", this::handleToggleIsInitialTransit);
 
-        postWithPetriNetWithTransits("/setIsSpecial", this::handleSetIsSpecial);
+        postWithEditorNet("/setIsSpecial", this::handleSetIsSpecial);
 
-        postWithPetriNetWithTransits("/setInitialToken", this::handleSetInitialToken);
+        postWithEditorNet("/setInitialToken", this::handleSetInitialToken);
 
-        postWithPetriNetWithTransits("/setWinningCondition", this::handleSetWinningCondition);
-        postWithPetriNetWithTransits("/createFlow", this::handleCreateFlow);
+        postWithEditorNet("/setWinningCondition", this::handleSetWinningCondition);
+        postWithEditorNet("/createFlow", this::handleCreateFlow);
 
-        postWithPetriNetWithTransits("/deleteFlow", this::handleDeleteFlow);
+        postWithEditorNet("/deleteFlow", this::handleDeleteFlow);
 
-        postWithPetriNetWithTransits("/createTransit", this::handleCreateTransit);
+        postWithEditorNet("/createTransit", this::handleCreateTransit);
 
-        postWithPetriNetWithTransits("/parseLtlFormula", this::handleParseLtlFormula);
+        postWithEditorNet("/parseLtlFormula", this::handleParseLtlFormula);
 
         post("/fireTransitionEditor", this::handleFireTransitionEditor);
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
-        postWithPetriNetWithTransits("/setFairness", this::handleSetFairness);
+        postWithEditorNet("/setFairness", this::handleSetFairness);
 
-        postWithPetriNetWithTransits("/setInhibitorArc", this::handleSetInhibitorArc);
+        postWithEditorNet("/setInhibitorArc", this::handleSetInhibitorArc);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -129,8 +129,8 @@ public class App {
     }
 
     /**
-     * Register a POST route where the browserUuid is automatically extracted from each request body
-     * and the corresponding UserContext is retrieved.
+     * Shorthand to register a route that operates upon a specific client's UserContext, given the
+     * client's UUID.
      */
     private void postWithUserContext(String path, RouteWithUserContext handler) {
         post(path, (req, res) -> {
@@ -144,11 +144,9 @@ public class App {
     }
 
     /**
-     * Register a POST route that operates upon a PetriNetWithTransits, given the corresponding
-     * UUID in the 'petriNetId' field of the request body.
-     * TODO 296 rename
+     * Register a route that operates upon a net in the editor, given the net's UUID.
      */
-    private void postWithPetriNetWithTransits(String path, RouteWithPetriNetWithTransits handler) {
+    private void postWithEditorNet(String path, EditorNetRoute handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
             String netUuidString = body.getAsJsonObject().get("petriNetId").getAsString();
