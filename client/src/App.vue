@@ -1,74 +1,9 @@
 <template>
   <v-app absolute id='app'>
-    <v-dialog v-model="showJobList"
-              :hide-overlay="false"
-              :persistent="false"
-              :scrollable="true"
-              @keydown.esc="showJobList = false">
-      <v-card>
-        <v-card-title
-          primary-title
-          style="justify-content: space-between;">
-          <span>Your jobs run/running/queued on the server</span>
-          <v-icon standard right
-                  @click="showJobList = false">
-            close
-          </v-icon>
-        </v-card-title>
-        <v-card-text
-          style="max-height: 70vh;"
-        >
-          <JobList
-            :jobListings="jobListings"
-            :useModelChecking="useModelChecking"
-            style="background-color: white;"
-            @loadJob="openOrAddTab"
-            @cancelJob="cancelJob"
-            @deleteJob="deleteJob"/>
-          <div
-            style="padding-top: 15px;">
-            <v-expansion-panels>
-              <v-expansion-panel>
-                <v-expansion-panel-header>
-                  More info
-                </v-expansion-panel-header>
-                <v-expansion-panel-content>
-                  <div>
-                    The jobs listed here are stored in-memory on the server and will disappear
-                    if
-                    the server is restarted.
-                  </div>
-                  <div>
-                    You will also lose access to them if you clear the "local
-                    storage" of your browser. That's because you can only see jobs that
-                    correspond
-                    to a randomly generated unique ID that is stored in your local storage.
-                  </div>
-                  <div>Your unique ID is {{ clientUuid }}.</div>
-                  <div>
-                    If you use multiple browsers, you can share one unique ID between them in
-                    order to have the same list of jobs appear in all of your browsers.
-                  </div>
-                  <v-text-field
-                    v-model="clientUuidEntry"
-                    :rules="[validateClientUuid]"
-                    label="Other Browser UUID"/>
-                  <v-btn
-                    @click="saveClientUuid">
-                    Use other UUID
-                  </v-btn>
-                </v-expansion-panel-content>
-              </v-expansion-panel>
-            </v-expansion-panels>
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <!-- Invisible 'input' el needed in order to trigger the browser's file picker -->
     <input id="file-picker" type="file" style="display: none;" v-on:change="onFileSelected"/>
-    <!--<v-toolbar</v-toolbar-items>-->
-    <!--<v-spacer/>-->
-    <!--<v-toolbar-title>Adam Frontend</v-toolbar-title>-->
-    <!--</v-toolbar>-->
+
+    <!-- The 'file' 'settings' etc. menu at the top of the screen -->
     <MyVueMenuTheme
       style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
@@ -178,6 +113,7 @@
       </hsc-menu-context-menu>
     </MyVueMenuTheme>
 
+    <!-- The main window, split into two resizeable panes using flexbox and splitjs -->
     <div style="display: flex; flex-direction: row; height: calc(100vh - 34.333px); width: 100%;"
          ref="horizontalSplitDiv">
       <div class="flex-column-divider"
@@ -285,12 +221,16 @@
         </v-tabs-items>
       </v-tabs>
     </div>
+
+    <!-- The notification bar at the bottom of the screen -->
     <div :style="`color: ${this.notificationColor}`">
       {{ notificationMessage }}
       <a @click="quickAction.action">
         {{ quickAction.actionName }}
       </a>
     </div>
+
+    <!-- The log window -->
     <hsc-window-style-metal>
       <hsc-window resizable
                   closeButton
@@ -304,6 +244,73 @@
         />
       </hsc-window>
     </hsc-window-style-metal>
+
+    <!-- The 'job list' modal dialog -->
+    <v-dialog v-model="showJobList"
+              :hide-overlay="false"
+              :persistent="false"
+              :scrollable="true"
+              @keydown.esc="showJobList = false">
+      <v-card>
+        <v-card-title
+          primary-title
+          style="justify-content: space-between;">
+          <span>Your jobs run/running/queued on the server</span>
+          <v-icon standard right
+                  @click="showJobList = false">
+            close
+          </v-icon>
+        </v-card-title>
+        <v-card-text
+          style="max-height: 70vh;"
+        >
+          <JobList
+            :jobListings="jobListings"
+            :useModelChecking="useModelChecking"
+            style="background-color: white;"
+            @loadJob="openOrAddTab"
+            @cancelJob="cancelJob"
+            @deleteJob="deleteJob"/>
+          <div
+            style="padding-top: 15px;">
+            <v-expansion-panels>
+              <v-expansion-panel>
+                <v-expansion-panel-header>
+                  More info
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                  <div>
+                    The jobs listed here are stored in-memory on the server and will disappear
+                    if
+                    the server is restarted.
+                  </div>
+                  <div>
+                    You will also lose access to them if you clear the "local
+                    storage" of your browser. That's because you can only see jobs that
+                    correspond
+                    to a randomly generated unique ID that is stored in your local storage.
+                  </div>
+                  <div>Your unique ID is {{ clientUuid }}.</div>
+                  <div>
+                    If you use multiple browsers, you can share one unique ID between them in
+                    order to have the same list of jobs appear in all of your browsers.
+                  </div>
+                  <v-text-field
+                    v-model="clientUuidEntry"
+                    :rules="[validateClientUuid]"
+                    label="Other Browser UUID"/>
+                  <v-btn
+                    @click="saveClientUuid">
+                    Use other UUID
+                  </v-btn>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
   </v-app>
 </template>
 
