@@ -149,7 +149,7 @@
       Save as SVG
     </v-tooltip>
 
-
+    <!-- The SVG element that displays the graph -->
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
 
     </svg>
@@ -201,16 +201,18 @@
       ToolPicker
     },
     props: {
+      // Set of RPC procedures
       restEndpoints: {
         type: Object,
         required: true
       },
+      // The graph on display.  Corresponds to 'PetriNetClient' or 'BDDGraphClient' on the server.
       graph: {
         type: Object,
         required: true
       },
-      // This prop is only present for PetriGames / PetriNetWithTransits which are created in the
-      // editor.  It's a UUID corresponding to the Map<UUID, PetriNetWithTransits> in the server
+      // A UUID which is a key to the Map<UUID, PetriNetWithTransits> editorNets on the server.
+      // Present only for PetriGames / PetriNetWithTransits created in the editor.
       petriNetId: {
         type: String,
         required: false
@@ -221,19 +223,21 @@
         type: Object,
         required: false
       },
+      // The type of the petri net displayed in this GraphEditor instance.
+      // This corresponds to the 'NetType' enum on the server
       netType: {
-        // The type of the petri net displayed in this GraphEditor instance.
-        // This corresponds to the 'NetType' enum on the server
         type: String,
         required: false,
         validator: function (type) {
           return ['PETRI_NET', 'PETRI_NET_WITH_TRANSITS', 'PETRI_GAME'].includes(type)
         }
       },
+      // When true, the repulsion/gravity/link strength sliders are displayed
       shouldShowPhysicsControls: {
         type: Boolean,
         default: false
       },
+      // When true, the 'partition' data in 'graph' will be visualized
       shouldShowPartitions: {
         type: Boolean,
         default: false
@@ -251,11 +255,13 @@
         type: Boolean,
         default: false
       },
+      // RPC routes specific to the model checking mode
       modelCheckingRoutes: {
         type: Object,
         required: false,
         default: noOpImplementation
       },
+      // Force simulation parameters.  Adjustable using UI sliders if 'showPhysicsControls' is true
       repulsionStrengthDefault: {
         type: Number,
         default: 120
