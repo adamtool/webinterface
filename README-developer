@@ -51,6 +51,6 @@ and attribution stuff that we have to include for all of our 3rd party libraries
 
 This process is arguably a little bit unwieldy, since you have to run it every
 time you add or remove a dependency. 
-TODO: Install npm-license-crawler as a devDependency and run it automatically 
+TODO #303: Install npm-license-crawler as a devDependency and run it automatically 
 during the build process
 
