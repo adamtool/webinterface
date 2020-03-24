@@ -30,6 +30,7 @@
     </div>
 
     <!--TODO #297 Provide visual feedback when HTTP request is in progress, similar to APT editor-->
+    <!-- Winning condition picker -->
     <v-container fluid
                  style="
                  z-index: 5;
@@ -70,6 +71,7 @@
       </v-layout>
     </v-container>
 
+    <!-- Tool picker -->
     <ToolPicker
       style="position: absolute; top: 75px; z-index: 5;
       background: #ffffffee;
@@ -80,6 +82,7 @@
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
 
+    <!-- Simulation history sidebar -->
     <v-card
       v-if="editorMode === 'Simulator'"
       style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
@@ -129,6 +132,7 @@
       </v-tooltip>
     </v-card>
 
+    <!-- "Save as SVG" button -->
     <v-tooltip bottom>
       <template v-slot:activator="{ on }">
         <v-btn
