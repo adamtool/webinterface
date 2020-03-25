@@ -84,7 +84,9 @@ public class UserContext {
     public JsonObject jobListEntry(Job job,
                                    JobKey jobKey) {
         JsonObject entry = new JsonObject();
-        entry.addProperty("type", jobKey.getJobType().toString()); // TODO delete.  this is redundant; the jobKey itself also contains the job type
+        // TODO #296 delete the 'type' property here.  it's redundant, because the jobKey itself
+        //  also contains the job type
+        entry.addProperty("type", jobKey.getJobType().toString());
         entry.add("jobKey", new Gson().toJsonTree(jobKey));
         entry.addProperty("jobStatus", job.getStatus().toString());
         entry.addProperty("timeStarted", job.getTimeStarted().getEpochSecond());
@@ -98,6 +100,8 @@ public class UserContext {
 
         if (job.getStatus() == COMPLETED) {
             try {
+                // TODO #288 Consider not sending the results of every job right away, but rather
+                // only sending them when the user clicks "load".
                 Object jobResult = job.getResult();
                 JsonElement resultJson = jobKey.getJobType().serialize(jobResult);
                 entry.add("result", resultJson);

@@ -44,6 +44,7 @@ public enum JobType {
             // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
+                // TODO #172 add options for the solving algorithms
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
                 return existsWinningStrategy;
             }, petriGame.getName());
@@ -56,6 +57,8 @@ public enum JobType {
             JsonElement netJson = PetriNetClient.serializePetriGame(game, new HashSet<>(), false);
             json.add("graph", netJson);
 
+            // TODO #296 Remove. This is no longer needed.  (The simulation used to rely on
+            //  having a copy of the APT)
             String apt;
             try {
                 apt = PGTools.getAPT(game, true, true);
@@ -71,6 +74,7 @@ public enum JobType {
             // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
+                // TODO #172 add options for the solving algorithms
                 PetriGame strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
                 PetriNetTools.removeXAndYCoordinates(strategyBDD);
                 return strategyBDD;
@@ -87,6 +91,7 @@ public enum JobType {
             // TODO #293 refactor
             PetriGame petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
+                // TODO #172 add options for the solving algorithms
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
                 return graphStrategyBDD;
             }, petriGame.getName());
@@ -118,6 +123,7 @@ public enum JobType {
             return new Job<>(() -> {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
 
+                // TODO #172 add options for the solving algorithms
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
                 String tempFilePrefix = getTempFilePrefix();
@@ -139,6 +145,8 @@ public enum JobType {
             JsonElement netJson = PetriNetClient.serializePetriNet(net, new HashSet<>());
             json.add("graph", netJson);
 
+            // TODO #296 Remove. This is no longer needed.  (The simulation used to rely on
+            //  having a copy of the APT)
             String apt;
             try {
                 apt = Tools.getPN(net);
@@ -154,6 +162,7 @@ public enum JobType {
             return new Job<>(() -> {
                 RunFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
 
+                // TODO #172 add options for the solving algorithms
                 AdamCircuitFlowLTLMCSettings settings = new AdamCircuitFlowLTLMCSettings();
                 // These statistics could be shown in the UI, but for now, they are not visible.
                 AdamCircuitFlowLTLMCStatistics statistics = new AdamCircuitFlowLTLMCStatistics();
@@ -199,6 +208,7 @@ public enum JobType {
 
             boolean shouldSolveStepwise = params.get("incremental").getAsBoolean();
             return new Job<>(() -> {
+                // TODO #172 add options for the solving algorithms
                 if (shouldSolveStepwise) {
                     BDDGraphExplorerStepwise bddGraphExplorerStepwise =
                             new BDDGraphExplorerStepwise(petriGame);

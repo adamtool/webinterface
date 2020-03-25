@@ -2,6 +2,11 @@ How to develop
 You can build the frontend itself and have your changes immediately compiled and reloaded in the browser if you go into the "client" directory and run "npm run dev".  (See client/README.md)  The development server will make itself available at localhost:8080.
 
 You should run the Java server at the same time.  You will probably want to install abc, mchyper, etc. following the instructions in README.
+- TODO #296 how to start the server
+I use intellij and webstorm together at the same time
+
+- In webstorm, "open" the directory 'webinterface/client'.
+- In IntelliJ, "file>new>project from existing sources" select 
 
 Misc. notes
 In server/pom.xml, we pull adam_core.jar as a dependency into our Maven project via a "file repository" that was created using the following Maven command:

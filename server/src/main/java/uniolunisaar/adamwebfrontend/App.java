@@ -173,6 +173,8 @@ public class App {
     /**
      * @return the UserContext corresponding to the given client UUID.
      * If there isn't any UserContext object for the given UUID, create one.
+     * TODO #304 Prevent DDOS: The server could run out of memory if a lot of requests would be sent
+     * with different UUIDs resulting in the creation of too many UserContext objects.
      */
     private UserContext getUserContext(UUID clientUuid) {
         if (!userContexts.containsKey(clientUuid)) {
@@ -273,6 +275,10 @@ public class App {
         }
 
         UUID netUuid = UUID.randomUUID();
+
+        /* TODO #305 Prevent DDOS: The server could run out of memory if this route is called
+         * too many times without the server being restarted, because the nets in editorNets are
+         * never garbage collected. */
         editorNets.put(netUuid, net);
         System.out.println("Generated petri net with ID " + netUuid.toString());
 
@@ -311,6 +317,7 @@ public class App {
         // Read request parameters.  Get the Petri Net that should be operated upon and the other
         // parameters/settings for the job to be run
         JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
+        // TODO #296 rename 'petriNetId' to 'editorNetId'
         String netId = requestBody.get("petriNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
         PetriNetWithTransits net = getEditorNet(UUID.fromString(netId));
@@ -503,6 +510,7 @@ public class App {
         return successResponse(serializedNet);
     }
 
+    // TODO #296 rename?  This is not just for places, but also for Transitions.
     private Object handleInsertPlace(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         double x = body.get("x").getAsDouble();

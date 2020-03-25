@@ -25,6 +25,7 @@
       }
     },
     props: {
+      // TODO #296 rename.  This is the APT selected in the main App component
       aptFromAdamParser: {
         type: String,
         required: true

@@ -468,6 +468,7 @@
         // Each UserContext object represents a separate job queue and list of queued/completed jobs.
         // The client generates its own uuid when the app is loaded for the first time.
         clientUuid: 'client uuid not yet loaded. (Should have been initialized in mounted hook)',
+        // The contents of the text field used to enter a new UUID
         clientUuidEntry: '',
         // the list of enqueued/running/finished jobs seen by this client.
         // Corresponds to the output of UserContext::getJobList on the server.
@@ -495,7 +496,7 @@
         // To do that, I want to make three 'v-tab' tabs -- 'Petri Game', 'Simulator', and
         // 'APT Editor' -- and I want to have them address only two instances of 'v-tab-item'
         // among them.
-        // TODO #296 put the mapping here
+        // TODO #296  Split up the simulator and the editor to make this simpler
         // Which 'v-tab-item' is currently visible
         visibleTabContentsLeftSide: 'simulatorEditor',
         // Each one of these corresponds to a 'v-tab-item'
@@ -1333,6 +1334,8 @@
           y: nodeSpec.y
         }).then(response => {
           this.withErrorHandling(response, response => {
+            // TODO #288 Do not send the whole net back and forth, but rather a 'diff' of the change
+            // (or a simple acknowledgement. The diff could be calculated on the client.)
             this.editorNet.net = response.data.result
           })
         }).catch(() => {
