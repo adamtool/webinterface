@@ -173,7 +173,10 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;">
               <div v-if="simulatorNet.status !== 'netIsPresent'">
-                Net not present. Status: {{ simulatorNet.status }}
+                The net in the editor is being copied in order to allow it to be simulated.
+                Here is its current status:
+                <div style="white-space: pre-wrap;">{{ JSON.stringify(simulatorNet, null, 2)}}
+                </div>
               </div>
               <Simulator
                 v-else
@@ -551,19 +554,23 @@
         if (tabIndex === 2) { // APT Editor
           this.saveEditorNetAsAPT()
         } else if (tabIndex === 1) { // Simulator
-          if (this.simulatorNet.status !== 'netIsPresent') {
+          const {status} = this.simulatorNet
+          if (status !== 'netIsPresent' && status !== 'copyInProgress') {
             this.simulatorNet = {status: 'copyInProgress'}
-            sleep(2000)
-              .then(this.copyEditorNet)
+            // You can use 'sleep' here to simulate network lag
+            // sleep(2000)
+            //   .then(this.copyEditorNet)
+            this.copyEditorNet()
               .then(editorNetCopy => {
                 this.simulatorNet = {
                   status: 'netIsPresent',
                   ...editorNetCopy
                 }
               }).catch(error => {
+              logging.sendErrorNotification(error)
               this.simulatorNet = {
                 status: 'error',
-                error
+                error: error.toString()
               }
             })
           }
@@ -976,8 +983,9 @@
               uuid: response.data.uuid
             }
           } else {
-            console.log(response)
-            throw new Error('Got a bad response, check the browsers console output for details')
+            console.error(response)
+            throw new Error('Got a bad response from the server. Please check the browser\'s ' +
+              'console output for details')
           }
         })
       },

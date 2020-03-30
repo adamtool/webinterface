@@ -332,7 +332,7 @@ public class App {
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.addProperty("uuid", newUuid.toString());
-        return responseJson.toString();
+        return errorResponse("No good reason");
     }
 
 
