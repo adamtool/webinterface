@@ -130,8 +130,10 @@
         <v-tab>Simulator</v-tab>
         <v-tab>APT Editor</v-tab>
         <!--:href="`#${tab.tabContentId}`">-->
-        <v-tab-item :transition="false"
-                    :reverse-transition="false">
+        <v-tab-item
+          transition="false"
+          reverse-transition="false"
+        >
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;">
               <GraphEditor :graph='editorNet.net'
@@ -164,7 +166,27 @@
             </div>
           </keep-alive>
         </v-tab-item>
-        <v-tab-item>TODO: Simulator should be here</v-tab-item>
+        <v-tab-item
+          transition="false"
+          reverse-transition="false"
+        >
+          <keep-alive>
+            <div style="position: relative; height: 100%; width: 100%;">
+              <Simulator
+                editorMode="Simulator"
+                :graph="simulatorNet"
+                :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
+                :restEndpoints="restEndpoints"
+                :useModelChecking="useModelChecking"
+                :useDistributedSynthesis="useDistributedSynthesis"
+                :shouldShowPhysicsControls="showPhysicsControls"
+                :shouldShowPartitions="showPartitions"
+                :repulsionStrengthDefault="360"
+                :linkStrengthDefault="0.086"
+              />
+            </div>
+          </keep-alive>
+        </v-tab-item>
         <v-tab-item :transition="false"
                     :reverse-transition="false">
           <keep-alive>
@@ -316,6 +338,7 @@
   import {fakeTabs} from './testData'
   import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
+  import Simulator from './components/Simulator'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
@@ -374,6 +397,7 @@
       draggable,
       HscMenuBarDirectory,
       GraphEditor,
+      Simulator,
       MyVueMenuTheme,
       LogViewer,
       AptEditor,
@@ -521,6 +545,10 @@
       }
     },
     computed: {
+      // TODO #296 make this its own 'data' element
+      simulatorNet: function () {
+        return this.editorNet.net
+      },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
