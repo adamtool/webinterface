@@ -105,6 +105,8 @@ public class App {
 
         postWithEditorNet("/setInhibitorArc", this::handleSetInhibitorArc);
 
+        postWithEditorNet("/copyEditorNet", this::handleCopyEditorNet);
+
         post("/fireTransitionEditor", this::handleFireTransitionEditor);
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
@@ -309,6 +311,27 @@ public class App {
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
         responseJson.add("editorNet", serializedNet);
+        return responseJson.toString();
+    }
+
+    /**
+     * Copy a given editor net, store the copy in 'editorNets', and return the UUID of the copy
+     * TODO #305 a DOS attack is possible by calling this route an excessive number of times
+     */
+    private Object handleCopyEditorNet(Request req, Response res, PetriNetWithTransits net) {
+        PetriNetWithTransits copy;
+        // TODO #293 refactor
+        if (net instanceof PetriGame) {
+            copy = new PetriGame((PetriGame) net);
+        } else {
+            copy = new PetriNetWithTransits(net);
+        }
+        UUID newUuid = UUID.randomUUID();
+        editorNets.put(newUuid, copy);
+
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.addProperty("uuid", newUuid.toString());
         return responseJson.toString();
     }
 

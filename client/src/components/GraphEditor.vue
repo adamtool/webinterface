@@ -148,6 +148,7 @@
   import ToolPicker from './ToolPicker'
 
   import logging from '../logging'
+  import {deepCopy} from '../util'
 
   export default {
     name: 'graph-editor',
@@ -2120,7 +2121,7 @@
        * Delete nodes/links that are gone, update nodes that have changed, add new nodes/links.
        */
       importGraph: function (graphJson) {
-        const graphJsonCopy = this.deepCopy(graphJson)
+        const graphJsonCopy = deepCopy(graphJson)
         this.fireableTransitions = graphJsonCopy.fireableTransitions
         this.winningCondition = graphJsonCopy.winningCondition
         // There is only a ltlFormula sent from server to client iff winningCondition != LTL.
@@ -2274,16 +2275,6 @@
       updateRepulsionStrength: function (strength) {
         this.physicsSimulation.force('charge').strength(-strength)
         this.physicsSimulation.alpha(0.7).restart()
-      },
-      /**
-       * Perform a deep copy of an arbitrary object.
-       * This has some caveats.
-       * See https://stackoverflow.com/questions/20662319/javascript-deep-copy-using-json
-       * @param object
-       * @returns A deep copy/clone of object
-       */
-      deepCopy: function (object) {
-        return JSON.parse(JSON.stringify(object))
       },
       contextMenuItemsTransition: function (transitionNode) {
         const setWeakFair = {

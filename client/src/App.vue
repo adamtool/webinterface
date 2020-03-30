@@ -174,9 +174,9 @@
             <div style="position: relative; height: 100%; width: 100%;">
               <Simulator
                 editorMode="Simulator"
-                :graph="simulatorNet"
+                :graph="visibleSimulatorNet.net"
                 :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
-                :editorNetId="this.editorNet.uuid"
+                :editorNetId="visibleSimulatorNet.uuid"
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
                 :useDistributedSynthesis="useDistributedSynthesis"
@@ -380,6 +380,8 @@
 
   import draggable from 'vuedraggable'
 
+  import {deepCopy} from './util'
+
   const uuidv4 = require('uuid/v4')
 
   export default {
@@ -451,7 +453,7 @@
         aptParseErrorLineNumber: -1,
         aptParseErrorColumnNumber: -1,
 
-        // The net displayed in the graph editor/simulator.
+        // The net displayed in the graph editor.
         // Corresponds to the class 'EditorNetClient' on the server
         editorNet: {
           net: {
@@ -461,7 +463,8 @@
           uuid: 'abcfakeuuid123',
           initialMarking: {}
         },
-
+        // The net in the simulator.  Corresponds to the class 'EditorNetClient' on the server
+        simulatorNet: null,
         // The following flags show/hide various windows / modal dialogs.
         // They are bound two-way with 'v-model'
         showLogWindow: false,
@@ -546,9 +549,12 @@
       }
     },
     computed: {
-      // TODO #296 make this its own 'data' element
-      simulatorNet: function () {
-        return this.editorNet.net
+      visibleSimulatorNet: function () {
+        if (this.simulatorNet) {
+          return this.simulatorNet
+        } else {
+          return this.editorNet
+        }
       },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
@@ -615,6 +621,7 @@
           'getAptOfEditorNet',
           'updateXYCoordinates',
           'parseApt',
+          'copyEditorNet',
           'insertPlace',
           'createFlow',
           'createTransit',
@@ -938,6 +945,27 @@
         })
         this.aptParseStatus = 'running'
       }, 200),
+      /**
+       * @returns Basically a Promise<EditorNetClient>
+       */
+      copyEditorNet: function () {
+        // Copy the existing clientside representation of the editor net
+        const {net, initialMarking} = deepCopy(this.editorNet)
+        return this.restEndpoints.copyEditorNet({
+          editorNetId: this.editorNet.uuid
+        }).then(response => {
+          if (response.data.status === 'success') {
+              return {
+                net,
+                initialMarking,
+                uuid: response.data.uuid
+              }
+          } else {
+            console.log(response)
+            throw new Error('Got a bad response, check the browsers console output for details')
+          }
+        })
+      },
       queueJob: function (editorNetId, jobType, jobParams) {
         this.restEndpoints.queueJob({
           editorNetId: editorNetId,

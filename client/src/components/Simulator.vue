@@ -72,6 +72,7 @@
   import GraphEditor from './GraphEditor'
   import logging from '../logging'
   import Vue from 'vue'
+  import {deepCopy} from '../util'
 
   export default {
     name: 'Simulator',
