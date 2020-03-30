@@ -58,6 +58,7 @@
     </template>
   </div>
   <Simulator v-else-if="tab.type === 'WINNING_STRATEGY'"
+             editorMode="Simulator"
              netType="PETRI_GAME"
              :graph="tab.result.graph"
              :jobKey="tab.jobKey"
@@ -79,6 +80,7 @@
                :linkStrengthDefault="0.04"
                :gravityStrengthDefault="300"/>
   <Simulator v-else-if="tab.type === 'MODEL_CHECKING_NET'"
+             editorMode="Simulator"
              :graph="tab.result.graph"
              :jobKey="tab.jobKey"
              :useModelChecking="true"
