@@ -15,6 +15,7 @@
   <GraphEditor
     v-bind="$props"
     ref="graphEditor"
+    @fireTransition="fireTransition"
   >
     <!-- Simulation history sidebar -->
     <v-card
@@ -72,22 +73,6 @@
   import logging from '../logging'
   import Vue from 'vue'
 
-  function gameSimulationHistoryDefault() {
-    return {
-      currentIndex: 0, // The index of the currently selected state in the history
-      /* Each game simulation state in this stack consists of an object:
-      {
-        marking: null, // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
-        transitionFired: null // The transition fired from the previous state to reach this state
-      } */
-      stack: [],
-      graph: {
-        nodes: [],
-        links: []
-      }
-    }
-  }
-
   export default {
     name: 'Simulator',
     components: {GraphEditor},
@@ -97,7 +82,7 @@
     data() {
       return {
         // The history of markings and transitions fired if a net is being simulated
-        gameSimulationHistory: gameSimulationHistoryDefault()
+        gameSimulationHistory: this.gameSimulationHistoryDefault()
       }
     },
     computed: {
@@ -161,9 +146,24 @@
         this.$refs.graphEditor.applyMarking(
           this.graph.initialMarking,
           this.graph.fireableTransitions)
-        this.gameSimulationHistory = gameSimulationHistoryDefault()
+        this.gameSimulationHistory = this.gameSimulationHistoryDefault()
         this.$refs.graphEditor.updateD3()
         logging.sendSuccessNotification('Reset the simulation.')
+      },
+      gameSimulationHistoryDefault: function () {
+        return {
+          currentIndex: 0, // The index of the currently selected state in the history
+          /* Each game simulation state in this stack consists of an object:
+          {
+            marking: null, // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
+            transitionFired: null // The transition fired from the previous state to reach this state
+          } */
+          stack: [],
+          graph: {
+            nodes: [],
+            links: []
+          }
+        }
       },
       fireTransition: function (d) {
         if (this.gameSimulationHistory.stack.length === 0) {
@@ -229,7 +229,17 @@
             logging.sendErrorNotification('Invalid response from server')
           }
         })
-      }
+      },
+      /**
+       * Perform a deep copy of an arbitrary object.
+       * This has some caveats.
+       * See https://stackoverflow.com/questions/20662319/javascript-deep-copy-using-json
+       * @param object
+       * @returns A deep copy/clone of object
+       */
+      deepCopy: function (object) {
+        return JSON.parse(JSON.stringify(object))
+      },
     }
   }
 </script>

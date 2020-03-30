@@ -176,6 +176,7 @@
                 editorMode="Simulator"
                 :graph="simulatorNet"
                 :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
+                :editorNetId="this.editorNet.uuid"
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
                 :useDistributedSynthesis="useDistributedSynthesis"

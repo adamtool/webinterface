@@ -842,7 +842,7 @@
               if (d.type !== 'TRANSITION') {
                 return
               } else {
-                this.fireTransition(d)
+                this.$emit('fireTransition', d)
               }
             }
           default:
@@ -2310,7 +2310,7 @@
         // TODO #294 re-enable firing transitions in 'editor' mode again
         const fireTransition = {
           title: 'Fire transition',
-          action: this.fireTransition
+          action: (d) => this.$emit('fireTransition', d)
         }
         let items = []
         if (this.editorMode === 'Simulator') {
