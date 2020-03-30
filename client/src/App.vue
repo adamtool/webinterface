@@ -174,9 +174,8 @@
             <div style="position: relative; height: 100%; width: 100%;">
               <Simulator
                 editorMode="Simulator"
-                :graph="visibleSimulatorNet.net"
+                :simulatorNet="simulatorNet"
                 :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
-                :editorNetId="visibleSimulatorNet.uuid"
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
                 :useDistributedSynthesis="useDistributedSynthesis"
@@ -463,8 +462,9 @@
           uuid: 'abcfakeuuid123',
           initialMarking: {}
         },
-        // The net in the simulator.  Corresponds to the class 'EditorNetClient' on the server
-        simulatorNet: null,
+        // The net in the simulator.
+        // Corresponds to the class 'EditorNetClient' on the server
+        simulatorNet: {status: 'netIsNotPresent' },
         // The following flags show/hide various windows / modal dialogs.
         // They are bound two-way with 'v-model'
         showLogWindow: false,
@@ -545,17 +545,26 @@
       selectedTabLeftSide: function (tabIndex) {
         if (tabIndex === 2) { // APT Editor
           this.saveEditorNetAsAPT()
+        } else if (tabIndex === 1) { // Simulator
+          if (this.simulatorNet.status !== 'netIsPresent') {
+            this.simulatorNet = {status: 'copyInProgress'}
+            this.copyEditorNet()
+              .then(editorNetCopy => {
+                this.simulatorNet = {
+                  status: 'netIsPresent',
+                  ...editorNetCopy
+                }
+              }).catch(error => {
+                this.simulatorNet = {
+                  status: 'error',
+                  error
+                }
+            })
+          }
         }
       }
     },
     computed: {
-      visibleSimulatorNet: function () {
-        if (this.simulatorNet) {
-          return this.simulatorNet
-        } else {
-          return this.editorNet
-        }
-      },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
@@ -950,16 +959,16 @@
        */
       copyEditorNet: function () {
         // Copy the existing clientside representation of the editor net
-        const {net, initialMarking} = deepCopy(this.editorNet)
+        const netCopy = deepCopy(this.editorNet)
         return this.restEndpoints.copyEditorNet({
           editorNetId: this.editorNet.uuid
         }).then(response => {
           if (response.data.status === 'success') {
-              return {
-                net,
-                initialMarking,
-                uuid: response.data.uuid
-              }
+            return {
+              net: netCopy.net,
+              initialMarking: netCopy.initialMarking,
+              uuid: response.data.uuid
+            }
           } else {
             console.log(response)
             throw new Error('Got a bad response, check the browsers console output for details')

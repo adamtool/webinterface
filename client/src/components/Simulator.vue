@@ -12,9 +12,14 @@
  https://vuejsdevelopers.com/2020/02/24/extending-vuejs-components-templates/
  -->
 <template>
+  <div v-if="simulatorNet.status !== 'netIsPresent'">
+    Net not present.  Status: {{ simulatorNet.status }}
+  </div>
   <GraphEditor
-    v-bind="$props"
+    v-else
     ref="graphEditor"
+    v-bind="$props"
+    :graph="simulatorNet.net"
     @fireTransition="fireTransition"
   >
     <!-- Simulation history sidebar -->
@@ -78,7 +83,26 @@
     name: 'Simulator',
     components: {GraphEditor},
     props: {
-      ...GraphEditor.props
+      ...GraphEditor.props,
+      graph: {
+        // This prop should actually never be provided
+        type: undefined,
+        required: false,
+        validator: function (val) { return val === undefined }
+      },
+      simulatorNet: {
+        type: Object,
+        required: true,
+        validator: function (obj) {
+          return (obj.status === 'netIsNotPresent') ||
+            (obj.status === 'copyInProgress') ||
+            (obj.status === 'error' && obj.hasOwnProperty('error')) ||
+            (obj.status === 'netIsPresent' &&
+              obj.hasOwnProperty('net') &&
+              obj.hasOwnProperty('uuid') &&
+              obj.hasOwnProperty('initialMarking'))
+        }
+      }
     },
     data() {
       return {
@@ -108,8 +132,10 @@
       }
     },
     watch: {
-      graph: function () {
-        this.resetSimulation()
+      'simulatorNet.status': function (status) {
+        if (status === 'netIsPresent') {
+          this.resetSimulation()
+        }
       },
       'gameSimulationHistory.stack': function () {
         // We must wait until Vue updates the DOM in order to scroll to the true bottom of the log.
@@ -123,10 +149,10 @@
       'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
         const currentState = this.gameSimulationHistory.stack[newIndex]
         if (currentState) { // Maybe the history has been reset and there is no 'current state'
-          this.$refs.graphEditor.applyMarking(
+          this.$refs.graphEditor[0].applyMarking(
             currentState.marking,
             currentState.fireableTransitions)
-          this.$refs.graphEditor.updateD3()
+          this.$refs.graphEditor[0].updateD3()
         }
       }
     },
@@ -143,12 +169,11 @@
         this.gameSimulationHistory.currentIndex = newIndexBounded
       },
       resetSimulation: function () {
-        this.$refs.graphEditor.importGraph(this.graph)
-        this.$refs.graphEditor.applyMarking(
+        this.$refs.graphEditor[0].applyMarking(
           this.graph.initialMarking,
           this.graph.fireableTransitions)
+        this.$refs.graphEditor[0].updateD3()
         this.gameSimulationHistory = this.gameSimulationHistoryDefault()
-        this.$refs.graphEditor.updateD3()
         logging.sendSuccessNotification('Reset the simulation.')
       },
       gameSimulationHistoryDefault: function () {
@@ -172,12 +197,12 @@
             currentIndex: 0,
             stack: [
               {
-                marking: this.graph.initialMarking,
-                fireableTransitions: this.graph.fireableTransitions,
+                marking: this.simulatorNet.initialMarking,
+                fireableTransitions: this.simulatorNet.fireableTransitions,
                 transitionFired: null
               }
             ],
-            graph: this.deepCopy(this.graph)
+            graph: this.deepCopy(this.simulatorNet.net)
           }
         }
         const {stack, currentIndex} = this.gameSimulationHistory
@@ -211,16 +236,16 @@
             }
             this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1).concat([newState])
             this.gameSimulationHistory.currentIndex = currentIndex + 1
-            this.$refs.graphEditor.applyMarking(newState.marking, newState.fireableTransitions)
-            this.$refs.graphEditor.updateD3()
-            this.$refs.graphEditor.showTransitionFired({
+            this.$refs.graphEditor[0].applyMarking(newState.marking, newState.fireableTransitions)
+            this.$refs.graphEditor[0].updateD3()
+            this.$refs.graphEditor[0].showTransitionFired({
               transitionId: d.id,
               wasSuccessful: true
             })
             logging.sendSuccessNotification('Fired transition ' + d.id)
           } else if (response.data.status === 'error') {
             if (response.data.errorType === 'TRANSITION_NOT_FIREABLE') {
-              this.$refs.graphEditor.showTransitionFired({
+              this.$refs.graphEditor[0].showTransitionFired({
                 transitionId: d.id,
                 wasSuccessful: false
               })
@@ -240,7 +265,7 @@
        */
       deepCopy: function (object) {
         return JSON.parse(JSON.stringify(object))
-      },
+      }
     }
   }
 </script>
