@@ -471,7 +471,10 @@
           initialMarking: {}
         },
         // The net in the simulator.
-        // Corresponds to the class 'EditorNetClient' on the server
+        // When status === 'netIsPresent', this has all the same properties as the class
+        // 'EditorNetClient' on the server
+        // Possible values for 'status' include 'netIsNotPresent', 'netIsPresent', 'copyInProgress'
+        // and 'error'
         simulatorNet: {status: 'netIsNotPresent'},
         // The following flags show/hide various windows / modal dialogs.
         // They are bound two-way with 'v-model'
@@ -556,23 +559,7 @@
         } else if (tabIndex === 1) { // Simulator
           const {status} = this.simulatorNet
           if (status !== 'netIsPresent' && status !== 'copyInProgress') {
-            this.simulatorNet = {status: 'copyInProgress'}
-            // You can use 'sleep' here to simulate network lag
-            // sleep(2000)
-            //   .then(this.copyEditorNet)
-            this.copyEditorNet()
-              .then(editorNetCopy => {
-                this.simulatorNet = {
-                  status: 'netIsPresent',
-                  ...editorNetCopy
-                }
-              }).catch(error => {
-              logging.sendErrorNotification(error)
-              this.simulatorNet = {
-                status: 'error',
-                error: error.toString()
-              }
-            })
+            this.copyEditorNetToSimulator()
           }
         }
       }
@@ -699,6 +686,22 @@
       }
     },
     methods: {
+      copyEditorNetToSimulator: function () {
+        this.simulatorNet = {status: 'copyInProgress'}
+        this.copyEditorNet()
+          .then(editorNetCopy => {
+            this.simulatorNet = {
+              status: 'netIsPresent',
+              ...editorNetCopy
+            }
+          }).catch(error => {
+          logging.sendErrorNotification(error)
+          this.simulatorNet = {
+            status: 'error',
+            error: error.toString()
+          }
+        })
+      },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
         let socket
