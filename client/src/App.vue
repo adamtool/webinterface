@@ -129,7 +129,6 @@
         <v-tab>Petri Net</v-tab>
         <v-tab>Simulator</v-tab>
         <v-tab>APT Editor</v-tab>
-        <!--:href="`#${tab.tabContentId}`">-->
         <v-tab-item
           transition="false"
           reverse-transition="false"
@@ -140,7 +139,7 @@
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :editorNetId='editorNet.uuid'
                            editorMode='Editor'
-                           ref='graphEditorTab'
+                           ref='graphEditor'
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
@@ -480,10 +479,10 @@
           initialMarking: {}
         },
         // The net in the simulator.
-        // When status === 'netIsPresent', this has all the same properties as the class
-        // 'EditorNetClient' on the server
         // Possible values for 'status' include 'netIsNotPresent', 'netIsPresent', 'copyInProgress'
-        // and 'error'
+        // and 'error'.
+        // When status === 'netIsPresent', this should have all the same properties as the class
+        // 'EditorNetClient' on the server.
         simulatorNet: {status: 'netIsNotPresent'},
         // The following flags show/hide various windows / modal dialogs.
         // They are bound two-way with 'v-model'
@@ -990,7 +989,7 @@
       copyEditorNet: function () {
         // Copy the existing clientside representation of the editor net, including node positions
         const editorNetCopy = deepCopy(this.editorNet)
-        editorNetCopy.net.nodePositions = this.$refs.graphEditorTab.getNodeXYCoordinates()
+        editorNetCopy.net.nodePositions = this.$refs.graphEditor.getNodeXYCoordinates()
         // Ask the server to duplicate the editor net object and save it under a new UUID
         return this.restEndpoints.copyEditorNet({
           editorNetId: this.editorNet.uuid
@@ -1040,7 +1039,7 @@
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorTab.ltlFormula
+        const formula = this.$refs.graphEditor.ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
@@ -1052,7 +1051,7 @@
       },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorTab.ltlFormula
+        const formula = this.$refs.graphEditor.ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
@@ -1066,14 +1065,14 @@
         // NOTE: This is currently kind of a mess with these variables being accessed and written to
         //  both here and inside of the GraphEditor component.  I think it might make sense to
         //  put them into a central store somehow. -ann
-        const graphEditorRef = this.$refs.graphEditorTab
+        const graphEditorRef = this.$refs.graphEditor
         graphEditorRef.ltlParseStatus = 'error'
         // clear the error and then set it again in the next tick, so that the 'v-text-field'
         // component will do its "error" wiggle animation again if you cause another error after it
         // was already in an error state
         graphEditorRef.ltlParseErrors = []
         Vue.nextTick(() => {
-          this.$refs.graphEditorTab.ltlParseErrors = [message]
+          this.$refs.graphEditor.ltlParseErrors = [message]
         })
       },
       calculateExistsWinningStrategy: function () {
@@ -1176,7 +1175,7 @@
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriNetWithTransits/PetriGame on the server.
-        const nodePositions = this.$refs.graphEditorTab.getNodeXYCoordinatesFixed()
+        const nodePositions = this.$refs.graphEditor.getNodeXYCoordinatesFixed()
         return this.restEndpoints.updateXYCoordinates({
           editorNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions
@@ -1405,7 +1404,7 @@
         // This needs to be handled differently than an incremental edit to an already loaded
         // Petri Game, because when we load a new APT file, we want all of the nodes' positions
         // to be reset.
-        this.$refs.graphEditorTab.onLoadNewNet()
+        this.$refs.graphEditor.onLoadNewNet()
         this.apt = apt
         this.parseAptForEditorNet(apt).then(() => {
           if (this.selectedTabLeftSide === 1) {  // If simulator is open
