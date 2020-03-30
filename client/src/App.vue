@@ -72,8 +72,9 @@
           <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
                          @click="showPartitions = !showPartitions"/>
         </hsc-menu-bar-item>
-        <hsc-menu-bar-item @click.native="showLogWindow = !showLogWindow; $refs.menubar.deactivate()"
-                           :label="showLogWindow ? 'Hide log' : 'Show log'"/>
+        <hsc-menu-bar-item
+          @click.native="showLogWindow = !showLogWindow; $refs.menubar.deactivate()"
+          :label="showLogWindow ? 'Hide log' : 'Show log'"/>
       </hsc-menu-bar>
       <button @click="showJobList = true"
               style="margin-left: 40px;">View jobs running on server
@@ -121,31 +122,23 @@
            v-if="shouldShowRightSide">
         <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
       </div>
-      <v-tabs class="tabs-component-full-height v-tabs-with-shared-content"
+      <v-tabs class="tabs-component-full-height"
               :style="splitLeftSideStyle"
               id="splitLeftSide"
-              hide-slider
-              v-model="visibleTabContentsLeftSide">
-        <v-tab v-for="(tab, index) in tabsLeftSide"
-               :key="`${index}-${tab.uuid}`"
-               @click="switchToTab(tab.name)"
-               :class="classOfTab(tab)"
-               :href="`#${tab.tabContentId}`">
-          {{ tab.name }}
-        </v-tab>
-        <v-tab-item v-for="tabContentId in tabContentsLeftSide"
-                    :key="tabContentId"
-                    :value="tabContentId"
-                    :transition="false"
+              v-model="selectedTabLeftSide">
+        <v-tab>Petri Net</v-tab>
+        <v-tab>Simulator</v-tab>
+        <v-tab>APT Editor</v-tab>
+        <!--:href="`#${tab.tabContentId}`">-->
+        <v-tab-item :transition="false"
                     :reverse-transition="false">
           <keep-alive>
-            <div style="position: relative; height: 100%; width: 100%;"
-                 v-if="tabContentId === 'simulatorEditor'">
+            <div style="position: relative; height: 100%; width: 100%;">
               <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :editorNetId='editorNet.uuid'
-                           :editorMode='editorSimulatorMode'
-                           ref='graphEditorEditorTab'
+                           editorMode='Editor'
+                           ref='graphEditorTab'
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
@@ -169,15 +162,19 @@
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"/>
             </div>
-            <AptEditor v-else-if="tabContentId === 'aptEditor'"
-                       :aptProp='apt'
-                       :aptParseStatus='aptParseStatus'
-                       :aptParseError='aptParseError'
-                       :aptParseErrorLineNumber='aptParseErrorLineNumber'
-                       :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
-                       @input='onAptEditorInput'/>
-            <div v-else>
-              Tab content type not yet implemented: {{ tabContentId }}
+          </keep-alive>
+        </v-tab-item>
+        <v-tab-item>TODO: Simulator should be here</v-tab-item>
+        <v-tab-item :transition="false"
+                    :reverse-transition="false">
+          <keep-alive>
+            <div style="position: relative; height: 100%; width: 100%;">
+              <AptEditor :aptProp='apt'
+                         :aptParseStatus='aptParseStatus'
+                         :aptParseError='aptParseError'
+                         :aptParseErrorLineNumber='aptParseErrorLineNumber'
+                         :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
+                         @input='onAptEditorInput'/>
             </div>
           </keep-alive>
         </v-tab-item>
@@ -488,48 +485,10 @@
 
         // The tabs on the left and right sides of the screen are displayed using Vuetify's
         // 'v-tabs' component.
-
-        // I'm playing some games with Vuetify here.
-        // In order to avoid any discontinuous jumps when switching between the 'Simulator' and the
-        // 'Petri Game' tabs, those two tabs should actually refer to the very same 'GraphEditor'
-        // instance.
-        // To do that, I want to make three 'v-tab' tabs -- 'Petri Game', 'Simulator', and
-        // 'APT Editor' -- and I want to have them address only two instances of 'v-tab-item'
-        // among them.
-        // TODO #296  Split up the simulator and the editor to make this simpler
-        // Which 'v-tab-item' is currently visible
-        visibleTabContentsLeftSide: 'simulatorEditor',
-        // Each one of these corresponds to a 'v-tab-item'
-        tabContentsLeftSide: [
-          'simulatorEditor',
-          'aptEditor'
-        ],
-        // Which 'v-tab' is selected on the left side
-        selectedTabNameLeftSide: 'Petri Game',
-        // Each one of these corresponds to a 'v-tab'
-        tabsLeftSide: [
-          {
-            name: 'Petri Game',
-            uuid: uuidv4(),
-            // TODO #296 DRY the mapping between v-tab and v-tab-item here
-            tabContentId: 'simulatorEditor',
-          },
-          {
-            name: 'Simulator',
-            uuid: uuidv4(),
-            tabContentId: 'simulatorEditor',
-          },
-          {
-            name: 'APT Editor',
-            uuid: uuidv4(),
-            tabContentId: 'aptEditor',
-          }
-        ],
-
-        // The tab situation on the right hand side is much more straightforward, with a 1:1 mapping
-        // between v-tab and v-tab-item, so it only requires these two variables.
-        selectedTabRightSide: '', // Which tab is visible right now
-        visibleJobsRightSide: [], // Which tabs are open. Equivalent to List<JobKey> on the server
+        selectedTabLeftSide: 0,
+        selectedTabRightSide: '',
+        // Which jobs' tabs are open. Equivalent to List<JobKey> on the server
+        visibleJobsRightSide: []
       }
     },
     watch: {
@@ -552,23 +511,21 @@
       },
       aptParseStatus: function (status) {
         if (status === 'error') {
-          this.switchToAptEditor()
+          this.selectedTabLeftSide = 2 // APT Editor
+        }
+      },
+      selectedTabLeftSide: function (tabIndex) {
+        if (tabIndex === 2) { // APT Editor
+          this.saveEditorNetAsAPT()
         }
       }
     },
     computed: {
-      editorSimulatorMode: function () {
-        switch (this.selectedTabNameLeftSide) {
-          case 'Petri Game': return 'Editor'
-          case 'Simulator': return 'Simulator'
-          default: return 'Editor'
-        }
-      },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
-        function jobKeyToTab (jobListings, jobKey) {
+        function jobKeyToTab(jobListings, jobKey) {
           const matchingJobListing = jobListings.find(listing => isEqual(listing.jobKey, jobKey))
           if (matchingJobListing) {
             return {
@@ -790,40 +747,15 @@
       },
       // Validate whether the given string represents a uuidv4.
       validateClientUuid: function (uuidString) {
-          const pattern =
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-          if (pattern.test(uuidString)) {
-            return true
-          } else {
-            return 'The given string does not represent a valid UUID of the form ' +
-              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
-              '8 and b.'
-          }
-      },
-      classOfTab: function (tab) {
-        return this.selectedTabNameLeftSide === tab.name ? 'selected-tab' : '';
-      },
-      switchToTab: function (tabName) {
-        console.log(`switchToTab(${tabName})`)
-        const tabNameToContents = {
-          'Petri Game': 'simulatorEditor',
-          'Simulator': 'simulatorEditor',
-          'APT Editor': 'aptEditor'
+        const pattern =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        if (pattern.test(uuidString)) {
+          return true
+        } else {
+          return 'The given string does not represent a valid UUID of the form ' +
+            '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
+            '8 and b.'
         }
-        if (!tabNameToContents.hasOwnProperty(tabName)) {
-          throw new Error('Unrecognized tab name: ' + tabName)
-        }
-        if (tabName === this.selectedTabNameLeftSide) {
-          console.log('This tab was already selected')
-          return
-        }
-        if (tabName === 'APT Editor') {
-          logging.logVerbose('Switched to APT editor')
-          this.saveEditorNetAsAPT()
-        }
-
-        this.visibleTabContentsLeftSide = tabNameToContents[tabName]
-        this.selectedTabNameLeftSide = tabName
       },
       // Create a new empty net in the editor
       createNewEditorNet: function () {
@@ -936,9 +868,6 @@
           this.saveEditorNetAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
         }
       },
-      switchToAptEditor: function () {
-        this.switchToTab('APT Editor')
-      },
       // Send APT to the server to be parsed, then update the net displayed in the editor.
       // This is debounced using Underscore: http://underscorejs.org/#debounce
       parseAptForEditorNet: debounce(function (apt) {
@@ -1012,7 +941,7 @@
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorEditorTab[0].ltlFormula
+        const formula = this.$refs.graphEditorTab.ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
@@ -1024,7 +953,7 @@
       },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorEditorTab[0].ltlFormula
+        const formula = this.$refs.graphEditorTab.ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
@@ -1038,14 +967,14 @@
         // NOTE: This is currently kind of a mess with these variables being accessed and written to
         //  both here and inside of the GraphEditor component.  I think it might make sense to
         //  put them into a central store somehow. -ann
-        const graphEditorRef = this.$refs.graphEditorEditorTab[0]
+        const graphEditorRef = this.$refs.graphEditorTab
         graphEditorRef.ltlParseStatus = 'error'
         // clear the error and then set it again in the next tick, so that the 'v-text-field'
         // component will do its "error" wiggle animation again if you cause another error after it
         // was already in an error state
         graphEditorRef.ltlParseErrors = []
         Vue.nextTick(() => {
-          this.$refs.graphEditorEditorTab[0].ltlParseErrors = [message]
+          this.$refs.graphEditorTab.ltlParseErrors = [message]
         })
       },
       calculateExistsWinningStrategy: function () {
@@ -1148,7 +1077,7 @@
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriNetWithTransits/PetriGame on the server.
-        const nodePositions = this.$refs.graphEditorEditorTab[0].getNodeXYCoordinates()
+        const nodePositions = this.$refs.graphEditorTab.getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
           editorNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions
@@ -1175,6 +1104,8 @@
       },
       // Save xy coordinates on the server and then get the new updated APT back
       saveEditorNetAsAPT: function () {
+        // TODO #296 Indicate visually that these requests are in progress.  Consider disabling the
+        // APT editor text box and graying it out until the APT has been retrieved
         return this.saveXYCoordinatesOnServer()
           .then(this.getAptOfEditorNet)
           .then(apt => {
@@ -1375,7 +1306,7 @@
         // This needs to be handled differently than an incremental edit to an already loaded
         // Petri Game, because when we load a new APT file, we want all of the nodes' positions
         // to be reset.
-        this.$refs.graphEditorEditorTab[0].onLoadNewNet()
+        this.$refs.graphEditorTab.onLoadNewNet()
         this.apt = apt
         this.isLeftPaneVisible = true
       },
@@ -1513,23 +1444,6 @@
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: available;
-  }
-
-  /* Make modifications to hide the default 'selected tab' display of v-tabs */
-  /* We need this because we are using a non-standard behavior of having multiple <v-tab> elements
-     which correspond to a single v-tab-item.
-     See my codepen https://codepen.io/annmygdala/pen/xxxpoNP  */
-  .v-tabs-with-shared-content .v-tab--active:not(.selected-tab) {
-    color: rgba(0, 0, 0, .7);
-  }
-
-  .v-tabs-with-shared-content .v-tab {
-    border-bottom: 2px solid rgba(0, 0, 0, 0%);
-  }
-
-  .v-tabs-with-shared-content .v-tab.selected-tab {
-    border-bottom: 2px solid;
-    transition: border-bottom 0.5s;
   }
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/
