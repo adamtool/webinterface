@@ -172,9 +172,14 @@
         >
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;">
+              <div v-if="simulatorNet.status !== 'netIsPresent'">
+                Net not present. Status: {{ simulatorNet.status }}
+              </div>
               <Simulator
+                v-else
                 editorMode="Simulator"
-                :simulatorNet="simulatorNet"
+                :graph="simulatorNet.net"
+                :editorNetId="simulatorNet.uuid"
                 :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
@@ -379,7 +384,7 @@
 
   import draggable from 'vuedraggable'
 
-  import {deepCopy} from './util'
+  import {deepCopy, sleep} from './util'
 
   const uuidv4 = require('uuid/v4')
 
@@ -464,7 +469,7 @@
         },
         // The net in the simulator.
         // Corresponds to the class 'EditorNetClient' on the server
-        simulatorNet: {status: 'netIsNotPresent' },
+        simulatorNet: {status: 'netIsNotPresent'},
         // The following flags show/hide various windows / modal dialogs.
         // They are bound two-way with 'v-model'
         showLogWindow: false,
@@ -548,17 +553,18 @@
         } else if (tabIndex === 1) { // Simulator
           if (this.simulatorNet.status !== 'netIsPresent') {
             this.simulatorNet = {status: 'copyInProgress'}
-            this.copyEditorNet()
+            sleep(2000)
+              .then(this.copyEditorNet)
               .then(editorNetCopy => {
                 this.simulatorNet = {
                   status: 'netIsPresent',
                   ...editorNetCopy
                 }
               }).catch(error => {
-                this.simulatorNet = {
-                  status: 'error',
-                  error
-                }
+              this.simulatorNet = {
+                status: 'error',
+                error
+              }
             })
           }
         }

@@ -1,4 +1,4 @@
-export {deepCopy}
+export {deepCopy, sleep}
 
 /**
  * Perform a deep copy of an arbitrary object.
@@ -11,3 +11,11 @@ function deepCopy(object) {
   return JSON.parse(JSON.stringify(object))
 }
 
+/**
+ * An awaitable 'sleep' function which works like you would expect.
+ * @param ms Time to sleep in milliseconds
+ * @returns {Promise<void>}
+ */
+async function sleep (ms) {
+  await new Promise(resolve => setTimeout(resolve, ms))
+}

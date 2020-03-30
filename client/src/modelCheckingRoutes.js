@@ -5,6 +5,7 @@
 // modelCheckingRoutes.parseLtlFormula(someId, someFormula)
 
 import * as axios from 'axios'
+import {sleep} from './util'
 
 export { noOpImplementation, withPathPrefix }
 
@@ -35,8 +36,4 @@ function noOpImplementation () {
   }
 
   return new Proxy({}, handler)
-
-  async function sleep (ms) {
-    await new Promise(resolve => setTimeout(resolve, ms))
-  }
 }

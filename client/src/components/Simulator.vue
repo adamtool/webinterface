@@ -12,14 +12,9 @@
  https://vuejsdevelopers.com/2020/02/24/extending-vuejs-components-templates/
  -->
 <template>
-  <div v-if="simulatorNet.status !== 'netIsPresent'">
-    Net not present.  Status: {{ simulatorNet.status }}
-  </div>
   <GraphEditor
-    v-else
     ref="graphEditor"
     v-bind="$props"
-    :graph="simulatorNet.net"
     @fireTransition="fireTransition"
   >
     <!-- Simulation history sidebar -->
@@ -84,25 +79,19 @@
     components: {GraphEditor},
     props: {
       ...GraphEditor.props,
-      graph: {
-        // This prop should actually never be provided
-        type: undefined,
-        required: false,
-        validator: function (val) { return val === undefined }
-      },
-      simulatorNet: {
-        type: Object,
-        required: true,
-        validator: function (obj) {
-          return (obj.status === 'netIsNotPresent') ||
-            (obj.status === 'copyInProgress') ||
-            (obj.status === 'error' && obj.hasOwnProperty('error')) ||
-            (obj.status === 'netIsPresent' &&
-              obj.hasOwnProperty('net') &&
-              obj.hasOwnProperty('uuid') &&
-              obj.hasOwnProperty('initialMarking'))
-        }
-      }
+      // simulatorNet: {
+      //   type: Object,
+      //   required: true,
+      //   validator: function (obj) {
+      //     return (obj.status === 'netIsNotPresent') ||
+      //       (obj.status === 'copyInProgress') ||
+      //       (obj.status === 'error' && obj.hasOwnProperty('error')) ||
+      //       (obj.status === 'netIsPresent' &&
+      //         obj.hasOwnProperty('net') &&
+      //         obj.hasOwnProperty('uuid') &&
+      //         obj.hasOwnProperty('initialMarking'))
+      //   }
+      // }
     },
     data() {
       return {
@@ -132,10 +121,8 @@
       }
     },
     watch: {
-      'simulatorNet.status': function (status) {
-        if (status === 'netIsPresent') {
-          this.resetSimulation()
-        }
+      graph: function () {
+        this.resetSimulation()
       },
       'gameSimulationHistory.stack': function () {
         // We must wait until Vue updates the DOM in order to scroll to the true bottom of the log.
@@ -149,10 +136,10 @@
       'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
         const currentState = this.gameSimulationHistory.stack[newIndex]
         if (currentState) { // Maybe the history has been reset and there is no 'current state'
-          this.$refs.graphEditor[0].applyMarking(
+          this.$refs.graphEditor.applyMarking(
             currentState.marking,
             currentState.fireableTransitions)
-          this.$refs.graphEditor[0].updateD3()
+          this.$refs.graphEditor.updateD3()
         }
       }
     },
@@ -169,10 +156,10 @@
         this.gameSimulationHistory.currentIndex = newIndexBounded
       },
       resetSimulation: function () {
-        this.$refs.graphEditor[0].applyMarking(
+        this.$refs.graphEditor.applyMarking(
           this.graph.initialMarking,
           this.graph.fireableTransitions)
-        this.$refs.graphEditor[0].updateD3()
+        this.$refs.graphEditor.updateD3()
         this.gameSimulationHistory = this.gameSimulationHistoryDefault()
         logging.sendSuccessNotification('Reset the simulation.')
       },
@@ -197,12 +184,12 @@
             currentIndex: 0,
             stack: [
               {
-                marking: this.simulatorNet.initialMarking,
-                fireableTransitions: this.simulatorNet.fireableTransitions,
+                marking: this.graph.initialMarking,
+                fireableTransitions: this.graph.fireableTransitions,
                 transitionFired: null
               }
             ],
-            graph: this.deepCopy(this.simulatorNet.net)
+            graph: this.deepCopy(this.graph)
           }
         }
         const {stack, currentIndex} = this.gameSimulationHistory
@@ -236,16 +223,16 @@
             }
             this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1).concat([newState])
             this.gameSimulationHistory.currentIndex = currentIndex + 1
-            this.$refs.graphEditor[0].applyMarking(newState.marking, newState.fireableTransitions)
-            this.$refs.graphEditor[0].updateD3()
-            this.$refs.graphEditor[0].showTransitionFired({
+            this.$refs.graphEditor.applyMarking(newState.marking, newState.fireableTransitions)
+            this.$refs.graphEditor.updateD3()
+            this.$refs.graphEditor.showTransitionFired({
               transitionId: d.id,
               wasSuccessful: true
             })
             logging.sendSuccessNotification('Fired transition ' + d.id)
           } else if (response.data.status === 'error') {
             if (response.data.errorType === 'TRANSITION_NOT_FIREABLE') {
-              this.$refs.graphEditor[0].showTransitionFired({
+              this.$refs.graphEditor.showTransitionFired({
                 transitionId: d.id,
                 wasSuccessful: false
               })
