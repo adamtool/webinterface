@@ -82,55 +82,9 @@
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
 
-    <!-- Simulation history sidebar -->
-    <v-card
-      v-if="editorMode === 'Simulator'"
-      style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
-             padding: 6px; border-radius: 30px;"
-      class="d-flex flex-column"
-      :tabIndex="-1"
-    >
-      <v-card-title class="flex-grow-0 flex-shrink-0">
-        Simulation History
-      </v-card-title>
-      <v-list dense
-              class="overflow-y-auto flex-grow-1"
-              style="padding-top: 0;"
-              ref="simulationHistoryListEl"
-      >
-        <v-list-item-group
-          v-model="gameSimulationHistory.currentIndex"
-          mandatory
-        >
-          <v-list-item
-            v-for="(historyState, i) in visibleSimulationHistory.stack"
-            :key="i"
-          >
-            <v-list-item-content
-            >
-              <v-list-item-title v-text="i === 0 ? '<start>' : historyState.transitionFired">
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list-item-group>
-      </v-list>
-      <v-tooltip
-        bottom
-        v-if="gameSimulationHistory.stack.length > 1"
-      >
-        <template v-slot:activator="{ on }">
-          <v-btn
-            color="blue"
-            style="margin-top: 10px; margin-bottom: 5px; margin-left: 5px; margin-right: 5px;"
-            rounded
-            @click="resetSimulation"
-            v-on="on">
-            Reset
-          </v-btn>
-        </template>
-        Reset the simulation
-      </v-tooltip>
-    </v-card>
+    <!-- Slot to allow additional UI elements, e.g. a simulation history sidebar, to be displayed-->
+    <slot></slot>
+
 
     <!-- "Save as SVG" button -->
     <v-tooltip bottom>
@@ -278,8 +232,6 @@
     },
     data() {
       return {
-        // The history of markings and transitions fired if a net is being simulated
-        gameSimulationHistory: this.gameSimulationHistoryDefault(),
         // The dimensions of this GraphEditor instance's parent element, in pixels
         dimensions: {
           width: 0,
@@ -415,25 +367,6 @@
       // Determines the size of nodes in the graph
       nodeRadius: function () {
         return 27;
-      },
-      // This is used in order to show a fake <start> state in the simulation history if no
-      // transitions have yet been fired.
-      visibleSimulationHistory: function () {
-        if (this.gameSimulationHistory.stack.length > 0) {
-          return this.gameSimulationHistory
-        } else {
-          return {
-            currentIndex: 0,
-            stack: [
-              {
-                // An empty state which will be shown as <start> in the list
-              }
-            ],
-            graph: {
-              fakeGraphShouldNotBeUsed: null // This 'graph' object should never be used
-            }
-          }
-        }
       },
       toolPickerItems: function () {
         switch (this.editorMode) {
@@ -1246,22 +1179,6 @@
       }
     },
     watch: {
-      'gameSimulationHistory.stack': function () {
-        // We must wait until Vue updates the DOM in order to scroll to the true bottom of the log.
-        Vue.nextTick(() => {
-          const component = this.$refs.simulationHistoryListEl
-          if (component) { // The component/element may not exist if editorMode !== 'Simulator'
-            component.$el.scrollTop = component.$el.scrollHeight
-          }
-        })
-      },
-      'gameSimulationHistory.currentIndex': function (newIndex, oldIndex) {
-        const currentState = this.gameSimulationHistory.stack[newIndex]
-        if (currentState) { // Maybe the history has been reset and there is no 'current state'
-          this.applyMarking(currentState.marking, currentState.fireableTransitions)
-          this.updateD3()
-        }
-      },
       ltlFormula: function (formula) {
         if (this.selectedWinningCondition === 'LTL' && formula !== '') {
           this.parseLtlFormula()
@@ -1389,41 +1306,12 @@
         this.importGraph(graph)
         this.applyMarking(graph.initialMarking, graph.fireableTransitions)
         this.updateD3()
-
-        // Reset the simulation as well
-        this.resetSimulation()
       },
       dimensions: function () {
         this.updateSvgDimensions()
       }
     },
     methods: {
-      // TODO #295 allow moving back and forth in history with arrow keys
-      simulationHistoryBack: function () {
-        const {currentIndex} = this.gameSimulationHistory
-        this.gameSimulationHistory.currentIndex = Math.max(0, currentIndex - 1)
-      },
-      simulationHistoryForward: function () {
-        const {stack, currentIndex} = this.gameSimulationHistory
-        const newIndex = Math.min(stack.length - 1, currentIndex + 1)
-        const newIndexBounded = Math.max(0, newIndex)
-        this.gameSimulationHistory.currentIndex = newIndexBounded
-      },
-      gameSimulationHistoryDefault: function () {
-        return {
-          currentIndex: 0, // The index of the currently selected state in the history
-          /* Each game simulation state in this stack consists of an object:
-          {
-            marking: null, // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
-            transitionFired: null // The transition fired from the previous state to reach this state
-          } */
-          stack: [],
-          graph: {
-            nodes: [],
-            links: []
-          }
-        }
-      },
       // When a transition gets fired (whether successful or not), it and its connected Places
       // should flash red or green.
       showTransitionFired: function ({transitionId, wasSuccessful}) {
@@ -1463,13 +1351,6 @@
             // Mark the node as no longer being mid-animation, so updateD3() may affect it again
             () => matchingTransitionEl.each(d => d.hasScheduledAnimation = false))
       },
-      resetSimulation: function () {
-        this.importGraph(this.graph)
-        this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
-        this.gameSimulationHistory = this.gameSimulationHistoryDefault()
-        this.updateD3()
-        logging.sendSuccessNotification('Reset the simulation.')
-      },
       parseLtlFormula: debounce(async function () {
         console.log('Parsing Formula')
         // TODO #297 Show 'running' status somehow in gui to distinguish it from 'success'
@@ -1499,71 +1380,6 @@
           this.ltlParseErrors = [error]
         }
       }, 200),
-      fireTransition: function (d) {
-        if (this.gameSimulationHistory.stack.length === 0) {
-          this.gameSimulationHistory = {
-            currentIndex: 0,
-            stack: [
-              {
-                marking: this.graph.initialMarking,
-                fireableTransitions: this.graph.fireableTransitions,
-                transitionFired: null
-              }
-            ],
-            graph: this.deepCopy(this.graph)
-          }
-        }
-        const {stack, currentIndex} = this.gameSimulationHistory
-        const currentState = stack[currentIndex]
-
-        const transitionId = d.id
-        let requestPromise
-        if (this.editorNetId) {
-          requestPromise = this.restEndpoints.fireTransitionEditor({
-            preMarking: currentState.marking,
-            editorNetId: this.editorNetId,
-            transitionId,
-            netType: this.netType
-          })
-        } else if (this.jobKey) {
-          requestPromise = this.restEndpoints.fireTransitionJob({
-            preMarking: currentState.marking,
-            jobKey: this.jobKey,
-            transitionId,
-            netType: this.netType
-          })
-        } else {
-          throw new Error('No editorNetId or jobKey present.  The simulation can\'t be run.')
-        }
-        requestPromise.then(response => {
-          if (response.data.status === 'success') {
-            const newState = {
-              marking: response.data.result.postMarking,
-              fireableTransitions: response.data.result.fireableTransitions,
-              transitionFired: transitionId
-            }
-            this.gameSimulationHistory.stack = stack.slice(0, currentIndex + 1).concat([newState])
-            this.gameSimulationHistory.currentIndex = currentIndex + 1
-            this.applyMarking(newState.marking, newState.fireableTransitions)
-            this.updateD3()
-            this.showTransitionFired({
-              transitionId: d.id,
-              wasSuccessful: true
-            })
-            logging.sendSuccessNotification('Fired transition ' + d.id)
-          } else if (response.data.status === 'error') {
-            if (response.data.errorType === 'TRANSITION_NOT_FIREABLE') {
-              this.showTransitionFired({
-                transitionId: d.id,
-                wasSuccessful: false
-              })
-            }
-            logging.sendErrorNotification(response.data.message)
-          } else {
-            logging.sendErrorNotification('Invalid response from server')
-          }
-        })
-      },
       toggleEnvironmentPlace: function (d) {
         this.$emit('toggleEnvironmentPlace', d.id)
       },
