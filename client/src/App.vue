@@ -1202,7 +1202,7 @@
       },
       // Save xy coordinates on the server and then get the new updated APT back
       saveEditorNetAsAPT: function () {
-        // TODO #296 Indicate visually that these requests are in progress.  Consider disabling the
+        // TODO #306 Indicate visually that these requests are in progress.  Consider disabling the
         // APT editor text box and graying it out until the APT has been retrieved
         return this.saveXYCoordinatesOnServer()
           .then(this.getAptOfEditorNet)
