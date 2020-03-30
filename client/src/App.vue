@@ -143,7 +143,7 @@
                  v-if="tabContentId === 'simulatorEditor'">
               <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
-                           :petriNetId='editorNet.uuid'
+                           :editorNetId='editorNet.uuid'
                            :editorMode='editorSimulatorMode'
                            ref='graphEditorEditorTab'
                            v-on:dragDropEnd='onDragDropEnd'
@@ -980,9 +980,9 @@
         })
         this.aptParseStatus = 'running'
       }, 200),
-      queueJob: function (petriNetId, jobType, jobParams) {
+      queueJob: function (editorNetId, jobType, jobParams) {
         this.restEndpoints.queueJob({
-          petriNetId: petriNetId,
+          editorNetId: editorNetId,
           params: jobParams,
           jobType: jobType
         }).then(response => {
@@ -1150,7 +1150,7 @@
         // into the PetriNetWithTransits/PetriGame on the server.
         const nodePositions = this.$refs.graphEditorEditorTab[0].getNodeXYCoordinates()
         return this.restEndpoints.updateXYCoordinates({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
           return this.withErrorHandling(response, responseSuccess => {
@@ -1166,7 +1166,7 @@
       // Return a promise with the return value of the new apt
       getAptOfEditorNet: function () {
         return this.restEndpoints.getAptOfEditorNet({
-          petriNetId: this.editorNet.uuid
+          editorNetId: this.editorNet.uuid
         }).then(response => {
           return this.withErrorHandling(response, response => {
             return response.data.apt
@@ -1184,7 +1184,7 @@
       createFlow: function (flowSpec) {
         console.log('processing createFlow event')
         this.restEndpoints.createFlow({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           source: flowSpec.source,
           destination: flowSpec.destination
         }).then(response => {
@@ -1198,7 +1198,7 @@
       createTransit: function ({source, transition, postset}) {
         console.log('processing createTransit event')
         this.restEndpoints.createTransit({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           source,
           transition,
           postset
@@ -1213,7 +1213,7 @@
       deleteFlow: function ({sourceId, targetId}) {
         console.log('processing deleteFlow event')
         this.restEndpoints.deleteFlow({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           sourceId,
           targetId
         }).then(response => {
@@ -1227,7 +1227,7 @@
       deleteNode: function (nodeId) {
         console.log('processing deleteNode event for node id ' + nodeId)
         this.restEndpoints.deleteNode({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1241,7 +1241,7 @@
         console.log('processing renameNode event')
         console.log(`renaming node '${idOld}' to '${idNew}'`)
         this.restEndpoints.renameNode({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeIdOld: idOld,
           nodeIdNew: idNew
         }).then(response => {
@@ -1262,7 +1262,7 @@
       toggleEnvironmentPlace: function (nodeId) {
         console.log('processing toggleEnvironmentPlace event')
         this.restEndpoints.toggleEnvironmentPlace({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1275,7 +1275,7 @@
       toggleIsInitialTransit: function (nodeId) {
         console.log('processing toggleIsInitialTransit event')
         this.restEndpoints.toggleIsInitialTransit({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1288,7 +1288,7 @@
       setIsSpecial: function ({nodeId, newSpecialValue}) {
         console.log('processing setIsSpecial event')
         this.restEndpoints.setIsSpecial({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId,
           newSpecialValue
         }).then(response => {
@@ -1302,7 +1302,7 @@
       setInitialToken: function ({nodeId, tokens}) {
         console.log('processing setInitialToken event')
         this.restEndpoints.setInitialToken({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId: nodeId,
           tokens: tokens
         }).then(response => {
@@ -1315,7 +1315,7 @@
       },
       setWinningCondition: function (winningCondition) {
         this.restEndpoints.setWinningCondition({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           winningCondition: winningCondition
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1328,7 +1328,7 @@
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
         this.restEndpoints.insertPlace({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeType: nodeSpec.type,
           x: nodeSpec.x,
           y: nodeSpec.y
@@ -1345,7 +1345,7 @@
       setFairness: function ({transitionId, fairness}) {
         logging.logVerbose(`setFairness(${transitionId}, ${fairness})`)
         this.restEndpoints.setFairness({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           transitionId,
           fairness
         }).then(response => {
@@ -1357,7 +1357,7 @@
       setInhibitorArc: function ({sourceId, targetId, isInhibitorArc}) {
         logging.logVerbose(`setInhibitorArc(${sourceId}, ${targetId}, ${isInhibitorArc})`)
         this.restEndpoints.setInhibitorArc({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           sourceId,
           targetId,
           isInhibitorArc

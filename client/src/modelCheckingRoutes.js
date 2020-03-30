@@ -14,9 +14,9 @@ function withPathPrefix (prefix) {
   return {parseLtlFormula}
 
   // Return a promise that gets fulfilled if the server responds to our request.
-  async function parseLtlFormula (petriNetId, formula) {
+  async function parseLtlFormula (editorNetId, formula) {
     return axios.post(prefix + '/parseLtlFormula', {
-      petriNetId,
+      editorNetId,
       formula
     })
   }

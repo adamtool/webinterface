@@ -206,14 +206,15 @@
         type: Object,
         required: true
       },
-      // The graph on display.  Corresponds to 'PetriNetClient' or 'BDDGraphClient' on the server.
+      // The graph on display.  Corresponds to the class 'PetriNetClient' or 'BDDGraphClient' on
+      // the server.
       graph: {
         type: Object,
         required: true
       },
       // A UUID which is a key to the Map<UUID, PetriNetWithTransits> editorNets on the server.
       // Present only for PetriGames / PetriNetWithTransits created in the editor.
-      petriNetId: {
+      editorNetId: {
         type: String,
         required: false
       },
@@ -1502,7 +1503,7 @@
         this.ltlParseStatus = 'running'
         this.ltlParseErrors = []
         try {
-          const result = await this.modelCheckingRoutes.parseLtlFormula(this.petriNetId, this.ltlFormula)
+          const result = await this.modelCheckingRoutes.parseLtlFormula(this.editorNetId, this.ltlFormula)
           console.log(result)
           switch (result.data.status) {
             case 'success': {
@@ -1543,10 +1544,10 @@
 
         const transitionId = d.id
         let requestPromise
-        if (this.petriNetId) {
+        if (this.editorNetId) {
           requestPromise = this.restEndpoints.fireTransitionEditor({
             preMarking: currentState.marking,
-            petriNetId: this.petriNetId,
+            editorNetId: this.editorNetId,
             transitionId,
             netType: this.netType
           })
@@ -1558,7 +1559,7 @@
             netType: this.netType
           })
         } else {
-          throw new Error('No petriNetId or jobKey present.  The simulation can\'t be run.')
+          throw new Error('No editorNetId or jobKey present.  The simulation can\'t be run.')
         }
         requestPromise.then(response => {
           if (response.data.status === 'success') {

@@ -150,7 +150,7 @@ public class App {
     private void postWithEditorNet(String path, EditorNetRoute handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
-            String netUuidString = body.getAsJsonObject().get("petriNetId").getAsString();
+            String netUuidString = body.getAsJsonObject().get("editorNetId").getAsString();
             UUID netUuid = UUID.fromString(netUuidString);
             PetriNetWithTransits pg = getEditorNet(netUuid);
             Object answer = handler.handle(req, res, pg);
@@ -317,8 +317,7 @@ public class App {
         // Read request parameters.  Get the Petri Net that should be operated upon and the other
         // parameters/settings for the job to be run
         JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
-        // TODO #296 rename 'petriNetId' to 'editorNetId'
-        String netId = requestBody.get("petriNetId").getAsString();
+        String netId = requestBody.get("editorNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
         PetriNetWithTransits net = getEditorNet(UUID.fromString(netId));
 
@@ -756,8 +755,8 @@ public class App {
 
     private Object handleFireTransitionEditor(Request req, Response res) {
         Function<JsonObject, PetriNet> getPetriNetFromEditor = (JsonObject requestBody) -> {
-            String petriNetId = requestBody.get("petriNetId").getAsString();
-            return getEditorNet(UUID.fromString(petriNetId));
+            String editorNetId = requestBody.get("editorNetId").getAsString();
+            return getEditorNet(UUID.fromString(editorNetId));
         };
         return handleFireTransition(req, res, getPetriNetFromEditor);
     }
