@@ -73,7 +73,11 @@ function log (message, level) {
     time: Date.now(),
     text: message
   })
-  console.log(message)
+  if (level >= 4) {
+    console.error(message)
+  } else {
+    console.log(message)
+  }
 }
 
 function logObject (message) {

@@ -105,6 +105,8 @@ public class App {
 
         postWithEditorNet("/setInhibitorArc", this::handleSetInhibitorArc);
 
+        postWithEditorNet("/copyEditorNet", this::handleCopyEditorNet);
+
         post("/fireTransitionEditor", this::handleFireTransitionEditor);
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
@@ -150,7 +152,7 @@ public class App {
     private void postWithEditorNet(String path, EditorNetRoute handler) {
         post(path, (req, res) -> {
             JsonElement body = parser.parse(req.body());
-            String netUuidString = body.getAsJsonObject().get("petriNetId").getAsString();
+            String netUuidString = body.getAsJsonObject().get("editorNetId").getAsString();
             UUID netUuid = UUID.fromString(netUuidString);
             PetriNetWithTransits pg = getEditorNet(netUuid);
             Object answer = handler.handle(req, res, pg);
@@ -312,13 +314,33 @@ public class App {
         return responseJson.toString();
     }
 
+    /**
+     * Copy a given editor net, store the copy in 'editorNets', and return the UUID of the copy
+     * TODO #305 a DOS attack is possible by calling this route an excessive number of times
+     */
+    private Object handleCopyEditorNet(Request req, Response res, PetriNetWithTransits net) {
+        PetriNetWithTransits copy;
+        // TODO #293 refactor
+        if (net instanceof PetriGame) {
+            copy = new PetriGame((PetriGame) net);
+        } else {
+            copy = new PetriNetWithTransits(net);
+        }
+        UUID newUuid = UUID.randomUUID();
+        editorNets.put(newUuid, copy);
+
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("status", "success");
+        responseJson.addProperty("uuid", newUuid.toString());
+        return responseJson.toString();
+    }
+
 
     private Object handleQueueJob(Request req, Response res, UserContext userContext) throws RenderException {
         // Read request parameters.  Get the Petri Net that should be operated upon and the other
         // parameters/settings for the job to be run
         JsonObject requestBody = parser.parse(req.body()).getAsJsonObject();
-        // TODO #296 rename 'petriNetId' to 'editorNetId'
-        String netId = requestBody.get("petriNetId").getAsString();
+        String netId = requestBody.get("editorNetId").getAsString();
         JsonObject jobParams = requestBody.get("params").getAsJsonObject();
         PetriNetWithTransits net = getEditorNet(UUID.fromString(netId));
 
@@ -756,8 +778,8 @@ public class App {
 
     private Object handleFireTransitionEditor(Request req, Response res) {
         Function<JsonObject, PetriNet> getPetriNetFromEditor = (JsonObject requestBody) -> {
-            String petriNetId = requestBody.get("petriNetId").getAsString();
-            return getEditorNet(UUID.fromString(petriNetId));
+            String editorNetId = requestBody.get("editorNetId").getAsString();
+            return getEditorNet(UUID.fromString(editorNetId));
         };
         return handleFireTransition(req, res, getPetriNetFromEditor);
     }

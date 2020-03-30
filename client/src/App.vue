@@ -72,8 +72,9 @@
           <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
                          @click="showPartitions = !showPartitions"/>
         </hsc-menu-bar-item>
-        <hsc-menu-bar-item @click.native="showLogWindow = !showLogWindow; $refs.menubar.deactivate()"
-                           :label="showLogWindow ? 'Hide log' : 'Show log'"/>
+        <hsc-menu-bar-item
+          @click.native="showLogWindow = !showLogWindow; $refs.menubar.deactivate()"
+          :label="showLogWindow ? 'Hide log' : 'Show log'"/>
       </hsc-menu-bar>
       <button @click="showJobList = true"
               style="margin-left: 40px;">View jobs running on server
@@ -121,31 +122,24 @@
            v-if="shouldShowRightSide">
         <div :class="isLeftPaneVisible ? 'arrow-left' : 'arrow-right'"></div>
       </div>
-      <v-tabs class="tabs-component-full-height v-tabs-with-shared-content"
+      <v-tabs class="tabs-component-full-height"
               :style="splitLeftSideStyle"
               id="splitLeftSide"
-              hide-slider
-              v-model="visibleTabContentsLeftSide">
-        <v-tab v-for="(tab, index) in tabsLeftSide"
-               :key="`${index}-${tab.uuid}`"
-               @click="switchToTab(tab.name)"
-               :class="classOfTab(tab)"
-               :href="`#${tab.tabContentId}`">
-          {{ tab.name }}
-        </v-tab>
-        <v-tab-item v-for="tabContentId in tabContentsLeftSide"
-                    :key="tabContentId"
-                    :value="tabContentId"
-                    :transition="false"
-                    :reverse-transition="false">
+              v-model="selectedTabLeftSide">
+        <v-tab>Petri Net</v-tab>
+        <v-tab>Simulator</v-tab>
+        <v-tab>APT Editor</v-tab>
+        <v-tab-item
+          transition="false"
+          reverse-transition="false"
+        >
           <keep-alive>
-            <div style="position: relative; height: 100%; width: 100%;"
-                 v-if="tabContentId === 'simulatorEditor'">
+            <div style="position: relative; height: 100%; width: 100%;">
               <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
-                           :petriNetId='editorNet.uuid'
-                           :editorMode='editorSimulatorMode'
-                           ref='graphEditorEditorTab'
+                           :editorNetId='editorNet.uuid'
+                           editorMode='Editor'
+                           ref='graphEditor'
                            v-on:dragDropEnd='onDragDropEnd'
                            v-on:insertNode='insertNode'
                            v-on:createFlow='createFlow'
@@ -169,15 +163,56 @@
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"/>
             </div>
-            <AptEditor v-else-if="tabContentId === 'aptEditor'"
-                       :aptFromAdamParser='apt'
-                       :aptParseStatus='aptParseStatus'
-                       :aptParseError='aptParseError'
-                       :aptParseErrorLineNumber='aptParseErrorLineNumber'
-                       :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
-                       @input='onAptEditorInput'/>
-            <div v-else>
-              Tab content type not yet implemented: {{ tabContentId }}
+          </keep-alive>
+        </v-tab-item>
+        <v-tab-item
+          transition="false"
+          reverse-transition="false"
+        >
+          <keep-alive>
+            <div style="position: relative; height: 100%; width: 100%;">
+              <div v-if="simulatorNet.status !== 'netIsPresent'">
+                The net in the editor is being copied.
+                <div style="white-space: pre-wrap;">simulatorNet: {{ JSON.stringify(simulatorNet,
+                  null, 2)}}
+                </div>
+              </div>
+              <Simulator
+                v-else
+                editorMode="Simulator"
+                :graph="simulatorNet.net"
+                :editorNetId="simulatorNet.uuid"
+                :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
+                :restEndpoints="restEndpoints"
+                :useModelChecking="useModelChecking"
+                :useDistributedSynthesis="useDistributedSynthesis"
+                :shouldShowPhysicsControls="showPhysicsControls"
+                :shouldShowPartitions="showPartitions"
+                :repulsionStrengthDefault="360"
+                :linkStrengthDefault="0.086"
+              >
+                <v-btn
+                  style="position: absolute; top: 20px; left: 5px; z-index: 5;"
+                  rounded
+                  color="blue"
+                  @click="copyEditorNetToSimulator"
+                >
+                  Load net from editor
+                </v-btn>
+              </Simulator>
+            </div>
+          </keep-alive>
+        </v-tab-item>
+        <v-tab-item :transition="false"
+                    :reverse-transition="false">
+          <keep-alive>
+            <div style="position: relative; height: 100%; width: 100%;">
+              <AptEditor :aptProp='apt'
+                         :aptParseStatus='aptParseStatus'
+                         :aptParseError='aptParseError'
+                         :aptParseErrorLineNumber='aptParseErrorLineNumber'
+                         :aptParseErrorColumnNumber='aptParseErrorColumnNumber'
+                         @input='onAptEditorInput'/>
             </div>
           </keep-alive>
         </v-tab-item>
@@ -319,6 +354,7 @@
   import {fakeTabs} from './testData'
   import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
+  import Simulator from './components/Simulator'
   import AboutAdamWeb from './components/AboutAdamWeb'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
@@ -359,6 +395,8 @@
 
   import draggable from 'vuedraggable'
 
+  import {deepCopy, sleep} from './util'
+
   const uuidv4 = require('uuid/v4')
 
   export default {
@@ -377,6 +415,7 @@
       draggable,
       HscMenuBarDirectory,
       GraphEditor,
+      Simulator,
       MyVueMenuTheme,
       LogViewer,
       AptEditor,
@@ -429,7 +468,7 @@
         aptParseErrorLineNumber: -1,
         aptParseErrorColumnNumber: -1,
 
-        // The net displayed in the graph editor/simulator.
+        // The net displayed in the graph editor.
         // Corresponds to the class 'EditorNetClient' on the server
         editorNet: {
           net: {
@@ -439,7 +478,12 @@
           uuid: 'abcfakeuuid123',
           initialMarking: {}
         },
-
+        // The net in the simulator.
+        // Possible values for 'status' include 'netIsNotPresent', 'netIsPresent', 'copyInProgress'
+        // and 'error'.
+        // When status === 'netIsPresent', this should have all the same properties as the class
+        // 'EditorNetClient' on the server.
+        simulatorNet: {status: 'netIsNotPresent'},
         // The following flags show/hide various windows / modal dialogs.
         // They are bound two-way with 'v-model'
         showLogWindow: false,
@@ -488,48 +532,10 @@
 
         // The tabs on the left and right sides of the screen are displayed using Vuetify's
         // 'v-tabs' component.
-
-        // I'm playing some games with Vuetify here.
-        // In order to avoid any discontinuous jumps when switching between the 'Simulator' and the
-        // 'Petri Game' tabs, those two tabs should actually refer to the very same 'GraphEditor'
-        // instance.
-        // To do that, I want to make three 'v-tab' tabs -- 'Petri Game', 'Simulator', and
-        // 'APT Editor' -- and I want to have them address only two instances of 'v-tab-item'
-        // among them.
-        // TODO #296  Split up the simulator and the editor to make this simpler
-        // Which 'v-tab-item' is currently visible
-        visibleTabContentsLeftSide: 'simulatorEditor',
-        // Each one of these corresponds to a 'v-tab-item'
-        tabContentsLeftSide: [
-          'simulatorEditor',
-          'aptEditor'
-        ],
-        // Which 'v-tab' is selected on the left side
-        selectedTabNameLeftSide: 'Petri Game',
-        // Each one of these corresponds to a 'v-tab'
-        tabsLeftSide: [
-          {
-            name: 'Petri Game',
-            uuid: uuidv4(),
-            // TODO #296 DRY the mapping between v-tab and v-tab-item here
-            tabContentId: 'simulatorEditor',
-          },
-          {
-            name: 'Simulator',
-            uuid: uuidv4(),
-            tabContentId: 'simulatorEditor',
-          },
-          {
-            name: 'APT Editor',
-            uuid: uuidv4(),
-            tabContentId: 'aptEditor',
-          }
-        ],
-
-        // The tab situation on the right hand side is much more straightforward, with a 1:1 mapping
-        // between v-tab and v-tab-item, so it only requires these two variables.
-        selectedTabRightSide: '', // Which tab is visible right now
-        visibleJobsRightSide: [], // Which tabs are open. Equivalent to List<JobKey> on the server
+        selectedTabLeftSide: 0,
+        selectedTabRightSide: '',
+        // Which jobs' tabs are open. Equivalent to List<JobKey> on the server
+        visibleJobsRightSide: []
       }
     },
     watch: {
@@ -552,23 +558,26 @@
       },
       aptParseStatus: function (status) {
         if (status === 'error') {
-          this.switchToAptEditor()
+          this.selectedTabLeftSide = 2 // APT Editor
+        }
+      },
+      selectedTabLeftSide: function (tabIndex) {
+        if (tabIndex === 2) { // APT Editor
+          this.saveEditorNetAsAPT()
+        } else if (tabIndex === 1) { // Simulator
+          const {status} = this.simulatorNet
+          if (status !== 'netIsPresent' && status !== 'copyInProgress') {
+            this.copyEditorNetToSimulator()
+          }
         }
       }
     },
     computed: {
-      editorSimulatorMode: function () {
-        switch (this.selectedTabNameLeftSide) {
-          case 'Petri Game': return 'Editor'
-          case 'Simulator': return 'Simulator'
-          default: return 'Editor'
-        }
-      },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
 
-        function jobKeyToTab (jobListings, jobKey) {
+        function jobKeyToTab(jobListings, jobKey) {
           const matchingJobListing = jobListings.find(listing => isEqual(listing.jobKey, jobKey))
           if (matchingJobListing) {
             return {
@@ -629,6 +638,7 @@
           'getAptOfEditorNet',
           'updateXYCoordinates',
           'parseApt',
+          'copyEditorNet',
           'insertPlace',
           'createFlow',
           'createTransit',
@@ -684,6 +694,22 @@
       }
     },
     methods: {
+      copyEditorNetToSimulator: function () {
+        this.simulatorNet = {status: 'copyInProgress'}
+        this.copyEditorNet()
+          .then(editorNetCopy => {
+            this.simulatorNet = {
+              status: 'netIsPresent',
+              ...editorNetCopy
+            }
+          }).catch(error => {
+          logging.sendErrorNotification(error)
+          this.simulatorNet = {
+            status: 'error',
+            error: error.toString()
+          }
+        })
+      },
       initializeWebSocket: function (retryAttempts) {
         // Connect to the server and subscribe to ADAM's log output
         let socket
@@ -790,40 +816,15 @@
       },
       // Validate whether the given string represents a uuidv4.
       validateClientUuid: function (uuidString) {
-          const pattern =
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-          if (pattern.test(uuidString)) {
-            return true
-          } else {
-            return 'The given string does not represent a valid UUID of the form ' +
-              '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
-              '8 and b.'
-          }
-      },
-      classOfTab: function (tab) {
-        return this.selectedTabNameLeftSide === tab.name ? 'selected-tab' : '';
-      },
-      switchToTab: function (tabName) {
-        console.log(`switchToTab(${tabName})`)
-        const tabNameToContents = {
-          'Petri Game': 'simulatorEditor',
-          'Simulator': 'simulatorEditor',
-          'APT Editor': 'aptEditor'
+        const pattern =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[4-4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        if (pattern.test(uuidString)) {
+          return true
+        } else {
+          return 'The given string does not represent a valid UUID of the form ' +
+            '\'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\', where y is a hexadecimal digit between ' +
+            '8 and b.'
         }
-        if (!tabNameToContents.hasOwnProperty(tabName)) {
-          throw new Error('Unrecognized tab name: ' + tabName)
-        }
-        if (tabName === this.selectedTabNameLeftSide) {
-          console.log('This tab was already selected')
-          return
-        }
-        if (tabName === 'APT Editor') {
-          logging.logVerbose('Switched to APT editor')
-          this.saveEditorNetAsAPT()
-        }
-
-        this.visibleTabContentsLeftSide = tabNameToContents[tabName]
-        this.selectedTabNameLeftSide = tabName
       },
       // Create a new empty net in the editor
       createNewEditorNet: function () {
@@ -936,14 +937,14 @@
           this.saveEditorNetAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
         }
       },
-      switchToAptEditor: function () {
-        this.switchToTab('APT Editor')
-      },
-      // Send APT to the server to be parsed, then update the net displayed in the editor.
-      // This is debounced using Underscore: http://underscorejs.org/#debounce
+      /**
+       * Send APT to the server to be parsed, then update the net displayed in the editor.
+       * This is debounced using Underscore: http://underscorejs.org/#debounce
+       * @Returns {Promise<void>}
+       */
       parseAptForEditorNet: debounce(function (apt) {
         logging.logVerbose('Sending APT to server.')
-        this.restEndpoints.parseApt({
+        const promise = this.restEndpoints.parseApt({
           params: {
             apt: apt,
             netType: this.useModelChecking ? 'PETRI_NET_WITH_TRANSITS' : 'PETRI_GAME'
@@ -975,14 +976,40 @@
               this.aptParseErrorColumnNumber = -1
               break
           }
-        }).catch(() => {
-          logging.logError('Network error when trying to parse APT')
+        }).catch(error => {
+          logging.sendErrorNotification(
+            'Network error when trying to parse APT: ' + error.toString())
         })
         this.aptParseStatus = 'running'
+        return promise
       }, 200),
-      queueJob: function (petriNetId, jobType, jobParams) {
+      /**
+       * @returns Basically a Promise<EditorNetClient>
+       */
+      copyEditorNet: function () {
+        // Copy the existing clientside representation of the editor net, including node positions
+        const editorNetCopy = deepCopy(this.editorNet)
+        editorNetCopy.net.nodePositions = this.$refs.graphEditor.getNodeXYCoordinates()
+        // Ask the server to duplicate the editor net object and save it under a new UUID
+        return this.restEndpoints.copyEditorNet({
+          editorNetId: this.editorNet.uuid
+        }).then(response => {
+          if (response.data.status === 'success') {
+            return {
+              net: editorNetCopy.net,
+              initialMarking: editorNetCopy.initialMarking,
+              uuid: response.data.uuid
+            }
+          } else {
+            console.error(response)
+            throw new Error('Got a bad response from the server. Please check the browser\'s ' +
+              'console output for details')
+          }
+        })
+      },
+      queueJob: function (editorNetId, jobType, jobParams) {
         this.restEndpoints.queueJob({
-          petriNetId: petriNetId,
+          editorNetId: editorNetId,
           params: jobParams,
           jobType: jobType
         }).then(response => {
@@ -1012,7 +1039,7 @@
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorEditorTab[0].ltlFormula
+        const formula = this.$refs.graphEditor.ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
@@ -1024,7 +1051,7 @@
       },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
-        const formula = this.$refs.graphEditorEditorTab[0].ltlFormula
+        const formula = this.$refs.graphEditor.ltlFormula
         if (formula === '') {
           this.setLtlParseError('Please enter a formula to check.')
           return
@@ -1038,14 +1065,14 @@
         // NOTE: This is currently kind of a mess with these variables being accessed and written to
         //  both here and inside of the GraphEditor component.  I think it might make sense to
         //  put them into a central store somehow. -ann
-        const graphEditorRef = this.$refs.graphEditorEditorTab[0]
+        const graphEditorRef = this.$refs.graphEditor
         graphEditorRef.ltlParseStatus = 'error'
         // clear the error and then set it again in the next tick, so that the 'v-text-field'
         // component will do its "error" wiggle animation again if you cause another error after it
         // was already in an error state
         graphEditorRef.ltlParseErrors = []
         Vue.nextTick(() => {
-          this.$refs.graphEditorEditorTab[0].ltlParseErrors = [message]
+          this.$refs.graphEditor.ltlParseErrors = [message]
         })
       },
       calculateExistsWinningStrategy: function () {
@@ -1148,9 +1175,9 @@
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriNetWithTransits/PetriGame on the server.
-        const nodePositions = this.$refs.graphEditorEditorTab[0].getNodeXYCoordinates()
+        const nodePositions = this.$refs.graphEditor.getNodeXYCoordinatesFixed()
         return this.restEndpoints.updateXYCoordinates({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions
         }).then(response => {
           return this.withErrorHandling(response, responseSuccess => {
@@ -1166,7 +1193,7 @@
       // Return a promise with the return value of the new apt
       getAptOfEditorNet: function () {
         return this.restEndpoints.getAptOfEditorNet({
-          petriNetId: this.editorNet.uuid
+          editorNetId: this.editorNet.uuid
         }).then(response => {
           return this.withErrorHandling(response, response => {
             return response.data.apt
@@ -1175,6 +1202,8 @@
       },
       // Save xy coordinates on the server and then get the new updated APT back
       saveEditorNetAsAPT: function () {
+        // TODO #306 Indicate visually that these requests are in progress.  Consider disabling the
+        // APT editor text box and graying it out until the APT has been retrieved
         return this.saveXYCoordinatesOnServer()
           .then(this.getAptOfEditorNet)
           .then(apt => {
@@ -1184,7 +1213,7 @@
       createFlow: function (flowSpec) {
         console.log('processing createFlow event')
         this.restEndpoints.createFlow({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           source: flowSpec.source,
           destination: flowSpec.destination
         }).then(response => {
@@ -1198,7 +1227,7 @@
       createTransit: function ({source, transition, postset}) {
         console.log('processing createTransit event')
         this.restEndpoints.createTransit({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           source,
           transition,
           postset
@@ -1213,7 +1242,7 @@
       deleteFlow: function ({sourceId, targetId}) {
         console.log('processing deleteFlow event')
         this.restEndpoints.deleteFlow({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           sourceId,
           targetId
         }).then(response => {
@@ -1227,7 +1256,7 @@
       deleteNode: function (nodeId) {
         console.log('processing deleteNode event for node id ' + nodeId)
         this.restEndpoints.deleteNode({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1241,7 +1270,7 @@
         console.log('processing renameNode event')
         console.log(`renaming node '${idOld}' to '${idNew}'`)
         this.restEndpoints.renameNode({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeIdOld: idOld,
           nodeIdNew: idNew
         }).then(response => {
@@ -1262,7 +1291,7 @@
       toggleEnvironmentPlace: function (nodeId) {
         console.log('processing toggleEnvironmentPlace event')
         this.restEndpoints.toggleEnvironmentPlace({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1275,7 +1304,7 @@
       toggleIsInitialTransit: function (nodeId) {
         console.log('processing toggleIsInitialTransit event')
         this.restEndpoints.toggleIsInitialTransit({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId: nodeId
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1288,7 +1317,7 @@
       setIsSpecial: function ({nodeId, newSpecialValue}) {
         console.log('processing setIsSpecial event')
         this.restEndpoints.setIsSpecial({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId,
           newSpecialValue
         }).then(response => {
@@ -1302,7 +1331,7 @@
       setInitialToken: function ({nodeId, tokens}) {
         console.log('processing setInitialToken event')
         this.restEndpoints.setInitialToken({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeId: nodeId,
           tokens: tokens
         }).then(response => {
@@ -1315,7 +1344,7 @@
       },
       setWinningCondition: function (winningCondition) {
         this.restEndpoints.setWinningCondition({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           winningCondition: winningCondition
         }).then(response => {
           this.withErrorHandling(response, response => {
@@ -1328,7 +1357,7 @@
       insertNode: function (nodeSpec) {
         console.log('processing insertNode event')
         this.restEndpoints.insertPlace({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           nodeType: nodeSpec.type,
           x: nodeSpec.x,
           y: nodeSpec.y
@@ -1345,7 +1374,7 @@
       setFairness: function ({transitionId, fairness}) {
         logging.logVerbose(`setFairness(${transitionId}, ${fairness})`)
         this.restEndpoints.setFairness({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           transitionId,
           fairness
         }).then(response => {
@@ -1357,7 +1386,7 @@
       setInhibitorArc: function ({sourceId, targetId, isInhibitorArc}) {
         logging.logVerbose(`setInhibitorArc(${sourceId}, ${targetId}, ${isInhibitorArc})`)
         this.restEndpoints.setInhibitorArc({
-          petriNetId: this.editorNet.uuid,
+          editorNetId: this.editorNet.uuid,
           sourceId,
           targetId,
           isInhibitorArc
@@ -1375,8 +1404,13 @@
         // This needs to be handled differently than an incremental edit to an already loaded
         // Petri Game, because when we load a new APT file, we want all of the nodes' positions
         // to be reset.
-        this.$refs.graphEditorEditorTab[0].onLoadNewNet()
+        this.$refs.graphEditor.onLoadNewNet()
         this.apt = apt
+        this.parseAptForEditorNet(apt).then(() => {
+          if (this.selectedTabLeftSide === 1) {  // If simulator is open
+            this.selectedTabLeftSide = 0 // Switch to editor to show the newly loaded net
+          }
+        })
         this.isLeftPaneVisible = true
       },
       withErrorHandling: function (response, onSuccessCallback) {
@@ -1513,23 +1547,6 @@
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: available;
-  }
-
-  /* Make modifications to hide the default 'selected tab' display of v-tabs */
-  /* We need this because we are using a non-standard behavior of having multiple <v-tab> elements
-     which correspond to a single v-tab-item.
-     See my codepen https://codepen.io/annmygdala/pen/xxxpoNP  */
-  .v-tabs-with-shared-content .v-tab--active:not(.selected-tab) {
-    color: rgba(0, 0, 0, .7);
-  }
-
-  .v-tabs-with-shared-content .v-tab {
-    border-bottom: 2px solid rgba(0, 0, 0, 0%);
-  }
-
-  .v-tabs-with-shared-content .v-tab.selected-tab {
-    border-bottom: 2px solid;
-    transition: border-bottom 0.5s;
   }
 
   /*https://css-tricks.com/snippets/css/css-triangle/*/

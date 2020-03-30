@@ -5,6 +5,7 @@
 // modelCheckingRoutes.parseLtlFormula(someId, someFormula)
 
 import * as axios from 'axios'
+import {sleep} from './util'
 
 export { noOpImplementation, withPathPrefix }
 
@@ -14,9 +15,9 @@ function withPathPrefix (prefix) {
   return {parseLtlFormula}
 
   // Return a promise that gets fulfilled if the server responds to our request.
-  async function parseLtlFormula (petriNetId, formula) {
+  async function parseLtlFormula (editorNetId, formula) {
     return axios.post(prefix + '/parseLtlFormula', {
-      petriNetId,
+      editorNetId,
       formula
     })
   }
@@ -35,8 +36,4 @@ function noOpImplementation () {
   }
 
   return new Proxy({}, handler)
-
-  async function sleep (ms) {
-    await new Promise(resolve => setTimeout(resolve, ms))
-  }
 }
