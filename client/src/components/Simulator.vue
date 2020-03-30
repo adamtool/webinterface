@@ -4,6 +4,11 @@
  I have settled for now on the solution suggested by "ThaDaVos" in this github issue:
  https://github.com/vuejs/vue/issues/6811#issuecomment-401049094
 
+ To sum up what they suggesting doing, we inherit all of the properties of GraphEditor in our own
+ 'props', and then we pass them all to a child instance of GraphEditor using 'v-bind="$props"'.
+ When we need to, we call methods on that child instance using a ref, and we add the 'simulation
+ history' sidebar element using a 'slot' defined in GraphEditor.
+
  Here are a couple of articles detailing other possible approaches to extending/inheriting
  components.
  A broad overview:
@@ -17,6 +22,10 @@
     v-bind="$props"
     @fireTransition="fireTransition"
   >
+    <!--This slot here can be used to add additional UI elements, e.g. a 'load net from
+    editor' button.-->
+    <slot></slot>
+
     <!-- Simulation history sidebar -->
     <v-card
       style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;

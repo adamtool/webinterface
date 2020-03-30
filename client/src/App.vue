@@ -173,9 +173,9 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;">
               <div v-if="simulatorNet.status !== 'netIsPresent'">
-                The net in the editor is being copied in order to allow it to be simulated.
-                Here is its current status:
-                <div style="white-space: pre-wrap;">{{ JSON.stringify(simulatorNet, null, 2)}}
+                The net in the editor is being copied.
+                <div style="white-space: pre-wrap;">simulatorNet: {{ JSON.stringify(simulatorNet,
+                  null, 2)}}
                 </div>
               </div>
               <Simulator
@@ -191,7 +191,16 @@
                 :shouldShowPartitions="showPartitions"
                 :repulsionStrengthDefault="360"
                 :linkStrengthDefault="0.086"
-              />
+              >
+                <v-btn
+                  style="position: absolute; top: 20px; left: 5px; z-index: 5;"
+                  rounded
+                  color="blue"
+                  @click="copyEditorNetToSimulator"
+                >
+                  Load net from editor
+                </v-btn>
+              </Simulator>
             </div>
           </keep-alive>
         </v-tab-item>
