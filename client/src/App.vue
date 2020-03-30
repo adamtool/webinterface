@@ -938,11 +938,14 @@
           this.saveEditorNetAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
         }
       },
-      // Send APT to the server to be parsed, then update the net displayed in the editor.
-      // This is debounced using Underscore: http://underscorejs.org/#debounce
+      /**
+       * Send APT to the server to be parsed, then update the net displayed in the editor.
+       * This is debounced using Underscore: http://underscorejs.org/#debounce
+       * @Returns {Promise<void>}
+       */
       parseAptForEditorNet: debounce(function (apt) {
         logging.logVerbose('Sending APT to server.')
-        this.restEndpoints.parseApt({
+        const promise = this.restEndpoints.parseApt({
           params: {
             apt: apt,
             netType: this.useModelChecking ? 'PETRI_NET_WITH_TRANSITS' : 'PETRI_GAME'
@@ -974,10 +977,12 @@
               this.aptParseErrorColumnNumber = -1
               break
           }
-        }).catch(() => {
-          logging.logError('Network error when trying to parse APT')
+        }).catch(error => {
+          logging.sendErrorNotification(
+            'Network error when trying to parse APT: ' + error.toString())
         })
         this.aptParseStatus = 'running'
+        return promise
       }, 200),
       /**
        * @returns Basically a Promise<EditorNetClient>
@@ -1402,6 +1407,11 @@
         // to be reset.
         this.$refs.graphEditorTab.onLoadNewNet()
         this.apt = apt
+        this.parseAptForEditorNet(apt).then(() => {
+          if (this.selectedTabLeftSide === 1) {  // If simulator is open
+            this.selectedTabLeftSide = 0 // Switch to editor to show the newly loaded net
+          }
+        })
         this.isLeftPaneVisible = true
       },
       withErrorHandling: function (response, onSuccessCallback) {
