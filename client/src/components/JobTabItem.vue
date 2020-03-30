@@ -57,13 +57,12 @@
       </div>
     </template>
   </div>
-  <GraphEditor v-else-if="tab.type === 'WINNING_STRATEGY'"
-               netType="PETRI_GAME"
-               :graph="tab.result.graph"
-               :jobKey="tab.jobKey"
-               editorMode="Simulator"
-               :restEndpoints="restEndpoints"
-               :shouldShowPhysicsControls="showPhysicsControls"/>
+  <Simulator v-else-if="tab.type === 'WINNING_STRATEGY'"
+             netType="PETRI_GAME"
+             :graph="tab.result.graph"
+             :jobKey="tab.jobKey"
+             :restEndpoints="restEndpoints"
+             :shouldShowPhysicsControls="showPhysicsControls"/>
   <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
                :graph="tab.result"
                editorMode="Viewer"
@@ -79,14 +78,13 @@
                :repulsionStrengthDefault="415"
                :linkStrengthDefault="0.04"
                :gravityStrengthDefault="300"/>
-  <GraphEditor v-else-if="tab.type === 'MODEL_CHECKING_NET'"
-               :graph="tab.result.graph"
-               :jobKey="tab.jobKey"
-               :useModelChecking="true"
-               netType="PETRI_NET"
-               editorMode="Simulator"
-               :restEndpoints="restEndpoints"
-               :shouldShowPhysicsControls="showPhysicsControls"/>
+  <Simulator v-else-if="tab.type === 'MODEL_CHECKING_NET'"
+             :graph="tab.result.graph"
+             :jobKey="tab.jobKey"
+             :useModelChecking="true"
+             netType="PETRI_NET"
+             :restEndpoints="restEndpoints"
+             :shouldShowPhysicsControls="showPhysicsControls"/>
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
           class="job-tab-card"
   >
@@ -180,11 +178,14 @@
 
 <script>
   import GraphEditor from './GraphEditor'
+  import Simulator from './Simulator'
   import {modelCheckingResultColor} from '../jobType'
+
   export default {
     name: 'JobTabItem',
     components: {
-      GraphEditor
+      GraphEditor,
+      Simulator
     },
     data: function () {
       return {}

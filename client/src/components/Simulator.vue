@@ -18,6 +18,7 @@
  -->
 <template>
   <GraphEditor
+    editorMode="Simulator"
     ref="graphEditor"
     v-bind="$props"
     @fireTransition="fireTransition"
@@ -87,20 +88,7 @@
     name: 'Simulator',
     components: {GraphEditor},
     props: {
-      ...GraphEditor.props,
-      // simulatorNet: {
-      //   type: Object,
-      //   required: true,
-      //   validator: function (obj) {
-      //     return (obj.status === 'netIsNotPresent') ||
-      //       (obj.status === 'copyInProgress') ||
-      //       (obj.status === 'error' && obj.hasOwnProperty('error')) ||
-      //       (obj.status === 'netIsPresent' &&
-      //         obj.hasOwnProperty('net') &&
-      //         obj.hasOwnProperty('uuid') &&
-      //         obj.hasOwnProperty('initialMarking'))
-      //   }
-      // }
+      ...GraphEditor.props
     },
     data() {
       return {
