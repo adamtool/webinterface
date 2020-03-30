@@ -1277,32 +1277,6 @@
         this.ltlParseStatus = ''
         this.ltlParseErrors = []
       },
-      editorMode: function (newMode, oldMode) {
-        if (newMode === 'Simulator') {
-          this.selectedTool = this.fireTransitionTool
-        } else if (this.selectedTool == this.fireTransitionTool && newMode !== 'Simulator') {
-          // Prevent fireTransitionTool from being selected in Editor
-          this.selectedTool = this.selectTool
-        }
-
-        if (newMode === 'Editor' && oldMode === 'Simulator') {
-          // Display the editor's current state
-          this.importGraph(this.graph)
-          this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
-          this.updateD3()
-        } else if (newMode === 'Simulator' && oldMode === 'Editor') {
-          // Display the simulator's current state
-          const {currentIndex, stack} = this.gameSimulationHistory
-          const currentState = stack[currentIndex]
-          if (currentState) { // Maybe the history has been reset and there is no 'current state'
-            // Show the 'graph' that the simulation is based on.
-            // It could be different from the graph shown in the editor
-            this.importGraph(this.gameSimulationHistory.graph)
-            this.applyMarking(currentState.marking, currentState.fireableTransitions)
-            this.updateD3()
-          }
-        }
-      },
       selectedTool: function (tool) {
         if (tool.toolEnumName !== 'drawTransit') {
           this.drawTransitHandler.reset()
