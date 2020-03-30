@@ -983,15 +983,17 @@
        * @returns Basically a Promise<EditorNetClient>
        */
       copyEditorNet: function () {
-        // Copy the existing clientside representation of the editor net
-        const netCopy = deepCopy(this.editorNet)
+        // Copy the existing clientside representation of the editor net, including node positions
+        const editorNetCopy = deepCopy(this.editorNet)
+        editorNetCopy.net.nodePositions = this.$refs.graphEditorTab.getNodeXYCoordinates()
+        // Ask the server to duplicate the editor net object and save it under a new UUID
         return this.restEndpoints.copyEditorNet({
           editorNetId: this.editorNet.uuid
         }).then(response => {
           if (response.data.status === 'success') {
             return {
-              net: netCopy.net,
-              initialMarking: netCopy.initialMarking,
+              net: editorNetCopy.net,
+              initialMarking: editorNetCopy.initialMarking,
               uuid: response.data.uuid
             }
           } else {
@@ -1169,7 +1171,7 @@
         // Our graph editor should give us an object with Node IDs as keys and x,y coordinates as values.
         // We send those x,y coordinates to the server, and the server saves them as annotations
         // into the PetriNetWithTransits/PetriGame on the server.
-        const nodePositions = this.$refs.graphEditorTab.getNodeXYCoordinates()
+        const nodePositions = this.$refs.graphEditorTab.getNodeXYCoordinatesFixed()
         return this.restEndpoints.updateXYCoordinates({
           editorNetId: this.editorNet.uuid,
           nodeXYCoordinateAnnotations: nodePositions

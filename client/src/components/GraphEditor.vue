@@ -1616,8 +1616,19 @@
         })
         this.updateD3()
       },
+      // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as values.
       getNodeXYCoordinates: function () {
-        // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as value.
+        return this.nodes.reduce(function (map, node) {
+          map[node.id] = {
+            x: node.x,
+            y: node.y
+          }
+          return map
+        }, {})
+      },
+      // Convert our array of nodes to a map with node IDs as keys and x,y coordinates as values.
+      // The X/Y coordinates will be represented as strings with precision up to two decimal places.
+      getNodeXYCoordinatesFixed: function () {
         return this.nodes.reduce(function (map, node) {
           map[node.id] = {
             x: node.x.toFixed(2),
