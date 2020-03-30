@@ -170,7 +170,7 @@
                            :linkStrengthDefault="0.086"/>
             </div>
             <AptEditor v-else-if="tabContentId === 'aptEditor'"
-                       :aptFromAdamParser='apt'
+                       :aptProp='apt'
                        :aptParseStatus='aptParseStatus'
                        :aptParseError='aptParseError'
                        :aptParseErrorLineNumber='aptParseErrorLineNumber'

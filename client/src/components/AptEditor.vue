@@ -25,8 +25,8 @@
       }
     },
     props: {
-      // TODO #296 rename.  This is the APT selected in the main App component
-      aptFromAdamParser: {
+      // This is the contents of the APT file selected in the main App component
+      aptProp: {
         type: String,
         required: true
       },
@@ -56,7 +56,7 @@
       }
     },
     created: function () {
-      this.apt = this.aptFromAdamParser
+      this.apt = this.aptProp
     },
     mounted: function () {
       this.highlighter = new HighlightWithinTextarea(this.$refs.theTextArea, {
@@ -79,7 +79,7 @@
       }
     },
     watch: {
-      aptFromAdamParser: function (newApt) {
+      aptProp: function (newApt) {
         this.apt = newApt
       },
       // When there's a parse error, highlight the corresponding line of text in the APT editor
