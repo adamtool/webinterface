@@ -1320,8 +1320,9 @@
         const matchingTransitionEl = this.nodeElements.filter(nodeD => {
           const isTheTransition = nodeD == transitionD
           const isAnAffectedPlace = this.links.some(link =>
-            (link.source == transitionD && link.target == nodeD) ||
-            (link.target == transitionD && link.source == nodeD)
+            // If the firing failed, then only the preset should flash red.
+            (wasSuccessful && link.source == transitionD && link.target == nodeD) || // postset
+            (link.target == transitionD && link.source == nodeD) // preset
           )
           return isTheTransition || isAnAffectedPlace
         })
