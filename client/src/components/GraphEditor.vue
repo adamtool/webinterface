@@ -1437,22 +1437,34 @@
           .attr('height', '100px')
         const body = fo.append('xhtml:body')
         body.append('span').text(label)
+        // This flag is necessary to work around some non-intuitive behavior that occurs when an
+        // element is removed from the DOM.  See https://stackoverflow.com/a/22934552/7359454
+        var hasBeenRemoved = false
         const textInput = body.append('form')
-          .append('input')
+          .on('submit', () => {
+            d3.event.preventDefault()
+            const text = textInput.node().value
+            console.log(`Calling text entry callback with value '${text}'`)
+            callback(text)
+            if (!hasBeenRemoved) {
+              hasBeenRemoved = true
+              fo.remove()
+            }
+          }).append('input')
           .attr('type', 'text')
           .attr('background', '#BBBBEE')
           .on('keyup', () => {
-            if (d3.event.key === 'Enter') {
-              const text = textInput.node().value
-              fo.remove()
-              console.log(`Calling text entry callback with value '${text}'`)
-              callback(text)
-            } else if (d3.event.key === 'Escape') {
+            if (d3.event.key === 'Escape') {
+              if (!hasBeenRemoved) {
+                hasBeenRemoved = true
+                fo.remove()
+              }
+            }
+          }).on('blur', () => {
+            if (!hasBeenRemoved) {
+              hasBeenRemoved = true
               fo.remove()
             }
-          })
-          .on('blur', () => {
-            fo.remove()
           })
         textInput.node().focus()
       },
