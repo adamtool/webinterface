@@ -915,6 +915,9 @@
       onFileSelected: function (changeEvent) {
         logging.logVerbose('The user selected a file in the file selector')
         const file = changeEvent.target.files[0]
+        // Reset the file picker so that onchange will fire again if the user reloads the same file
+        // (see https://stackoverflow.com/a/28274454)
+        changeEvent.target.value = null
         logging.logObject(file)
         const reader = new FileReader()
         reader.onloadend = () => {
