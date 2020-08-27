@@ -141,8 +141,12 @@ public class App {
             String clientUuidString = body.getAsJsonObject().get("clientUuid").getAsString();
             UUID clientUuid = UUID.fromString(clientUuidString);
             UserContext uc = getUserContext(clientUuid);
-            Object answer = handler.handle(req, res, uc);
-            return answer;
+            // Synchronizing here should prevent data corruption in case e.g. a client calls
+            // '/toggleGraphGameBDDPostset' for a given BDD multiple times in quick succession
+            synchronized (uc) {
+                Object answer = handler.handle(req, res, uc);
+                return answer;
+            }
         });
     }
 
