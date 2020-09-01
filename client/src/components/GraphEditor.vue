@@ -571,6 +571,13 @@
           contextMenuFun(d)
         }
       },
+      contextMenuFireTransition: function () {
+        // TODO #294 re-enable firing transitions in 'editor' mode again
+        return {
+          title: 'Fire transition',
+          action: (d) => this.$emit('fireTransition', d)
+        }
+      },
       contextMenuItems: function () {
         return (d) => {
           if (d.type === 'petriNetLink') {
@@ -608,6 +615,9 @@
           const title = {
             title: (d) => `Flow ${d.source.id} -> ${d.target.id}`
           }
+          if (this.editorMode === 'Simulator') {
+            return [title]
+          }
           if (this.useModelChecking && clickedLink.target.type === 'TRANSITION') {
             return [title, deleteFlow, setInhibitorArc]
           } else {
@@ -616,6 +626,9 @@
         }
       },
       contextMenuItemsPlace: function () {
+        if (this.editorMode === 'Simulator') {
+          return []
+        }
         // In model checking, there is no concept of "system" or "environment" places.
         // So, in that mode, we should hide the "change to [system/environment] place" menu item.
         const itemsForSynthesis = [
@@ -653,31 +666,34 @@
         }
       },
       contextMenuItemsSelection: function () {
-        return [
-          {
-            title: 'Selection'
-          },
-          {
-            title: 'Delete selected',
-            action: this.deleteSelectedNodes
-          }
-        ]
+        const title = {
+          title: 'Selection'
+        }
+        const action = {
+          title: 'Delete selected',
+          action: this.deleteSelectedNodes
+        }
+        if (this.editorMode === 'Simulator') {
+          return [title]
+        } else {
+          return [title, action]
+        }
       },
       contextMenuItemsNormal: function () {
-        return [
-          {
-            title: (d) => {
-              switch (d.type) {
-                case 'SYSPLACE':
-                case 'ENVPLACE':
-                  return `Place ${d.id}`
-                case 'TRANSITION':
-                  return `Transition ${d.id}`
-                default:
-                  throw new Error('Unhandled case in switch statement for right click context menu')
-              }
+        const title = {
+          title: (d) => {
+            switch (d.type) {
+              case 'SYSPLACE':
+              case 'ENVPLACE':
+                return `Place ${d.id}`
+              case 'TRANSITION':
+                return `Transition ${d.id}`
+              default:
+                throw new Error('Unhandled case in switch statement for right click context menu')
             }
-          },
+          }
+        }
+        const editorActions = [
           {
             title: 'Delete',
             action: (d) => {
@@ -689,6 +705,11 @@
             action: this.renameNodeInteractively
           }
         ]
+        if (this.editorMode === 'Simulator') {
+          return [title]
+        } else {
+          return [title].concat(editorActions)
+        }
       },
       nodeSpawnPoint: function () {
         if (this.lastUserClick) {
@@ -2322,26 +2343,19 @@
             fairness: 'none'
           })
         }
-        // TODO #294 re-enable firing transitions in 'editor' mode again
-        const fireTransition = {
-          title: 'Fire transition',
-          action: (d) => this.$emit('fireTransition', d)
-        }
 
-        let items = []
         if (this.editorMode === 'Simulator') {
-          items.push(fireTransition)
-        }
-        if (!this.useModelChecking) {
-          return items // The synthesis approach does not have "fairness"
+          return [this.contextMenuFireTransition]
+        } else if (!this.useModelChecking) {
+          return [] // The synthesis approach does not have "fairness"
         } else {
           switch (transitionNode.fairness) {
             case 'weak':
-              return items.concat([setStrongFair, removeFairness])
+              return [setStrongFair, removeFairness]
             case 'strong':
-              return items.concat([setWeakFair, removeFairness])
+              return [setWeakFair, removeFairness]
             case 'none':
-              return items.concat([setWeakFair, setStrongFair])
+              return [setWeakFair, setStrongFair]
             default:
               throw new Error(
                 `Invalid value for fairness for the transition node ${transitionNode.id}:
