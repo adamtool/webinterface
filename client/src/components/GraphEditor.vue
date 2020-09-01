@@ -580,15 +580,23 @@
       },
       contextMenuItems: function () {
         return (d) => {
+          let items
           if (d.type === 'petriNetLink') {
-            return this.contextMenuItemsFlow(d)
+            items = this.contextMenuItemsFlow(d)
           } else if (this.selectedNodes.length > 1) {
-            return this.contextMenuItemsSelection
+            items = this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
-            return this.contextMenuItemsNormal.concat(this.contextMenuItemsTransition(d))
+            items = this.contextMenuItemsNormal.concat(this.contextMenuItemsTransition(d))
           } else {
-            return this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
+            items = this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
           }
+          if (items.length == 1) { // If just the title is there, e.g. 'Place p0'
+            items.push({
+              title: '(No actions available)',
+              disabled: true
+            })
+          }
+          return items
         }
       },
       contextMenuItemsFlow: function () {
