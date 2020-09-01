@@ -104,14 +104,7 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <hsc-menu-context-menu>
-        <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">ADAM Web</div>
-        <template slot="contextmenu">
-          <hsc-menu-item
-            :label="useModelChecking ? 'Switch to Distributed Synthesis' : 'Switch to Model Checking'"
-            @click="useModelChecking = !useModelChecking; useDistributedSynthesis = !useDistributedSynthesis"/>
-        </template>
-      </hsc-menu-context-menu>
+      <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">ADAM Web</div>
     </MyVueMenuTheme>
 
     <!-- The main window, split into two resizeable panes using flexbox and splitjs -->
@@ -173,8 +166,10 @@
             <div style="position: relative; height: 100%; width: 100%;">
               <div v-if="simulatorNet.status !== 'netIsPresent'">
                 The net in the editor is being copied.
-                <div style="white-space: pre-wrap;">simulatorNet: {{ JSON.stringify(simulatorNet,
-                  null, 2)}}
+                <div style="white-space: pre-wrap;">simulatorNet: {{
+                    JSON.stringify(simulatorNet,
+                      null, 2)
+                  }}
                 </div>
               </div>
               <Simulator
