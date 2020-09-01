@@ -15,17 +15,17 @@
         <input type="range" min="30" max="1000" step="1"
                class="forceStrengthSlider"
                v-model="repulsionStrength">
-        <div class="forceStrengthNumber">{{repulsionStrength}}</div>
+        <div class="forceStrengthNumber">{{ repulsionStrength }}</div>
         <div>Link strength</div>
         <input type="range" min="0" max="0.2" step="0.001"
                class="forceStrengthSlider"
                v-model="linkStrength">
-        <div class="forceStrengthNumber">{{linkStrength}}</div>
+        <div class="forceStrengthNumber">{{ linkStrength }}</div>
         <div>Gravity strength</div>
         <input type="range" min="0" max="800" step="1"
                class="forceStrengthSlider"
                v-model="gravityStrength">
-        <div class="forceStrengthNumber">{{gravityStrength}}</div>
+        <div class="forceStrengthNumber">{{ gravityStrength }}</div>
       </div>
     </div>
 
@@ -367,7 +367,7 @@
     computed: {
       // Determines the size of nodes in the graph
       nodeRadius: function () {
-        return 27;
+        return 27
       },
       toolPickerItems: function () {
         switch (this.editorMode) {
@@ -1914,7 +1914,7 @@
         }
 
         this.nodeElements
-        // Don't mess with the color of a node if an animation is running on it
+          // Don't mess with the color of a node if an animation is running on it
           .filter(d => !d.hasScheduledAnimation)
           .attr('fill', this.fillOfNodeElement)
 
@@ -2327,21 +2327,26 @@
           title: 'Fire transition',
           action: (d) => this.$emit('fireTransition', d)
         }
+
         let items = []
         if (this.editorMode === 'Simulator') {
           items.push(fireTransition)
         }
-        switch (transitionNode.fairness) {
-          case 'weak':
-            return items.concat([setStrongFair, removeFairness])
-          case 'strong':
-            return items.concat([setWeakFair, removeFairness])
-          case 'none':
-            return items.concat([setWeakFair, setStrongFair])
-          default:
-            throw new Error(
-              `Invalid value for fairness for the transition node ${transitionNode.id}:
+        if (!this.useModelChecking) {
+          return items // The synthesis approach does not have "fairness"
+        } else {
+          switch (transitionNode.fairness) {
+            case 'weak':
+              return items.concat([setStrongFair, removeFairness])
+            case 'strong':
+              return items.concat([setWeakFair, removeFairness])
+            case 'none':
+              return items.concat([setWeakFair, setStrongFair])
+            default:
+              throw new Error(
+                `Invalid value for fairness for the transition node ${transitionNode.id}:
               ${transitionNode.fairness}`)
+          }
         }
       }
     }
