@@ -61,10 +61,14 @@
                            label="2-Player game (incremental)"/>
           </hsc-menu-bar-item>
         </template>
-        <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check"
-                           v-if="useModelChecking"/>
-        <hsc-menu-bar-item @click.native="calculateModelCheckingNet" label="Get Model Checking Net"
-                           v-if="useModelChecking"/>
+        <template v-if="useModelChecking">
+          <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check"
+          />
+          <hsc-menu-bar-item label="Reduction">
+            <hsc-menu-item @click="calculateModelCheckingNet" label="Petri Net"
+            />
+          </hsc-menu-bar-item>
+        </template>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
             :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
