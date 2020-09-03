@@ -61,9 +61,9 @@
                            label="2-Player game (incremental)"/>
           </hsc-menu-bar-item>
         </template>
-        <hsc-menu-bar-item @click.native="calculateModelCheckingNet" label="Get Model Checking Net"
+        <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check"
                            v-if="useModelChecking"/>
-        <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check Formula"
+        <hsc-menu-bar-item @click.native="calculateModelCheckingNet" label="Get Model Checking Net"
                            v-if="useModelChecking"/>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
