@@ -10,7 +10,7 @@ export default new Router({
   routes: [
     {
       path: '/modelChecking',
-      name: 'ADAM Web for Model Checking',
+      name: 'AdamWEB - Model Checker',
       component: AppModelChecking
     },
     {
@@ -20,7 +20,7 @@ export default new Router({
     },
     {
       path: '/distributedSynthesis',
-      name: 'ADAM Web for Distributed Synthesis',
+      name: 'AdamWEB - Synthesizer',
       component: AppDistributedSynthesis
     }
   ]

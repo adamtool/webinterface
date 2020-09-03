@@ -1,7 +1,7 @@
 <template>
   <div style="">
     <p>
-      ADAM Web is a frontend for the library
+      AdamWEB is a frontend for the library
       <a href="https://uol.de/csd/adam/" target="_blank">
         ADAM (Analyzer of Distributed Asynchronous Models).
       </a>
@@ -39,7 +39,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <p>
-            ADAM Web uses open source components. You can find the source code of their open
+            AdamWEB uses open source components. You can find the source code of their open
             source
             projects along with license information below.
           </p>

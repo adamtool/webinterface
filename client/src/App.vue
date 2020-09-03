@@ -93,7 +93,7 @@
           <v-card-title
             primary-title
             style="justify-content: space-between;">
-            <span>About ADAM Web</span>
+            <span>About AdamWEB</span>
             <v-icon standard right
                     @click="showAboutModal = false">
               close
@@ -104,7 +104,9 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">ADAM Web</div>
+      <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">
+        {{ useModelChecking ? 'AdamWEB - Model Checker' : 'AdamWEB - Synthesizer' }}
+      </div>
     </MyVueMenuTheme>
 
     <!-- The main window, split into two resizeable panes using flexbox and splitjs -->
@@ -119,7 +121,7 @@
               :style="splitLeftSideStyle"
               id="splitLeftSide"
               v-model="selectedTabLeftSide">
-        <v-tab>Petri Net</v-tab>
+        <v-tab>{{ useModelChecking ? 'Petri Net with Transits' : 'Petri Game' }}</v-tab>
         <v-tab>Simulator</v-tab>
         <v-tab>APT Editor</v-tab>
         <v-tab-item
@@ -192,7 +194,7 @@
                   color="blue"
                   @click="copyEditorNetToSimulator"
                 >
-                  Load net from editor
+                  {{ useModelChecking ? 'Load net from editor' : 'Load game from editor' }}
                 </v-btn>
               </Simulator>
             </div>
@@ -420,7 +422,7 @@
       AboutAdamWeb
     },
     created: function () {
-      console.log(`Adam Web App.vue Configuration:
+      console.log(`AdamWEB App.vue Configuration:
       useDistributedSynthesis: ${this.useDistributedSynthesis}
       useModelChecking: ${this.useModelChecking}
       baseurl: ${this.baseUrl}`)

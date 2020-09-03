@@ -1,11 +1,11 @@
 <template>
   <div>
-    <h1>ADAM Web</h1>
+    <h1>AdamWEB</h1>
     <div>
-      <router-link to="/modelChecking">ADAM Web for Model Checking</router-link>
+      <router-link to="/modelChecking">AdamWEB for Model Checking</router-link>
     </div>
     <div>
-      <router-link to="/distributedSynthesis">ADAM Web for Distributed Synthesis</router-link>
+      <router-link to="/distributedSynthesis">AdamWEB for Distributed Synthesis</router-link>
     </div>
   </div>
 </template>
