@@ -54,11 +54,11 @@
             <hsc-menu-item @click.native="calculateExistsWinningStrategy"
                            label="Exists Winning Strategy?"/>
             <hsc-menu-item @click.native="calculateGraphStrategyBDD"
-                           label="Get Graph Strategy BDD"/>
+                           label="2-Player Strategy"/>
             <hsc-menu-item @click.native="calculateGraphGameBDD(false)"
-                           label="Calculate whole Graph Game BDD"/>
+                           label="2-Player game (complete)"/>
             <hsc-menu-item @click.native="calculateGraphGameBDD(true)"
-                           label="Calculate Graph Game BDD incrementally"/>
+                           label="2-Player game (incremental)"/>
           </hsc-menu-bar-item>
         </template>
         <hsc-menu-bar-item @click.native="calculateModelCheckingNet" label="Get Model Checking Net"
