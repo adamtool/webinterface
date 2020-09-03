@@ -139,7 +139,11 @@ public class Job<T> {
             } catch (InterruptedException | ExecutionException e) {
                 // "NotSupportedGameException" should not be shown in the UI
                 if (e.getCause() instanceof NotSupportedGameException) {
-                    return e.getCause().getMessage();
+                    NotSupportedGameException ex = (NotSupportedGameException)e.getCause();
+                    String message = ex.getMessage();
+                    if (ex.getCause() != null) {
+                        return message + "\n" + ex.getCause().getMessage();
+                    }
                 }
                 return e.getMessage();
             }
