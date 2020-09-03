@@ -1,6 +1,7 @@
 package uniolunisaar.adamwebfrontend.jobsystem;
 
 import uniol.apt.util.Pair;
+import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
 import uniolunisaar.adam.tools.processHandling.ProcessPool;
 
 import java.time.Instant;
@@ -136,6 +137,10 @@ public class Job<T> {
             try {
                 futurePair.getSecond().get();
             } catch (InterruptedException | ExecutionException e) {
+                // "NotSupportedGameException" should not be shown in the UI
+                if (e.getCause() instanceof NotSupportedGameException) {
+                    return e.getCause().getMessage();
+                }
                 return e.getMessage();
             }
         }
