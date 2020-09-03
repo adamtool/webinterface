@@ -64,12 +64,18 @@
           return 'Error'
         }
         const typePrettyPrinted = formatJobType(this.tab.type)
-        const shouldIncludeFormula =
+        const shouldIncludeMcFormula =
           ['MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT'].includes(this.tab.type)
-        const formulaText = shouldIncludeFormula ?
-          ` for "${this.tab.jobKey.requestParams.formula}"` :
-          ''
-        return typePrettyPrinted.concat(formulaText)
+        if (shouldIncludeMcFormula) {
+          const mcFormulaText = ` for "${this.tab.jobKey.requestParams.formula}"`
+          return typePrettyPrinted.concat(mcFormulaText)
+        } else if (this.tab.type === 'GRAPH_GAME_BDD') {
+          const incrementalOrCompleteLabel =
+            this.tab.jobKey.requestParams['incremental'] ? ' (I)' : ' (C)'
+          return typePrettyPrinted.concat(incrementalOrCompleteLabel)
+        } else {
+          return typePrettyPrinted
+        }
       }
     }
   }
