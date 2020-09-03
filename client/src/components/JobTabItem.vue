@@ -32,7 +32,7 @@
         color="blue lighten-3"
         @click="$emit('loadEditorNetFromApt', tab.jobKey.canonicalApt)"
       >
-        View Petri Game
+        {{ useModelChecking ? 'View Petri Net with Transits' : 'View Petri Game' }}
       </v-btn>
       <v-btn
         v-if="tab.jobStatus === 'QUEUED' || tab.jobStatus === 'RUNNING'"
@@ -165,7 +165,7 @@
         color="blue lighten-3"
         @click="$emit('loadEditorNetFromApt', tab.jobKey.canonicalApt)"
       >
-        View Petri Game
+        {{ useModelChecking ? 'View Petri Net with Transits' : 'View Petri Game' }}
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -203,6 +203,10 @@
       },
       restEndpoints: {
         type: Object,
+        required: true
+      },
+      useModelChecking: {
+        type: Boolean,
         required: true
       }
     },

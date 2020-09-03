@@ -247,6 +247,7 @@
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
                 :restEndpoints="restEndpoints"
+                :useModelChecking="useModelChecking"
                 @loadEditorNetFromApt="parseAptForEditorNet"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
