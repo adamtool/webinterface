@@ -22,6 +22,7 @@ t=javac
 		setClean
 		setCleanAll
 		setJavac
+		setJar
 		setDeploy
 		clean
 		clean-all
@@ -66,6 +67,9 @@ backend: mc symbolic bounded
 
 setJavac:
 	$(eval t=javac)
+
+setJar:
+	$(eval t=jar)
 
 setClean:
 	$(eval t=clean)
