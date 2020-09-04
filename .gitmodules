@@ -1,0 +1,24 @@
+[submodule "backend/libs"]
+	path = backend/libs
+	url = git@github.com:adamtool/libs.git
+[submodule "backend/examples"]
+	path = backend/examples
+	url = git@github.com:adamtool/examples.git
+[submodule "backend/framework"]
+	path = backend/framework
+	url = git@github.com:adamtool/framework.git
+[submodule "backend/logics"]
+	path = backend/logics
+	url = git@github.com:adamtool/logics.git
+[submodule "backend/modelchecker"]
+	path = backend/modelchecker
+	url = git@github.com:adamtool/modelchecker.git
+[submodule "backend/synthesizer"]
+	path = backend/synthesizer
+	url = git@github.com:adamtool/synthesizer.git
+[submodule "backend/boundedSynthesis"]
+	path = backend/boundedSynthesis
+	url = git@github.com:adamtool/boundedSynthesis.git
+[submodule "backend/webinterface-backend"]
+	path = backend/webinterface-backend
+	url = git@github.com:adamtool/webinterface-backend.git
