@@ -5,9 +5,8 @@ import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
-import uniolunisaar.adam.ds.petrigame.PetriGame;
+import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
-import uniolunisaar.adam.ds.petrinet.objectives.Condition;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
@@ -20,6 +19,13 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import uniolunisaar.adam.ds.objectives.Condition;
+import static uniolunisaar.adam.ds.objectives.Condition.Objective.A_BUCHI;
+import static uniolunisaar.adam.ds.objectives.Condition.Objective.A_REACHABILITY;
+import static uniolunisaar.adam.ds.objectives.Condition.Objective.A_SAFETY;
+import static uniolunisaar.adam.ds.objectives.Condition.Objective.E_BUCHI;
+import static uniolunisaar.adam.ds.objectives.Condition.Objective.E_REACHABILITY;
+import static uniolunisaar.adam.ds.objectives.Condition.Objective.E_SAFETY;
 
 /**
  * Represents the data needed to represent a PetriNet or PNWT or PetriGame in the client.
@@ -91,8 +97,8 @@ public class PetriNetClient {
      */
     public static JsonElement serializeEditorNet(PetriNetWithTransits net,
                                                  Set<Node> includePositions) {
-        if (net instanceof PetriGame) {
-            return serializePetriGame((PetriGame) net, includePositions, true);
+        if (net instanceof PetriGameWithTransits) {
+            return serializePetriGame((PetriGameWithTransits) net, includePositions, true);
         } else {
             return serializePNWT(net, includePositions, true);
         }
@@ -163,7 +169,7 @@ public class PetriNetClient {
      *                               annotation may not be present, and we shouldn't try to send it to the client.
      * @return A JSON-encoded instance of this class
      */
-    public static JsonElement serializePetriGame(PetriGame net,
+    public static JsonElement serializePetriGame(PetriGameWithTransits net,
                                                  Set<Node> shouldSendPositions,
                                                  boolean shouldIncludeObjective) {
 
@@ -259,7 +265,7 @@ public class PetriNetClient {
             this.isInhibitorArc = isInhibitorArc;
         }
 
-        static PetriNetLink fromPetriGameFlow(Flow flow, PetriGame net, String arcLabel) {
+        static PetriNetLink fromPetriGameFlow(Flow flow, PetriGameWithTransits net, String arcLabel) {
             return fromPNWTFlow(flow, net, arcLabel);
         }
 
@@ -326,7 +332,7 @@ public class PetriNetClient {
                     -1, fairness);
         }
 
-        static PetriNetNode fromPetriGamePlace(PetriGame game, Place place) {
+        static PetriNetNode fromPetriGamePlace(PetriGameWithTransits game, Place place) {
             PetriNetNode node = fromPNWTPlace(game, place);
             boolean isEnvironment = game.isEnvironment(place);
             GraphNodeType nodeType = isEnvironment ? GraphNodeType.ENVPLACE : GraphNodeType.SYSPLACE;

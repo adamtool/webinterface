@@ -3,6 +3,8 @@ package uniolunisaar.adamwebfrontend;
  * Created by Ann on 11.09.2017.
  */
 
+import uniolunisaar.adam.exceptions.synthesis.pgwt.NotSupportedGameException;
+import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotCalculateException;
 import static spark.Spark.*;
 
 import com.google.gson.*;
@@ -17,11 +19,8 @@ import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
-import uniolunisaar.adam.ds.logics.ltl.flowltl.IRunFormula;
-import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.ds.petrinet.objectives.Condition;
+import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
-import uniolunisaar.adam.exceptions.pg.*;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
@@ -33,6 +32,8 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
+import uniolunisaar.adam.ds.logics.flowlogics.IRunFormula;
+import uniolunisaar.adam.ds.objectives.Condition;
 
 public class App {
     private final Gson gson = new Gson();
@@ -124,11 +125,11 @@ public class App {
     }
 
     // TODO #293 refactor
-    public static PetriGame promoteToPetriGame(PetriNetWithTransits net) {
-        if (!(net instanceof PetriGame)) {
+    public static PetriGameWithTransits promoteToPetriGame(PetriNetWithTransits net) {
+        if (!(net instanceof PetriGameWithTransits)) {
             throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
         }
-        return (PetriGame) net;
+        return (PetriGameWithTransits) net;
     }
 
     /**
@@ -294,7 +295,7 @@ public class App {
                 netJson = PetriNetClient.serializePNWT(net, net.getNodes(), true);
                 break;
             case PETRI_GAME:
-                netJson = PetriNetClient.serializePetriGame((PetriGame) net, net.getNodes(), true);
+                netJson = PetriNetClient.serializePetriGame((PetriGameWithTransits) net, net.getNodes(), true);
                 break;
             case PETRI_NET:
                 throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is " +
@@ -325,8 +326,8 @@ public class App {
     private Object handleCopyEditorNet(Request req, Response res, PetriNetWithTransits net) {
         PetriNetWithTransits copy;
         // TODO #293 refactor
-        if (net instanceof PetriGame) {
-            copy = new PetriGame((PetriGame) net);
+        if (net instanceof PetriGameWithTransits) {
+            copy = new PetriGameWithTransits((PetriGameWithTransits) net);
         } else {
             copy = new PetriNetWithTransits(net);
         }
@@ -352,7 +353,7 @@ public class App {
         JobType jobType = JobType.valueOf(jobTypeString);
 
         // TODO #293 refactor
-        PetriNetWithTransits netCopy = (net instanceof PetriGame) ? new PetriGame((PetriGame) net) : new PetriNetWithTransits(net);
+        PetriNetWithTransits netCopy = (net instanceof PetriGameWithTransits) ? new PetriGameWithTransits((PetriGameWithTransits) net) : new PetriNetWithTransits(net);
         JobKey jobKey = new JobKey(
                 PNWTTools.getAPT(netCopy, true, true),
                 jobParams,
@@ -551,10 +552,10 @@ public class App {
                 break;
             case ENVPLACE:
                 // TODO #293 refactor
-                if (!(net instanceof PetriGame)) {
+                if (!(net instanceof PetriGameWithTransits)) {
                     throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
                 } else {
-                    PetriGame game = (PetriGame) net;
+                    PetriGameWithTransits game = (PetriGameWithTransits) net;
                     Place place = game.createPlace();
                     game.setEnvironment(place);
                     node = place;
@@ -603,10 +604,10 @@ public class App {
         String nodeId = body.get("nodeId").getAsString();
 
         // TODO #293 refactor
-        if (!(net instanceof PetriGame)) {
+        if (!(net instanceof PetriGameWithTransits)) {
             throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits, so you can't insert an environment place.");
         }
-        PetriGame petriGame = (PetriGame) net;
+        PetriGameWithTransits petriGame = (PetriGameWithTransits) net;
 
         Place place = petriGame.getPlace(nodeId);
         boolean environment = petriGame.isEnvironment(place);
@@ -827,7 +828,7 @@ public class App {
                 netCopy = new PetriNetWithTransits((PetriNetWithTransits) originalNet);
                 break;
             case PETRI_GAME:
-                netCopy = new PetriGame((PetriGame) originalNet);
+                netCopy = new PetriGameWithTransits((PetriGameWithTransits) originalNet);
                 break;
             default:
                 return errorResponse("Missing switch branch. Please send a bug report");

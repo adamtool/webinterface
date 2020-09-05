@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import uniol.apt.io.parser.ParseException;
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.AdamModelChecker;
-import uniolunisaar.adam.ds.modelchecking.ModelCheckingResult;
 import uniolunisaar.adam.ds.modelchecking.statistics.AdamCircuitFlowLTLMCStatistics;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 
@@ -19,6 +18,7 @@ import java.util.concurrent.Executors;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
+import uniolunisaar.adam.ds.modelchecking.results.ModelCheckingResult;
 
 public class JobStatisticsTest {
 

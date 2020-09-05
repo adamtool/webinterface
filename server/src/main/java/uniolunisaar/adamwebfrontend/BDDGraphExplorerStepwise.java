@@ -5,22 +5,22 @@ import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.Flow;
-import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
-import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDState;
-import uniolunisaar.adam.ds.petrigame.PetriGame;
-import uniolunisaar.adam.ds.petrinet.objectives.Condition;
-import uniolunisaar.adam.exceptions.pg.SolvingException;
+import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDGraph;
+import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDState;
+import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
+import uniolunisaar.adam.exceptions.synthesis.pgwt.SolvingException;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
-import uniolunisaar.adam.logic.pg.solver.symbolic.bddapproach.BDDSolver;
-import uniolunisaar.adam.logic.pg.solver.symbolic.bddapproach.BDDSolverOptions;
 import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import uniolunisaar.adam.ds.objectives.Condition;
+import uniolunisaar.adam.ds.synthesis.solver.symbolic.bddapproach.BDDSolverOptions;
+import uniolunisaar.adam.logic.synthesis.solver.symbolic.bddapproach.distrsys.DistrSysBDDSolver;
 
 public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
-    private final BDDSolver<? extends Condition> solver;
+    private final DistrSysBDDSolver<? extends Condition> solver;
     private final BDDGraph bddGraph;
     // States whose postset (children) should be visible
     private final Set<BDDState> postsetExpandedStates;
@@ -29,7 +29,7 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
     // States that we called getSuccessors() on already
     private final Set<BDDState> expandedStates;
 
-    public BDDGraphExplorerStepwise(PetriGame game) throws SolvingException, CouldNotFindSuitableConditionException {
+    public BDDGraphExplorerStepwise(PetriGameWithTransits game) throws SolvingException, CouldNotFindSuitableConditionException {
         solver = AdamSynthesizer.getBDDSolver(
                 game,
                 Adam.getCondition(game),

@@ -3,8 +3,8 @@ package uniolunisaar.adamwebfrontend.wirerepresentations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import uniol.apt.adt.pn.Transition;
-import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
-import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDState;
+import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDGraph;
+import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDState;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -102,7 +102,7 @@ public class BDDGraphClient {
         boolean hasInvisibleParents, boolean hasInvisibleChildren) {
             return new State(
                     bddState.getId(),
-                    bddState.isMcut(),
+                    bddState.isEnvState(),
                     bddState.isSpecial(),
                     bddState.isBad(),
                     bddState.getContent(),

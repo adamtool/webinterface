@@ -1,7 +1,7 @@
 package uniolunisaar.adamwebfrontend.jobsystem;
 
 import uniol.apt.util.Pair;
-import uniolunisaar.adam.exceptions.pg.NotSupportedGameException;
+import uniolunisaar.adam.exceptions.synthesis.pgwt.NotSupportedGameException;
 import uniolunisaar.adam.tools.processHandling.ProcessPool;
 
 import java.time.Instant;

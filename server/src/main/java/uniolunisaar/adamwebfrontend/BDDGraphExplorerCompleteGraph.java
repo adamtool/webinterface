@@ -2,8 +2,8 @@ package uniolunisaar.adamwebfrontend;
 
 import com.google.gson.JsonElement;
 import uniolunisaar.adam.ds.graph.Flow;
-import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDGraph;
-import uniolunisaar.adam.ds.graph.symbolic.bddapproach.BDDState;
+import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDGraph;
+import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDState;
 import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 
 import java.util.*;
