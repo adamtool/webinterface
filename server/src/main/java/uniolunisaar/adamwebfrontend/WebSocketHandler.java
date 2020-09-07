@@ -146,7 +146,7 @@ public class WebSocketHandler {
      * messages to the appropriate clients as soon as they are enqueued
      */
     public static void startMessageQueueThread() {
-        new Thread(() -> {
+        Thread messageQueueThread = new Thread(() -> {
             while (true) {
                 try {
                     Pair<UUID, JsonElement> messageSpec = messageQueue.take();
@@ -156,7 +156,15 @@ public class WebSocketHandler {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+
+        messageQueueThread.setUncaughtExceptionHandler((Thread t, Throwable e) -> {
+            System.err.println("Message queue thread crashed with an uncaught exception. Stack " +
+                    "trace: ");
+            e.printStackTrace();
+        });
+
+        messageQueueThread.start();
     }
 
     @OnWebSocketConnect
