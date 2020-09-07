@@ -2,7 +2,7 @@
 # @author Manuel Gieseking
 
 # read the current version number out of the pom.xml
-ver=$(grep -zoP "<artifactId>adam-core</artifactId>[[:space:]]*<version>\K[0-9]+\.[0-9]+(?=</version>)" ../server/pom.xml)
+ver=$(grep -zoP "<artifactId>adam-core</artifactId>[[:space:]]*<version>\K[0-9]+\.[0-9]+(?=</version>)" ../server/pom.xml | tr '\0' '\n')
 echo "> Found version ${ver}."
 echo "> Create the adam_core.jar" 
 make deploy_backend 
