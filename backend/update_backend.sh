@@ -13,8 +13,3 @@ for dep in "${dep_folders[@]}"	# all dependencies
             git add $dep
         fi
 done
-echo "> Commit the update to a new version of the submodules."
-git commit -m "Updated the backend to the current version of the submodules."
-echo "> Push the changes."
-git push
-echo "> Updated the backend to the current version of the submodules and pushed it."

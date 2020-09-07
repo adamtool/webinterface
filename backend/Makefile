@@ -88,8 +88,8 @@ clean-all: setCleanAll backend
 pull_backend: 
 	./pull_backend_submodules.sh ${DEPENDENCIES_FOLDERS}
 
-update_backend: pull_backend
-	./update_backend.sh ${DEPENDENCIES_FOLDERS}
+#update_backend: pull_backend
+#	./update_backend.sh ${DEPENDENCIES_FOLDERS}
 
 clean_backend: clean-all
 
@@ -98,5 +98,6 @@ deploy_backend: setJavac mc symbolic bounded setDeploy backend
 integrate_backend: clean_backend 	
 	./integrate_backend.sh
 
-publish_backend: clean_backend 	
+publish_backend: clean_backend pull_backend
+	./update_backend.sh ${DEPENDENCIES_FOLDERS}
 	./publish_backend.sh
