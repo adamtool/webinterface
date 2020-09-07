@@ -95,5 +95,8 @@ clean_backend: clean-all
 
 deploy_backend: setJavac mc symbolic bounded setDeploy backend
 
+integrate_backend: clean_backend 	
+	./integrate_backend.sh
+
 publish_backend: clean_backend 	
 	./publish_backend.sh

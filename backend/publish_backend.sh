@@ -11,7 +11,7 @@ else
     # this command is quite dangerous and very dependent on the structure of the pom.xml
     # searches for the line containing "<artifactId>adam-core</artifactId>"
     # goes to the next line (n) and replaces the version string there
-    sed -i "/<artifactId>adam-core<\/artifactId>/{n;s/<version>\([0-9]\+.[0-9]\+\)<\/version>/<version>${ver}<\/version>/}" ../server/pom.xml 
+    sed -i "/<artifactId>adam-core<\/artifactId>/{n;s/<version>\([0-9]\+\.[0-9]\+\)<\/version>/<version>${ver}<\/version>/}" ../server/pom.xml 
     echo "> Clean up"
     make clean_backend
 fi
