@@ -32,7 +32,6 @@ t=javac
 		clean_backend
 		deploy_backend
 		publish_backend
-		publish_examples
 
 ## the targets for the submodules
 tools: 
@@ -107,5 +106,3 @@ publish_backend: clean_backend pull_backend
 update_examples:
 	./update_examples.sh
 
-publish_examples: 
-	./publish_examples.sh
