@@ -55,7 +55,6 @@ public class App {
 
         staticFiles.location("/static");
         enableCORS();
-        WebSocketHandler.startPingThread();
         WebSocketHandler.startMessageQueueThread();
 
         get("/hello", (req, res) -> "Hello World");

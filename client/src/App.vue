@@ -754,11 +754,6 @@
               })
               this.closeTabIfOpen(messageParsed.jobKey)
               break
-            case 'ping':
-              this.socket.send(JSON.stringify({
-                type: 'pong'
-              }))
-              break
             default:
               logging.sendErrorNotification('Got a malformed Websocket message from the server.  See log')
               logging.logObject(message)
