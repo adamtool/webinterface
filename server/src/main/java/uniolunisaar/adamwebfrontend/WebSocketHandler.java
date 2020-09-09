@@ -111,36 +111,6 @@ public class WebSocketHandler {
         }
     }
 
-    private static void sendPingMessage() {
-        JsonObject message = new JsonObject();
-        message.addProperty("type", "ping");
-        for (Session session: sessions) {
-            try {
-                session.getRemote().sendString(message.toString());
-            } catch (IOException e) {
-                System.err.println("IOException occurred when sending a websocket message");
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * Start a thread that, every 15 seconds, sends a ping message to all connected websocket
-     * clients in order to stop the connections from being dropped.
-     */
-    public static void startPingThread() {
-        new Thread(() -> {
-            while (true) {
-                sendPingMessage();
-                try {
-                    Thread.sleep(15000);
-                } catch (InterruptedException e) {
-                    return;
-                }
-            }
-        }).start();
-    }
-
     /**
      * Start a thread that continuously blocks on the websocket message queue and broadcasts
      * messages to the appropriate clients as soon as they are enqueued
