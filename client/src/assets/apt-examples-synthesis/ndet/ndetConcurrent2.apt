@@ -1,0 +1,45 @@
+// Should have NO strategy because of ndet in p6 for the t6 branch
+.name "Example"
+.description "Describe your net here."
+.type LPN
+.options
+condition="A_SAFETY"
+
+.places
+p0[yCoord=-150.0, xCoord=-150.0, bad="true", token=1]
+p1[yCoord=-150.0, xCoord=270.0, token=1]
+p10[yCoord=-390.0, xCoord=750.0, env="true", token=0]
+p11[yCoord=-390.0, xCoord=30.0, env="true", token=0]
+p12[yCoord=-390.0, xCoord=1530.0, env="true", token=0]
+p2[yCoord=330.0, xCoord=270.0, token=1]
+p3[yCoord=30.0, xCoord=747.64, bad="true", token=3]
+p4[yCoord=-151.33, xCoord=1240.0, token=2]
+p5[yCoord=348.26, xCoord=1233.2, token=2]
+p6[yCoord=330.0, xCoord=510.0, token=3]
+p7[yCoord=330.0, xCoord=750.0, token=4]
+p8[yCoord=351.67, xCoord=999.0, token=5]
+p9[yCoord=-150.0, xCoord=1770.0, bad="true", token=2]
+
+.transitions
+t0[label="t0", yCoord=-150.0, xCoord=30.0]
+t1[label="t1", yCoord=30.67, xCoord=275.0]
+t2[label="t2", yCoord=150.0, xCoord=750.0]
+t3[label="t3", yCoord=630.0, xCoord=750.0]
+t4[label="t4", yCoord=40.67, xCoord=1237.0]
+t5[label="t5", yCoord=-150.0, xCoord=1530.0]
+t6[label="t6", yCoord=-390.0, xCoord=270.0]
+t7[label="t7", yCoord=-390.0, xCoord=1230.0]
+t8[label="t8", yCoord=-150.0, xCoord=750.0]
+
+.flows
+t0: {1*p1} -> {1*p0}
+t1: {1*p6, 1*p1, 1*p11} -> {1*p2}
+t2: {1*p6} -> {1*p3}
+t3: {1*p6, 1*p7, 1*p8} -> {}
+t4: {1*p4} -> {1*p8, 1*p5}
+t5: {1*p4} -> {1*p9}
+t6: {1*p10} -> {1*p11}
+t7: {1*p10} -> {1*p12}
+t8: {1*p12, 1*p1} -> {}
+
+.initial_marking {1*p1, 1*p10, 1*p4, 1*p6, 1*p7}

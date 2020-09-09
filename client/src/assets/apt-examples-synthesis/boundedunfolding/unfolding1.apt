@@ -1,0 +1,78 @@
+// Author: Jesko Hecking-Harbusch; original idea from MG's Paul
+// tests bounded unfolding?
+// 1 sys, 2 env player
+// infinite?
+// should have winning strategy?
+.name "Simple Example"
+.description "TODO"
+.type LPN
+.options
+condition="A_SAFETY"
+
+.places
+p0[yCoord=349.81, xCoord=312.39]
+p1[yCoord=139.87, xCoord=891.44, env="true"]
+p10[yCoord=680.86, xCoord=447.35, env="true"]
+p11[yCoord=814.66, xCoord=311.23]
+p12[yCoord=671.63, xCoord=1200.57]
+p13[yCoord=791.59, xCoord=1260.55]
+p14[yCoord=898.87, xCoord=1086.38, env="true"]
+p15[yCoord=888.48, xCoord=1439.34, env="true"]
+p16[yCoord=741.56, xCoord=637.39, bad="true"]
+p17[yCoord=980.46, xCoord=768.07, bad="true"]
+p2[yCoord=285.21, xCoord=748.4, env="true"]
+p3[yCoord=288.67, xCoord=1013.71, env="true"]
+p4[yCoord=489.38, xCoord=763.4, env="true"]
+p5[yCoord=495.15, xCoord=1061.0, env="true"]
+p6[yCoord=675.09, xCoord=937.58, env="true"]
+p7[yCoord=822.74, xCoord=838.38, env="true"]
+p8[yCoord=513.6, xCoord=312.39]
+p9[yCoord=664.71, xCoord=195.89, env="true"]
+
+.transitions
+t0[label="t0", yCoord=211.39, xCoord=801.47]
+t1[label="t1", yCoord=216.0, xCoord=961.8]
+t10[label="t10", yCoord=575.89, xCoord=972.18]
+t11[label="t11", yCoord=732.76, xCoord=1062.15]
+t12[label="t12", yCoord=859.65, xCoord=1174.04]
+t13[label="t13", yCoord=858.49, xCoord=1333.22]
+t14[label="t14", yCoord=748.91, xCoord=1483.18]
+t15[label="t15", yCoord=756.99, xCoord=1645.82]
+t16[label="t16", yCoord=445.55, xCoord=1821.15]
+t17[label="t17", yCoord=612.21, xCoord=542.81]
+t18[label="t18", yCoord=632.01, xCoord=731.08]
+t19[label="t19", yCoord=888.26, xCoord=562.97]
+t2[label="t2", yCoord=422.48, xCoord=541.93]
+t20[label="t20", yCoord=954.12, xCoord=950.59]
+t3[label="t3", yCoord=410.94, xCoord=807.23]
+t4[label="t4", yCoord=583.96, xCoord=262.79]
+t5[label="t5", yCoord=593.19, xCoord=397.75]
+t6[label="t6", yCoord=709.69, xCoord=257.02]
+t7[label="t7", yCoord=738.53, xCoord=398.9]
+t8[label="t8", yCoord=498.61, xCoord=25.17]
+t9[label="t9", yCoord=572.43, xCoord=867.21]
+
+.flows
+t0: {1*p1} -> {1*p2}
+t1: {1*p1} -> {1*p3}
+t10: {1*p5} -> {1*p6}
+t11: {1*p12, 1*p6} -> {1*p7, 1*p13}
+t12: {1*p13} -> {1*p14}
+t13: {1*p13} -> {1*p15}
+t14: {1*p14} -> {1*p12}
+t15: {1*p15} -> {1*p12}
+t16: {1*p7} -> {1*p1}
+t17: {1*p4, 1*p10} -> {1*p16}
+t18: {1*p9, 1*p5} -> {1*p16}
+t19: {1*p14, 1*p9} -> {1*p17}
+t2: {1*p0, 1*p2} -> {1*p4, 1*p8}
+t20: {1*p10, 1*p15} -> {1*p17}
+t3: {1*p3, 1*p0} -> {1*p5, 1*p8}
+t4: {1*p8} -> {1*p9}
+t5: {1*p8} -> {1*p10}
+t6: {1*p9} -> {1*p11}
+t7: {1*p10} -> {1*p11}
+t8: {1*p11} -> {1*p0}
+t9: {1*p4} -> {1*p6}
+
+.initial_marking {1*p0, 1*p1, 1*p12}

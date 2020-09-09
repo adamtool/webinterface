@@ -1,0 +1,36 @@
+.name "Example"
+.description "Describe your net here."
+.type LPN
+.options
+condition="A_SAFETY"
+
+.places
+p0[yCoord=166.67, xCoord=396.0, env="true"]
+p1[yCoord=164.67, xCoord=794.0, env="true"]
+p2[yCoord=160.67, xCoord=1375.0, env="true"]
+p3[yCoord=384.67, xCoord=391.0, env="true"]
+p4[yCoord=372.67, xCoord=784.0, env="true"]
+p5[yCoord=389.67, xCoord=1367.0, env="true"]
+p6[yCoord=626.67, xCoord=785.0, env="true"]
+p7[yCoord=619.67, xCoord=381.0, env="true"]
+p8[yCoord=625.67, xCoord=1372.0, env="true"]
+
+.transitions
+t0[label="t0", yCoord=263.67, xCoord=394.0]
+t1[label="t1", yCoord=507.67, xCoord=583.0]
+t2[label="t2", yCoord=276.67, xCoord=793.0]
+t3[label="t3", yCoord=266.67, xCoord=1366.0]
+t4[label="t4", yCoord=509.67, xCoord=1371.0]
+t5[label="t5", yCoord=762.67, xCoord=1112.0]
+t6[label="t6", yCoord=718.67, xCoord=165.0]
+
+.flows
+t0: {1*p0} -> {1*p3}
+t1: {1*p3, 1*p4} -> {1*p7, 1*p6}
+t2: {1*p1} -> {1*p4}
+t3: {1*p2} -> {1*p5}
+t4: {1*p5} -> {1*p8}
+t5: {1*p6, 1*p8} -> {1*p1, 1*p2}
+t6: {1*p7} -> {1*p0}
+
+.initial_marking {1*p0, 1*p1, 1*p2}

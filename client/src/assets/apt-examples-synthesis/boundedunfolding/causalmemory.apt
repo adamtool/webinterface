@@ -1,0 +1,38 @@
+// Should not have a strategy
+// Example by Niklas that shows that McMillianUnfolder is only a heuristic and needs to look in the past
+// can reach marking {p2,p3} either via t0 or via t1, and both "branches" need to be followed to find out
+// that no winning strategy exists
+// ATTENTION: changes player's membership p0 (sys) - t0 -> p2 (env)
+.name "Simple Example"
+.description "TODO"
+.type LPN
+.options
+condition="SAFETY"
+
+.places
+p0[yCoord=106.0, xCoord=886.69, token=1]
+p1[yCoord=407.96, xCoord=777.28, env="true"]
+p2[yCoord=373.13, xCoord=1032.02, env="true"]
+p3[yCoord=387.02, xCoord=1199.01, env="true"]
+p4[yCoord=663.74, xCoord=1232.65, env="true"]
+p5[yCoord=706.07, bad="true", xCoord=821.65, token=1]
+
+.transitions
+t0[label="t0", yCoord=198.76, xCoord=1005.86]
+t1[label="t1", yCoord=240.08, xCoord=781.67]
+t2[label="t2", yCoord=502.92, xCoord=933.55]
+t3[label="t3", yCoord=499.19, xCoord=1373.98]
+t5[label="t5", yCoord=523.33, xCoord=1141.59]
+t6[label="t6", yCoord=535.23, xCoord=732.14]
+t7[label="t7", yCoord=370.28, xCoord=891.34]
+
+.flows
+t0: {1*p0} -> {1*p2}
+t1: {1*p0} -> {1*p1}
+t2: {1*p2, 1*p4} -> {1*p3, 1*p1}
+t3: {1*p3} -> {1*p4}
+t5: {1*p4, 1*p2} -> {1*p4, 1*p5}
+t6: {1*p5} -> {1*p1}
+t7: {1*p1} -> {1*p2}
+
+.initial_marking {1*p0, 1*p3}

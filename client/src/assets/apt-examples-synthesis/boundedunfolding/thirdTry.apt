@@ -1,0 +1,84 @@
+// Author: Jesko Hecking-Harbusch
+// tests bounded unfolding?
+// 1 sys, 2 env player
+// infinite
+// slight simplification of secondTry, by removing t18 and t19
+// and combining {t14,t15} x {t16,t17} (removed p1)
+// has winning strategy:
+// answer t3 -> t6, t2 -> t7, t5 -> t9, t4 -> t10, and then reset
+// quick unfolding, QuAbS needs longer than 60 minutes
+.name "Simple Example"
+.description "TODO"
+.type LPN
+.options
+winningCondition="A_SAFETY"
+
+.places
+p0[yCoord=596.58, bad="true", xCoord=-415.91, env="true"]
+p00[yCoord=586.04, bad="true", xCoord=2487.53, env="true"]
+//p1[yCoord=411.51, xCoord=771.62, token=1]
+p10[yCoord=726.16, xCoord=146.8, env="true"]
+p11[yCoord=565.36, xCoord=154.16, env="true"]
+p12[yCoord=312.52, xCoord=165.33, env="true"]
+p13[yCoord=598.42, xCoord=2309.54, env="true"]
+p14[yCoord=760.3, xCoord=1882.45, env="true"]
+p15[yCoord=554.62, xCoord=1891.44, env="true"]
+p16[yCoord=408.52, xCoord=1882.72, env="true"]
+p17[yCoord=596.82, xCoord=781.85, token=1]
+p18[yCoord=1183.75, xCoord=291.12, env="true"]
+p19[yCoord=-138.11, xCoord=332.11, env="true"]
+p2[yCoord=61.61, xCoord=415.75, token=1]
+p20[yCoord=1120.64, xCoord=2170.13, env="true"]
+p21[yCoord=-154.46, xCoord=2106.31, env="true"]
+p22[yCoord=636.55, xCoord=281.7, env="true"]
+p23[yCoord=433.95, xCoord=1448.17, env="true"]
+p3[yCoord=2.79, xCoord=1733.67, token=1]
+p7[yCoord=133.54, xCoord=811.78, token=1]
+p8[yCoord=150.56, xCoord=1229.27, token=1]
+p9[yCoord=591.01, xCoord=-294.56, env="true"]
+
+.transitions
+t0[label="t0", yCoord=834.78, xCoord=-229.19]
+t1[label="t1", yCoord=305.36, xCoord=-202.24]
+t10[label="t10", yCoord=-106.32, xCoord=1041.89]
+t11[label="t11", yCoord=537.96, xCoord=1687.43]
+t12[label="t12", yCoord=882.32, xCoord=2309.4]
+t13[label="t13", yCoord=212.14, xCoord=2342.93]
+t14[label="t14", yCoord=97.3, xCoord=171.16]
+t15[label="t15", yCoord=995.59, xCoord=138.95]
+t16[label="t16", yCoord=1050.97, xCoord=1921.58]
+t17[label="t17", yCoord=68.69, xCoord=1923.86]
+t2[label="t2", yCoord=649.57, xCoord=-118.37]
+t3[label="t3", yCoord=446.92, xCoord=-121.63]
+t4[label="t4", yCoord=709.46, xCoord=2137.38]
+t5[label="t5", yCoord=452.24, xCoord=2091.38]
+t6[label="t6", yCoord=282.75, xCoord=917.15]
+t7[label="t7", yCoord=-9.39, xCoord=903.71]
+t8[label="t8", yCoord=578.89, xCoord=406.54]
+t9[label="t9", yCoord=407.29, xCoord=1097.65]
+
+.flows
+t0: {1*p10, 1*p18} -> {1*p0}
+t1: {1*p12, 1*p19} -> {1*p0}
+t10: {1*p8} -> {1*p17, 1*p21}
+t11: {1*p3, 1*p15} -> {1*p8, 1*p23}
+t12: {1*p14, 1*p20} -> {1*p00}
+t13: {1*p21, 1*p16} -> {1*p00}
+//t14: {p22, p17, p12, p18} -> {p9, p1}
+//t15: {p19, p22, p10, p17} -> {p9, p1}
+//t16: {p1,  p14, p23, p21} -> {p2, p13}
+//t17: {p1,  p20, p16, p23} -> {p2, p13}
+t14: {p22, p17, p12, p18, p14, p23, p21} -> {p9, p2, p13}
+t15: {p22, p17, p12, p18, p20, p16, p23} -> {p9, p2, p13}
+t16: {p19, p22, p10, p17, p14, p23, p21} -> {p9, p2, p13}
+t17: {p19, p22, p10, p17, p20, p16, p23} -> {p9, p2, p13}
+t2: {1*p9} -> {1*p11, 1*p10}
+t3: {1*p9} -> {1*p12, 1*p11}
+t4: {1*p13} -> {1*p14, 1*p15}
+t5: {1*p13} -> {1*p15, 1*p16}
+t6: {1*p7} -> {1*p3, 1*p18}
+t7: {1*p7} -> {1*p3, 1*p19}
+t8: {1*p11, 1*p2} -> {1*p22, 1*p7}
+t9: {1*p8} -> {1*p17, 1*p20}
+
+.initial_marking {1*p13, 1*p2, 1*p9}

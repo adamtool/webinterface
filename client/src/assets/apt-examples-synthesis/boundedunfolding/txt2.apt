@@ -1,0 +1,63 @@
+.name "Example"
+.description "Describe your net here."
+.type LPN
+.options
+condition="A_SAFETY"
+
+.places
+p0[yCoord=166.67, xCoord=396.0, env="true"]
+p1[yCoord=164.67, xCoord=794.0, env="true"]
+p10[yCoord=376.67, xCoord=703.0, env="true"]
+p11[yCoord=627.95, xCoord=1491.05, env="true"]
+p12[yCoord=795.74, xCoord=718.39, env="true"]
+p13[yCoord=789.53, xCoord=855.11, env="true"]
+p2[yCoord=160.67, xCoord=1375.0, env="true"]
+p3[yCoord=384.67, xCoord=391.0, env="true"]
+p4[yCoord=372.67, xCoord=784.0, env="true"]
+p5[yCoord=389.67, xCoord=1367.0, env="true"]
+p6[yCoord=626.67, xCoord=785.0, env="true"]
+p7[yCoord=619.67, xCoord=381.0, env="true"]
+p8[yCoord=625.67, xCoord=1372.0, env="true"]
+p9[yCoord=386.67, xCoord=496.0, env="true"]
+
+.transitions
+t0[label="t0", yCoord=263.67, xCoord=394.0]
+t1[label="t1", yCoord=514.67, xCoord=567.0]
+t10[label="t10", yCoord=505.67, xCoord=442.0]
+t11[label="t11", yCoord=509.67, xCoord=688.0]
+t12[label="t12", yCoord=510.67, xCoord=805.0]
+t14[label="t14", yCoord=509.67, xCoord=1488.0]
+t15[label="t15", yCoord=682.85, xCoord=627.24]
+t16[label="t16", yCoord=685.95, xCoord=939.0]
+t17[label="t17", yCoord=449.8, xCoord=1120.26]
+t18[label="t18", yCoord=566.84, xCoord=1123.36]
+t19[label="t19", yCoord=317.23, xCoord=1119.22]
+t2[label="t2", yCoord=276.67, xCoord=793.0]
+t3[label="t3", yCoord=266.67, xCoord=1366.0]
+t4[label="t4", yCoord=509.67, xCoord=1371.0]
+t5[label="t5", yCoord=700.53, xCoord=1126.5]
+t6[label="t6", yCoord=718.67, xCoord=165.0]
+t7[label="t7", yCoord=262.67, xCoord=500.0]
+t8[label="t8", yCoord=278.67, xCoord=717.0]
+
+.flows
+t0: {1*p0} -> {1*p3}
+t1: {1*p3, 1*p4} -> {1*p7, 1*p6}
+t10: {1*p10, 1*p9} -> {1*p6, 1*p7}
+t11: {1*p3, 1*p10} -> {1*p6, 1*p7}
+t12: {1*p4, 1*p9} -> {1*p6, 1*p7}
+t14: {1*p5} -> {1*p11}
+t15: {1*p6} -> {1*p12}
+t16: {1*p6} -> {1*p13}
+t17: {1*p8, 1*p12} -> {1*p2, 1*p1}
+t18: {1*p13, 1*p11} -> {1*p1, 1*p2}
+t19: {1*p11, 1*p12} -> {1*p1, 1*p2}
+t2: {1*p1} -> {1*p4}
+t3: {1*p2} -> {1*p5}
+t4: {1*p5} -> {1*p8}
+t5: {1*p13, 1*p8} -> {1*p1, 1*p2}
+t6: {1*p7} -> {1*p0}
+t7: {1*p0} -> {1*p9}
+t8: {1*p1} -> {1*p10}
+
+.initial_marking {1*p0, 1*p1, 1*p2}

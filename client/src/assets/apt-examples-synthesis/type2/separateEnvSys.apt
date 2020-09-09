@@ -1,0 +1,51 @@
+// should have strategy because there are no bad places
+.name "Separate Env and Sys"
+.type LPN
+.options
+condition="A_SAFETY"
+
+.places
+p0[yCoord=150.0, xCoord=510.0]
+p1[yCoord=330.0, xCoord=270.0]
+p2[yCoord=330.0, xCoord=750.0]
+p3[yCoord=570.0, xCoord=330.0]
+p4[yCoord=570.0, xCoord=690.0]
+p5[yCoord=570.0, xCoord=210.0]
+p6[yCoord=570.0, xCoord=810.0]
+p7[yCoord=220.0, xCoord=1580.0, env="true"]
+p8[yCoord=460.0, xCoord=1340.0, env="true"]
+p9[yCoord=460.0, xCoord=1820.0, env="true"]
+
+.transitions
+t0[label="t0", yCoord=270.0, xCoord=390.0, tfl="p0 -> {p1}"]
+t1[label="t1", yCoord=270.0, xCoord=630.0, tfl="p0 -> {p2}"]
+t10[label="t10", yCoord=340.0, xCoord=1460.0, tfl="p7 -> {p8}"]
+t11[label="t11", yCoord=340.0, xCoord=1700.0, tfl="p7 -> {p9}"]
+t12[label="t12", yCoord=220.0, xCoord=1340.0, tfl="p8 -> {p7}"]
+t13[label="t13", yCoord=220.0, xCoord=1820.0, tfl="p9 -> {p7}"]
+t2[label="t2", yCoord=450.0, xCoord=210.0, tfl="p1 -> {p5}"]
+t3[label="t3", yCoord=450.0, xCoord=330.0, tfl="p1 -> {p3}"]
+t4[label="t4", yCoord=450.0, xCoord=690.0, tfl="p2 -> {p4}"]
+t5[label="t5", yCoord=450.0, xCoord=810.0, tfl="p2 -> {p6}"]
+t6[label="t6", yCoord=150.0, xCoord=90.0, tfl="p5 -> {p0}"]
+t7[label="t7", yCoord=570.0, xCoord=450.0, tfl="p3 -> {p0}"]
+t8[label="t8", yCoord=570.0, xCoord=570.0, tfl="p4 -> {p0}"]
+t9[label="t9", yCoord=150.0, xCoord=930.0, tfl="p6 -> {p0}"]
+
+.flows
+t0: {1*p0} -> {1*p1}
+t1: {1*p0} -> {1*p2}
+t10: {1*p7} -> {1*p8}
+t11: {1*p7} -> {1*p9}
+t12: {1*p8} -> {1*p7}
+t13: {1*p9} -> {1*p7}
+t2: {1*p1} -> {1*p5}
+t3: {1*p1} -> {1*p3}
+t4: {1*p2} -> {1*p4}
+t5: {1*p2} -> {1*p6}
+t6: {1*p5} -> {1*p0}
+t7: {1*p3} -> {1*p0}
+t8: {1*p4} -> {1*p0}
+t9: {1*p6} -> {1*p0}
+
+.initial_marking {1*p0, 1*p7}

@@ -1,0 +1,64 @@
+// Author: Jesko Hecking-Harbusch
+// Sys has to make different decisions after initial env decision, tests bounded unfolding
+// 1 sys, 2 env player
+// finite
+// should have winning strategy
+// similar to finite1.apt and finite2.apt BUT with TWO ENV players
+.name "Simple Example"
+.description "TODO"
+.type LPN
+.options
+condition="A_SAFETY"
+
+.places
+p0[yCoord=293.67, xCoord=432.0]
+p1[yCoord=498.67, xCoord=440.0]
+p10[yCoord=969.93, xCoord=680.09, bad="true"]
+p11[yCoord=238.48, xCoord=810.49, env="true"]
+p12[yCoord=246.23, xCoord=1079.77, env="true"]
+p13[yCoord=224.92, xCoord=647.76, env="true"]
+p14[yCoord=986.25, xCoord=984.84, bad="true"]
+p2[yCoord=750.67, xCoord=284.0]
+p3[yCoord=763.67, xCoord=569.0]
+p4[yCoord=234.6, xCoord=1283.18, env="true"]
+p5[yCoord=473.05, xCoord=965.77]
+p6[yCoord=631.04, xCoord=992.12]
+p7[yCoord=788.67, xCoord=767.0]
+p8[yCoord=786.67, xCoord=1167.0]
+p9[yCoord=57.39, xCoord=935.94, env="true"]
+
+.transitions
+t0[label="t0", yCoord=363.46, xCoord=834.29]
+t1[label="t1", yCoord=365.87, xCoord=1069.1]
+t10[label="t10", yCoord=873.89, xCoord=612.89]
+t11[label="t11", yCoord=889.39, xCoord=858.92]
+t12[label="t12", yCoord=155.18, xCoord=820.18]
+t13[label="t13", yCoord=162.93, xCoord=1060.39]
+t14[label="t14", yCoord=902.95, xCoord=1318.05]
+t2[label="t2", yCoord=625.93, xCoord=849.24]
+t3[label="t3", yCoord=638.01, xCoord=718.69]
+t4[label="t4", yCoord=889.39, xCoord=335.87]
+t5[label="t5", yCoord=600.68, xCoord=1185.9]
+t6[label="t6", yCoord=699.42, xCoord=904.13]
+t7[label="t7", yCoord=703.03, xCoord=1089.57]
+t8[label="t8", yCoord=645.23, xCoord=364.68]
+t9[label="t9", yCoord=658.48, xCoord=534.46]
+
+.flows
+t0: {1*p11, 1*p0} -> {1*p5, 1*p1}
+t1: {1*p12, 1*p0} -> {1*p5, 1*p1}
+t10: {1*p4, 1*p3} -> {1*p10}
+t11: {1*p7, 1*p13} -> {1*p14}
+t12: {1*p9} -> {1*p11, 1*p13}
+t13: {1*p9} -> {1*p4, 1*p12}
+t14: {1*p4, 1*p8} -> {1*p14}
+t2: {1*p5} -> {1*p6}
+t3: {1*p5} -> {1*p7}
+t4: {1*p13, 1*p2} -> {1*p10}
+t5: {1*p5} -> {1*p8}
+t6: {1*p6} -> {1*p7}
+t7: {1*p6} -> {1*p8}
+t8: {1*p1} -> {1*p2}
+t9: {1*p1} -> {1*p3}
+
+.initial_marking {1*p0, 1*p9}

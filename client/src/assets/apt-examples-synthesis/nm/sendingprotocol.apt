@@ -1,0 +1,48 @@
+// should have strategy
+.name "sendingProtocol"
+.type LPN
+.options
+condition="SAFETY"
+
+.places
+EA[yCoord=162.0, xCoord=777.3, env="true"]
+EB[yCoord=614.26, xCoord=787.49, env="true"]
+Env[yCoord=316.95, xCoord=-32.05, env="true"]
+GO[yCoord=580.5, xCoord=659.14, token=1]
+LA[yCoord=14.82, xCoord=296.03, env="true"]
+LB[yCoord=687.59, xCoord=270.48, env="true"]
+SA[yCoord=208.65, xCoord=417.42, token=1]
+SAA[yCoord=48.4, xCoord=714.4, token=1]
+SB[yCoord=519.15, xCoord=394.69, token=2]
+SBB[yCoord=719.69, xCoord=633.25, token=2]
+TRAP[yCoord=376.72, xCoord=950.82, token=1]
+bad[yCoord=336.58, bad="true", xCoord=1170.98, token=1]
+decision[yCoord=390.56, xCoord=576.45, token=1]
+
+.transitions
+iA[label="iA", yCoord=143.41, xCoord=105.08]
+iB[label="iB", yCoord=521.7, xCoord=86.3]
+infoA[label="infoA", yCoord=593.04, xCoord=515.66]
+infoB[label="infoB", yCoord=171.65, xCoord=542.7]
+tA[label="tA", yCoord=26.95, xCoord=471.55]
+tB[label="tB", yCoord=699.65, xCoord=468.49]
+tGO[label="tGO", yCoord=436.35, xCoord=755.37]
+tGO1[label="tGO1", yCoord=331.07, xCoord=309.11]
+tTRAP[label="tTRAP", yCoord=297.92, xCoord=747.53]
+tbad1[label="tbad1", yCoord=566.26, xCoord=955.84]
+tbad2[label="tbad2", yCoord=231.18, xCoord=1030.18]
+
+.flows
+iA: {1*Env} -> {1*LA}
+iB: {1*Env} -> {1*LB}
+infoA: {1*SBB, 1*SA} -> {1*decision}
+infoB: {1*SB, 1*SAA} -> {1*decision}
+tA: {1*SA, 1*LA} -> {1*SAA, 1*EA}
+tB: {1*SB, 1*LB} -> {1*EB, 1*SBB}
+tGO: {1*decision} -> {1*GO}
+tGO1: {1*EA, 1*GO} -> {1*SA, 1*Env, 1*SB}
+tTRAP: {1*decision} -> {1*TRAP}
+tbad1: {1*GO, 1*EB} -> {1*bad}
+tbad2: {1*TRAP, 1*EA} -> {1*bad}
+
+.initial_marking {1*Env, 1*SA, 1*SB}
