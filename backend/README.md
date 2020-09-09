@@ -44,3 +44,14 @@ with your desired version number _ver_ (the past version numbers can be found in
 This pulls all submodules to get the latest version of all submodules building the backend.
 Then, it builds the jar for the backend, integrates it and links this version in the pom.xml of the server. 
 Finally, it adds, commits, and pushes these changes to the repository _webinterface_.
+
+Update the examples
+-------------------
+To update the examples under _File->Load example_ to the current version of the examples with coordinates in the repository [examples](https://github.com/adamtool/examples), you can use
+```
+make update_examples
+```
+If you want to have clean example folders which only contain the examples from the repo, you can use
+```
+make update_examples clean=true
+```
