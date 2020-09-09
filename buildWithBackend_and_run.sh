@@ -6,7 +6,8 @@ folder=${pref}${ver}
 
 if [ ! -d "${folder}" ]; then
     echo "> The backend is not compiled for version: ${ver}."
-    cd backend && make integrate_backend
+    cd backend && make integrate_backend && make update_examples
+    cd ..
 fi
 echo "> build and run the server."
 ./build_and_run.sh

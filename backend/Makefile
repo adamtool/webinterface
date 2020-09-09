@@ -28,9 +28,11 @@ t=javac
 		clean-all
 		pull_backend
 		update_backend
+		update_examples
 		clean_backend
 		deploy_backend
 		publish_backend
+		publish_examples
 
 ## the targets for the submodules
 tools: 
@@ -101,3 +103,9 @@ integrate_backend: clean_backend
 publish_backend: clean_backend pull_backend
 	./update_backend.sh ${DEPENDENCIES_FOLDERS}
 	./publish_backend.sh
+
+update_examples:
+	./update_examples.sh
+
+publish_examples: 
+	./publish_examples.sh
