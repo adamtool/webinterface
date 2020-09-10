@@ -186,7 +186,7 @@
         <dependency>
             <groupId>uniolunisaar.adam</groupId>
             <artifactId>adam-core</artifactId>
-            <version>2.0</version>
+            <version>2.2</version>
         </dependency>
         <!--Here are some dependencies of ADAM that are not included with ADAM itself -->
         <dependency>

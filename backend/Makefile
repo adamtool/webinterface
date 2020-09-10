@@ -100,6 +100,7 @@ integrate_backend: clean_backend
 	./integrate_backend.sh
 
 publish_backend: clean_backend pull_backend
+	git pull
 	./update_backend.sh ${DEPENDENCIES_FOLDERS}
 	./publish_backend.sh
 
