@@ -4,10 +4,11 @@
 # import the coloring functions for the texts
 source ./echoColoredTexts.sh
 
+printColored "%%%%%%%%%%%%% PUBLISH BACKEND" $blue
 if [[ -z ${ver} ]]; then
 	printError 'You have to give a version number with ver="<version>".'
 else
-    printColored -e "> Create the adam_core.jar" 
+    printColored "> Create the adam_core.jar" 
     make deploy_backend 
     printColored "> Publish the version ${ver} of adam_core.jar"
     mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file -Dfile=webinterface-backend/adam_core.jar -DgroupId=uniolunisaar.adam -DartifactId=adam-core -Dversion=${ver} -Dpackaging=jar -DlocalRepositoryPath=../server/adam-core
