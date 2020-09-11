@@ -32,8 +32,9 @@ client/src/assets/apt-examples.json
 server/target/
 adamweb-log*
 server/adam-core/uniolunisaar/adam/adam-core/*
-/client/src/assets/apt-examples-mc/
-/client/src/assets/apt-examples-synthesis/
+client/src/assets/apt-examples-mc/
+client/src/assets/apt-examples-synthesis/
+server/adam-core/uniolunisaar/adam/adam-core/maven-metadata-local.xml 
 
 # Source files of ADAM (normally kept in a tar.gz until needed)
 adam_src/
