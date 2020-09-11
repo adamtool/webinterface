@@ -29,6 +29,6 @@ function printColored {
 }
 
 function printError {
-    printColored "ERROR: "$1 $red
+    printColored "ERROR: $1" $red
 }
 
