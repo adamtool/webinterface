@@ -1,12 +1,8 @@
 #!/bin/bash
 # @author Manuel Gieseking
-function printColored {
-    echo -e "\e[1;36m$1\e[0m"
-}
 
-function printError {
-    echo -e "\e[1;31m$1\e[0m"
-}
+# import the coloring functions for the texts
+source ./echoColoredTexts.sh
 
 if [[ -z ${ver} ]]; then
 	printError 'You have to give a version number with ver="<version>".'
