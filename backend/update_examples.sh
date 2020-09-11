@@ -5,14 +5,17 @@ SYNT_FOLDER=../client/src/assets/apt-examples-synthesis/
 EXAMPLES_MC_FOLDER=./examples/modelchecking/
 EXAMPLES_SYNT_FOLDER=./examples/synthesis/forallsafety/
 
+function printColored {
+    echo -e "\e[1;36m$1\e[0m"
+}
 ###### Model checking
-echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MODEL CHECKING"
 if [[ ! -z ${clean} ]]; then
-    echo "> MC: Remove all current examples ..."
+    printColored "> MC: Remove all current examples ..."
     rm -r $MC_FOLDER
     mkdir $MC_FOLDER
 fi
-echo "> MC: Copy examples with coordinates..."
+printColored "> MC: Copy examples with coordinates..."
+echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MODEL CHECKING"
 for file in $(find $EXAMPLES_MC_FOLDER -name '*.apt'); do   # all .apt files recursively
     if grep -q "xCoord" "$file"; then
         # tinker the new location
@@ -25,13 +28,13 @@ for file in $(find $EXAMPLES_MC_FOLDER -name '*.apt'); do   # all .apt files rec
 done
 
 ###### Synthesis
-echo -e "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SYNTHESIS"
 if [[ ! -z ${clean} ]]; then
-    echo "> SYNT: Remove all current examples ..."
+    printColored "> SYNT: Remove all current examples ..."
     rm -r $SYNT_FOLDER
     mkdir $SYNT_FOLDER
 fi
-echo "> SYNT: Copy examples with coordinates..."
+printColored "\n> SYNT: Copy examples with coordinates..."
+echo -e "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SYNTHESIS"
 for file in $(find $EXAMPLES_SYNT_FOLDER -name '*.apt'); do   # all .apt files recursively
     if grep -q "xCoord" "$file"; then
         # tinker the new location
