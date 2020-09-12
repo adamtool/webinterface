@@ -52,12 +52,12 @@
           label="View"
         >
           <hsc-menu-item
-            @click="showLogWindow = !showLogWindow"
+            v-model="showLogWindow"
             label="Log Window"
           />
           <hsc-menu-item
-            @click="showJobList = !showJobList"
-            :label="'Job Queue'"
+            v-model="showJobList"
+            label="Job Queue"
           />
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
@@ -83,10 +83,13 @@
         </template>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
-            :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
-            @click="showPhysicsControls = !showPhysicsControls"/>
-          <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
-                         @click="showPartitions = !showPartitions"/>
+            v-model="showPhysicsControls"
+            label="Show physics controls"
+          />
+          <hsc-menu-item
+            v-model="showPartitions"
+            label="Show partitions"
+          />
         </hsc-menu-bar-item>
         <hsc-menu-bar-item
           @click.native="showAboutModal = true; this.$refs.menubar.deactivate()"
