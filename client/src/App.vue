@@ -78,7 +78,12 @@
         </hsc-menu-bar-item>
         <hsc-menu-bar-item
           @click.native="showLogWindow = !showLogWindow; $refs.menubar.deactivate()"
-          :label="showLogWindow ? 'Hide log' : 'Show log'"/>
+          :label="showLogWindow ? 'Hide log' : 'Show log'"
+        />
+        <hsc-menu-bar-item
+          @click.native="showAboutModal = true"
+          label="About"
+        />
       </hsc-menu-bar>
       <button @click="showJobList = true"
               style="margin-left: 40px;">View jobs running on server
@@ -88,11 +93,6 @@
         max-width="600"
         v-model="showAboutModal"
         @keydown.esc="showAboutModal = false">
-        <template v-slot:activator="{ on }">
-          <button style="margin-left: auto; padding-right: 10px; font-size: 18px;"
-                  @click="showAboutModal = true">About
-          </button>
-        </template>
         <v-card>
           <v-card-title
             primary-title
