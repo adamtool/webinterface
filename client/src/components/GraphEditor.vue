@@ -1049,7 +1049,7 @@
             snapToGrid = d3.event.sourceEvent.ctrlKey
             // When the user drags a node, the physics simulation should start again in case it had
             // been paused for inactivity.
-            this.physicsSimulation.alpha(0.7).restart()
+            this.physicsSimulation.alpha(0.5).restart()
             if (isSelectionDrag) {
               // To you, dear reader, this might seem overcomplicated.  You might ask, "Ann,
               // why didn't you simply write this:
@@ -1594,7 +1594,7 @@
             node.fy = null
           })
         }
-        this.physicsSimulation.alpha(0.7).restart()
+        this.physicsSimulation.alpha(0.3).restart()
       },
       // If you lost track of where the graph actually is, you can click this button and it will
       // zoom out far enough that all the nodes can be seen.  :)
@@ -2045,119 +2045,116 @@
           'SYSPLACE': this.nodeRadius * 1.4,
           'TRANSITION': this.nodeRadius * 1.6
         }
-        // let ticksElapsed = 0 // For printing debug info
-        this.physicsSimulation.nodes(this.nodes).on('tick', () => {
-          // Debugging alpha value of physics simulation (used to pause it when it's not in use)
-          // ticksElapsed++
-          // if (ticksElapsed === 10) {
-          //   ticksElapsed = 0
-          //   console.log(`Simulation alpha: ${this.physicsSimulation.alpha()}`)
-          // }
+        this.physicsSimulation.nodes(this.nodes).on('tick', this.onPhysicsTick)
+        // Let the physics simulation know what links it is working with
+        this.physicsSimulation.force('link').links(this.links)
+        // Run a single tick right away
+        this.onPhysicsTick()
+      },
+      onPhysicsTick: function () {
+        // Debugging alpha value of physics simulation (used to pause it when it's not in use)
+        // this.ticksElapsed++
+        // if (this.ticksElapsed === 10) {
+        //   this.ticksElapsed = 0
+        //   console.log(`Simulation alpha: ${this.physicsSimulation.alpha()}`)
+        // }
 
-          // Make sure the D3 forceSimulation is only running if the Graph Editor is visible.
-          const svgElement = this.$refs.svg
-          const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
-          if (!isSvgVisible) {
-            // console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible: ' + this._uid)
-            this.physicsSimulation.stop()
-            setTimeout(() => {
-              if (!this.isDestroyed) {
-                // console.log('Restarting forceSimulation after 2 seconds')
-                this.physicsSimulation.restart()
-              }
-            }, 2000)
-            return
-          }
-          this.nodeElements.filter('rect')
-            .attr('transform', node =>
-              `translate(
+        // Make sure the D3 forceSimulation is only running if the Graph Editor is visible.
+        const svgElement = this.$refs.svg
+        const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
+        if (!isSvgVisible) {
+          // console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible: ' + this._uid)
+          this.physicsSimulation.stop()
+          setTimeout(() => {
+            if (!this.isDestroyed) {
+              // console.log('Restarting forceSimulation after 2 seconds')
+              this.physicsSimulation.restart()
+            }
+          }, 2000)
+          return
+        }
+        this.nodeElements.filter('rect')
+          .attr('transform', node =>
+            `translate(
               ${node.x - this.calculateNodeWidth(node) / 2},
               ${node.y - this.calculateNodeHeight(node) / 2})`)
-          this.nodeElements.filter('circle')
-            .attr('transform', node => `translate(${node.x},${node.y})`)
-          this.isSpecialElements
-            .attr('transform', node => `translate(${node.x},${node.y})`)
-          this.labelElements
-            .attr('x', node => node.x)
-            .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
-          this.contentElements
-            .attr('x', node => node.x)
-            .attr('y', node => {
-              if (node.type === 'BDD_GRAPH_STATE') {
-                return node.y - this.calculateNodeHeight(node) / 2 + 30
-              } else {
-                return node.y - this.calculateNodeHeight(node) / 2 + 38
-              }
-            })
-          this.drawFlowPreview
-            .attr('transform', () => {
-              const target = this.drawFlowTarget
-              if (target) {
-                return `translate(${target.x},${target.y})`
-              } else {
-                return ''
-              }
-            })
-            .attr('r', () => {
-              const target = this.drawFlowTarget
-              if (target) {
-                return drawFlowPreviewSizes[target.type]
-              } else {
-                return 0
-              }
-            })
-          this.drawTransitPreviewCircles
-            .attr('transform', d => {
-              return `translate(${d.x},${d.y})`
-            })
+        this.nodeElements.filter('circle')
+          .attr('transform', node => `translate(${node.x},${node.y})`)
+        this.isSpecialElements
+          .attr('transform', node => `translate(${node.x},${node.y})`)
+        this.labelElements
+          .attr('x', node => node.x)
+          .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
+        this.contentElements
+          .attr('x', node => node.x)
+          .attr('y', node => {
+            if (node.type === 'BDD_GRAPH_STATE') {
+              return node.y - this.calculateNodeHeight(node) / 2 + 30
+            } else {
+              return node.y - this.calculateNodeHeight(node) / 2 + 38
+            }
+          })
+        this.drawFlowPreview
+          .attr('transform', () => {
+            const target = this.drawFlowTarget
+            if (target) {
+              return `translate(${target.x},${target.y})`
+            } else {
+              return ''
+            }
+          })
+          .attr('r', () => {
+            const target = this.drawFlowTarget
+            if (target) {
+              return drawFlowPreviewSizes[target.type]
+            } else {
+              return 0
+            }
+          })
+        this.drawTransitPreviewCircles
+          .attr('transform', d => {
+            return `translate(${d.x},${d.y})`
+          })
 
-          // Update links to match the nodes' new positions
-          this.linkElements
-            .attr('d', d => {
-              const unadjustedPathD = pathForLink.call(this, d)
-              if (!d.isInhibitorArc) {
-                return unadjustedPathD
-              } else {
-                const inhibitorArcCircleRadius = 10
-                // Back off the arc by a small distance to make room for a little circle in between
-                // the arrowhead and the target node
-                // We do this by constructing a SVG element with the given 'unadjusted path'
-                // and using its 'getPointAtLength' method to figure out where the actual path
-                // should end
-                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-                pathEl.setAttributeNS(null, 'd', unadjustedPathD)
-                const length = pathEl.getTotalLength()
-                const endpoint = pathEl.getPointAtLength(length - inhibitorArcCircleRadius * 2)
+        // Update links to match the nodes' new positions
+        this.linkElements
+          .attr('d', d => {
+            const unadjustedPathD = pathForLink.call(this, d)
+            if (!d.isInhibitorArc) {
+              return unadjustedPathD
+            } else {
+              const inhibitorArcCircleRadius = 10
+              // Back off the arc by a small distance to make room for a little circle in between
+              // the arrowhead and the target node
+              // We do this by constructing a SVG element with the given 'unadjusted path'
+              // and using its 'getPointAtLength' method to figure out where the actual path
+              // should end
+              const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+              pathEl.setAttributeNS(null, 'd', unadjustedPathD)
+              const length = pathEl.getTotalLength()
+              const endpoint = pathEl.getPointAtLength(length - inhibitorArcCircleRadius * 2)
 
-                // Save this for later in order to place the inhibitor arc circle
-                d.inhibitorArcCircleCenter =
-                  pathEl.getPointAtLength(length - inhibitorArcCircleRadius)
+              // Save this for later in order to place the inhibitor arc circle
+              d.inhibitorArcCircleCenter =
+                pathEl.getPointAtLength(length - inhibitorArcCircleRadius)
 
-                return pathForLink.call(this, d, {endpoint})
-                // console.log('path length: ' + length)
-                // console.log('point before end: ')
-                // console.log(point)
-              }
-            })
+              return pathForLink.call(this, d, {endpoint})
+              // console.log('path length: ' + length)
+              // console.log('point before end: ')
+              // console.log(point)
+            }
+          })
 
-          // Position inhibitor arc circles
-          this.inhibitorArcCircleElements.attr('transform',
-            (d) => `translate(${d.inhibitorArcCircleCenter.x},${d.inhibitorArcCircleCenter.y})`
-          )
+        // Position inhibitor arc circles
+        this.inhibitorArcCircleElements.attr('transform',
+          (d) => `translate(${d.inhibitorArcCircleCenter.x},${d.inhibitorArcCircleCenter.y})`
+        )
 
-          // Position link labels at the center of the links based on the distance calculated above
-          this.linkTextElements
-            .attr('dx', d => {
-              return d.pathLength / 2
-            })
-
-          // Let the physics simulation know what links it is working with
-          this.physicsSimulation.force('link').links(this.links)
-        })
-        // Raise the temperature of the force simulation and restart it, because if the simulation
-        // isn't running, the newly inserted nodes' positions will not get applied to the SVG,
-        // and you won't be able to see them.
-        this.physicsSimulation.alpha(0.7).restart()
+        // Position link labels at the center of the links based on the distance calculated above
+        this.linkTextElements
+          .attr('dx', d => {
+            return d.pathLength / 2
+          })
       },
       // Update the marking view for the petri net being shown
       applyMarking: function (marking, fireableTransitions) {
@@ -2214,7 +2211,9 @@
           if (newNodePositions.hasOwnProperty(node.id)) {
             // logging.logVerbose('updating x/y coordinates of this node: ' + node.id)
             const newPosition = newNodePositions[node.id]
+            node.x = newPosition.x
             node.fx = newPosition.x
+            node.y = newPosition.y
             node.fy = newPosition.y
           }
         })
