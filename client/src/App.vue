@@ -912,6 +912,7 @@
             }
           },
           onDrag: () => {
+            // Snap left side shut
             const leftPaneWidth = split.getSizes()[0]
             const leftPaneShouldCollapse = leftPaneWidth <= this.leftPaneMinWidth
             if (leftPaneShouldCollapse && this.isLeftPaneVisible) {
@@ -924,6 +925,21 @@
             if (!leftPaneShouldCollapse && !this.isLeftPaneVisible) {
               logging.logVerbose('expanding apt editor')
               this.isLeftPaneVisible = true
+            }
+
+            // Snap right side shut
+            const rightPaneWidth = split.getSizes()[1]
+            const rightPaneShouldCollapse = rightPaneWidth <= this.leftPaneMinWidth
+            if (rightPaneShouldCollapse && this.showRightPanelToggle) {
+              logging.logVerbose('collapsing right pane')
+              this.showRightPanelToggle = false
+            }
+            if (rightPaneShouldCollapse) {
+              split.setSizes([100, 0])
+            }
+            if (!rightPaneShouldCollapse && !this.showRightPanelToggle) {
+              logging.logVerbose('expanding right pane')
+              this.showRightPanelToggle = true
             }
           },
           onDragEnd: () => {
