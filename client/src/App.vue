@@ -278,9 +278,11 @@
     <!-- The log window -->
     <hsc-window-style-metal>
       <hsc-window resizable
+                  :positionHint="`${(window.innerWidth - 700) / 2} / ${(window.innerHeight - 200)
+                   / 2.5}`"
                   closeButton
-                  :minWidth="200"
-                  :minHeight="100"
+                  :minWidth="700"
+                  :minHeight="200"
                   :isOpen.sync="showLogWindow"
                   title="Log"
                   style="z-index: 9999">
@@ -355,7 +357,6 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-
   </v-app>
 </template>
 
@@ -545,7 +546,10 @@
         selectedTabLeftSide: 0,
         selectedTabRightSide: '',
         // Which jobs' tabs are open. Equivalent to List<JobKey> on the server
-        visibleJobsRightSide: []
+        visibleJobsRightSide: [],
+
+        // This is needed in order to access the 'window' object in the template
+        window: window
       }
     },
     watch: {
