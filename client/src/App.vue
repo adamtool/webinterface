@@ -278,11 +278,12 @@
     <!-- The log window -->
     <hsc-window-style-metal>
       <hsc-window resizable
-                  :positionHint="`${(window.innerWidth - 700) / 2} / ${(window.innerHeight - 200)
-                   / 2.5}`"
+                  :positionHint="logWindowPositionHint"
                   closeButton
-                  :minWidth="700"
-                  :minHeight="200"
+                  :minWidth="logWindowMinWidth"
+                  :minHeight="logWindowMinHeight"
+                  :height.sync="logWindowHeight"
+                  :width.sync="logWindowWidth"
                   :isOpen.sync="showLogWindow"
                   title="Log"
                   style="z-index: 9999">
@@ -548,8 +549,12 @@
         // Which jobs' tabs are open. Equivalent to List<JobKey> on the server
         visibleJobsRightSide: [],
 
-        // This is needed in order to access the 'window' object in the template
-        window: window
+        // Initial log window size
+        logWindowWidth: window.innerWidth * 0.7,
+        logWindowHeight: window.innerHeight * 0.6,
+        // Minimum log window size
+        logWindowMinWidth: 700,
+        logWindowMinHeight: 200
       }
     },
     watch: {
@@ -587,6 +592,11 @@
       }
     },
     computed: {
+      logWindowPositionHint: function () {
+        const x = (window.innerWidth - this.logWindowWidth) / 2
+        const y = (window.innerHeight - this.logWindowHeight) / 2.5
+        return `${x} / ${y}`
+      },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
