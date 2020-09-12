@@ -59,6 +59,10 @@
             v-model="showJobList"
             label="Job Queue"
           />
+          <hsc-menu-item
+            v-model="showRightPanelToggle"
+            label="Show right panel"
+          />
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"/>
@@ -502,6 +506,7 @@
         showSaveAptModal: false,
         showJobList: false,
         showAboutModal: false,
+        showRightPanelToggle: true, // In "View" menu, allow hiding the right panel completely
         // The contents of the 'save apt' filename box
         aptFilename: 'apt.txt',
 
@@ -589,6 +594,18 @@
             this.copyEditorNetToSimulator()
           }
         }
+      },
+      shouldShowRightSide: function () {
+        if (!this.shouldShowRightSide) {
+          // Make sure that the left side is open if the right side is closed.
+          // (It is strange if everything is closed and you just have a big blank screen.)
+          this.horizontalSplitSizes = this.horizontalSplit.getSizes()
+          this.horizontalSplit.setSizes([100, 0])
+          this.isLeftPaneVisible = true
+        } else {
+          // Restore the sizes that were there last time
+          this.horizontalSplit.setSizes(this.horizontalSplitSizes)
+        }
       }
     },
     computed: {
@@ -643,7 +660,7 @@
         return hideStyle + 'flex-grow: 1;'
       },
       shouldShowRightSide: function () {
-        return this.tabsRightSide.length !== 0
+        return this.tabsRightSide.length !== 0 && this.showRightPanelToggle
       },
       splitRightSideStyle: function () {
         return this.shouldShowRightSide ? '' : 'display: none;'
