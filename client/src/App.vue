@@ -48,6 +48,22 @@
                                     :callback="onAptExampleSelected"/>
           </hsc-menu-item>
         </hsc-menu-bar-item>
+        <hsc-menu-bar-item
+          label="View"
+        >
+          <hsc-menu-item
+            v-model="showLogWindow"
+            label="Log Window"
+          />
+          <hsc-menu-item
+            v-model="showJobList"
+            label="Job Queue"
+          />
+          <hsc-menu-item
+            v-model="showRightPanelToggle"
+            label="Show right panel"
+          />
+        </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"/>
           <hsc-menu-bar-item label="Analyze">
@@ -71,23 +87,19 @@
         </template>
         <hsc-menu-bar-item label="Settings">
           <hsc-menu-item
-            :label="showPhysicsControls ? 'Hide physics controls' : 'Show physics controls'"
-            @click="showPhysicsControls = !showPhysicsControls"/>
-          <hsc-menu-item :label="showPartitions ? 'Hide partitions' : 'Show partitions'"
-                         @click="showPartitions = !showPartitions"/>
+            v-model="showPhysicsControls"
+            label="Show physics controls"
+          />
+          <hsc-menu-item
+            v-model="showPartitions"
+            label="Show partitions"
+          />
         </hsc-menu-bar-item>
         <hsc-menu-bar-item
-          @click.native="showLogWindow = !showLogWindow; $refs.menubar.deactivate()"
-          :label="showLogWindow ? 'Hide log' : 'Show log'"
-        />
-        <hsc-menu-bar-item
-          @click.native="showAboutModal = true"
+          @click.native="showAboutModal = true; this.$refs.menubar.deactivate()"
           label="About"
         />
       </hsc-menu-bar>
-      <button @click="showJobList = true"
-              style="margin-left: 40px;">View jobs running on server
-      </button>
       <v-dialog
         style="display: block;"
         max-width="600"
@@ -270,9 +282,12 @@
     <!-- The log window -->
     <hsc-window-style-metal>
       <hsc-window resizable
+                  :positionHint="logWindowPositionHint"
                   closeButton
-                  :minWidth="200"
-                  :minHeight="100"
+                  :minWidth="logWindowMinWidth"
+                  :minHeight="logWindowMinHeight"
+                  :height.sync="logWindowHeight"
+                  :width.sync="logWindowWidth"
                   :isOpen.sync="showLogWindow"
                   title="Log"
                   style="z-index: 9999">
@@ -347,7 +362,6 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-
   </v-app>
 </template>
 
@@ -492,6 +506,7 @@
         showSaveAptModal: false,
         showJobList: false,
         showAboutModal: false,
+        showRightPanelToggle: true, // In "View" menu, allow hiding the right panel completely
         // The contents of the 'save apt' filename box
         aptFilename: 'apt.txt',
 
@@ -537,7 +552,14 @@
         selectedTabLeftSide: 0,
         selectedTabRightSide: '',
         // Which jobs' tabs are open. Equivalent to List<JobKey> on the server
-        visibleJobsRightSide: []
+        visibleJobsRightSide: [],
+
+        // Initial log window size
+        logWindowWidth: window.innerWidth * 0.7,
+        logWindowHeight: window.innerHeight * 0.6,
+        // Minimum log window size
+        logWindowMinWidth: 700,
+        logWindowMinHeight: 200
       }
     },
     watch: {
@@ -572,9 +594,26 @@
             this.copyEditorNetToSimulator()
           }
         }
+      },
+      shouldShowRightSide: function () {
+        if (!this.shouldShowRightSide) {
+          // Make sure that the left side is open if the right side is closed.
+          // (It is strange if everything is closed and you just have a big blank screen.)
+          this.horizontalSplitSizes = this.horizontalSplit.getSizes()
+          this.horizontalSplit.setSizes([100, 0])
+          this.isLeftPaneVisible = true
+        } else {
+          // Restore the sizes that were there last time
+          this.horizontalSplit.setSizes(this.horizontalSplitSizes)
+        }
       }
     },
     computed: {
+      logWindowPositionHint: function () {
+        const x = (window.innerWidth - this.logWindowWidth) / 2
+        const y = (window.innerHeight - this.logWindowHeight) / 2.5
+        return `${x} / ${y}`
+      },
       tabsRightSide: function () {
         console.log('updated tabsRightSide')
         return this.visibleJobsRightSide.map((jobKey) => jobKeyToTab(this.jobListings, jobKey))
@@ -621,7 +660,7 @@
         return hideStyle + 'flex-grow: 1;'
       },
       shouldShowRightSide: function () {
-        return this.tabsRightSide.length !== 0
+        return this.tabsRightSide.length !== 0 && this.showRightPanelToggle
       },
       splitRightSideStyle: function () {
         return this.shouldShowRightSide ? '' : 'display: none;'

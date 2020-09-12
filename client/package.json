@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.3.4",
-    "@hscmap/vue-menu": "^1.5.0",
-    "@hscmap/vue-window": "^2.2.7",
+    "@hscmap/vue-menu": "^2.1.0",
+    "@hscmap/vue-window": "^2.4.2",
     "@mdi/font": "^4.5.95",
     "axios": "^0.16.2",
     "css-element-queries": "^1.2.1",
