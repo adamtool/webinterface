@@ -48,6 +48,18 @@
                                     :callback="onAptExampleSelected"/>
           </hsc-menu-item>
         </hsc-menu-bar-item>
+        <hsc-menu-bar-item
+          label="View"
+        >
+          <hsc-menu-item
+            @click="showLogWindow = !showLogWindow"
+            label="Log Window"
+          />
+          <hsc-menu-item
+            @click="showJobList = !showJobList"
+            :label="'Job Queue'"
+          />
+        </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"/>
           <hsc-menu-bar-item label="Analyze">
@@ -77,17 +89,10 @@
                          @click="showPartitions = !showPartitions"/>
         </hsc-menu-bar-item>
         <hsc-menu-bar-item
-          @click.native="showLogWindow = !showLogWindow; $refs.menubar.deactivate()"
-          :label="showLogWindow ? 'Hide log' : 'Show log'"
-        />
-        <hsc-menu-bar-item
-          @click.native="showAboutModal = true"
+          @click.native="showAboutModal = true; this.$refs.menubar.deactivate()"
           label="About"
         />
       </hsc-menu-bar>
-      <button @click="showJobList = true"
-              style="margin-left: 40px;">View jobs running on server
-      </button>
       <v-dialog
         style="display: block;"
         max-width="600"
