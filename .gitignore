@@ -34,6 +34,7 @@ adamweb-log*
 server/adam-core/uniolunisaar/adam/adam-core/*
 client/src/assets/apt-examples-mc/
 client/src/assets/apt-examples-synthesis/
+client/package-lock.json
 server/adam-core/uniolunisaar/adam/adam-core/maven-metadata-local.xml 
 
 # Source files of ADAM (normally kept in a tar.gz until needed)

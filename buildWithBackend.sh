@@ -1,16 +1,8 @@
 #!/bin/bash
 # @author Manuel Gieseking
-function printColored {
-    col="\e[1;36m"
-    if [[ ! -z $2 ]]; then
-        col=$2
-    fi
-    echo -e "$col$1\e[0m"
-}
 
-function printError {
-    printColor $1 "\e[1;31m"
-}
+# import the coloring functions for the texts
+source ./echoColoredTexts.sh
 
 pref="./server/adam-core/uniolunisaar/adam/adam-core/"
 ver=$(grep -zoP "<artifactId>adam-core</artifactId>[[:space:]]*<version>\K[0-9]+\.[0-9]+(?=</version>)" ./server/pom.xml | tr '\0' '\n')

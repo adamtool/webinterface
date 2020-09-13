@@ -20,7 +20,7 @@ bg_magenta=45
 bg_cyan=46
 bg_white=47
 
-function printColored {
+printColored () {
     col=$cyan
     if [[ ! -z $2 ]]; then
         col=$2
@@ -28,7 +28,7 @@ function printColored {
     echo -e "\e[1;"$col"m"$1"\e[0m"
 }
 
-function printError {
+printError () {
     printColored "ERROR: $1" $red
 }
 
