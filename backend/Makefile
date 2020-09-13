@@ -107,3 +107,6 @@ publish_backend: clean_backend pull_backend
 update_examples:
 	./update_examples.sh
 
+print_current_backend_version:
+	@echo -n "Version 'adam_core.jar': "
+	@grep -zoP "<artifactId>adam-core</artifactId>[[:space:]]*<version>\K[0-9]+\.[0-9]+(?=</version>)" ../server/pom.xml | tr '\0' '\n'

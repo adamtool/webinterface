@@ -2,7 +2,7 @@
 # @author Manuel Gieseking
 
 # import the coloring functions for the texts
-source ./echoColoredTexts.sh
+source ./backend/echoColoredTexts.sh
 
 pref="./server/adam-core/uniolunisaar/adam/adam-core/"
 ver=$(grep -zoP "<artifactId>adam-core</artifactId>[[:space:]]*<version>\K[0-9]+\.[0-9]+(?=</version>)" ./server/pom.xml | tr '\0' '\n')
