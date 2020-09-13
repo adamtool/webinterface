@@ -18,6 +18,7 @@ else
     # goes to the next line (n) and replaces the version string there
     sed -i "/<artifactId>adam-core<\/artifactId>/{n;s/<version>\([0-9]\+\.[0-9]\+\)<\/version>/<version>${ver}<\/version>/}" ../server/pom.xml 
     printColored "> Commit the update to the new version ${ver} of the submodules."
+    git add ../server/pom.xml
     git commit -m "Updated the backend to the current version of the submodules and integrated the backend as version ${ver}."
     printColored "> Push the changes."
     git push
