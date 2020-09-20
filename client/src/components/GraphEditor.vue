@@ -1798,7 +1798,7 @@
             return `${invisibleParentsMarker}${node.label}${invisibleChildrenMarker}`
           })
 
-        // TODO refactor (by importGraph?)
+        // Generate the text, if any, that should go inside of every node
         this.nodes.forEach(node => {
           node.contentText = this.getContentText(node)
         })
