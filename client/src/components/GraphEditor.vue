@@ -1826,7 +1826,7 @@
         let newTspans = this.contentElements.select('text').selectAll('tspan')
           .data((node) => {
             if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
-              return [node.initialToken === 0 ? '' : node.initialToken]
+              return node.initialToken === 0 ? [] : [node.initialToken]
             } else if (node.type === 'TRANSITION' && node.isReadyToFire) {
               return ['*']
             } else if (node.type === 'BDD_GRAPH_STATE') {
@@ -1840,7 +1840,7 @@
               // logging.logVerbose(`max content line length: ${maxLineLength}`)
               return lines
             } else {
-              return ['']
+              return []
             }
           })
         const tspanEnter = newTspans.enter().append('tspan')
