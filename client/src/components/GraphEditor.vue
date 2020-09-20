@@ -2096,7 +2096,23 @@
           .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
         this.contentElements
           .attr('transform', node => {
-            const y = node.y - this.calculateNodeHeight(node) / 2
+            // Add a small offset to 'y' to center the text
+            let yOffset
+            switch (node.type) {
+              case 'BDD_GRAPH_STATE':
+                yOffset = 6
+                break
+              case 'TRANSITION':
+                yOffset = 3
+                break
+              case 'ENVPLACE':
+              case 'SYSPLACE':
+                yOffset = 9
+                break
+              default:
+                yOffset = 0
+            }
+            const y = node.y - this.calculateNodeHeight(node) / 2 + yOffset
             return `translate(${node.x},${y})`
           })
         this.drawFlowPreview
