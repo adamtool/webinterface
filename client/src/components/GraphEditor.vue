@@ -1798,10 +1798,15 @@
             return `${invisibleParentsMarker}${node.label}${invisibleChildrenMarker}`
           })
 
+        // TODO refactor (by importGraph?)
+        this.nodes.forEach(node => {
+          node.contentText = this.getContentText(node)
+        })
         // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup
           .selectAll('g')
-          .data(this.nodes, this.keyFunction)
+          .data(this.nodes.filter(node => node.contentText), this.keyFunction)
+
         const contentEnter = newContentElements
           .enter().append('g')
         contentEnter.append('text')
@@ -1824,25 +1829,7 @@
           })
 
         let newTspans = this.contentElements.select('text').selectAll('tspan')
-          .data((node) => {
-            if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
-              return node.initialToken === 0 ? [] : [node.initialToken]
-            } else if (node.type === 'TRANSITION' && node.isReadyToFire) {
-              return ['*']
-            } else if (node.type === 'BDD_GRAPH_STATE') {
-              // Figure out how long the widest line of the content is to determine node width later
-              const lines = node.content.split('\n')
-              const numberOfLines = lines.length
-              node.numberOfLines = numberOfLines
-              const lengthsOfLines = lines.map(str => str.length)
-              const maxLineLength = lengthsOfLines.reduce((max, val) => val > max ? val : max, 0)
-              node.maxContentLineLength = maxLineLength
-              // logging.logVerbose(`max content line length: ${maxLineLength}`)
-              return lines
-            } else {
-              return []
-            }
-          })
+          .data(node => node.contentText)
         const tspanEnter = newTspans.enter().append('tspan')
           .attr('x', 0)
           .attr('dy', '1.2em')
@@ -2047,6 +2034,26 @@
           })
 
         this.updateSimulation()
+      },
+      // Return Array[String] or null if no text should be shown inside the given node
+      getContentText: function (node) {
+        if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
+          return node.initialToken === 0 ? null : [node.initialToken]
+        } else if (node.type === 'TRANSITION' && node.isReadyToFire) {
+          return ['*']
+        } else if (node.type === 'BDD_GRAPH_STATE') {
+          // Figure out how long the widest line of the content is to determine node width later
+          const lines = node.content.split('\n')
+          const numberOfLines = lines.length
+          node.numberOfLines = numberOfLines
+          const lengthsOfLines = lines.map(str => str.length)
+          const maxLineLength = lengthsOfLines.reduce((max, val) => val > max ? val : max, 0)
+          node.maxContentLineLength = maxLineLength
+          // logging.logVerbose(`max content line length: ${maxLineLength}`)
+          return lines
+        } else {
+          return null
+        }
       },
       updateSimulation: function () {
         const drawFlowPreviewSizes = {
