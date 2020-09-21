@@ -61,7 +61,7 @@
         <template v-else>
           <v-flex xs6 sm5 offset-sm1 md4 offset-md2>
             <v-select
-              v-if="editorMode === 'Editor'"
+              v-if="editorMode === 'Editor' && this.useModelChecking"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Winning Condition"/>
