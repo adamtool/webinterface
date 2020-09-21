@@ -3,6 +3,7 @@ package uniolunisaar.adamwebfrontend;
 import uniol.apt.adt.pn.*;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.util.AdamExtensions;
+import uniolunisaar.adam.util.PNTools;
 import uniolunisaar.adamwebfrontend.wirerepresentations.NodePosition;
 
 import java.util.HashMap;
@@ -83,7 +84,7 @@ public class PetriNetTools {
     public static Map<String, Boolean> getFireableTransitions(PetriNet petriNet) {
         Map<String, Boolean> fireableTransitions = new HashMap<>();
         for (Transition t : petriNet.getTransitions()) {
-            boolean isFireable = t.isFireable(petriNet.getInitialMarking());
+            boolean isFireable = PNTools.isFireable(t, petriNet.getInitialMarking());
             fireableTransitions.put(t.getId(), isFireable);
         }
         return fireableTransitions;
