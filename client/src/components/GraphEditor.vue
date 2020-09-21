@@ -434,7 +434,8 @@
             type: 'tool',
             icon: 'create',
             toolEnumName: 'drawTransit',
-            name: 'Draw Transit'
+            name: 'Draw Transit',
+            visible: this.useModelChecking
           },
           {
             type: 'tool',
