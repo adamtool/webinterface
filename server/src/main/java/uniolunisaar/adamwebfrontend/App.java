@@ -23,6 +23,7 @@ import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.PNTools;
 import uniolunisaar.adam.util.PNWTTools;
 import uniolunisaar.adamwebfrontend.jobsystem.*;
 import uniolunisaar.adamwebfrontend.wirerepresentations.*;
@@ -841,13 +842,13 @@ public class App {
         });
         // Fire the transition and save it to the net
         Marking preMarking = netCopy.getInitialMarking();
-        if (!transition.isFireable(preMarking)) {
+        if (!PNTools.isFireable(transition, preMarking)) {
             JsonObject response = errorResponseObject("The transition " + transitionId +
                     " is not fireable in the given marking.");
             response.addProperty("errorType", "TRANSITION_NOT_FIREABLE");
             return response;
         }
-        Marking postMarking = transition.fire(preMarking);
+        Marking postMarking = PNTools.fire(transition, preMarking);
         netCopy.setInitialMarking(postMarking);
 
         // Send the new marking and set of fireable transitions to the client
