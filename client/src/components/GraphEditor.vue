@@ -1809,8 +1809,8 @@
 
         const contentEnter = newContentElements
           .enter().append('g')
-        contentEnter.append('text')
           .call(this.applyNodeEventHandler)
+        contentEnter.append('text')
           .attr('text-anchor', 'middle')
           .attr('dy', '-8')
           .attr('font-family', '\'Inconsolata\', monospace')
