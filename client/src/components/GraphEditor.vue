@@ -1798,26 +1798,22 @@
             return `${invisibleParentsMarker}${node.label}${invisibleChildrenMarker}`
           })
 
-        // Generate the text, if any, that should go inside of every node
-        this.nodes.forEach(node => {
-          node.contentText = this.getContentText(node)
-        })
         // Write text inside of nodes.  (Petri Nets have token numbers.  BDDGraphs have "content")
         const newContentElements = this.contentGroup
-          .selectAll('g')
-          .data(this.nodes.filter(node => node.contentText), this.keyFunction)
-
+          .selectAll('text')
+          .data(this.nodes, this.keyFunction)
         const contentEnter = newContentElements
-          .enter().append('g')
-        contentEnter.append('text')
+          .enter().append('text')
           .call(this.applyNodeEventHandler)
           .attr('text-anchor', 'middle')
           .attr('dy', '-8')
           .attr('font-family', '\'Inconsolata\', monospace')
+          // TODO #208 Bug: The white-space attribute is not implemented for SVGs in Google Chrome.
+          // This means that our text will end up all on one line.  In Firefox it's ok, though.
+          .style('white-space', 'pre')
         newContentElements.exit().remove()
         this.contentElements = contentEnter.merge(newContentElements)
         this.contentElements
-          .select('text')
           .attr('font-size', node => {
             if (node.type === 'TRANSITION') {
               return 28
@@ -1827,15 +1823,23 @@
               return 15
             }
           })
-
-        let newTspans = this.contentElements.select('text').selectAll('tspan')
-          .data(node => node.contentText)
-        const tspanEnter = newTspans.enter().append('tspan')
-          .attr('x', 0)
-          .attr('dy', '1.2em')
-        newTspans.exit().remove()
-        this.tspans = tspanEnter.merge(newTspans)
-        this.tspans.text(content => content)
+          .text(node => {
+            if (node.type === 'BDD_GRAPH_STATE') {
+              // Figure out how long the widest line of the content is to determine node width later
+              const lines = node.content.split('\n')
+              const numberOfLines = lines.length
+              node.numberOfLines = numberOfLines
+              const lengthsOfLines = lines.map(str => str.length)
+              const maxLineLength = lengthsOfLines.reduce((max, val) => val > max ? val : max, 0)
+              node.maxContentLineLength = maxLineLength
+              // logging.logVerbose(`max content line length: ${maxLineLength}`)
+              return node.content
+            } else if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
+              return node.initialToken === 0 ? '' : node.initialToken
+            } else if (node.type === 'TRANSITION' && node.isReadyToFire) {
+              return '*'
+            }
+          })
 
         // Draw circles around Places in Petri Nets with isSpecial = true
         const isSpecialElements = this.isSpecialGroup
@@ -2035,26 +2039,6 @@
 
         this.updateSimulation()
       },
-      // Return Array[String] or null if no text should be shown inside the given node
-      getContentText: function (node) {
-        if (node.type === 'ENVPLACE' || node.type === 'SYSPLACE') {
-          return node.initialToken === 0 ? null : [node.initialToken]
-        } else if (node.type === 'TRANSITION' && node.isReadyToFire) {
-          return ['*']
-        } else if (node.type === 'BDD_GRAPH_STATE') {
-          // Figure out how long the widest line of the content is to determine node width later
-          const lines = node.content.split('\n')
-          const numberOfLines = lines.length
-          node.numberOfLines = numberOfLines
-          const lengthsOfLines = lines.map(str => str.length)
-          const maxLineLength = lengthsOfLines.reduce((max, val) => val > max ? val : max, 0)
-          node.maxContentLineLength = maxLineLength
-          // logging.logVerbose(`max content line length: ${maxLineLength}`)
-          return lines
-        } else {
-          return null
-        }
-      },
       updateSimulation: function () {
         const drawFlowPreviewSizes = {
           'ENVPLACE': this.nodeRadius * 1.4,
@@ -2102,25 +2086,13 @@
           .attr('x', node => node.x)
           .attr('y', node => node.y + this.calculateNodeHeight(node) / 2 + 15)
         this.contentElements
-          .attr('transform', node => {
-            // Add a small offset to 'y' to center the text
-            let yOffset
-            switch (node.type) {
-              case 'BDD_GRAPH_STATE':
-                yOffset = 6
-                break
-              case 'TRANSITION':
-                yOffset = 3
-                break
-              case 'ENVPLACE':
-              case 'SYSPLACE':
-                yOffset = 9
-                break
-              default:
-                yOffset = 0
+          .attr('x', node => node.x)
+          .attr('y', node => {
+            if (node.type === 'BDD_GRAPH_STATE') {
+              return node.y - this.calculateNodeHeight(node) / 2 + 30
+            } else {
+              return node.y - this.calculateNodeHeight(node) / 2 + 38
             }
-            const y = node.y - this.calculateNodeHeight(node) / 2 + yOffset
-            return `translate(${node.x},${y})`
           })
         this.drawFlowPreview
           .attr('transform', () => {
