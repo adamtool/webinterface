@@ -656,10 +656,11 @@
             title: 'Set initial token',
             action: this.setInitialTokenInteractively
           },
-          {
-            title: 'Toggle isInitialTransit',
-            action: this.toggleIsInitialTransit
-          },
+          // This is disabled because it is not mentioned or explained in the paper we will submit
+          // {
+          //   title: 'Toggle isInitialTransit',
+          //   action: this.toggleIsInitialTransit
+          // },
           {
             title: 'Toggle isSpecial',
             action: this.toggleIsSpecial,
