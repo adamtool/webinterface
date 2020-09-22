@@ -759,11 +759,11 @@
           selection.on('contextmenu', this.onLinkRightClick)
           selection.on('mouseover', (d) => {
             d.isHovered = true
-            this.updateLinkStroke(d)
+            this.updateLinkEl(d)
           })
           selection.on('mouseout', (d) => {
             d.isHovered = false
-            this.updateLinkStroke(d)
+            this.updateLinkEl(d)
           })
         }
       },
@@ -1950,14 +1950,6 @@
           .filter(d => !d.hasScheduledAnimation)
           .attr('fill', this.fillOfNodeElement)
 
-        const getTransitColor = link => {
-          if (link.transitHue !== undefined) {
-            const hueInDegrees = link.transitHue * 360
-            return `HSL(${hueInDegrees}, 100%, 50%)`
-          } else {
-            throw new Error(`The property transitHue is undefined for the link: ${link}`)
-          }
-        }
         const linkSelection = this.linkGroup
           .selectAll('g')
           .data(this.links.concat(this.drawTransitPreviewLinks))
@@ -1980,32 +1972,7 @@
           .data((d) => [d, d])
         // Apply styles to the visible link elements
         this.linkElements.filter('.visibleLink')
-          .attr('stroke-width', link => {
-            if (this.highlightedDatum == link || link.isHovered) {
-              return 5
-            } else if (this.drawTransitPreviewLinks.includes(link)) {
-              return 6
-            } else {
-              return 3
-            }
-          })
-          .attr('stroke', link => {
-            if (this.drawTransitPreviewLinks.includes(link)) {
-              return '#444444'
-            } else if (link.transitHue !== undefined) {
-              return getTransitColor(link)
-            } else {
-              return '#E5E5E5'
-            }
-          })
-          .attr('marker-end', link => {
-            if (link.isInhibitorArc) {
-              return ''
-            } else {
-              return 'url(#' + this.arrowheadId + ')'
-            }
-          })
-          .attr('id', this.generateLinkId)
+          .call(this.updateVisibleLinkElements)
 
         const newLinkTextElements = this.linkTextGroup
           .selectAll('text')
@@ -2021,7 +1988,7 @@
         this.linkTextElements
           .attr('fill', link => {
             if (link.transitHue !== undefined) {
-              return getTransitColor(link)
+              return this.getTransitColor(link.transitHue)
             } else {
               return 'black'
             }
@@ -2049,19 +2016,40 @@
           .filter(d => d === node && !d.hasScheduledAnimation)
           .attr('fill', this.fillOfNodeElement)
       },
-      // Update the stroke width of a single link (e.g. by mouseover)
-      updateLinkStroke: function (link) {
-        this.linkElements.filter('.visibleLink')
+      // Update the visible svg elements corresponding to only a single link (e.g. by mouseover)
+      updateLinkEl: function (link) {
+        const selection = this.linkElements.filter('.visibleLink')
           .filter(l => l === link)
-          .attr('stroke-width', link => {
-            if (this.highlightedDatum == link || link.isHovered) {
-              return 5
-            } else if (this.drawTransitPreviewLinks.includes(link)) {
-              return 6
-            } else {
-              return 3
-            }
-          })
+        this.updateVisibleLinkElements(selection)
+      },
+      updateVisibleLinkElements: function (linkSelection) {
+        linkSelection.attr('stroke-width', link => {
+          if (this.highlightedDatum == link || link.isHovered) {
+            return 5
+          } else if (this.drawTransitPreviewLinks.includes(link)) {
+            return 6
+          } else {
+            return 3
+          }
+        }).attr('stroke', link => {
+          if (this.drawTransitPreviewLinks.includes(link)) {
+            return '#444444'
+          } else if (link.transitHue !== undefined) {
+            return this.getTransitColor(link.transitHue)
+          } else {
+            return '#E5E5E5'
+          }
+        }).attr('marker-end', link => {
+          if (link.isInhibitorArc) {
+            return ''
+          } else {
+            return 'url(#' + this.arrowheadId + ')'
+          }
+        }).attr('id', this.generateLinkId)
+      },
+      getTransitColor: function (transitHue) {
+        const hueInDegrees = transitHue * 360
+        return `HSL(${hueInDegrees}, 100%, 50%)`
       },
       // Return Array[String] or null if no text should be shown inside the given node
       getContentText: function (node) {
