@@ -63,12 +63,16 @@
              :graph="tab.result.graph"
              :jobKey="tab.jobKey"
              :restEndpoints="restEndpoints"
-             :shouldShowPhysicsControls="showPhysicsControls"/>
+             :shouldShowPhysicsControls="showPhysicsControls"
+             :isVisible="isTabSelected"
+  />
   <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
                :graph="tab.result"
                editorMode="Viewer"
                :restEndpoints="restEndpoints"
-               :shouldShowPhysicsControls="showPhysicsControls"/>
+               :shouldShowPhysicsControls="showPhysicsControls"
+               :isVisible="isTabSelected"
+  />
   <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
                :graph='tab.result'
                editorMode="Viewer"
@@ -78,7 +82,9 @@
                :shouldShowPhysicsControls="showPhysicsControls"
                :repulsionStrengthDefault="415"
                :linkStrengthDefault="0.04"
-               :gravityStrengthDefault="300"/>
+               :gravityStrengthDefault="300"
+               :isVisible="isTabSelected"
+  />
   <Simulator v-else-if="tab.type === 'MODEL_CHECKING_NET'"
              editorMode="Simulator"
              :graph="tab.result.graph"
@@ -86,7 +92,9 @@
              :useModelChecking="true"
              netType="PETRI_NET"
              :restEndpoints="restEndpoints"
-             :shouldShowPhysicsControls="showPhysicsControls"/>
+             :shouldShowPhysicsControls="showPhysicsControls"
+             :isVisible="isTabSelected"
+  />
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
           class="job-tab-card"
   >
@@ -195,6 +203,10 @@
     props: {
       tab: {
         type: Object,
+        required: true
+      },
+      isTabSelected: {
+        type: Boolean,
         required: true
       },
       showPhysicsControls: {
