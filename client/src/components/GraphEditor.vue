@@ -759,11 +759,11 @@
           selection.on('contextmenu', this.onLinkRightClick)
           selection.on('mouseover', (d) => {
             d.isHovered = true
-            this.updateD3()
+            this.updateLinkStroke(d)
           })
           selection.on('mouseout', (d) => {
             d.isHovered = false
-            this.updateD3()
+            this.updateLinkStroke(d)
           })
         }
       },
@@ -797,11 +797,11 @@
           selection.on('contextmenu', this.onNodeRightClick)
           selection.on('mouseover', d => {
             d.isHovered = true
-            this.updateD3()
+            this.updateNodeFill(d)
           })
           selection.on('mouseout', d => {
             d.isHovered = false
-            this.updateD3()
+            this.updateNodeFill(d)
           })
         }
       },
@@ -2041,6 +2041,27 @@
           })
 
         this.updateSimulation()
+      },
+      // Update the background color of a single node (e.g. by mouseover)
+      updateNodeFill: function (node) {
+        this.nodeElements
+          // Don't mess with the color of a node if an animation is running on it
+          .filter(d => d === node && !d.hasScheduledAnimation)
+          .attr('fill', this.fillOfNodeElement)
+      },
+      // Update the stroke width of a single link (e.g. by mouseover)
+      updateLinkStroke: function (link) {
+        this.linkElements.filter('.visibleLink')
+          .filter(l => l === link)
+          .attr('stroke-width', link => {
+            if (this.highlightedDatum == link || link.isHovered) {
+              return 5
+            } else if (this.drawTransitPreviewLinks.includes(link)) {
+              return 6
+            } else {
+              return 3
+            }
+          })
       },
       // Return Array[String] or null if no text should be shown inside the given node
       getContentText: function (node) {
