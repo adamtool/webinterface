@@ -172,7 +172,9 @@
                            :shouldShowPhysicsControls="showPhysicsControls"
                            :shouldShowPartitions="showPartitions"
                            :repulsionStrengthDefault="360"
-                           :linkStrengthDefault="0.086"/>
+                           :linkStrengthDefault="0.086"
+                           :isVisible="isLeftPaneVisible && selectedTabLeftSide === 0"
+              />
             </div>
           </keep-alive>
         </v-tab-item>
@@ -203,6 +205,7 @@
                 :shouldShowPartitions="showPartitions"
                 :repulsionStrengthDefault="360"
                 :linkStrengthDefault="0.086"
+                :isVisible="isLeftPaneVisible && selectedTabLeftSide === 1"
               >
                 <v-btn
                   style="position: absolute; top: 20px; left: 5px; z-index: 5;"
@@ -260,6 +263,7 @@
                 :showPhysicsControls="showPhysicsControls"
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
+                :isTabSelected="shouldShowRightSide && selectedTabRightSide === `tab-${tab.uuid}`"
                 @loadEditorNetFromApt="parseAptForEditorNet"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
@@ -923,7 +927,7 @@
               split.setSizes([0, 100])
             }
             if (!leftPaneShouldCollapse && !this.isLeftPaneVisible) {
-              logging.logVerbose('expanding apt editor')
+              logging.logVerbose('expanding left pane')
               this.isLeftPaneVisible = true
             }
 

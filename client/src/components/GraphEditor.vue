@@ -229,6 +229,11 @@
       gravityStrengthDefault: {
         type: Number,
         default: 100
+      },
+      // Physics simulation should pause itself if this is set to false
+      isVisible: {
+        type: Boolean,
+        required: true
       }
     },
     data() {
@@ -2078,9 +2083,7 @@
         // }
 
         // Make sure the D3 forceSimulation is only running if the Graph Editor is visible.
-        const svgElement = this.$refs.svg
-        const isSvgVisible = !!(svgElement.offsetWidth || svgElement.offsetHeight || svgElement.getClientRects().length)
-        if (!isSvgVisible) {
+        if (!this.isVisible) {
           // console.log('Stopping forceSimulation for 2 seconds because GraphEditor with this UID is not visible: ' + this._uid)
           this.physicsSimulation.stop()
           setTimeout(() => {
