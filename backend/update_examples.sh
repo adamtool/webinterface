@@ -7,8 +7,13 @@ source ./echoColoredTexts.sh
 # some folders
 MC_FOLDER=../client/src/assets/apt-examples-mc/
 SYNT_FOLDER=../client/src/assets/apt-examples-synthesis/
-EXAMPLES_MC_FOLDER=./examples/modelchecking/
+EXAMPLES_MC_FOLDER=./examples/modelchecking/ltl/
 EXAMPLES_SYNT_FOLDER=./examples/synthesis/forallsafety/
+SYNT_EXCLUDING_FOLDERS="-not -path */boundedunfolding/*"
+SYNT_EXCLUDING_FILES=''
+MC_EXCLUDING_FOLDERS=''
+MC_EXCLUDING_FILES=''
+
 
 ###### Model checking
 printColored "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MODEL CHECKING" $blue
@@ -18,7 +23,7 @@ if [[ ! -z ${clean} ]]; then
     mkdir $MC_FOLDER
 fi
 printColored "> MC: Copy examples with coordinates..."
-for file in $(find $EXAMPLES_MC_FOLDER -name '*.apt'); do   # all .apt files recursively
+for file in $(find $EXAMPLES_MC_FOLDER -name '*.apt'  $MC_EXCLUDING_FOLDERS $MC_EXCLUDING_FILES); do   # all .apt files recursively
     if grep -q "xCoord" "$file"; then
         # tinker the new location
         new_file=${file/"$EXAMPLES_MC_FOLDER"/"$MC_FOLDER"}
@@ -37,7 +42,7 @@ if [[ ! -z ${clean} ]]; then
     mkdir $SYNT_FOLDER
 fi
 printColored "> SYNT: Copy examples with coordinates..."
-for file in $(find $EXAMPLES_SYNT_FOLDER -name '*.apt'); do   # all .apt files recursively
+for file in $(find $EXAMPLES_SYNT_FOLDER -name '*.apt' $SYNT_EXCLUDING_FOLDERS $SYNT_EXCLUDING_FILES); do   # all .apt files recursively
     if grep -q "xCoord" "$file"; then
         # tinker the new location
         new_file=${file/"$EXAMPLES_SYNT_FOLDER"/"$SYNT_FOLDER"}
