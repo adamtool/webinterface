@@ -145,7 +145,8 @@ public class PetriNetClient {
             try {
                 objective = Adam.getCondition(net);
             } catch (CouldNotFindSuitableConditionException e) {
-                throw new SerializationException(e);
+                // if nothing is set let a be the default case of an LTL formula
+                objective = Condition.Objective.LTL;
             }
             boolean canConvertToLtl = objective.equals(Condition.Objective.A_BUCHI) ||
                     objective.equals(Condition.Objective.A_REACHABILITY) ||
