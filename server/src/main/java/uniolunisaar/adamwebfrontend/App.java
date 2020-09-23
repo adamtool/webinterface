@@ -21,7 +21,6 @@ import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
-import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNTools;
 import uniolunisaar.adam.util.PNWTTools;
@@ -35,6 +34,8 @@ import java.util.concurrent.*;
 import java.util.function.Function;
 import uniolunisaar.adam.ds.logics.flowlogics.IRunFormula;
 import uniolunisaar.adam.ds.objectives.Condition;
+import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotFindSuitableConditionException;
+import uniolunisaar.adam.util.PGTools;
 
 public class App {
     private final Gson gson = new Gson();
@@ -672,7 +673,7 @@ public class App {
         String winningCondition = body.get("winningCondition").getAsString();
 
         Condition.Objective objective = Condition.Objective.valueOf(winningCondition);
-        PNWTTools.setConditionAnnotation(net, objective);
+        PGTools.setConditionAnnotation(net, objective);
 
         JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
         return successResponse(serializedNet);

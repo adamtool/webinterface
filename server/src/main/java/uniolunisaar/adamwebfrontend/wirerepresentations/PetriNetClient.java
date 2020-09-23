@@ -9,7 +9,6 @@ import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.Transit;
-import uniolunisaar.adam.exceptions.pnwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PNWTTools;
 import uniolunisaar.adamwebfrontend.PetriNetTools;
@@ -26,6 +25,7 @@ import static uniolunisaar.adam.ds.objectives.Condition.Objective.A_SAFETY;
 import static uniolunisaar.adam.ds.objectives.Condition.Objective.E_BUCHI;
 import static uniolunisaar.adam.ds.objectives.Condition.Objective.E_REACHABILITY;
 import static uniolunisaar.adam.ds.objectives.Condition.Objective.E_SAFETY;
+import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotFindSuitableConditionException;
 
 /**
  * Represents the data needed to represent a PetriNet or PNWT or PetriGame in the client.
