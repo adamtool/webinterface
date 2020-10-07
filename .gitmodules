@@ -1,6 +1,3 @@
-[submodule "backend/libs"]
-	path = backend/libs
-	url = git@github.com:adamtool/libs.git
 [submodule "backend/examples"]
 	path = backend/examples
 	url = git@github.com:adamtool/examples.git
