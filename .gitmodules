@@ -19,3 +19,6 @@
 [submodule "backend/webinterface-backend"]
 	path = backend/webinterface-backend
 	url = git@github.com:adamtool/webinterface-backend.git
+[submodule "backend/libs"]
+	path = backend/libs
+	url = git@github.com:adamtool/libs.git
