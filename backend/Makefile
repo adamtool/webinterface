@@ -1,7 +1,7 @@
 ## @author Manuel Gieseking
 
 # All repositories the backend depends on
-DEPENDENCIES_FOLDERS="libs,examples,framework,logics,modelchecker,synthesizer,boundedSynthesis,webinterface-backend"
+DEPENDENCIES_FOLDERS="libs,examples,framework,logics,modelchecker,synthesizer,webinterface-backend"
 #TARGETS=tools petrinetwithtransits logics mc petrigames bounded symbolic
 
 t=javac
@@ -12,7 +12,6 @@ t=javac
 		logics
 		mc
 		petrigames
-		bounded
 		symbolic
 		bdd
 		mtbdd
@@ -49,9 +48,6 @@ mc: logics
 petrigames: petrinetwithtransits
 	ant -buildfile ./synthesizer/petriGames/build.xml $(t)
 
-bounded: petrigames
-	ant -buildfile ./boundedSynthesis/build.xml $(t)
-
 bdd: petrigames
 	ant -buildfile ./synthesizer/symbolicalgorithms/bddapproach/build.xml $(t)
 
@@ -63,7 +59,7 @@ symbolic: bdd mtbdd
 #highlevel: check_dependencies
 #	ant -buildfile ./high-level/build.xml $(t)
 
-backend: mc symbolic bounded
+backend: mc symbolic
 	ant -buildfile ./webinterface-backend/build.xml $(t)
 
 setJavac:
@@ -94,7 +90,7 @@ pull_backend:
 
 clean_backend: clean-all
 
-deploy_backend: setJavac mc symbolic bounded setDeploy backend
+deploy_backend: setJavac mc symbolic setDeploy backend
 
 integrate_backend: clean_backend 	
 	./integrate_backend.sh
