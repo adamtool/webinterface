@@ -13,9 +13,6 @@
 [submodule "backend/synthesizer"]
 	path = backend/synthesizer
 	url = git@github.com:adamtool/synthesizer.git
-[submodule "backend/boundedSynthesis"]
-	path = backend/boundedSynthesis
-	url = git@github.com:adamtool/boundedSynthesis.git
 [submodule "backend/webinterface-backend"]
 	path = backend/webinterface-backend
 	url = git@github.com:adamtool/webinterface-backend.git
