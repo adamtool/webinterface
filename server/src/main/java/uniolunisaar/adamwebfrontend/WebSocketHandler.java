@@ -3,6 +3,7 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.eclipse.jetty.websocket.api.CloseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import uniol.apt.util.Pair;
@@ -13,10 +14,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 /**
  * Handles all WebSocket connections.
@@ -157,20 +155,27 @@ public class WebSocketHandler {
             String clientUuidString = messageJson.get("clientUuid").getAsString();
             UUID clientUuid = UUID.fromString(clientUuidString);
             sessionUuids.put(session, clientUuid);
-        } else if (messageJson.has("type") && messageJson.get("type").getAsString().equals("pong")) {
-//            System.out.println("Got pong from client");
+        } else if (messageJson.has("type") &&
+                messageJson.get("type").getAsString().equals("heartbeat")) {
+            return; // We don't have to do anything.
         } else {
-            throw new IllegalArgumentException("Got an unrecognizable message over a websocket.\n" +
+            throw new IllegalArgumentException("Got an unrecognized message over a websocket.\n" +
                     "Message: " + message + "\nSession: " + session.getRemoteAddress().toString());
         }
     }
 
     @OnWebSocketError
     public void error(Session session, Throwable error) {
+        // Reduce log spam by not logging 'CloseException' due to timeout
+        if (error instanceof CloseException && error.getCause() instanceof TimeoutException) {
+            return;
+        }
         System.err.println("OnWebSocketError.  Error stack trace: ");
         error.printStackTrace();
-        System.err.println("OnWebSocketError.  Error cause stack trace: ");
-        error.getCause().printStackTrace();
+        if (error.getCause() != null) {
+            System.err.println("OnWebSocketError.  Error cause stack trace: ");
+            error.getCause().printStackTrace();
+        }
     }
 
 }

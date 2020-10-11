@@ -756,8 +756,15 @@
         })
       },
       initializeWebSocket: function (retryAttempts) {
-        // Connect to the server and subscribe to ADAM's log output
-        let socket
+        // Open a websocket to receive server-side log output and job status updates
+        let socket = null
+        // Send a heartbeat message to keep the websocket alive
+        function sendHeartbeat() {
+          socket.send(JSON.stringify({
+            type: 'heartbeat'
+          }))
+        }
+        let heartbeatInterval = null
         try {
           socket = makeWebSocket(this.webSocketUrl)
         } catch (exception) {
@@ -809,6 +816,7 @@
           console.log(event)
         })
         socket.$on('close', () => {
+          clearInterval(heartbeatInterval) // Stop sending heartbeats on this websocket
           if (retryAttempts < 100) {
             logging.sendErrorNotification('The websocket connection to the server was closed.  ' +
               'ADAM\'s log output might not be displayed.  Attempting to reconnect in 1 second.  ' +
@@ -829,6 +837,7 @@
           this.updateWebSocketClientUuid()
           this.getListOfJobs()
           logging.sendSuccessNotification('Established the connection to the server')
+          heartbeatInterval = setInterval(sendHeartbeat, 30000) // Send a heartbeat every 30s
         })
         return socket
       },
