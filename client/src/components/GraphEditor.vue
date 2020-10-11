@@ -597,9 +597,9 @@
           } else if (this.selectedNodes.length > 1) {
             items = this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
-            items = this.contextMenuItemsNormal.concat(this.contextMenuItemsTransition(d))
+            items = this.contextMenuItemsNormal(d).concat(this.contextMenuItemsTransition(d))
           } else {
-            items = this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
+            items = this.contextMenuItemsNormal(d).concat(this.contextMenuItemsPlace)
           }
           if (items.length == 1) { // If just the title is there, e.g. 'Place p0'
             items.push({
@@ -700,38 +700,38 @@
         }
       },
       contextMenuItemsNormal: function () {
-        const title = {
-          title: (d) => {
-            switch (d.type) {
-              case 'SYSPLACE':
-              case 'ENVPLACE':
-                return `Place ${d.id}`
-              case 'TRANSITION':
-                return `Transition ${d.id}`
-              default:
-                throw new Error('Unhandled case in switch statement for right click context menu')
+        return (d) => {
+          const title = {
+            title: (d) => {
+              switch (d.type) {
+                case 'SYSPLACE':
+                case 'ENVPLACE':
+                  return `Place ${d.id}`
+                case 'TRANSITION':
+                  return `Transition ${d.id}`
+                default:
+                  throw new Error('Unhandled case in switch statement for right click context menu')
+              }
             }
           }
-        }
-        const label = {
-          title: (d) => `[${d.label || 'No label'}]`
-        }
-        const editorActions = [
-          {
-            title: 'Delete',
-            action: (d) => {
-              this.$emit('deleteNode', d.id)
+          const labelOption = d.label ? [{title: d.label}] : []
+          const editorActions = [
+            {
+              title: 'Delete',
+              action: (d) => {
+                this.$emit('deleteNode', d.id)
+              }
+            },
+            {
+              title: 'Rename',
+              action: this.renameNodeInteractively
             }
-          },
-          {
-            title: 'Rename',
-            action: this.renameNodeInteractively
+          ]
+          if (this.editorMode === 'Simulator') {
+            return [title, ...labelOption]
+          } else {
+            return [title, ...labelOption].concat(editorActions)
           }
-        ]
-        if (this.editorMode === 'Simulator') {
-          return [title, label]
-        } else {
-          return [title, label].concat(editorActions)
         }
       },
       nodeSpawnPoint: function () {
