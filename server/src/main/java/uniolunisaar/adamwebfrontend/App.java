@@ -5,6 +5,7 @@ package uniolunisaar.adamwebfrontend;
 
 import uniolunisaar.adam.exceptions.synthesis.pgwt.NotSupportedGameException;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotCalculateException;
+
 import static spark.Spark.*;
 
 import com.google.gson.*;
@@ -32,6 +33,7 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
+
 import uniolunisaar.adam.ds.logics.flowlogics.IRunFormula;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotFindSuitableConditionException;
@@ -143,12 +145,8 @@ public class App {
             String clientUuidString = body.getAsJsonObject().get("clientUuid").getAsString();
             UUID clientUuid = UUID.fromString(clientUuidString);
             UserContext uc = getUserContext(clientUuid);
-            // Synchronizing here should prevent data corruption in case e.g. a client calls
-            // '/toggleGraphGameBDDPostset' for a given BDD multiple times in quick succession
-            synchronized (uc) {
-                Object answer = handler.handle(req, res, uc);
-                return answer;
-            }
+            Object answer = handler.handle(req, res, uc);
+            return answer;
         });
     }
 
@@ -468,12 +466,15 @@ public class App {
                     ".  Its status: " + job.getStatus());
         }
         BDDGraphExplorer bddGraphExplorer = job.getResult();
-        bddGraphExplorer.toggleStatePostset(stateId);
-        job.fireJobStatusChanged();
+        // Synchronizing here should prevent data corruption in case a client calls this endpoint
+        // for the same BDD graph multiple times in quick succession
+        synchronized (bddGraphExplorer) {
+            bddGraphExplorer.toggleStatePostset(stateId);
+            job.fireJobStatusChanged();
+        }
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
-        responseJson.add("graphGameBDD", bddGraphExplorer.getVisibleGraph());
         return responseJson.toString();
     }
 
@@ -499,12 +500,15 @@ public class App {
                     ".  Its status: " + job.getStatus());
         }
         BDDGraphExplorer bddGraphExplorer = job.getResult();
-        bddGraphExplorer.toggleStatePreset(stateId);
-        job.fireJobStatusChanged();
+        // Synchronizing here should prevent data corruption in case a client calls this endpoint
+        // for the same BDD graph multiple times in quick succession
+        synchronized (bddGraphExplorer) {
+            bddGraphExplorer.toggleStatePreset(stateId);
+            job.fireJobStatusChanged();
+        }
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("status", "success");
-        responseJson.add("graphGameBDD", bddGraphExplorer.getVisibleGraph());
         return responseJson.toString();
     }
 
