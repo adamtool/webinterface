@@ -266,8 +266,8 @@
                 :isTabSelected="shouldShowRightSide && selectedTabRightSide === `tab-${tab.uuid}`"
                 @loadEditorNetFromApt="parseAptForEditorNet"
                 @cancelJob="cancelJob"
-                @toggleStatePostset="stateId => toggleGraphGameStatePostset(stateId, tab.jobKey)"
-                @toggleStatePreset="stateId => toggleGraphGameStatePreset(stateId, tab.jobKey)"
+                @toggleStatePostset="({graphEditorRef, stateId}) => toggleGraphGameStatePostset(graphEditorRef, stateId, tab.jobKey)"
+                @toggleStatePreset="({graphEditorRef, stateId}) => toggleGraphGameStatePreset(graphEditorRef, stateId, tab.jobKey)"
               />
             </keep-alive>
           </v-tab-item>
@@ -1209,22 +1209,28 @@
           }
         })
       },
-      toggleGraphGameStatePostset: function (stateId, jobKey) {
+      toggleGraphGameStatePostset: function (graphEditorRef, stateId, jobKey) {
         this.restEndpoints.toggleGraphGameBDDNodePostset({
           jobKey,
           stateId
         }).then(response => {
           // The view will update itself reactively when a response arrives over the websocket
           // via 'jobStatusChanged'.
+          // But we manually raise the physics simulation alpha so that the (possibly) newly
+          // visible states will "pop out" appropriately.
+          graphEditorRef.physicsSimulation.alpha(0.5).restart()
         })
       },
-      toggleGraphGameStatePreset: function (stateId, jobKey) {
+      toggleGraphGameStatePreset: function (graphEditorRef, stateId, jobKey) {
         this.restEndpoints.toggleGraphGameBDDNodePreset({
           jobKey,
           stateId
         }).then(response => {
           // The view will update itself reactively when a response arrives over the websocket
           // via 'jobStatusChanged'.
+          // But we manually raise the physics simulation alpha so that the (possibly) newly
+          // visible states will "pop out" appropriately.
+          graphEditorRef.physicsSimulation.alpha(0.5).restart()
         })
       },
       onAptEditorInput: function (apt) {

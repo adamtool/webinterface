@@ -819,7 +819,10 @@
             const mouseCoordinates = this.mousePosZoom()
             this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the postset of this State is visible
-            this.$emit('toggleStatePostset', d.id)
+            this.$emit('toggleStatePostset', {
+              graphEditorRef: this,
+              stateId: d.id
+            })
           } else {
             this.closeContextMenu()
             this.nodeClickHandler(d)
@@ -838,7 +841,10 @@
             const mouseCoordinates = this.mousePosZoom()
             this.lastUserClick = {x: mouseCoordinates[0], y: mouseCoordinates[1]}
             // Toggle whether the preset of this State is visible
-            this.$emit('toggleStatePreset', d.id)
+            this.$emit('toggleStatePreset', {
+              graphEditorRef: this,
+              stateId: d.id
+            })
           } else {
             // Cancel selection if a non-selected node is clicked
             if (!this.selectedNodes.includes(d)) {
