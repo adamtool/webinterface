@@ -360,7 +360,10 @@ public class PetriNetClient {
 
         static PetriNetNode fromPetriNetPlace(PetriNet net, Place place) {
             String id = place.getId();
-            String label = id;
+            String label = null;
+            if (PetriNetExtensionHandler.hasLabel(place)) {
+                label = PetriNetExtensionHandler.getLabel(place);
+            }
 
             boolean isSpecial = false;
             boolean isInitialTransit = false;

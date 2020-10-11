@@ -198,6 +198,11 @@
         type: Boolean,
         default: false
       },
+      // If true, labels are shown instead of IDs
+      showNodeLabels: {
+        type: Boolean,
+        required: true
+      },
       editorMode: {
         type: String,
         required: true,
@@ -592,9 +597,9 @@
           } else if (this.selectedNodes.length > 1) {
             items = this.contextMenuItemsSelection
           } else if (d.type === 'TRANSITION') {
-            items = this.contextMenuItemsNormal.concat(this.contextMenuItemsTransition(d))
+            items = this.contextMenuItemsNormal(d).concat(this.contextMenuItemsTransition(d))
           } else {
-            items = this.contextMenuItemsNormal.concat(this.contextMenuItemsPlace)
+            items = this.contextMenuItemsNormal(d).concat(this.contextMenuItemsPlace)
           }
           if (items.length == 1) { // If just the title is there, e.g. 'Place p0'
             items.push({
@@ -695,35 +700,38 @@
         }
       },
       contextMenuItemsNormal: function () {
-        const title = {
-          title: (d) => {
-            switch (d.type) {
-              case 'SYSPLACE':
-              case 'ENVPLACE':
-                return `Place ${d.id}`
-              case 'TRANSITION':
-                return `Transition ${d.id}`
-              default:
-                throw new Error('Unhandled case in switch statement for right click context menu')
+        return (d) => {
+          const title = {
+            title: (d) => {
+              switch (d.type) {
+                case 'SYSPLACE':
+                case 'ENVPLACE':
+                  return `Place ${d.id}`
+                case 'TRANSITION':
+                  return `Transition ${d.id}`
+                default:
+                  throw new Error('Unhandled case in switch statement for right click context menu')
+              }
             }
           }
-        }
-        const editorActions = [
-          {
-            title: 'Delete',
-            action: (d) => {
-              this.$emit('deleteNode', d.id)
+          const labelOption = d.label ? [{title: d.label}] : []
+          const editorActions = [
+            {
+              title: 'Delete',
+              action: (d) => {
+                this.$emit('deleteNode', d.id)
+              }
+            },
+            {
+              title: 'Rename',
+              action: this.renameNodeInteractively
             }
-          },
-          {
-            title: 'Rename',
-            action: this.renameNodeInteractively
+          ]
+          if (this.editorMode === 'Simulator') {
+            return [title, ...labelOption]
+          } else {
+            return [title, ...labelOption].concat(editorActions)
           }
-        ]
-        if (this.editorMode === 'Simulator') {
-          return [title]
-        } else {
-          return [title].concat(editorActions)
         }
       },
       nodeSpawnPoint: function () {
@@ -1330,6 +1338,9 @@
       shouldShowPartitions: function () {
         this.updateD3()
       },
+      showNodeLabels: function () {
+        this.updateD3()
+      },
       useModelChecking: function () {
         this.updateD3()
       },
@@ -1804,11 +1815,17 @@
             return 'normal'
           })
           .text(node => {
+            let labelText
+            if (this.showNodeLabels) {
+              labelText = node.label || node.id
+            } else {
+              labelText = node.id
+            }
             // This code is specifically for Graph Strategy BDDs where the whole BDD is too big to
             // show at once, so we hide part of the graph at first and explore it by clicking on it
             const invisibleChildrenMarker = node.hasInvisibleChildren ? '*' : ''
             const invisibleParentsMarker = node.hasInvisibleParents ? '*' : ''
-            return `${invisibleParentsMarker}${node.label}${invisibleChildrenMarker}`
+            return `${invisibleParentsMarker}${labelText}${invisibleChildrenMarker}`
           })
 
         // Generate the text, if any, that should go inside of every node

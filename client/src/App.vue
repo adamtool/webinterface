@@ -94,6 +94,10 @@
             v-model="showPartitions"
             label="Show partitions"
           />
+          <hsc-menu-item
+            v-model="showNodeLabels"
+            label="Show node labels instead of IDs"
+          />
         </hsc-menu-bar-item>
         <hsc-menu-bar-item
           @click.native="showAboutModal = true; this.$refs.menubar.deactivate()"
@@ -171,6 +175,7 @@
                            :modelCheckingRoutes="modelCheckingRoutes"
                            :shouldShowPhysicsControls="showPhysicsControls"
                            :shouldShowPartitions="showPartitions"
+                           :showNodeLabels="showNodeLabels"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
                            :isVisible="isLeftPaneVisible && selectedTabLeftSide === 0"
@@ -203,6 +208,7 @@
                 :useDistributedSynthesis="useDistributedSynthesis"
                 :shouldShowPhysicsControls="showPhysicsControls"
                 :shouldShowPartitions="showPartitions"
+                :showNodeLabels="showNodeLabels"
                 :repulsionStrengthDefault="360"
                 :linkStrengthDefault="0.086"
                 :isVisible="isLeftPaneVisible && selectedTabLeftSide === 1"
@@ -261,6 +267,7 @@
               <JobTabItem
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
+                :showNodeLabels="showNodeLabels"
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
                 :isTabSelected="shouldShowRightSide && selectedTabRightSide === `tab-${tab.uuid}`"
@@ -528,6 +535,7 @@
         // These are global flags which are applied to all graph viewer instances in all tabs
         showPhysicsControls: false,
         showPartitions: false,
+        showNodeLabels: false,
 
         // This uuid is a key of the 'Map<UUID, UserContext>' on the server.
         // Each UserContext object represents a separate job queue and list of queued/completed jobs.

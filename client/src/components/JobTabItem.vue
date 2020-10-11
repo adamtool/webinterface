@@ -64,6 +64,7 @@
              :jobKey="tab.jobKey"
              :restEndpoints="restEndpoints"
              :shouldShowPhysicsControls="showPhysicsControls"
+             :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
   />
   <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
@@ -71,6 +72,7 @@
                editorMode="Viewer"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"
+               :showNodeLabels="showNodeLabels"
                :isVisible="isTabSelected"
   />
   <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
@@ -80,6 +82,7 @@
                @toggleStatePreset="stateId => $emit('toggleStatePreset', stateId)"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"
+               :showNodeLabels="showNodeLabels"
                :repulsionStrengthDefault="415"
                :linkStrengthDefault="0.04"
                :gravityStrengthDefault="300"
@@ -93,6 +96,7 @@
              netType="PETRI_NET"
              :restEndpoints="restEndpoints"
              :shouldShowPhysicsControls="showPhysicsControls"
+             :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
   />
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
@@ -210,6 +214,10 @@
         required: true
       },
       showPhysicsControls: {
+        type: Boolean,
+        required: true
+      },
+      showNodeLabels: {
         type: Boolean,
         required: true
       },
