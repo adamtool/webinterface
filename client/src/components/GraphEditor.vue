@@ -714,7 +714,11 @@
               }
             }
           }
-          const labelOption = d.label ? [{title: d.label}] : []
+          const labelOption = d.label ? [
+            {
+              title: `[${d.label}]`
+            }
+          ] : []
           const editorActions = [
             {
               title: 'Delete',
