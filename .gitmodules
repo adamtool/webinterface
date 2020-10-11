@@ -19,3 +19,6 @@
 [submodule "backend/libs"]
 	path = backend/libs
 	url = git@github.com:adamtool/libs.git
+[submodule "backend/high-level"]
+	path = backend/high-level
+	url = git@github.com:adamtool/high-level.git

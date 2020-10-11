@@ -36,7 +36,7 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                 new BDDSolverOptions());
         bddGraph = new BDDGraph("My Graph");
         solver.initialize();
-        BDDState initialState = AdamSynthesizer.getInitialGraphGameState(bddGraph, solver);
+        BDDState initialState = AdamSynthesizer.getInitialGraphGameStateBDD(bddGraph, solver);
         postsetExpandedStates = new HashSet<>();
         presetExpandedStates = new HashSet<>();
         expandedStates = new HashSet<>();
@@ -155,6 +155,6 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
     }
 
     private Pair<List<Flow>, List<BDDState>> getSuccessors(BDDState state) {
-        return AdamSynthesizer.getSuccessors(state, bddGraph, solver);
+        return AdamSynthesizer.getSuccessorsBDD(state, bddGraph, solver);
     }
 }
