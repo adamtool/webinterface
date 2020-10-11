@@ -198,6 +198,11 @@
         type: Boolean,
         default: false
       },
+      // If true, labels are shown instead of IDs
+      showNodeLabels: {
+        type: Boolean,
+        required: true
+      },
       editorMode: {
         type: String,
         required: true,
@@ -1330,6 +1335,9 @@
       shouldShowPartitions: function () {
         this.updateD3()
       },
+      showNodeLabels: function () {
+        this.updateD3()
+      },
       useModelChecking: function () {
         this.updateD3()
       },
@@ -1804,11 +1812,17 @@
             return 'normal'
           })
           .text(node => {
+            let labelText
+            if (this.showNodeLabels) {
+              labelText = node.label || node.id
+            } else {
+              labelText = node.id
+            }
             // This code is specifically for Graph Strategy BDDs where the whole BDD is too big to
             // show at once, so we hide part of the graph at first and explore it by clicking on it
             const invisibleChildrenMarker = node.hasInvisibleChildren ? '*' : ''
             const invisibleParentsMarker = node.hasInvisibleParents ? '*' : ''
-            return `${invisibleParentsMarker}${node.label}${invisibleChildrenMarker}`
+            return `${invisibleParentsMarker}${labelText}${invisibleChildrenMarker}`
           })
 
         // Generate the text, if any, that should go inside of every node
