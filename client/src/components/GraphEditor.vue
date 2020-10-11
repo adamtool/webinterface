@@ -713,6 +713,9 @@
             }
           }
         }
+        const label = {
+          title: (d) => `[${d.label || 'No label'}]`
+        }
         const editorActions = [
           {
             title: 'Delete',
@@ -726,9 +729,9 @@
           }
         ]
         if (this.editorMode === 'Simulator') {
-          return [title]
+          return [title, label]
         } else {
-          return [title].concat(editorActions)
+          return [title, label].concat(editorActions)
         }
       },
       nodeSpawnPoint: function () {
