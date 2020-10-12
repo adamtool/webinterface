@@ -1608,16 +1608,12 @@
         const maxY = transform.invertY(boundingRect.bottom)
         const positionsPromise = layoutNodes(this.nodes, this.links, 0.15, minX, maxX, minY, maxY)
         positionsPromise.then(positions => {
-          this.freezeAllNodes()
           this.nodes.forEach(node => {
             const position = positions[node.id]
-            if (node.fx === node.x) {
-              node.fx = position.x
-              node.fy = position.y
-            } else {
-              node.x = position.x
-              node.y = position.y
-            }
+            node.x = position.x
+            node.y = position.y
+            node.fx = position.x
+            node.fy = position.y
           })
           this.updateD3()
         })
