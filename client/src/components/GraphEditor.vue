@@ -87,21 +87,41 @@
 
 
     <!-- "Save as SVG" button -->
-    <v-tooltip bottom>
-      <template v-slot:activator="{ on }">
-        <v-btn
-          icon
-          color="blue"
-          large
-          light
-          style="position: absolute; right: 20px; top: 20px; z-index: 5;"
-          @click="saveGraph"
-          v-on="on">
-          <v-icon>save</v-icon>
-        </v-btn>
+    <v-menu>
+      <template v-slot:activator="{ on: menu, attrs }">
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on: tooltip }">
+            <v-btn
+              icon
+              color="blue"
+              large
+              light
+              style="position: absolute; right: 20px; top: 20px; z-index: 5;"
+              v-bind="attrs"
+              v-on="{ ...tooltip, ...menu }"
+            >
+              <v-icon>save</v-icon>
+            </v-btn>
+          </template>
+          <span>Save</span>
+        </v-tooltip>
       </template>
-      Save as SVG
-    </v-tooltip>
+      <v-list>
+        <v-list-item
+          link
+          @click="saveAsSvg"
+        >
+          <v-list-item-title>Save as SVG</v-list-item-title>
+        </v-list-item>
+        <v-list-item
+          v-for="{label, callback} in additionalSaveActions"
+          link
+          @click="callback"
+          >
+          <v-list-item-title>{{ label }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <!-- The SVG element that displays the graph -->
     <svg class='graph' :id='this.graphSvgId' style="position: absolute; z-index: 0;" ref="svg">
@@ -239,6 +259,14 @@
       isVisible: {
         type: Boolean,
         required: true
+      },
+      additionalSaveActions: {
+        type: Array,
+        required: false,
+        default: function () { return [] },
+        validator: function (actions) {
+          return actions.every(action => action.label && action.callback)
+        }
       }
     },
     data() {
@@ -1618,7 +1646,7 @@
           this.updateD3()
         })
       },
-      saveGraph: function () {
+      saveAsSvg: function () {
         const html = this.svg.node().outerHTML
         saveFileAs(html, 'graph.svg')
         console.log(html)

@@ -102,6 +102,7 @@
              :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
+             :additionalSaveActions="saveActionsMcNet(tab.result.apt)"
   />
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_FORMULA'"
           class="job-tab-card"
@@ -204,6 +205,7 @@
   import GraphEditor from './GraphEditor'
   import Simulator from './Simulator'
   import {modelCheckingResultColor} from '../jobType'
+  import {saveFileAs} from '../fileutilities'
 
   export default {
     name: 'JobTabItem',
@@ -263,6 +265,12 @@
           case 'COMPLETED':
             return 'This job is finished.'
         }
+      },
+      saveActionsMcNet: function (mcNetApt) {
+        return [{
+          label: "Save as APT",
+          callback: () => saveFileAs(mcNetApt, 'model-checking-net.apt')
+        }]
       }
     }
   }
