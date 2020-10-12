@@ -1963,14 +1963,6 @@
               return 2
             }
           })
-        const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
-
-        function partitionColorForPlace(place) {
-          const hueDegrees = place.partition / (maxPartition + 1) * 360
-          console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
-          const luminosity = place.type === 'SYSPLACE' ? 35 : 90
-          return `HSL(${hueDegrees}, ${luminosity + 20}%, ${luminosity}%`
-        }
 
         this.nodeElements
           // Don't mess with the color of a node if an animation is running on it
@@ -2321,6 +2313,20 @@
             this.links.push(newLinkWithReferences)
           }
         })
+
+        const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
+        this.nodes.filter(node => node.partition !== -1)
+          .forEach(place => {
+            place.partitionColor = partitionColorForPlace(place, maxPartition)
+          })
+
+        function partitionColorForPlace(place, maxPartition) {
+          const hueDegrees = place.partition / (maxPartition + 1) * 360
+          console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
+          const luminosity = place.type === 'SYSPLACE' ? 35 : 90
+          return `HSL(${hueDegrees}, ${luminosity + 20}%, ${luminosity}%`
+        }
+
         // Note: This represents a fiddly bit of state management to ensure that
         // nodes spawn under the mouse cursor if triggered by a user clicking, but otherwise, they
         // should spawn at the center of the SVG (e.g. upon adding a new Place while editing the APT).
@@ -2355,8 +2361,8 @@
           return '#3366bb'
         } else if (isHighlightedOrHovered || isSelected) {
           return '#99aadd'
-        } else if (this.showPartitions && data.partition !== -1) {
-          return partitionColorForPlace(data)
+        } else if (this.showPartitions && data.partitionColor) {
+          return data.partitionColor
         } else if (data.type === 'ENVPLACE') {
           return 'white'
         } else if (this.useModelChecking && data.type === 'SYSPLACE') {
