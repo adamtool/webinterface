@@ -66,9 +66,11 @@ public class Job<T> {
             try {
                 T result = callable.call();
                 timeFinished = Instant.now();
+                fireJobStatusChanged();
                 return result;
             } catch (Throwable e) {
                 timeFinished = Instant.now();
+                fireJobStatusChanged();
                 throw e;
             }
         }, executorService);
