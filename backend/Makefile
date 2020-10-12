@@ -90,7 +90,7 @@ pull_backend:
 
 clean_backend: clean-all
 
-deploy_backend: setJavac mc symbolic setDeploy backend
+deploy_backend: setJavac mc symbolic highlevel setDeploy backend
 
 integrate_backend: clean_backend 	
 	./integrate_backend.sh
