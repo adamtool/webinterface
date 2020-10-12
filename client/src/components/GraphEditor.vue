@@ -10,7 +10,7 @@
       z-index: 6;
       background-color: #fafafa"
     >
-      <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
+      <div class="graph-editor-toolbar" v-if="showPhysicsControls">
         <div>Repulsion Strength</div>
         <input type="range" min="30" max="1000" step="1"
                class="forceStrengthSlider"
@@ -77,7 +77,7 @@
       background: #ffffffee;
       padding: 12px;
       border-radius: 40px;"
-      :paddingWithinParentElement="this.shouldShowPhysicsControls ? 250 : 200"
+      :paddingWithinParentElement="this.showPhysicsControls ? 250 : 200"
       :selectedTool="this.selectedTool"
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
@@ -189,14 +189,14 @@
         }
       },
       // When true, the repulsion/gravity/link strength sliders are displayed
-      shouldShowPhysicsControls: {
+      showPhysicsControls: {
         type: Boolean,
         default: false
       },
       // When true, the 'partition' data in 'graph' will be visualized
-      shouldShowPartitions: {
+      showPartitions: {
         type: Boolean,
-        default: false
+        required: true
       },
       // If true, labels are shown instead of IDs
       showNodeLabels: {
@@ -660,6 +660,10 @@
               }
             },
             action: this.toggleEnvironmentPlace
+          },
+          {
+            title: 'Set partition',
+            action: this.setPartitionInteractively
           }
         ]
         const itemsForBothModes = [
@@ -1339,7 +1343,7 @@
       gravityStrength: function (strength) {
         this.updateGravityStrength(strength)
       },
-      shouldShowPartitions: function () {
+      showPartitions: function () {
         this.updateD3()
       },
       showNodeLabels: function () {
@@ -1481,6 +1485,22 @@
           }
         }
         this.getTextInput(`Set initial token for ${d.id}`, callback)
+      },
+      setPartitionInteractively: function (d) {
+        const callback = (text) => {
+          const partition = parseInt(text)
+          if (isNaN(partition)) {
+            throw new Error('The text entered can\'t be parsed into an integer, so we can\'t set' +
+              ' the Place\s partition to that value.')
+          } else {
+            console.log('Emitting setPartition')
+            this.$emit('setPartition', {
+              nodeId: d.id,
+              partition
+            })
+          }
+        }
+        this.getTextInput(`Set partition for ${d.id}`, callback)
       },
       // Open a text input field in the svg and focus it.  Let the user type stuff in, and call
       // callback with whatever text the user entered.
@@ -1963,14 +1983,6 @@
               return 2
             }
           })
-        const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
-
-        function partitionColorForPlace(place) {
-          const hueDegrees = place.partition / (maxPartition + 1) * 360
-          console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
-          const luminosity = place.type === 'SYSPLACE' ? 35 : 90
-          return `HSL(${hueDegrees}, ${luminosity + 20}%, ${luminosity}%`
-        }
 
         this.nodeElements
           // Don't mess with the color of a node if an animation is running on it
@@ -2321,6 +2333,52 @@
             this.links.push(newLinkWithReferences)
           }
         })
+
+        // Calculate places' partition colors
+
+        // This is a colorblind-safe color palette created by Kenneth Kelly.
+        // https://eleanormaclure.files.wordpress.com/2011/03/colour-coding.pdf
+        // I found this list through this fantastic StackOverflow answer:
+        // https://stackoverflow.com/a/4382138/7359454
+        const finiteColorPalette = [
+          // The first 7 colors can be distinguished by most colorblind users
+          '#FFB300', //Vivid Yellow
+          '#803E75', //Strong Purple
+          '#FF6800', //Vivid Orange
+          '#A6BDD7', //Very Light Blue
+          '#C10020', //Vivid Red
+          '#CEA262', //Grayish Yellow
+          '#817066', //Medium Gray
+          //The following will not be good for people with defective color vision
+          '#007D34', //Vivid Green
+          '#F6768E', //Strong Purplish Pink
+          '#00538A', //Strong Blue
+          '#FF7A5C', //Strong Yellowish Pink
+          '#53377A', //Strong Violet
+          '#FF8E00', //Vivid Orange Yellow
+          '#B32851', //Strong Purplish Red
+          '#F4C800', //Vivid Greenish Yellow
+          '#7F180D', //Strong Reddish Brown
+          '#93AA00', //Vivid Yellowish Green
+          '#593315', //Deep Yellowish Brown
+          '#F13A13', //Vivid Reddish Orange
+          '#232C16' //Dark Olive Green
+        ]
+        this.nodes.filter(node => node.partition >= 0)
+          .forEach(place => {
+            place.partitionColor = partitionColorForPlace(place)
+          })
+
+        function partitionColorForPlace(place) {
+          if (place.partition === 0) {
+            return '#ffffff'
+          } else if (place.partition <= finiteColorPalette.length) {
+            return finiteColorPalette[place.partition - 1]
+          } else { // If we need more than 22 distinct colors, I think it is not really possible :(
+            return 'lightgrey' // The default system place color
+          }
+        }
+
         // Note: This represents a fiddly bit of state management to ensure that
         // nodes spawn under the mouse cursor if triggered by a user clicking, but otherwise, they
         // should spawn at the center of the SVG (e.g. upon adding a new Place while editing the APT).
@@ -2355,8 +2413,8 @@
           return '#3366bb'
         } else if (isHighlightedOrHovered || isSelected) {
           return '#99aadd'
-        } else if (this.shouldShowPartitions && data.partition !== -1) {
-          return partitionColorForPlace(data)
+        } else if (this.showPartitions && data.partitionColor) {
+          return data.partitionColor
         } else if (data.type === 'ENVPLACE') {
           return 'white'
         } else if (this.useModelChecking && data.type === 'SYSPLACE') {

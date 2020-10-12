@@ -166,6 +166,7 @@
                            v-on:toggleIsInitialTransit='toggleIsInitialTransit'
                            v-on:setIsSpecial='setIsSpecial'
                            v-on:setInitialToken='setInitialToken'
+                           v-on:setPartition='setPartition'
                            v-on:setWinningCondition='setWinningCondition'
                            v-on:setFairness='setFairness'
                            v-on:setInhibitorArc='setInhibitorArc'
@@ -173,8 +174,8 @@
                            :useModelChecking="useModelChecking"
                            :useDistributedSynthesis="useDistributedSynthesis"
                            :modelCheckingRoutes="modelCheckingRoutes"
-                           :shouldShowPhysicsControls="showPhysicsControls"
-                           :shouldShowPartitions="showPartitions"
+                           :showPhysicsControls="showPhysicsControls"
+                           :showPartitions="showPartitions"
                            :showNodeLabels="showNodeLabels"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -206,8 +207,8 @@
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
                 :useDistributedSynthesis="useDistributedSynthesis"
-                :shouldShowPhysicsControls="showPhysicsControls"
-                :shouldShowPartitions="showPartitions"
+                :showPhysicsControls="showPhysicsControls"
+                :showPartitions="showPartitions"
                 :showNodeLabels="showNodeLabels"
                 :repulsionStrengthDefault="360"
                 :linkStrengthDefault="0.086"
@@ -267,6 +268,7 @@
               <JobTabItem
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
+                :showPartitions="showPartitions"
                 :showNodeLabels="showNodeLabels"
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
@@ -704,6 +706,7 @@
           'fireTransitionEditor',
           'fireTransitionJob',
           'setInitialToken',
+          'setPartition',
           'setWinningCondition',
           'setFairness',
           'setInhibitorArc'
@@ -1416,6 +1419,20 @@
           editorNetId: this.editorNet.uuid,
           nodeId: nodeId,
           tokens: tokens
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.editorNet.net = response.data.result
+          })
+        }).catch(() => {
+          logging.logError('Network error')
+        })
+      },
+      setPartition: function ({nodeId, partition}) {
+        console.log('processing setPartitoin event')
+        this.restEndpoints.setPartition({
+          editorNetId: this.editorNet.uuid,
+          nodeId,
+          partition
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.editorNet.net = response.data.result
