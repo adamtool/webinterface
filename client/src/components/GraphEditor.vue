@@ -194,9 +194,9 @@
         default: false
       },
       // When true, the 'partition' data in 'graph' will be visualized
-      shouldShowPartitions: {
+      showPartitions: {
         type: Boolean,
-        default: false
+        required: true
       },
       // If true, labels are shown instead of IDs
       showNodeLabels: {
@@ -1339,7 +1339,7 @@
       gravityStrength: function (strength) {
         this.updateGravityStrength(strength)
       },
-      shouldShowPartitions: function () {
+      showPartitions: function () {
         this.updateD3()
       },
       showNodeLabels: function () {
@@ -2355,7 +2355,7 @@
           return '#3366bb'
         } else if (isHighlightedOrHovered || isSelected) {
           return '#99aadd'
-        } else if (this.shouldShowPartitions && data.partition !== -1) {
+        } else if (this.showPartitions && data.partition !== -1) {
           return partitionColorForPlace(data)
         } else if (data.type === 'ENVPLACE') {
           return 'white'

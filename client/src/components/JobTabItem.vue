@@ -64,6 +64,7 @@
              :jobKey="tab.jobKey"
              :restEndpoints="restEndpoints"
              :shouldShowPhysicsControls="showPhysicsControls"
+             :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
   />
@@ -72,6 +73,7 @@
                editorMode="Viewer"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"
+               :showPartitions="showPartitions"
                :showNodeLabels="showNodeLabels"
                :isVisible="isTabSelected"
   />
@@ -82,6 +84,7 @@
                @toggleStatePreset="stateId => $emit('toggleStatePreset', stateId)"
                :restEndpoints="restEndpoints"
                :shouldShowPhysicsControls="showPhysicsControls"
+               :showPartitions="showPartitions"
                :showNodeLabels="showNodeLabels"
                :repulsionStrengthDefault="415"
                :linkStrengthDefault="0.04"
@@ -96,6 +99,7 @@
              netType="PETRI_NET"
              :restEndpoints="restEndpoints"
              :shouldShowPhysicsControls="showPhysicsControls"
+             :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
   />
@@ -214,6 +218,10 @@
         required: true
       },
       showPhysicsControls: {
+        type: Boolean,
+        required: true
+      },
+      showPartitions: {
         type: Boolean,
         required: true
       },
