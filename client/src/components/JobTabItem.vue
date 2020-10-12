@@ -58,6 +58,7 @@
     </template>
   </div>
   <Simulator v-else-if="tab.type === 'WINNING_STRATEGY'"
+             ref="winningStratSimulator"
              editorMode="Simulator"
              netType="PETRI_GAME"
              :graph="tab.result.graph"
@@ -67,6 +68,7 @@
              :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
+             :additionalSaveActions="saveActionsWinningStrategy(tab.jobKey)"
   />
   <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
                :graph="tab.result"
@@ -92,6 +94,7 @@
                :isVisible="isTabSelected"
   />
   <Simulator v-else-if="tab.type === 'MODEL_CHECKING_NET'"
+             ref="mcNetSimulator"
              editorMode="Simulator"
              :graph="tab.result.graph"
              :jobKey="tab.jobKey"
@@ -102,6 +105,7 @@
              :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
+             :additionalSaveActions="saveActionsMcNet(tab.jobKey)"
   />
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_FORMULA'"
           class="job-tab-card"
@@ -204,6 +208,8 @@
   import GraphEditor from './GraphEditor'
   import Simulator from './Simulator'
   import {modelCheckingResultColor} from '../jobType'
+  import {saveFileAs} from '../fileutilities'
+  import logging from '../logging'
 
   export default {
     name: 'JobTabItem',
@@ -263,6 +269,42 @@
           case 'COMPLETED':
             return 'This job is finished.'
         }
+      },
+      saveJobAsApt: function (jobKey, getNodePositions, filename) {
+        const nodePositions = getNodePositions()
+        const requestPromise = this.restEndpoints.saveJobAsApt({
+          jobKey,
+          nodeXYCoordinateAnnotations: nodePositions
+        })
+        requestPromise.then(response => {
+          if (response.data.status === 'success') {
+            const apt = response.data.result
+            saveFileAs(apt, filename)
+          } else if (response.data.status === 'error') {
+            logging.sendErrorNotification(response.data.message)
+          } else {
+            logging.sendErrorNotification('Invalid response from server')
+          }
+        }).catch(logging.sendErrorNotification)
+        return requestPromise
+      },
+      saveActionsMcNet: function (jobKey) {
+        return [{
+          label: 'Save as APT',
+          callback: () => this.saveJobAsApt(
+            jobKey,
+            this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+            'model-checking-net.apt')
+        }]
+      },
+      saveActionsWinningStrategy: function (jobKey) {
+        return [{
+          label: 'Save as APT',
+          callback: () => this.saveJobAsApt(
+            jobKey,
+            this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+            'winning-strategy.apt')
+        }]
       }
     }
   }

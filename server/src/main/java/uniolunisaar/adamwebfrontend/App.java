@@ -78,6 +78,8 @@ public class App {
 
         postWithUserContext("/toggleGraphGameBDDNodePreset", this::handleToggleGraphGameBDDNodePreset);
 
+        postWithUserContext("/saveJobAsApt", this::handleSaveJobAsApt);
+
         postWithEditorNet("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
 
         postWithEditorNet("/updateXYCoordinates", this::handleUpdateXYCoordinates);
@@ -419,6 +421,54 @@ public class App {
         Job job = uc.getJobFromKey(jobKey);
         job.cancel();
         return successResponse(new JsonPrimitive(true));
+    }
+
+    // Convert the net produced by a given job to APT format.
+    // Add X/Y coordinate annotations if provided.
+    private Object handleSaveJobAsApt(Request req, Response res, UserContext uc) throws
+            ExecutionException, InterruptedException, RenderException {
+        JsonElement body = parser.parse(req.body());
+
+        Type t = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, t);
+
+        if (!uc.hasJobWithKey(jobKey)) {
+            return errorResponse("The requested job was not found.");
+        }
+        Job<?> job = uc.getJobFromKey(jobKey);
+        if (!job.isFinished()) {
+            return errorResponse("The requested job is not finished.");
+        }
+
+        Object result = job.getResult();
+        PetriNet netCopy;
+        if (result instanceof PetriNetWithTransits) {
+            netCopy = new PetriNetWithTransits((PetriNetWithTransits) result);
+        } else if (result instanceof PetriNet) {
+            netCopy = new PetriNet((PetriNet) result);
+        } else {
+            throw new IllegalArgumentException("The job specified did not produce a net " +
+                    "which can be saved as APT.");
+        }
+        JsonObject nodesXYCoordinatesJson =
+                body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        Type type = new TypeToken<Map<String, NodePosition>>() {
+        }.getType();
+        Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
+        PetriNetTools.saveXYCoordinates(netCopy, nodePositions);
+        String apt;
+        if (netCopy instanceof PetriNetWithTransits) {
+            apt = PNWTTools.getAPT((PetriNetWithTransits) netCopy, true, true);
+        } else if (netCopy instanceof PetriNet) {
+            apt = Tools.getPN(netCopy);
+        } else {
+            throw new IllegalArgumentException("The job specified did not produce a net " +
+                    "which can be saved as APT."); // This should be unreachable
+        }
+        return successResponse(new JsonPrimitive(apt));
+
     }
 
     private Object handleDeleteJob(Request req, Response res, UserContext uc) {
