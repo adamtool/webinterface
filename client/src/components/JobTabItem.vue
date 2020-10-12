@@ -92,6 +92,7 @@
                :isVisible="isTabSelected"
   />
   <Simulator v-else-if="tab.type === 'MODEL_CHECKING_NET'"
+             ref="mcNetSimulator"
              editorMode="Simulator"
              :graph="tab.result.graph"
              :jobKey="tab.jobKey"
@@ -102,7 +103,7 @@
              :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
-             :additionalSaveActions="saveActionsMcNet(tab.result.apt)"
+             :additionalSaveActions="saveActionsMcNet(tab.jobKey)"
   />
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_FORMULA'"
           class="job-tab-card"
@@ -206,6 +207,7 @@
   import Simulator from './Simulator'
   import {modelCheckingResultColor} from '../jobType'
   import {saveFileAs} from '../fileutilities'
+  import logging from '../logging'
 
   export default {
     name: 'JobTabItem',
@@ -266,10 +268,27 @@
             return 'This job is finished.'
         }
       },
-      saveActionsMcNet: function (mcNetApt) {
+      saveActionsMcNet: function (jobKey) {
         return [{
-          label: "Save as APT",
-          callback: () => saveFileAs(mcNetApt, 'model-checking-net.apt')
+          label: 'Save as APT',
+          callback: () => {
+            const nodePositions =
+              this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed()
+            const requestPromise = this.restEndpoints.saveJobAsApt({
+              jobKey,
+              nodeXYCoordinateAnnotations: nodePositions
+            })
+            requestPromise.then(response => {
+              if (response.data.status === 'success') {
+                const apt = response.data.result
+                saveFileAs(apt, 'model-checking-net.apt')
+              } else if (response.data.status === 'error') {
+                logging.sendErrorNotification(response.data.message)
+              } else {
+                logging.sendErrorNotification('Invalid response from server')
+              }
+            })
+          }
         }]
       }
     }

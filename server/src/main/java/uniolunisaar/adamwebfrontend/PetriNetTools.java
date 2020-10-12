@@ -1,6 +1,7 @@
 package uniolunisaar.adamwebfrontend;
 
 import uniol.apt.adt.pn.*;
+import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.util.AdamExtensions;
 import uniolunisaar.adam.util.PNTools;
@@ -48,14 +49,14 @@ public class PetriNetTools {
      * Update the x/y coordinate annotations of the given petri net.
      * There has to be an annotation for every node.
      */
-    public static void saveXYCoordinates(PetriNetWithTransits petriGame,
+    public static void saveXYCoordinates(PetriNet petriGame,
                                          Map<String, NodePosition> nodePositions) {
         for (Node node : petriGame.getNodes()) {
             String nodeId = node.getId();
             if (nodePositions.containsKey(nodeId)) {
                 NodePosition position = nodePositions.get(nodeId);
-                petriGame.setXCoord(node, position.x);
-                petriGame.setYCoord(node, position.y);
+                PetriNetExtensionHandler.setXCoord(node, position.x);
+                PetriNetExtensionHandler.setYCoord(node, position.y);
             } else {
                 throw new IllegalArgumentException(
                         "The x/y coordinates are missing for the node " + node);

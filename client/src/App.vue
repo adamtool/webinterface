@@ -697,6 +697,7 @@
           'updateXYCoordinates',
           'parseApt',
           'copyEditorNet',
+          'saveJobAsApt',
           'insertPlace',
           'createFlow',
           'createTransit',
