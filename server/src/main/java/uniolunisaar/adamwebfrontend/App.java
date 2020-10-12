@@ -426,7 +426,7 @@ public class App {
     // Convert the net produced by a given job to APT format.
     // Add X/Y coordinate annotations if provided.
     private Object handleSaveJobAsApt(Request req, Response res, UserContext uc) throws
-    ExecutionException, InterruptedException, RenderException {
+            ExecutionException, InterruptedException, RenderException {
         JsonElement body = parser.parse(req.body());
 
         Type t = new TypeToken<JobKey>() {
