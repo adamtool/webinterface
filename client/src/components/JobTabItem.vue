@@ -58,6 +58,7 @@
     </template>
   </div>
   <Simulator v-else-if="tab.type === 'WINNING_STRATEGY'"
+             ref="winningStratSimulator"
              editorMode="Simulator"
              netType="PETRI_GAME"
              :graph="tab.result.graph"
@@ -67,6 +68,7 @@
              :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
+             :additionalSaveActions="saveActionsWinningStrategy(tab.jobKey)"
   />
   <GraphEditor v-else-if="tab.type === 'GRAPH_STRATEGY_BDD'"
                :graph="tab.result"
@@ -282,6 +284,29 @@
               if (response.data.status === 'success') {
                 const apt = response.data.result
                 saveFileAs(apt, 'model-checking-net.apt')
+              } else if (response.data.status === 'error') {
+                logging.sendErrorNotification(response.data.message)
+              } else {
+                logging.sendErrorNotification('Invalid response from server')
+              }
+            }).catch(logging.sendErrorNotification)
+          }
+        }]
+      },
+      saveActionsWinningStrategy: function (jobKey) {
+        return [{
+          label: 'Save as APT',
+          callback: () => {
+            const nodePositions =
+              this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed()
+            const requestPromise = this.restEndpoints.saveJobAsApt({
+              jobKey,
+              nodeXYCoordinateAnnotations: nodePositions
+            })
+            requestPromise.then(response => {
+              if (response.data.status === 'success') {
+                const apt = response.data.result
+                saveFileAs(apt, 'winning-strategy.apt')
               } else if (response.data.status === 'error') {
                 logging.sendErrorNotification(response.data.message)
               } else {
