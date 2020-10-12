@@ -10,7 +10,7 @@
       z-index: 6;
       background-color: #fafafa"
     >
-      <div class="graph-editor-toolbar" v-if="shouldShowPhysicsControls">
+      <div class="graph-editor-toolbar" v-if="showPhysicsControls">
         <div>Repulsion Strength</div>
         <input type="range" min="30" max="1000" step="1"
                class="forceStrengthSlider"
@@ -77,7 +77,7 @@
       background: #ffffffee;
       padding: 12px;
       border-radius: 40px;"
-      :paddingWithinParentElement="this.shouldShowPhysicsControls ? 250 : 200"
+      :paddingWithinParentElement="this.showPhysicsControls ? 250 : 200"
       :selectedTool="this.selectedTool"
       @onPickTool="tool => this.selectedTool = tool"
       :tools="this.toolPickerItems"/>
@@ -189,7 +189,7 @@
         }
       },
       // When true, the repulsion/gravity/link strength sliders are displayed
-      shouldShowPhysicsControls: {
+      showPhysicsControls: {
         type: Boolean,
         default: false
       },
