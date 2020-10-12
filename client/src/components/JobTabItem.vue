@@ -63,7 +63,8 @@
              :graph="tab.result.graph"
              :jobKey="tab.jobKey"
              :restEndpoints="restEndpoints"
-             :shouldShowPhysicsControls="showPhysicsControls"
+             :showPhysicsControls="showPhysicsControls"
+             :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
   />
@@ -71,7 +72,8 @@
                :graph="tab.result"
                editorMode="Viewer"
                :restEndpoints="restEndpoints"
-               :shouldShowPhysicsControls="showPhysicsControls"
+               :showPhysicsControls="showPhysicsControls"
+               :showPartitions="showPartitions"
                :showNodeLabels="showNodeLabels"
                :isVisible="isTabSelected"
   />
@@ -81,7 +83,8 @@
                @toggleStatePostset="stateId => $emit('toggleStatePostset', stateId)"
                @toggleStatePreset="stateId => $emit('toggleStatePreset', stateId)"
                :restEndpoints="restEndpoints"
-               :shouldShowPhysicsControls="showPhysicsControls"
+               :showPhysicsControls="showPhysicsControls"
+               :showPartitions="showPartitions"
                :showNodeLabels="showNodeLabels"
                :repulsionStrengthDefault="415"
                :linkStrengthDefault="0.04"
@@ -95,10 +98,17 @@
              :useModelChecking="true"
              netType="PETRI_NET"
              :restEndpoints="restEndpoints"
-             :shouldShowPhysicsControls="showPhysicsControls"
+             :showPhysicsControls="showPhysicsControls"
+             :showPartitions="showPartitions"
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
   />
+  <v-card v-else-if="tab.type === 'MODEL_CHECKING_FORMULA'"
+          class="job-tab-card"
+
+  >
+    {{ tab.result }}
+  </v-card>
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
           class="job-tab-card"
   >
@@ -214,6 +224,10 @@
         required: true
       },
       showPhysicsControls: {
+        type: Boolean,
+        required: true
+      },
+      showPartitions: {
         type: Boolean,
         required: true
       },

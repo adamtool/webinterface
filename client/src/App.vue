@@ -83,6 +83,8 @@
           <hsc-menu-bar-item label="Reduction">
             <hsc-menu-item @click="calculateModelCheckingNet" label="Petri Net"
             />
+            <hsc-menu-item @click="calculateModelCheckingFormula" label="LTL Formula"
+            />
           </hsc-menu-bar-item>
         </template>
         <hsc-menu-bar-item label="Settings">
@@ -92,6 +94,7 @@
           />
           <hsc-menu-item
             v-model="showPartitions"
+            v-if="!useModelChecking"
             label="Show partitions"
           />
           <hsc-menu-item
@@ -166,6 +169,7 @@
                            v-on:toggleIsInitialTransit='toggleIsInitialTransit'
                            v-on:setIsSpecial='setIsSpecial'
                            v-on:setInitialToken='setInitialToken'
+                           v-on:setPartition='setPartition'
                            v-on:setWinningCondition='setWinningCondition'
                            v-on:setFairness='setFairness'
                            v-on:setInhibitorArc='setInhibitorArc'
@@ -173,8 +177,8 @@
                            :useModelChecking="useModelChecking"
                            :useDistributedSynthesis="useDistributedSynthesis"
                            :modelCheckingRoutes="modelCheckingRoutes"
-                           :shouldShowPhysicsControls="showPhysicsControls"
-                           :shouldShowPartitions="showPartitions"
+                           :showPhysicsControls="showPhysicsControls"
+                           :showPartitions="showPartitions"
                            :showNodeLabels="showNodeLabels"
                            :repulsionStrengthDefault="360"
                            :linkStrengthDefault="0.086"
@@ -206,8 +210,8 @@
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
                 :useDistributedSynthesis="useDistributedSynthesis"
-                :shouldShowPhysicsControls="showPhysicsControls"
-                :shouldShowPartitions="showPartitions"
+                :showPhysicsControls="showPhysicsControls"
+                :showPartitions="showPartitions"
                 :showNodeLabels="showNodeLabels"
                 :repulsionStrengthDefault="360"
                 :linkStrengthDefault="0.086"
@@ -267,6 +271,7 @@
               <JobTabItem
                 :tab="tab"
                 :showPhysicsControls="showPhysicsControls"
+                :showPartitions="showPartitions"
                 :showNodeLabels="showNodeLabels"
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
@@ -704,6 +709,7 @@
           'fireTransitionEditor',
           'fireTransitionJob',
           'setInitialToken',
+          'setPartition',
           'setWinningCondition',
           'setFairness',
           'setInhibitorArc'
@@ -1125,6 +1131,17 @@
         })
         logging.sendSuccessNotification('Sent a request to get the model checking net')
       },
+      calculateModelCheckingFormula: function () {
+        const formula = this.$refs.graphEditor.ltlFormula
+        if (formula === '') {
+          this.setLtlParseError('Please enter a formula to check.')
+          return
+        }
+        this.queueJob(this.editorNet.uuid, 'MODEL_CHECKING_FORMULA', {
+          formula
+        })
+        logging.sendSuccessNotification('Sent a request to get the LTL formula of the reduction')
+      },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
         const formula = this.$refs.graphEditor.ltlFormula
@@ -1416,6 +1433,20 @@
           editorNetId: this.editorNet.uuid,
           nodeId: nodeId,
           tokens: tokens
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.editorNet.net = response.data.result
+          })
+        }).catch(() => {
+          logging.logError('Network error')
+        })
+      },
+      setPartition: function ({nodeId, partition}) {
+        console.log('processing setPartitoin event')
+        this.restEndpoints.setPartition({
+          editorNetId: this.editorNet.uuid,
+          nodeId,
+          partition
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.editorNet.net = response.data.result

@@ -125,7 +125,7 @@
     computed: {
       visibleJobListings: function () {
         const visibleJobTypes = this.useModelChecking ?
-          ['MODEL_CHECKING_RESULT', 'MODEL_CHECKING_NET'] :
+          ['MODEL_CHECKING_RESULT', 'MODEL_CHECKING_NET', 'MODEL_CHECKING_FORMULA'] :
           ['GRAPH_GAME_BDD', 'EXISTS_WINNING_STRATEGY', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD']
         return this.jobListings.filter(listing => {
           return visibleJobTypes.includes(listing.type)

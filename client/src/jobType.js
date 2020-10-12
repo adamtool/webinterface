@@ -14,6 +14,8 @@ function formatJobType (jobType) {
       return 'Model Checking Result'
     case 'MODEL_CHECKING_NET':
       return 'Model Checking Net'
+    case 'MODEL_CHECKING_FORMULA':
+      return 'Model Checking Formula'
     default:
       return jobType
   }
