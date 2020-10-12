@@ -270,50 +270,40 @@
             return 'This job is finished.'
         }
       },
+      saveJobAsApt: function (jobKey, getNodePositions, filename) {
+        const nodePositions = getNodePositions()
+        const requestPromise = this.restEndpoints.saveJobAsApt({
+          jobKey,
+          nodeXYCoordinateAnnotations: nodePositions
+        })
+        requestPromise.then(response => {
+          if (response.data.status === 'success') {
+            const apt = response.data.result
+            saveFileAs(apt, filename)
+          } else if (response.data.status === 'error') {
+            logging.sendErrorNotification(response.data.message)
+          } else {
+            logging.sendErrorNotification('Invalid response from server')
+          }
+        }).catch(logging.sendErrorNotification)
+        return requestPromise
+      },
       saveActionsMcNet: function (jobKey) {
         return [{
           label: 'Save as APT',
-          callback: () => {
-            const nodePositions =
-              this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed()
-            const requestPromise = this.restEndpoints.saveJobAsApt({
-              jobKey,
-              nodeXYCoordinateAnnotations: nodePositions
-            })
-            requestPromise.then(response => {
-              if (response.data.status === 'success') {
-                const apt = response.data.result
-                saveFileAs(apt, 'model-checking-net.apt')
-              } else if (response.data.status === 'error') {
-                logging.sendErrorNotification(response.data.message)
-              } else {
-                logging.sendErrorNotification('Invalid response from server')
-              }
-            }).catch(logging.sendErrorNotification)
-          }
+          callback: () => this.saveJobAsApt(
+            jobKey,
+            this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+            'model-checking-net.apt')
         }]
       },
       saveActionsWinningStrategy: function (jobKey) {
         return [{
           label: 'Save as APT',
-          callback: () => {
-            const nodePositions =
-              this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed()
-            const requestPromise = this.restEndpoints.saveJobAsApt({
-              jobKey,
-              nodeXYCoordinateAnnotations: nodePositions
-            })
-            requestPromise.then(response => {
-              if (response.data.status === 'success') {
-                const apt = response.data.result
-                saveFileAs(apt, 'winning-strategy.apt')
-              } else if (response.data.status === 'error') {
-                logging.sendErrorNotification(response.data.message)
-              } else {
-                logging.sendErrorNotification('Invalid response from server')
-              }
-            }).catch(logging.sendErrorNotification)
-          }
+          callback: () => this.saveJobAsApt(
+            jobKey,
+            this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+            'winning-strategy.apt')
         }]
       }
     }
