@@ -23,6 +23,21 @@ function arcPath (x1, y1, x2, y2) {
   return 'M' + x1 + ',' + y1 + 'A' + drx + ',' + dry + ' ' + xRotation + ',' + largeArc + ',' + sweep + ' ' + x2 + ',' + y2
 }
 
+// Draw a quadratic bezier path between two points with a control point positioned a given distance
+// away perpendicular from the midpoint.
+function quadraticBezierPath(x1, y1, x2, y2, controlPointDistance) {
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const midpointX = (x1 + x2) / 2
+  const midpointY = (y1 + y2) / 2
+  const angle = Math.atan2(dy, dx)
+  const anglePerpendicular = angle + Math.PI / 2
+  const controlPointX = midpointX + Math.cos(anglePerpendicular) * controlPointDistance
+  const controlPointY = midpointY + Math.sin(anglePerpendicular) * controlPointDistance
+
+  return `M ${x1},${y1} Q ${controlPointX} ${controlPointY}, ${x2} ${y2}`
+}
+
 function loopPath (x1, y1, x2, y2) {
   // Self edge.
   // Fiddle with this angle to get loop oriented.
@@ -144,7 +159,7 @@ function pathForLink (d, options) {
     // Straight line for a single edge between two distinct nodes
     return `M${d.source.x},${d.source.y} L${targetX},${targetY}`
   } else if (multipleLinksBetweenNodes) {
-    return arcPath(d.source.x, d.source.y, targetX, targetY)
+    return quadraticBezierPath(d.source.x, d.source.y, targetX, targetY, 35)
   } else if (linkIsLoop) {
     // Place the loop around the upper-right corner of the node.
     const x1 = d.source.x + this.calculateNodeWidth(d.source) / 2

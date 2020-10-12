@@ -2042,7 +2042,7 @@
           .data(this.links.filter(link => link.transitionId !== undefined || link.transit !== undefined))
         const linkTextEnter = newLinkTextElements
           .enter().append('text')
-          .attr('font-size', 25)
+          .attr('font-size', 20)
           .call(this.applyLinkEventHandler)
         linkTextEnter.append('textPath')
           .call(this.applyLinkEventHandler)
