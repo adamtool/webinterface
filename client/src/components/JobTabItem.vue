@@ -287,7 +287,7 @@
               } else {
                 logging.sendErrorNotification('Invalid response from server')
               }
-            })
+            }).catch(logging.sendErrorNotification)
           }
         }]
       }
