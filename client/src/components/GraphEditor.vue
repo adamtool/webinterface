@@ -660,6 +660,10 @@
               }
             },
             action: this.toggleEnvironmentPlace
+          },
+          {
+            title: 'Set partition',
+            action: this.setPartitionInteractively
           }
         ]
         const itemsForBothModes = [
@@ -1481,6 +1485,22 @@
           }
         }
         this.getTextInput(`Set initial token for ${d.id}`, callback)
+      },
+      setPartitionInteractively: function (d) {
+        const callback = (text) => {
+          const partition = parseInt(text)
+          if (isNaN(partition)) {
+            throw new Error('The text entered can\'t be parsed into an integer, so we can\'t set' +
+              ' the Place\s partition to that value.')
+          } else {
+            console.log('Emitting setPartition')
+            this.$emit('setPartition', {
+              nodeId: d.id,
+              partition
+            })
+          }
+        }
+        this.getTextInput(`Set partition for ${d.id}`, callback)
       },
       // Open a text input field in the svg and focus it.  Let the user type stuff in, and call
       // callback with whatever text the user entered.

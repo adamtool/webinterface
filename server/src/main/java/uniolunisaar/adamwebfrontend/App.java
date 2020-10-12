@@ -3,6 +3,7 @@ package uniolunisaar.adamwebfrontend;
  * Created by Ann on 11.09.2017.
  */
 
+import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.NotSupportedGameException;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotCalculateException;
 
@@ -94,6 +95,8 @@ public class App {
         postWithEditorNet("/setIsSpecial", this::handleSetIsSpecial);
 
         postWithEditorNet("/setInitialToken", this::handleSetInitialToken);
+
+        postWithEditorNet("/setPartition", this::handleSetPartition);
 
         postWithEditorNet("/setWinningCondition", this::handleSetWinningCondition);
 
@@ -649,6 +652,19 @@ public class App {
 
         Place place = net.getPlace(nodeId);
         place.setInitialToken(tokens);
+
+        JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
+
+        return successResponse(serializedNet);
+    }
+
+    private Object handleSetPartition(Request req, Response res, PetriNetWithTransits net) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String nodeId = body.get("nodeId").getAsString();
+        int partition = body.get("partition").getAsInt();
+
+        Place place = net.getPlace(nodeId);
+        PetriNetExtensionHandler.setPartition(place, partition);
 
         JsonElement serializedNet = PetriNetClient.serializeEditorNet(net);
 
