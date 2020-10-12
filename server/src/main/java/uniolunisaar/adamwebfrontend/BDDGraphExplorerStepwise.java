@@ -3,7 +3,6 @@ package uniolunisaar.adamwebfrontend;
 import com.google.gson.JsonElement;
 import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
-import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.Flow;
 import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDGraph;
 import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDState;
@@ -14,12 +13,15 @@ import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.synthesis.solver.symbolic.bddapproach.BDDSolverOptions;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotFindSuitableConditionException;
+import uniolunisaar.adam.logic.synthesis.builder.twoplayergame.explicit.GGBuilderStepwise;
 import uniolunisaar.adam.logic.synthesis.solver.symbolic.bddapproach.distrsys.DistrSysBDDSolver;
 
 public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
+    private final GGBuilderStepwise builder;
     private final DistrSysBDDSolver<? extends Condition> solver;
     private final BDDGraph bddGraph;
     // States whose postset (children) should be visible
@@ -36,7 +38,8 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                 new BDDSolverOptions());
         bddGraph = new BDDGraph("My Graph");
         solver.initialize();
-        BDDState initialState = AdamSynthesizer.getInitialGraphGameState(bddGraph, solver);
+//        BDDState initialState = AdamSynthesizer.getInitialGraphGameState(bddGraph, solver);
+        builder= new GGBuilderStepwise(game, bddGraph);
         postsetExpandedStates = new HashSet<>();
         presetExpandedStates = new HashSet<>();
         expandedStates = new HashSet<>();
@@ -132,7 +135,8 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                 postsetExpandedStates.add(state);
                 if (!expandedStates.contains(state)) {
                     expandedStates.add(state);
-                    Pair<List<Flow>, List<BDDState>> successors = getSuccessors(state);
+//                    Pair<List<Flow>, List<BDDState>> successors = getSuccessors(state);
+                    addSuccessors(state);
                 }
             }
         }
@@ -154,7 +158,11 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
         }
     }
 
-    private Pair<List<Flow>, List<BDDState>> getSuccessors(BDDState state) {
-        return AdamSynthesizer.getSuccessors(state, bddGraph, solver);
+//    private Pair<List<Flow>, List<BDDState>> getSuccessors(BDDState state) {
+//        return AdamSynthesizer.getSuccessors(state, bddGraph, solver);
+//    }
+    
+    private void addSuccessors(BDDState state) {        
+        builder.addSuccessors(state, solver.getGame(), bddGraph);
     }
 }
