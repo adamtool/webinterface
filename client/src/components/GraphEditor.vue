@@ -158,7 +158,7 @@
   import {saveFileAs} from '../fileutilities'
   import {layoutNodes} from '../autoLayout'
   import {noOpImplementation} from '../modelCheckingRoutes'
-  import {rectanglePath, arcPath, loopPath, pathForLink} from '../svgFunctions'
+  import {rectanglePath, pathForLink} from '../svgFunctions'
   import 'd3-context-menu/css/d3-context-menu.css'
   import contextMenuFactory from 'd3-context-menu'
   import {debounce} from 'underscore'
@@ -2088,14 +2088,16 @@
       updateVisibleLinkElements: function (linkSelection) {
         linkSelection.attr('stroke-width', link => {
           if (this.highlightedDatum == link || link.isHovered) {
-            return 5
+            return 4
           } else if (this.drawTransitPreviewLinks.includes(link)) {
             return 6
           } else {
             return 3
           }
         }).attr('stroke', link => {
-          if (this.drawTransitPreviewLinks.includes(link)) {
+          if (this.highlightedDatum == link || link.isHovered) {
+            return '#444444'
+          } else if (this.drawTransitPreviewLinks.includes(link)) {
             return '#444444'
           } else if (link.transitHue !== undefined) {
             return this.getTransitColor(link.transitHue)
