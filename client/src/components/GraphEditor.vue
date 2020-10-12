@@ -2334,17 +2334,49 @@
           }
         })
 
-        const maxPartition = this.nodes.reduce((max, node) => node.partition > max ? node.partition : max, 0)
-        this.nodes.filter(node => node.partition !== -1)
+        // Calculate places' partition colors
+
+        // This is a colorblind-safe color palette created by Kenneth Kelly.
+        // https://eleanormaclure.files.wordpress.com/2011/03/colour-coding.pdf
+        // I found this list through this fantastic StackOverflow answer:
+        // https://stackoverflow.com/a/4382138/7359454
+        const finiteColorPalette = [
+          // The first 7 colors can be distinguished by most colorblind users
+          '#FFB300', //Vivid Yellow
+          '#803E75', //Strong Purple
+          '#FF6800', //Vivid Orange
+          '#A6BDD7', //Very Light Blue
+          '#C10020', //Vivid Red
+          '#CEA262', //Grayish Yellow
+          '#817066', //Medium Gray
+          //The following will not be good for people with defective color vision
+          '#007D34', //Vivid Green
+          '#F6768E', //Strong Purplish Pink
+          '#00538A', //Strong Blue
+          '#FF7A5C', //Strong Yellowish Pink
+          '#53377A', //Strong Violet
+          '#FF8E00', //Vivid Orange Yellow
+          '#B32851', //Strong Purplish Red
+          '#F4C800', //Vivid Greenish Yellow
+          '#7F180D', //Strong Reddish Brown
+          '#93AA00', //Vivid Yellowish Green
+          '#593315', //Deep Yellowish Brown
+          '#F13A13', //Vivid Reddish Orange
+          '#232C16' //Dark Olive Green
+        ]
+        this.nodes.filter(node => node.partition >= 0)
           .forEach(place => {
-            place.partitionColor = partitionColorForPlace(place, maxPartition)
+            place.partitionColor = partitionColorForPlace(place)
           })
 
-        function partitionColorForPlace(place, maxPartition) {
-          const hueDegrees = place.partition / (maxPartition + 1) * 360
-          console.log(`maxPartition: ${maxPartition}, place.partition: ${place.partition}, hueDegress: ${hueDegrees}`)
-          const luminosity = place.type === 'SYSPLACE' ? 35 : 90
-          return `HSL(${hueDegrees}, ${luminosity + 20}%, ${luminosity}%`
+        function partitionColorForPlace(place) {
+          if (place.partition === 0) {
+            return '#ffffff'
+          } else if (place.partition <= finiteColorPalette.length) {
+            return finiteColorPalette[place.partition - 1]
+          } else { // If we need more than 22 distinct colors, I think it is not really possible :(
+            return 'lightgrey' // The default system place color
+          }
         }
 
         // Note: This represents a fiddly bit of state management to ensure that
