@@ -103,6 +103,12 @@
              :showNodeLabels="showNodeLabels"
              :isVisible="isTabSelected"
   />
+  <v-card v-else-if="tab.type === 'MODEL_CHECKING_FORMULA'"
+          class="job-tab-card"
+
+  >
+    {{ tab.result }}
+  </v-card>
   <v-card v-else-if="tab.type === 'MODEL_CHECKING_RESULT'"
           class="job-tab-card"
   >

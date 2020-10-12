@@ -83,6 +83,8 @@
           <hsc-menu-bar-item label="Reduction">
             <hsc-menu-item @click="calculateModelCheckingNet" label="Petri Net"
             />
+            <hsc-menu-item @click="calculateModelCheckingFormula" label="LTL Formula"
+            />
           </hsc-menu-bar-item>
         </template>
         <hsc-menu-bar-item label="Settings">
@@ -1128,6 +1130,17 @@
           formula
         })
         logging.sendSuccessNotification('Sent a request to get the model checking net')
+      },
+      calculateModelCheckingFormula: function () {
+        const formula = this.$refs.graphEditor.ltlFormula
+        if (formula === '') {
+          this.setLtlParseError('Please enter a formula to check.')
+          return
+        }
+        this.queueJob(this.editorNet.uuid, 'MODEL_CHECKING_FORMULA', {
+          formula
+        })
+        logging.sendSuccessNotification('Sent a request to get the LTL formula of the reduction')
       },
       checkLtlFormula: function () {
         this.$refs.menubar.deactivate()
