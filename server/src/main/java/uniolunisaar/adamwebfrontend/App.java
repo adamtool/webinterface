@@ -382,7 +382,7 @@ public class App {
         }
 
         // Create the job and queue it up in the user's job queue
-        Job job = jobType.makeJob(net, jobParams);
+        Job job = jobType.makeJob(netCopy, jobParams);
         userContext.queueJob(jobKey, job);
 
         /*
