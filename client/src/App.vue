@@ -92,6 +92,7 @@
           />
           <hsc-menu-item
             v-model="showPartitions"
+            v-if="!useModelChecking"
             label="Show partitions"
           />
           <hsc-menu-item
