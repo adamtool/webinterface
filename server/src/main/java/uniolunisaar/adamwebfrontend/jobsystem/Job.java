@@ -66,9 +66,11 @@ public class Job<T> {
             try {
                 T result = callable.call();
                 timeFinished = Instant.now();
+                fireJobStatusChanged();
                 return result;
             } catch (Throwable e) {
                 timeFinished = Instant.now();
+                fireJobStatusChanged();
                 throw e;
             }
         }, executorService);
@@ -88,7 +90,7 @@ public class Job<T> {
         }
         this.futurePair.getFirst().cancel(true);
         this.futurePair.getSecond().cancel(true);
-        ProcessPool.getInstance().destroyProcessesOfNet(netId);
+        ProcessPool.getInstance().destroyForciblyProcessesAndChildrenOfNet(netId);
         fireJobStatusChanged();
     }
 
@@ -139,7 +141,7 @@ public class Job<T> {
             } catch (InterruptedException | ExecutionException e) {
                 // "NotSupportedGameException" should not be shown in the UI
                 if (e.getCause() instanceof NotSupportedGameException) {
-                    NotSupportedGameException ex = (NotSupportedGameException)e.getCause();
+                    NotSupportedGameException ex = (NotSupportedGameException) e.getCause();
                     String message = ex.getMessage();
                     if (ex.getCause() != null) {
                         return message + "\n" + ex.getCause().getMessage();

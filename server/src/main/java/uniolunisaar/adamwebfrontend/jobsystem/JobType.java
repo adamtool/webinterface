@@ -11,6 +11,7 @@ import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.B
 import uniolunisaar.adam.ds.logics.ltl.ILTLFormula;
 import uniolunisaar.adam.ds.modelchecking.output.AdamCircuitFlowLTLMCOutputData;
 import uniolunisaar.adam.ds.modelchecking.statistics.AdamCircuitFlowLTLMCStatistics;
+import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
 import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.tools.Tools;
@@ -50,7 +51,7 @@ public enum JobType {
                 // TODO #172 add options for the solving algorithms
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
                 return existsWinningStrategy;
-            }, petriGame.getName());
+            }, PetriNetExtensionHandler.getProcessFamilyID(petriGame));
         }
     }, WINNING_STRATEGY {
         JsonElement serialize(Object result) {
@@ -81,7 +82,7 @@ public enum JobType {
                 PetriGameWithTransits strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
                 PetriNetTools.removeXAndYCoordinates(strategyBDD);
                 return strategyBDD;
-            }, petriGame.getName());
+            }, PetriNetExtensionHandler.getProcessFamilyID(petriGame));
         }
 
     }, GRAPH_STRATEGY_BDD {
@@ -97,7 +98,7 @@ public enum JobType {
                 // TODO #172 add options for the solving algorithms
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
                 return graphStrategyBDD;
-            }, petriGame.getName());
+            }, PetriNetExtensionHandler.getProcessFamilyID(net));
         }
     }, MODEL_CHECKING_RESULT {
         JsonElement serialize(Object result) {
@@ -138,7 +139,7 @@ public enum JobType {
                 ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL(settings);
                 ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula);
                 return new Pair<>(result, statistics);
-            }, net.getName());
+            }, PetriNetExtensionHandler.getProcessFamilyID(net));
         }
     }, MODEL_CHECKING_NET {
         JsonElement serialize(Object result) {
@@ -177,7 +178,7 @@ public enum JobType {
 
                 PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(net, runFormula, settings);
                 return modelCheckingNet;
-            }, net.getName());
+            }, PetriNetExtensionHandler.getProcessFamilyID(net));
         }
     }, MODEL_CHECKING_FORMULA {
         @Override
@@ -240,7 +241,7 @@ public enum JobType {
                     BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame);
                     return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
                 }
-            }, petriGame.getName());
+            }, PetriNetExtensionHandler.getProcessFamilyID(petriGame));
         }
     };
 
