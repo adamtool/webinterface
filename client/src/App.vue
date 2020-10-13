@@ -63,6 +63,19 @@
             v-model="showRightPanelToggle"
             label="Show right panel"
           />
+          <hsc-menu-item
+            v-model="showPhysicsControls"
+            label="Show physics controls"
+          />
+          <hsc-menu-item
+            v-model="showPartitions"
+            v-if="!useModelChecking"
+            label="Show partitions"
+          />
+          <hsc-menu-item
+            v-model="showNodeLabels"
+            label="Show node labels instead of IDs"
+          />
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"/>
@@ -87,21 +100,6 @@
             />
           </hsc-menu-bar-item>
         </template>
-        <hsc-menu-bar-item label="Settings">
-          <hsc-menu-item
-            v-model="showPhysicsControls"
-            label="Show physics controls"
-          />
-          <hsc-menu-item
-            v-model="showPartitions"
-            v-if="!useModelChecking"
-            label="Show partitions"
-          />
-          <hsc-menu-item
-            v-model="showNodeLabels"
-            label="Show node labels instead of IDs"
-          />
-        </hsc-menu-bar-item>
         <hsc-menu-bar-item
           @click.native="showAboutModal = true; this.$refs.menubar.deactivate()"
           label="About"
