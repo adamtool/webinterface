@@ -90,7 +90,12 @@ public class Job<T> {
         }
         this.futurePair.getFirst().cancel(true);
         this.futurePair.getSecond().cancel(true);
-        ProcessPool.getInstance().destroyProcessesOfNet(netId);
+        try {
+            ProcessPool.getInstance().destroyForciblyProcessesAndChildrenOfNet(netId);
+        } catch (InterruptedException e) {
+            // Manuel said this exception is never thrown and he will remove it from the signature
+            // of the method in a future revision of ADAM.
+        }
         fireJobStatusChanged();
     }
 
