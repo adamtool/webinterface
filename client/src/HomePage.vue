@@ -25,22 +25,22 @@
                 transit relation to model the local data flow in asynchronous distributed
                 systems in addition to the global control flow.</p>
               <p><strong>Flow-LTL</strong> is a specification language for Petri nets with
-                transits and allows to specify linear properties on both the global and
-                the local view of the system. Especially, it is possible to globally select with
-                LTL desired runs of the system (e.g., only fair and maximal runs) and check the
+                transits and allows specifying linear properties on both the global and
+                the local view of the system. In particular, it is possible to use LTL to globally
+                select desired runs of the system (e.g., only fair and maximal runs) and check the
                 local data flow of only those selected runs against LTL.</p>
-              <p>Internally the problem is reduced to a verification problem of circuits which
+              <p>Internally, the problem is reduced to a verification problem of circuits which
                 is checked by <a href="https://people.eecs.berkeley.edu/~alanmi/abc/"
-                                 rel="nofollow">ABC</a> with its large toolbox of hardware
-                verification algorithms. <strong>Software defined networks</strong> are due to
-                the separation of data and control plane a natural application domain for Petri
+                                 rel="nofollow">ABC</a> using its large toolbox of hardware
+                verification algorithms. <strong>Software defined networks</strong> are, due to
+                the separation of data and control plane, a natural application domain for Petri
                 nets with transits and Flow-LTL.</p>
               <p>
               <h2>Features:</h2>
               <ul>
                 <li>Modeling, visualization, and simulation of Petri nets with transits</li>
-                <li>Model checking Petri nets with transits against Flow-LTL</li>
-                <li>Model checking 1-bounded Petri nets against LTL with places and transitions
+                <li>Model checking of Petri nets with transits against Flow-LTL</li>
+                <li>Model checking of 1-bounded Petri nets against LTL with places and transitions
                   as atomic propositions
                 </li>
                 <li>Visualization and simulation of counter examples</li>
@@ -93,30 +93,32 @@
                 Petri games.</p>
               <p><strong>Petri games</strong> extend Petri nets with a game semantics. The
                 tokens of the net are the players in the game. Players remember their own causal
-                past and do not know nothing about the others as long as they do not communicate
-                (participating on a joint transition). During a communication all information is
-                passed to all participating players.
+                past and do not know anything about the others as long as they do not communicate
+                (whereby a communication is modelled as the participation in a joint transition).
+                During a communication, all information is passed to all participating players.
               </p>
               <p>For <strong>local safety winning conditions</strong>, the synthesis problem for
                 Petri games with a bounded number of controllable components and one
-                uncontrollable components is solved, i.e., a local controller for each component
+                uncontrollable component is solved, i.e., a local controller for each component
                 is created iff a solution exists.</p>
               <p>Internally, the problem is reduced to a two-player game over a finite graph
-                with complete information and <strong>BDD</strong> solving algorithms are used
+                with complete information, and <strong>BDD</strong> solving algorithms are used
                 to obtain a strategy.</p>
               <h2>Features:</h2>
               <ul>
                 <li>Modeling, visualization, and simulation of Petri games</li>
-                <li>Synthesis of Petri games with one environment and a bounded number of system
-                  players with a local safety objective
+                <li>Synthesis of Petri games with one environment player and a bounded number of
+                  system players with a local safety objective
                 </li>
-                <li>Exploring the corresponding two-player game for finding modeling bugs</li>
+                <li>Interactive visualization of the corresponding two-player game to aid in
+                  finding modeling bugs
+                </li>
                 <li>Visualization and simulation of the strategies</li>
               </ul>
               <p>
               <h2>Documentation:</h2></p>
               <p>
-              <h2>Releated Publications:</h2>
+              <h2>Related Publications:</h2>
               <ul>
                 <li><em>Bernd Finkbeiner, Manuel Gieseking, Ernst-Rüdiger Olderog:</em><br>
                   <a href="https://doi.org/10.1007/978-3-319-21690-4_25" rel="nofollow">Adam:
