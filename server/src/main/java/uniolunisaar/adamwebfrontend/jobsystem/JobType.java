@@ -145,8 +145,7 @@ public enum JobType {
         JsonElement serialize(Object result) {
             JsonObject json = new JsonObject();
             PetriNet net = (PetriNet) result;
-            // TODO #292 we would need to include X/Y coordinates here
-            JsonElement netJson = PetriNetClient.serializePetriNet(net, new HashSet<>());
+            JsonElement netJson = PetriNetClient.serializePetriNet(net, net.getNodes());
             json.add("graph", netJson);
 
             // TODO #296 Remove. This is no longer needed.  (The simulation used to rely on
