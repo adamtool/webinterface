@@ -159,7 +159,7 @@ public class JobTest {
             fail();
         }
         assertEquals(
-                Arrays.asList(NOT_STARTED, QUEUED, RUNNING, COMPLETED),
+                Arrays.asList(NOT_STARTED, QUEUED, RUNNING, RUNNING, COMPLETED),
                 statusSequence);
     }
 }
