@@ -101,8 +101,12 @@
           </hsc-menu-bar-item>
         </template>
         <hsc-menu-bar-item
-          @click.native="showAboutModal = true; this.$refs.menubar.deactivate()"
+          @click.native="showAboutModal = true; $refs.menubar.deactivate()"
           label="About"
+        />
+        <hsc-menu-bar-item
+          @click.native="openGithub(); $refs.menubar.deactivate()"
+          label="Github"
         />
       </hsc-menu-bar>
       <v-dialog
@@ -752,6 +756,9 @@
       }
     },
     methods: {
+      openGithub: function () {
+        window.open('https://github.com/adamtool/webinterface')
+      },
       copyEditorNetToSimulator: function () {
         this.simulatorNet = {status: 'copyInProgress'}
         this.copyEditorNet()
