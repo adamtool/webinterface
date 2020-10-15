@@ -58,7 +58,10 @@ public enum JobType {
             JsonObject json = new JsonObject();
             PetriGameWithTransits game = (PetriGameWithTransits) result;
             // TODO #292 include the positions of nodes here
-            JsonElement netJson = PetriNetClient.serializePetriGame(game, new HashSet<>(), false);
+            JsonElement netJson = PetriNetClient.serializePetriGame(
+                    game,
+                    game.getNodes(),
+                    false);
             json.add("graph", netJson);
 
             // TODO #296 Remove. This is no longer needed.  (The simulation used to rely on
@@ -80,7 +83,6 @@ public enum JobType {
             return new Job<>(() -> {
                 // TODO #172 add options for the solving algorithms
                 PetriGameWithTransits strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
-                PetriNetTools.removeXAndYCoordinates(strategyBDD);
                 return strategyBDD;
             }, PetriNetExtensionHandler.getProcessFamilyID(petriGame));
         }
