@@ -20,6 +20,7 @@ import uniolunisaar.adam.logic.synthesis.builder.twoplayergame.explicit.GGBuilde
 import uniolunisaar.adam.logic.synthesis.solver.symbolic.bddapproach.distrsys.DistrSysBDDSolver;
 
 public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
+
     private final GGBuilderStepwise builder;
     private final DistrSysBDDSolver<? extends Condition> solver;
     private final BDDGraph bddGraph;
@@ -29,16 +30,22 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
     private final Set<BDDState> presetExpandedStates;
     // States that we called getSuccessors() on already
     private final Set<BDDState> expandedStates;
+    private final boolean withRecurrentlyInterferingEnv;
 
-    public BDDGraphExplorerStepwise(PetriGameWithTransits game) throws SolvingException, CouldNotFindSuitableConditionException {
+    public BDDGraphExplorerStepwise(PetriGameWithTransits game, boolean withRecurrentlyInterferingEnv) throws SolvingException, CouldNotFindSuitableConditionException {
         solver = AdamSynthesizer.getBDDSolver(
                 game,
                 Adam.getCondition(game),
                 new BDDSolverOptions());
+        this.withRecurrentlyInterferingEnv = withRecurrentlyInterferingEnv;
         bddGraph = new BDDGraph("My Graph");
         solver.initialize();
-//        BDDState initialState = AdamSynthesizer.getInitialGraphGameState(bddGraph, solver);
-        builder= new GGBuilderStepwise(game, bddGraph);
+        if (withRecurrentlyInterferingEnv) {
+            builder = new GGBuilderStepwise(game, bddGraph);
+        } else {
+            builder = null;
+            BDDState initialState = AdamSynthesizer.getInitialGraphGameStateBDD(bddGraph, solver);
+        }
         postsetExpandedStates = new HashSet<>();
         presetExpandedStates = new HashSet<>();
         expandedStates = new HashSet<>();
@@ -90,7 +97,6 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                 }).collect(Collectors.toSet());
     }
 
-
     @Override
     public JsonElement getVisibleGraph() {
         Set<BDDState> visibleStates = this.visibleStates();
@@ -99,14 +105,14 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
                 .collect(Collectors.toSet());
         Set<BDDState> statesWithInvisibleParents = visibleStates.stream()
                 .filter(s -> invisibleStates.stream().anyMatch(invisibleState -> {
-                    Set<BDDState> postset = bddGraph.getPostset(invisibleState.getId());
-                    boolean isInvisibleStateAParent = postset.contains(s);
-                    return isInvisibleStateAParent;
-                })).collect(Collectors.toSet());
+            Set<BDDState> postset = bddGraph.getPostset(invisibleState.getId());
+            boolean isInvisibleStateAParent = postset.contains(s);
+            return isInvisibleStateAParent;
+        })).collect(Collectors.toSet());
         Set<BDDState> statesWithInvisibleChildren = visibleStates.stream()
                 .filter(s -> {
-                    return !expandedStates.contains(s) ||
-                            bddGraph.getPostset(s.getId()).stream().anyMatch(child -> {
+                    return !expandedStates.contains(s)
+                            || bddGraph.getPostset(s.getId()).stream().anyMatch(child -> {
                                 boolean isChildInvisible = !visibleStates.contains(child);
                                 return isChildInvisible;
                             });
@@ -160,8 +166,11 @@ public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
 //    private Pair<List<Flow>, List<BDDState>> getSuccessors(BDDState state) {
 //        return AdamSynthesizer.getSuccessors(state, bddGraph, solver);
 //    }
-    
-    private void addSuccessors(BDDState state) {        
-        builder.addSuccessors(state, solver.getGame(), bddGraph);
+    private void addSuccessors(BDDState state) {
+        if (withRecurrentlyInterferingEnv) {
+            builder.addSuccessors(state, solver.getGame(), bddGraph);
+        } else {
+            AdamSynthesizer.getSuccessors(state, bddGraph, solver);
+        }
     }
 }

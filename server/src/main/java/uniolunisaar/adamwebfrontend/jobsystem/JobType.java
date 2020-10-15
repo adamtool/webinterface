@@ -234,7 +234,7 @@ public enum JobType {
                 // TODO #172 add options for the solving algorithms
                 if (shouldSolveStepwise) {
                     BDDGraphExplorerStepwise bddGraphExplorerStepwise
-                            = new BDDGraphExplorerStepwise(petriGame);
+                            = new BDDGraphExplorerStepwise(petriGame, false);
                     return bddGraphExplorerStepwise;
                 } else {
                     BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame);
