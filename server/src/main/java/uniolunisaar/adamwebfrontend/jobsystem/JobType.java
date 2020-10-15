@@ -3,12 +3,12 @@ package uniolunisaar.adamwebfrontend.jobsystem;
 import com.google.gson.*;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.io.renderer.RenderException;
-import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDGraph;
 import uniolunisaar.adam.ds.logics.ltl.ILTLFormula;
+import uniolunisaar.adam.ds.modelchecking.cex.ReducedCounterExample;
 import uniolunisaar.adam.ds.modelchecking.output.AdamCircuitFlowLTLMCOutputData;
 import uniolunisaar.adam.ds.modelchecking.statistics.AdamCircuitFlowLTLMCStatistics;
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
@@ -20,7 +20,6 @@ import uniolunisaar.adamwebfrontend.*;
 import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 import uniolunisaar.adamwebfrontend.wirerepresentations.PetriNetClient;
 
-import java.util.HashSet;
 import java.util.UUID;
 
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunLTLFormula;
@@ -112,7 +111,17 @@ public enum JobType {
 
             if (satisfied == ModelCheckingResult.Satisfied.FALSE) {
                 CounterExample counterExample = mcResult.getModelCheckingResult().getCex();
+                ReducedCounterExample reducedCexMc = new ReducedCounterExample(
+                        mcResult.getModelCheckingNet(),
+                        counterExample,
+                        true);
+                ReducedCounterExample reducedCexInputNet = new ReducedCounterExample(
+                        mcResult.getInputNet(),
+                        counterExample,
+                        false);
                 resultJson.addProperty("counterExample", counterExample.toString());
+                resultJson.addProperty("reducedCexMc", reducedCexMc.toString());
+                resultJson.addProperty("reducedCexInputNet", reducedCexInputNet.toString());
             }
 
             // Add statistics.
@@ -122,10 +131,10 @@ public enum JobType {
             return resultJson;
         }
 
-        public Job<ModelCheckingJobResult> makeJob(PetriNetWithTransits net, JsonObject params) {
+        public Job<ModelCheckingJobResult> makeJob(PetriNetWithTransits inputNet, JsonObject params) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
-                RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
+                RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(inputNet, formula);
 
                 // TODO #172 add options for the solving algorithms
                 String tempFilePrefix = getTempFilePrefix();
@@ -136,10 +145,11 @@ public enum JobType {
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
+                PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(inputNet, runFormula, settings);
                 ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL(settings);
-                ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula);
-                return new ModelCheckingJobResult(result, statistics);
-            }, PetriNetExtensionHandler.getProcessFamilyID(net));
+                ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(inputNet, modelCheckerFlowLTL, runFormula);
+                return new ModelCheckingJobResult(result, statistics, modelCheckingNet, inputNet);
+            }, PetriNetExtensionHandler.getProcessFamilyID(inputNet));
         }
     }, MODEL_CHECKING_NET {
         JsonElement serialize(Object result) {
