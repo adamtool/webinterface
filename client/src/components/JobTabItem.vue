@@ -135,10 +135,74 @@
       <v-list
         class="left-padding-0-descendants elevation-2 accordion-list"
       >
-        <!--Expandable counterexample.  It should be open by default-->
+
+
+        <!--Counterexample of input net.  It should be open by default.-->
         <v-list-group
           v-if="tab.result.counterExample"
           :value="true"
+        >
+          <template v-slot:activator>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>
+                  Counter Example (Input Petri Net with Transits)
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+          <v-list-item
+            class="list-tile-stretchy"
+          >
+            <v-list-item-content>
+              <div
+                class="counter-example"
+              >{{ tab.result.reducedCexInputNet }}
+              </div>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            style="margin-top: 0;"
+          >
+            <v-list-item-content
+              style="padding-top: 0;"
+            >
+              <!-- TODO #50 Implement loading of counter example into simulator -->
+              <v-btn
+                color="blue lighten-3"
+                @click="$emit('loadCounterExampleInSimulator', tab.result)"
+              >
+                Load counter example into simulator
+              </v-btn>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            style="margin-top: 0;"
+          >
+            <v-list-item-content
+              style="padding-top: 0;"
+            >
+              <!-- TODO #81 Implement show data flow-->
+              <v-tooltip
+                bottom
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    color="green"
+                    @click="$emit('showDataFlow', tab.result)"
+                    v-on="on">
+                    Show data flow
+                  </v-btn>
+                </template>
+                Download a PDF which shows the data flow for this firing sequence
+              </v-tooltip>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+
+        <!--Counterexample for constructed net.-->
+        <v-list-group
+          v-if="tab.result.counterExample"
         >
           <template v-slot:activator>
             <v-list-item>
@@ -182,39 +246,13 @@
             <v-list-item-content
               style="padding-top: 0;"
             >
-              <!-- TODO #60 Implement loading of counter example into simulator -->
+              <!-- TODO #50 Implement loading of counter example into simulator -->
               <v-btn
                 color="blue lighten-3"
                 @click="$emit('loadCounterExampleInSimulator', tab.result)"
               >
                 Load counter example into simulator
               </v-btn>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list-group>
-
-
-        <!--Counterexample of input net-->
-        <v-list-group
-          v-if="tab.result.counterExample"
-        >
-          <template v-slot:activator>
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title>
-                  Counter Example (Input Petri Net with Transits)
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </template>
-          <v-list-item
-            class="list-tile-stretchy"
-          >
-            <v-list-item-content>
-              <div
-                class="counter-example"
-              >{{ tab.result.reducedCexInputNet }}
-              </div>
             </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -223,13 +261,20 @@
             <v-list-item-content
               style="padding-top: 0;"
             >
-              <!-- TODO #60 Implement loading of counter example into simulator -->
-              <v-btn
-                color="blue lighten-3"
-                @click="$emit('loadCounterExampleInSimulator', tab.result)"
+              <!-- TODO #81 Implement show data flow -->
+              <v-tooltip
+                bottom
               >
-                Load counter example into simulator
-              </v-btn>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    color="green"
+                    @click="$emit('showDataFlow', tab.result)"
+                    v-on="on">
+                    Show data flow
+                  </v-btn>
+                </template>
+                Download a PDF which shows the data flow for this firing sequence
+              </v-tooltip>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>

@@ -157,6 +157,10 @@
       }
     },
     methods: {
+      // TODO #52 Implement this
+      showDataFlow: function () {
+        console.log("Show data flow")
+      },
       // TODO #295 allow moving back and forth in history with arrow keys
       simulationHistoryBack: function () {
         const {currentIndex} = this.gameSimulationHistory
