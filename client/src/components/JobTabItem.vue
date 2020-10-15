@@ -176,6 +176,32 @@
           </v-list-item>
         </v-list-group>
 
+
+        <!--Counterexample of input net-->
+        <v-list-group
+          v-if="tab.result.counterExample"
+        >
+          <template v-slot:activator>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>
+                  Counter Example (Input Petri Net with Transits)
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+          <v-list-item
+            class="list-tile-stretchy"
+          >
+            <v-list-item-content>
+              <div
+                class="counter-example"
+              >{{ tab.result.reducedCexInputNet }}
+              </div>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+
         <!--Expandable statistics panel-->
         <v-list-group
           v-if="tab.result.statistics"
