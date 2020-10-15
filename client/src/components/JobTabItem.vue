@@ -156,8 +156,7 @@
                 class="counter-example"
                 v-if="expandCexMc"
                 @click="expandCexMc = false"
-              >{{ tab.result.counterExample }}
-              </div>
+              ><!-- @formatter:off -->{{ tab.result.counterExample }}</div><!-- @formatter:on-->
               <v-tooltip
                 v-else
                 bottom
