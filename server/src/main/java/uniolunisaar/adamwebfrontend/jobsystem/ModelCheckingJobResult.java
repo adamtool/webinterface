@@ -1,21 +1,26 @@
 package uniolunisaar.adamwebfrontend.jobsystem;
 
-import uniol.apt.adt.pn.PetriNet;
+import uniolunisaar.adam.ds.modelchecking.cex.CounterExample;
+import uniolunisaar.adam.ds.modelchecking.cex.ReducedCounterExample;
 import uniolunisaar.adam.ds.modelchecking.results.ModelCheckingResult;
 import uniolunisaar.adam.ds.modelchecking.statistics.AdamCircuitFlowLTLMCStatistics;
-import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 
 public class ModelCheckingJobResult {
     private final ModelCheckingResult modelCheckingResult;
     private final AdamCircuitFlowLTLMCStatistics statistics;
-    private final PetriNet modelCheckingNet;
-    private final PetriNet inputNet;
+    private final CounterExample counterExample;
+    private final ReducedCounterExample reducedCexMc;
+    private final ReducedCounterExample reducedCexInputNet;
 
-    public ModelCheckingJobResult(ModelCheckingResult modelCheckingResult, AdamCircuitFlowLTLMCStatistics statistics, PetriNet modelCheckingNet, PetriNetWithTransits inputNet) {
+    public ModelCheckingJobResult(ModelCheckingResult modelCheckingResult,
+                                  AdamCircuitFlowLTLMCStatistics statistics,
+                                  CounterExample counterExample, ReducedCounterExample reducedCexMc,
+                                  ReducedCounterExample reducedCexInputNet) {
         this.modelCheckingResult = modelCheckingResult;
         this.statistics = statistics;
-        this.modelCheckingNet = modelCheckingNet;
-        this.inputNet = inputNet;
+        this.counterExample = counterExample;
+        this.reducedCexMc = reducedCexMc;
+        this.reducedCexInputNet = reducedCexInputNet;
     }
 
     public ModelCheckingResult getModelCheckingResult() {
@@ -26,11 +31,15 @@ public class ModelCheckingJobResult {
         return statistics;
     }
 
-    public PetriNet getModelCheckingNet() {
-        return modelCheckingNet;
+    public CounterExample getCounterExample() {
+        return counterExample;
     }
 
-    public PetriNet getInputNet() {
-        return inputNet;
+    public ReducedCounterExample getReducedCexInputNet() {
+        return reducedCexInputNet;
+    }
+
+    public ReducedCounterExample getReducedCexMc() {
+        return reducedCexMc;
     }
 }

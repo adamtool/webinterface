@@ -104,28 +104,20 @@ public enum JobType {
     }, MODEL_CHECKING_RESULT {
         JsonElement serialize(Object result) {
             JsonObject resultJson = new JsonObject();
-            ModelCheckingJobResult mcResult = (ModelCheckingJobResult) result;
+            ModelCheckingJobResult jobResult = (ModelCheckingJobResult) result;
             ModelCheckingResult.Satisfied satisfied =
-                    mcResult.getModelCheckingResult().getSatisfied();
+                    jobResult.getModelCheckingResult().getSatisfied();
             resultJson.addProperty("satisfied", satisfied.toString());
 
             if (satisfied == ModelCheckingResult.Satisfied.FALSE) {
-                CounterExample counterExample = mcResult.getModelCheckingResult().getCex();
-                ReducedCounterExample reducedCexMc = new ReducedCounterExample(
-                        mcResult.getModelCheckingNet(),
-                        counterExample,
-                        true);
-                ReducedCounterExample reducedCexInputNet = new ReducedCounterExample(
-                        mcResult.getInputNet(),
-                        counterExample,
-                        false);
-                resultJson.addProperty("counterExample", counterExample.toString());
-                resultJson.addProperty("reducedCexMc", reducedCexMc.toString());
-                resultJson.addProperty("reducedCexInputNet", reducedCexInputNet.toString());
+                resultJson.addProperty("counterExample", jobResult.getCounterExample().toString());
+                resultJson.addProperty("reducedCexMc", jobResult.getReducedCexMc().toString());
+                resultJson.addProperty("reducedCexInputNet",
+                        jobResult.getReducedCexInputNet().toString());
             }
 
             // Add statistics.
-            JsonElement statisticsJson = serializeStatistics(mcResult.getStatistics());
+            JsonElement statisticsJson = serializeStatistics(jobResult.getStatistics());
             resultJson.add("statistics", statisticsJson);
 
             return resultJson;
@@ -148,7 +140,22 @@ public enum JobType {
                 PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(inputNet, runFormula, settings);
                 ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL(settings);
                 ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(inputNet, modelCheckerFlowLTL, runFormula);
-                return new ModelCheckingJobResult(result, statistics, modelCheckingNet, inputNet);
+
+                if (result.getSatisfied() == ModelCheckingResult.Satisfied.FALSE) {
+                    CounterExample counterExample = result.getCex();
+                    ReducedCounterExample reducedCexMc = new ReducedCounterExample(
+                            modelCheckingNet,
+                            result.getCex(),
+                            true);
+                    ReducedCounterExample reducedCexInputNet = new ReducedCounterExample(
+                            inputNet,
+                            counterExample,
+                            false);
+                    return new ModelCheckingJobResult(result, statistics,
+                            counterExample, reducedCexMc, reducedCexInputNet);
+                } else {
+                    return new ModelCheckingJobResult(result, statistics, null, null, null);
+                }
             }, PetriNetExtensionHandler.getProcessFamilyID(inputNet));
         }
     }, MODEL_CHECKING_NET {
