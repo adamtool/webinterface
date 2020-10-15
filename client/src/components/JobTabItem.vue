@@ -158,12 +158,20 @@
                 @click="expandCexMc = false"
               >{{ tab.result.counterExample }}
               </div>
-              <div
-                class="counter-example"
+              <v-tooltip
                 v-else
-                @click="expandCexMc = true"
-              >{{ tab.result.reducedCexMc }}
-              </div>
+                bottom
+                style="display: none;"
+              >
+                <template #activator="data">
+                  <div
+                    v-on="data.on"
+                    class="counter-example highlightable"
+                    @click="expandCexMc = true"
+                  ><!-- @formatter:off -->{{ tab.result.reducedCexMc }} <v-icon>more</v-icon></div> <!-- @formatter:on-->
+                </template>
+                <div>Click to expand</div>
+              </v-tooltip>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
