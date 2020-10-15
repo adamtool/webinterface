@@ -126,7 +126,7 @@
       <div>
                   <span>Result:
                     <span :style="`color: ${modelCheckingResultColor(tab.result.satisfied)}`">
-                      <strong>{{ tab.result.satisfied }}</strong>
+                      <strong>{{ formatSatisfied(tab.result.satisfied) }}</strong>
                     </span>
                   </span>
       </div>
@@ -207,7 +207,7 @@
 <script>
   import GraphEditor from './GraphEditor'
   import Simulator from './Simulator'
-  import {modelCheckingResultColor} from '../jobType'
+  import {modelCheckingResultColor, formatSatisfied} from '../jobType'
   import {saveFileAs} from '../fileutilities'
   import logging from '../logging'
 
@@ -252,6 +252,7 @@
     },
     methods: {
       modelCheckingResultColor,
+      formatSatisfied,
       textForJobStatusInTab: function (jobStatus) {
         switch (jobStatus) {
           case 'NOT_STARTED':

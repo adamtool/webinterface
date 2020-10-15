@@ -1,6 +1,6 @@
-export {formatJobType, modelCheckingResultColor}
+export {formatJobType, modelCheckingResultColor, formatSatisfied}
 
-function formatJobType (jobType) {
+function formatJobType(jobType) {
   switch (jobType) {
     case 'GRAPH_GAME_BDD':
       return '2-Player Game'
@@ -21,10 +21,10 @@ function formatJobType (jobType) {
   }
 }
 
-function modelCheckingResultColor (satisfied) {
+function modelCheckingResultColor(satisfied) {
   switch (satisfied) {
     case 'TRUE':
-      return 'blue'
+      return '#00bbbb'
     case 'FALSE':
     case 'UNKNOWN':
       return 'red'
@@ -32,5 +32,18 @@ function modelCheckingResultColor (satisfied) {
       logging.logError('Missing switch case in JobList.modelCheckingResultColor' +
         ' for the case "' + satisfied + '".')
       return 'red'
+  }
+}
+
+function formatSatisfied(satisfied) {
+  console.log('satisfied: ' + satisfied)
+  if (satisfied === 'TRUE') {
+    return 'Satisfied'
+  } else if (satisfied === 'FALSE') {
+    return 'Not satisfied'
+  } else if (satisfied === 'UNKNOWN') {
+    return 'Unknown'
+  } else {
+    return satisfied
   }
 }
