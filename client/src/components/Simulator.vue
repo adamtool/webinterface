@@ -74,6 +74,22 @@
         </template>
         Reset the simulation
       </v-tooltip>
+      <v-tooltip
+        bottom
+        v-if="useModelChecking && gameSimulationHistory.stack.length > 1"
+      >
+        <template v-slot:activator="{ on }">
+          <v-btn
+            color="green"
+            style="margin-top: 10px; margin-bottom: 5px; margin-left: 5px; margin-right: 5px;"
+            rounded
+            @click="showDataFlow"
+            v-on="on">
+            Show data flow
+          </v-btn>
+        </template>
+        Download a PDF which shows the data flow for this firing sequence
+      </v-tooltip>
     </v-card>
   </GraphEditor>
 </template>

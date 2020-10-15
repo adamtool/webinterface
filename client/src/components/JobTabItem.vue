@@ -60,6 +60,7 @@
   <Simulator v-else-if="tab.type === 'WINNING_STRATEGY'"
              ref="winningStratSimulator"
              editorMode="Simulator"
+             :useModelChecking="false"
              netType="PETRI_GAME"
              :graph="tab.result.graph"
              :jobKey="tab.jobKey"
