@@ -105,26 +105,24 @@ public enum JobType {
     }, MODEL_CHECKING_RESULT {
         JsonElement serialize(Object result) {
             JsonObject resultJson = new JsonObject();
-            Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics> mcResult
-                    = (Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>) result;
-            ModelCheckingResult.Satisfied satisfied = mcResult.getFirst().getSatisfied();
+            ModelCheckingJobResult mcResult = (ModelCheckingJobResult) result;
+            ModelCheckingResult.Satisfied satisfied =
+                    mcResult.getModelCheckingResult().getSatisfied();
             resultJson.addProperty("satisfied", satisfied.toString());
 
             if (satisfied == ModelCheckingResult.Satisfied.FALSE) {
-                CounterExample counterExample = mcResult.getFirst().getCex();
+                CounterExample counterExample = mcResult.getModelCheckingResult().getCex();
                 resultJson.addProperty("counterExample", counterExample.toString());
             }
 
             // Add statistics.
-            JsonElement statisticsJson = serializeStatistics(mcResult.getSecond());
+            JsonElement statisticsJson = serializeStatistics(mcResult.getStatistics());
             resultJson.add("statistics", statisticsJson);
 
             return resultJson;
         }
 
-        public Job<Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>> makeJob(
-                PetriNetWithTransits net,
-                JsonObject params) {
+        public Job<ModelCheckingJobResult> makeJob(PetriNetWithTransits net, JsonObject params) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
                 RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
@@ -140,7 +138,7 @@ public enum JobType {
 
                 ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL(settings);
                 ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula);
-                return new Pair<>(result, statistics);
+                return new ModelCheckingJobResult(result, statistics);
             }, PetriNetExtensionHandler.getProcessFamilyID(net));
         }
     }, MODEL_CHECKING_NET {
