@@ -140,10 +140,11 @@
           :value="true"
         >
           <template v-slot:activator>
-            <v-list-item
-            >
+            <v-list-item>
               <v-list-item-content>
-                <v-list-item-title>Counter example</v-list-item-title>
+                <v-list-item-title>
+                  Counter Example (Constructed Petri Net)
+                </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </template>
@@ -151,7 +152,18 @@
             class="list-tile-stretchy"
           >
             <v-list-item-content>
-              <div class="counter-example">{{ tab.result.counterExample }}</div>
+              <div
+                class="counter-example"
+                v-if="expandCexMc"
+                @click="expandCexMc = false"
+              >{{ tab.result.counterExample }}
+              </div>
+              <div
+                class="counter-example"
+                v-else
+                @click="expandCexMc = true"
+              >{{ tab.result.reducedCexMc }}
+              </div>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
@@ -218,7 +230,9 @@
       Simulator
     },
     data: function () {
-      return {}
+      return {
+        expandCexMc: false
+      }
     },
     props: {
       tab: {
