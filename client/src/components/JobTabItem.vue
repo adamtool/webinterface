@@ -156,7 +156,8 @@
                 class="counter-example"
                 v-if="expandCexMc"
                 @click="expandCexMc = false"
-              ><!-- @formatter:off -->{{ tab.result.counterExample }}</div><!-- @formatter:on-->
+              ><!-- @formatter:off -->{{ tab.result.counterExample }}</div>
+              <!-- @formatter:on -->
               <v-tooltip
                 v-else
                 bottom
@@ -167,10 +168,26 @@
                     v-on="data.on"
                     class="counter-example highlightable"
                     @click="expandCexMc = true"
-                  ><!-- @formatter:off -->{{ tab.result.reducedCexMc }} <v-icon>more</v-icon></div> <!-- @formatter:on-->
+                  ><!-- @formatter:off -->{{ tab.result.reducedCexMc }}<v-icon>more</v-icon></div>
+                  <!-- @formatter:on -->
                 </template>
                 <div>Click to expand</div>
               </v-tooltip>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            style="margin-top: 0;"
+          >
+            <v-list-item-content
+              style="padding-top: 0;"
+            >
+              <!-- TODO #60 Implement loading of counter example into simulator -->
+              <v-btn
+                color="blue lighten-3"
+                @click="$emit('loadCounterExampleInSimulator', tab.result)"
+              >
+                Load counter example into simulator
+              </v-btn>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
@@ -197,6 +214,21 @@
                 class="counter-example"
               >{{ tab.result.reducedCexInputNet }}
               </div>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            style="margin-top: 0;"
+          >
+            <v-list-item-content
+              style="padding-top: 0;"
+            >
+              <!-- TODO #60 Implement loading of counter example into simulator -->
+              <v-btn
+                color="blue lighten-3"
+                @click="$emit('loadCounterExampleInSimulator', tab.result)"
+              >
+                Load counter example into simulator
+              </v-btn>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
