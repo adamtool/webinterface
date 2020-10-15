@@ -3,12 +3,12 @@ package uniolunisaar.adamwebfrontend.jobsystem;
 import com.google.gson.*;
 import uniol.apt.adt.pn.PetriNet;
 import uniol.apt.io.renderer.RenderException;
-import uniol.apt.util.Pair;
 import uniolunisaar.adam.Adam;
 import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.graph.synthesis.twoplayergame.symbolic.bddapproach.BDDGraph;
 import uniolunisaar.adam.ds.logics.ltl.ILTLFormula;
+import uniolunisaar.adam.ds.modelchecking.cex.ReducedCounterExample;
 import uniolunisaar.adam.ds.modelchecking.output.AdamCircuitFlowLTLMCOutputData;
 import uniolunisaar.adam.ds.modelchecking.statistics.AdamCircuitFlowLTLMCStatistics;
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
@@ -20,7 +20,6 @@ import uniolunisaar.adamwebfrontend.*;
 import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 import uniolunisaar.adamwebfrontend.wirerepresentations.PetriNetClient;
 
-import java.util.HashSet;
 import java.util.UUID;
 
 import uniolunisaar.adam.ds.logics.ltl.flowltl.RunLTLFormula;
@@ -105,29 +104,29 @@ public enum JobType {
     }, MODEL_CHECKING_RESULT {
         JsonElement serialize(Object result) {
             JsonObject resultJson = new JsonObject();
-            Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics> mcResult
-                    = (Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>) result;
-            ModelCheckingResult.Satisfied satisfied = mcResult.getFirst().getSatisfied();
+            ModelCheckingJobResult jobResult = (ModelCheckingJobResult) result;
+            ModelCheckingResult.Satisfied satisfied =
+                    jobResult.getModelCheckingResult().getSatisfied();
             resultJson.addProperty("satisfied", satisfied.toString());
 
             if (satisfied == ModelCheckingResult.Satisfied.FALSE) {
-                CounterExample counterExample = mcResult.getFirst().getCex();
-                resultJson.addProperty("counterExample", counterExample.toString());
+                resultJson.addProperty("counterExample", jobResult.getCounterExample().toString());
+                resultJson.addProperty("reducedCexMc", jobResult.getReducedCexMc().toString());
+                resultJson.addProperty("reducedCexInputNet",
+                        jobResult.getReducedCexInputNet().toString());
             }
 
             // Add statistics.
-            JsonElement statisticsJson = serializeStatistics(mcResult.getSecond());
+            JsonElement statisticsJson = serializeStatistics(jobResult.getStatistics());
             resultJson.add("statistics", statisticsJson);
 
             return resultJson;
         }
 
-        public Job<Pair<ModelCheckingResult, AdamCircuitFlowLTLMCStatistics>> makeJob(
-                PetriNetWithTransits net,
-                JsonObject params) {
+        public Job<ModelCheckingJobResult> makeJob(PetriNetWithTransits inputNet, JsonObject params) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
-                RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
+                RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(inputNet, formula);
 
                 // TODO #172 add options for the solving algorithms
                 String tempFilePrefix = getTempFilePrefix();
@@ -138,10 +137,26 @@ public enum JobType {
                 settings.setStatistics(statistics);
                 settings.setOutputData(data);
 
+                PetriNet modelCheckingNet = AdamModelChecker.getModelCheckingNet(inputNet, runFormula, settings);
                 ModelCheckerFlowLTL modelCheckerFlowLTL = new ModelCheckerFlowLTL(settings);
-                ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(net, modelCheckerFlowLTL, runFormula);
-                return new Pair<>(result, statistics);
-            }, PetriNetExtensionHandler.getProcessFamilyID(net));
+                ModelCheckingResult result = AdamModelChecker.checkFlowLTLFormula(inputNet, modelCheckerFlowLTL, runFormula);
+
+                if (result.getSatisfied() == ModelCheckingResult.Satisfied.FALSE) {
+                    CounterExample counterExample = result.getCex();
+                    ReducedCounterExample reducedCexMc = new ReducedCounterExample(
+                            modelCheckingNet,
+                            result.getCex(),
+                            true);
+                    ReducedCounterExample reducedCexInputNet = new ReducedCounterExample(
+                            inputNet,
+                            counterExample,
+                            false);
+                    return new ModelCheckingJobResult(result, statistics,
+                            counterExample, reducedCexMc, reducedCexInputNet);
+                } else {
+                    return new ModelCheckingJobResult(result, statistics, null, null, null);
+                }
+            }, PetriNetExtensionHandler.getProcessFamilyID(inputNet));
         }
     }, MODEL_CHECKING_NET {
         JsonElement serialize(Object result) {

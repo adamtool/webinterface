@@ -140,10 +140,11 @@
           :value="true"
         >
           <template v-slot:activator>
-            <v-list-item
-            >
+            <v-list-item>
               <v-list-item-content>
-                <v-list-item-title>Counter example</v-list-item-title>
+                <v-list-item-title>
+                  Counter Example (Constructed Petri Net)
+                </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </template>
@@ -151,7 +152,52 @@
             class="list-tile-stretchy"
           >
             <v-list-item-content>
-              <div class="counter-example">{{ tab.result.counterExample }}</div>
+              <div
+                class="counter-example"
+                v-if="expandCexMc"
+                @click="expandCexMc = false"
+              >{{ tab.result.counterExample }}
+              </div>
+              <v-tooltip
+                v-else
+                bottom
+                style="display: none;"
+              >
+                <template #activator="data">
+                  <div
+                    v-on="data.on"
+                    class="counter-example highlightable"
+                    @click="expandCexMc = true"
+                  ><!-- @formatter:off -->{{ tab.result.reducedCexMc }} <v-icon>more</v-icon></div> <!-- @formatter:on-->
+                </template>
+                <div>Click to expand</div>
+              </v-tooltip>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+
+
+        <!--Counterexample of input net-->
+        <v-list-group
+          v-if="tab.result.counterExample"
+        >
+          <template v-slot:activator>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>
+                  Counter Example (Input Petri Net with Transits)
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+          <v-list-item
+            class="list-tile-stretchy"
+          >
+            <v-list-item-content>
+              <div
+                class="counter-example"
+              >{{ tab.result.reducedCexInputNet }}
+              </div>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
@@ -218,7 +264,9 @@
       Simulator
     },
     data: function () {
-      return {}
+      return {
+        expandCexMc: false
+      }
     },
     props: {
       tab: {
