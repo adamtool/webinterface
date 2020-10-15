@@ -274,7 +274,7 @@
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
                 :isTabSelected="shouldShowRightSide && selectedTabRightSide === `tab-${tab.uuid}`"
-                @loadEditorNetFromApt="parseAptForEditorNet"
+                @loadEditorNetFromApt="apt => parseAptForEditorNet(apt).then(() => selectedTabLeftSide = 0)"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="({graphEditorRef, stateId}) => toggleGraphGameStatePostset(graphEditorRef, stateId, tab.jobKey)"
                 @toggleStatePreset="({graphEditorRef, stateId}) => toggleGraphGameStatePreset(graphEditorRef, stateId, tab.jobKey)"
@@ -771,12 +771,14 @@
       initializeWebSocket: function (retryAttempts) {
         // Open a websocket to receive server-side log output and job status updates
         let socket = null
+
         // Send a heartbeat message to keep the websocket alive
         function sendHeartbeat() {
           socket.send(JSON.stringify({
             type: 'heartbeat'
           }))
         }
+
         let heartbeatInterval = null
         try {
           socket = makeWebSocket(this.webSocketUrl)
