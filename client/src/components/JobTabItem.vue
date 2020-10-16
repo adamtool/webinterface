@@ -122,7 +122,8 @@
     </v-card-title>
     <v-card-text class="job-tab-card-text">
       <div>
-        <span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>
+        <!--<span>Formula: <strong>{{ tab.jobKey.requestParams.formula }}</strong></span>-->
+        <span>Formula: <strong>{{ tab.result.formulaRepresentation }}</strong></span>
       </div>
       <div>
                   <span>Result:
