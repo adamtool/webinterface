@@ -155,9 +155,9 @@ public enum JobType {
                             counterExample,
                             false);
                     return new ModelCheckingJobResult(result, statistics,
-                            counterExample, reducedCexMc, reducedCexInputNet, runFormula.toSymbolString());
+                            counterExample, reducedCexMc, reducedCexInputNet, runFormula.toString());
                 } else {
-                    return new ModelCheckingJobResult(result, statistics, null, null, null, runFormula.toSymbolString());
+                    return new ModelCheckingJobResult(result, statistics, null, null, null, runFormula.toString());
                 }
             }, PetriNetExtensionHandler.getProcessFamilyID(inputNet));
         }
