@@ -7,7 +7,7 @@
     <MyVueMenuTheme
       style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
-        <hsc-menu-bar-item label="File ▾">
+        <hsc-menu-bar-item style="width: 70px;" label="File ▾">
           <hsc-menu-item
             :label="useModelChecking ? 'New Petri net with transits' : 'New Petri game'"
             @click.native="createNewEditorNet"/>
@@ -49,7 +49,7 @@
           </hsc-menu-item>
         </hsc-menu-bar-item>
         <hsc-menu-bar-item
-          label="View ▾"
+          label="View ▾" style="width: 70px;"
         >
           <hsc-menu-item
             v-model="showLogWindow"
@@ -78,8 +78,8 @@
           />
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
-          <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"/>
-          <hsc-menu-bar-item label="Analyze ▾">
+          <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve" style="width: 20px;"/>
+          <hsc-menu-bar-item label="Analyze ▾" style="width: 100px;">
             <hsc-menu-item @click.native="calculateExistsWinningStrategy"
                            label="Exists Winning Strategy?"/>
             <hsc-menu-item @click.native="calculateGraphStrategyBDD"
@@ -91,22 +91,43 @@
           </hsc-menu-bar-item>
         </template>
         <template v-if="useModelChecking">
-          <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check"
+          <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check" style="width: 20px;"
           />
-          <hsc-menu-bar-item label="Reduction ▾">
+          <hsc-menu-bar-item label="Reduction ▾" style="width: 110px;">
             <hsc-menu-item @click="calculateModelCheckingNet" label="Petri Net"
             />
             <hsc-menu-item @click="calculateModelCheckingFormula" label="LTL Formula"
             />
           </hsc-menu-bar-item>
         </template>
+        <template v-if="useModelChecking">
+          <hsc-menu-bar-item
+            label="AdamWEB — Model Checker"
+            style="text-align: center;"
+          />
+        </template>
+        <template v-if="useDistributedSynthesis">
+          <hsc-menu-bar-item
+            label="AdamWEB — Synthesizer"
+            style="text-align: center;"
+          />
+        </template>
+        <hsc-menu-bar-item style="width: 5px;"
+          label="?"
+        />
         <hsc-menu-bar-item
           @click.native="showAboutModal = true; $refs.menubar.deactivate()"
           label="About"
+          style="width: 20px;"
         />
         <hsc-menu-bar-item
           @click.native="openGithub(); $refs.menubar.deactivate()"
-          label="Github"
+          label="GitHub"
+          style="width: 25px;"
+        />
+        <hsc-menu-bar-item
+          label="X"
+          style="width: 5px;"
         />
       </hsc-menu-bar>
       <v-dialog
@@ -129,9 +150,9 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">
+      <!-- <div style="line-height: 34px; font-size: 18px; padding-right: 10px;">
         {{ useModelChecking ? 'AdamWEB - Model Checker' : 'AdamWEB - Synthesizer' }}
-      </div>
+      </div>-->
     </MyVueMenuTheme>
 
     <!-- The main window, split into two resizeable panes using flexbox and splitjs -->
@@ -665,7 +686,7 @@
       },
       menuBarStyle: function () {
         const vuetifySidebarPadding = this.$vuetify.application.left
-        return `border-radius: 0 0 4pt 0; padding-left: ${vuetifySidebarPadding + 10}px`
+        return ` width:100%; border-radius: 0 0 4pt 0; padding-left: ${vuetifySidebarPadding + 10}px`
       },
       aptFileTree: function () {
         if (this.useDistributedSynthesis) {
