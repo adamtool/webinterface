@@ -43,7 +43,7 @@ public enum JobType {
         }
 
         public Job<Boolean> makeJob(PetriNetWithTransits net,
-                                    JsonObject params) {
+                JsonObject params) {
             // TODO #293 refactor
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
@@ -76,7 +76,7 @@ public enum JobType {
         }
 
         public Job<PetriGameWithTransits> makeJob(PetriNetWithTransits net,
-                                                  JsonObject params) {
+                JsonObject params) {
             // TODO #293 refactor
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
@@ -92,7 +92,7 @@ public enum JobType {
         }
 
         public Job<BDDGraph> makeJob(PetriNetWithTransits net,
-                                     JsonObject params) {
+                JsonObject params) {
             // TODO #293 refactor
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
@@ -105,8 +105,8 @@ public enum JobType {
         JsonElement serialize(Object result) {
             JsonObject resultJson = new JsonObject();
             ModelCheckingJobResult jobResult = (ModelCheckingJobResult) result;
-            ModelCheckingResult.Satisfied satisfied =
-                    jobResult.getModelCheckingResult().getSatisfied();
+            ModelCheckingResult.Satisfied satisfied
+                    = jobResult.getModelCheckingResult().getSatisfied();
             resultJson.addProperty("satisfied", satisfied.toString());
 
             if (satisfied == ModelCheckingResult.Satisfied.FALSE) {
@@ -119,6 +119,9 @@ public enum JobType {
             // Add statistics.
             JsonElement statisticsJson = serializeStatistics(jobResult.getStatistics());
             resultJson.add("statistics", statisticsJson);
+
+            // Add formula represenation
+            resultJson.addProperty("formulaRepresentation", jobResult.getFormulaRepresentation());
 
             return resultJson;
         }
@@ -152,9 +155,9 @@ public enum JobType {
                             counterExample,
                             false);
                     return new ModelCheckingJobResult(result, statistics,
-                            counterExample, reducedCexMc, reducedCexInputNet);
+                            counterExample, reducedCexMc, reducedCexInputNet, runFormula.toSymbolString());
                 } else {
-                    return new ModelCheckingJobResult(result, statistics, null, null, null);
+                    return new ModelCheckingJobResult(result, statistics, null, null, null, runFormula.toSymbolString());
                 }
             }, PetriNetExtensionHandler.getProcessFamilyID(inputNet));
         }
@@ -230,7 +233,7 @@ public enum JobType {
         }
 
         public Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
-                                             JsonObject params) {
+                JsonObject params) {
             // TODO #293 consider refactoring
             if (!(petriGame1 instanceof PetriGameWithTransits)) {
                 throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
