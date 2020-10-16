@@ -7,7 +7,7 @@
     <MyVueMenuTheme
       style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
-        <hsc-menu-bar-item label="File ▼">
+        <hsc-menu-bar-item label="File ▾">
           <hsc-menu-item
             :label="useModelChecking ? 'New Petri net with transits' : 'New Petri game'"
             @click.native="createNewEditorNet"/>
@@ -49,7 +49,7 @@
           </hsc-menu-item>
         </hsc-menu-bar-item>
         <hsc-menu-bar-item
-          label="View ▼"
+          label="View ▾"
         >
           <hsc-menu-item
             v-model="showLogWindow"
@@ -79,7 +79,7 @@
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
           <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"/>
-          <hsc-menu-bar-item label="Analyze ▼">
+          <hsc-menu-bar-item label="Analyze ▾">
             <hsc-menu-item @click.native="calculateExistsWinningStrategy"
                            label="Exists Winning Strategy?"/>
             <hsc-menu-item @click.native="calculateGraphStrategyBDD"
@@ -93,7 +93,7 @@
         <template v-if="useModelChecking">
           <hsc-menu-bar-item @click.native="checkLtlFormula" label="Check"
           />
-          <hsc-menu-bar-item label="Reduction ▼">
+          <hsc-menu-bar-item label="Reduction ▾">
             <hsc-menu-item @click="calculateModelCheckingNet" label="Petri Net"
             />
             <hsc-menu-item @click="calculateModelCheckingFormula" label="LTL Formula"
