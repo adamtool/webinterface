@@ -172,7 +172,7 @@
                 color="blue lighten-3"
                 @click="$emit('loadCounterExampleInSimulator', tab.result)"
               >
-                Load counter example into simulator
+                Load into simulator
               </v-btn>
             </v-list-item-content>
           </v-list-item>
@@ -251,7 +251,7 @@
                 color="blue lighten-3"
                 @click="$emit('loadCounterExampleInSimulator', tab.result)"
               >
-                Load counter example into simulator
+                Load into simulator
               </v-btn>
             </v-list-item-content>
           </v-list-item>
