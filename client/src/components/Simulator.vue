@@ -147,10 +147,7 @@
               {
                 // An empty state which will be shown as <start> in the list
               }
-            ],
-            graph: {
-              fakeGraphShouldNotBeUsed: null // This 'graph' object should never be used
-            }
+            ]
           }
         }
       }
@@ -181,7 +178,7 @@
     methods: {
       // TODO #52 Implement this
       showDataFlow: function () {
-        console.log("Show data flow")
+        console.log('Show data flow')
       },
       // TODO #295 allow moving back and forth in history with arrow keys
       simulationHistoryBack: function () {
@@ -210,11 +207,7 @@
             marking: null, // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
             transitionFired: null // The transition fired from the previous state to reach this state
           } */
-          stack: [],
-          graph: {
-            nodes: [],
-            links: []
-          }
+          stack: []
         }
       },
       fireTransition: function (d) {
@@ -227,8 +220,7 @@
                 fireableTransitions: this.graph.fireableTransitions,
                 transitionFired: null
               }
-            ],
-            graph: this.deepCopy(this.graph)
+            ]
           }
         }
         const {stack, currentIndex} = this.gameSimulationHistory
