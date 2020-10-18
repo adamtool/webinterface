@@ -227,12 +227,12 @@
               </div>
               <Simulator
                 v-else
-                ref="simulatorComponent"
                 editorMode="Simulator"
                 :graph="simulatorNet.net"
                 :editorNetId="simulatorNet.uuid"
                 :jobKey="simulatorNet.jobKey"
                 :cxType="simulatorNet.cxType"
+                :cxData="simulatorNet.cxData"
                 :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
@@ -811,12 +811,18 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              ({editorNet, simulationHistory} = response.data)
+              ({net, loopPoint, markings, transitionsFired} = response.data)
               this.simulatorNet = {
                 status: 'netIsPresent',
-                ...editorNet
+                net,
+                jobKey,
+                cxType,
+                cxData: {
+                  loopPoint,
+                  markings,
+                  transitionsFired
+                }
               }
-              this.$refs.simulatorComponent.gameSimulationHistory = simulationHistory
               break
             case 'error':
               this.simulatorNet = {

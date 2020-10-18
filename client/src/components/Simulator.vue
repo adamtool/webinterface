@@ -126,6 +126,15 @@
         validator: function (cxType) {
           return ['INPUT_NET', 'MODEL_CHECKING_NET'].contains(cxType)
         }
+      },
+      cxData: {
+        type: Object,
+        required: false,
+        validator: function (cxData) {
+          return cxData.hasOwnProperty('loopPoint') && // Int
+            cxData.hasOwnProperty('markings') && // List<Map<Place,Integer>>
+            cxData.hasOwnProperty('transitionsFired') // List<String>
+        }
       }
     },
     data() {
