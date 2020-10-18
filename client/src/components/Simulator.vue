@@ -104,7 +104,29 @@
     name: 'Simulator',
     components: {GraphEditor},
     props: {
-      ...GraphEditor.props
+      ...GraphEditor.props,
+      // This prop is only present for model checking nets, winning strategies, etc. which are
+      // created via the 'Job' system
+      jobKey: {
+        type: Object,
+        required: false
+      },
+      // The type of the petri net displayed in this GraphEditor instance.
+      // This corresponds to the 'NetType' enum on the server
+      netType: {
+        type: String,
+        required: false,
+        validator: function (type) {
+          return ['PETRI_NET', 'PETRI_NET_WITH_TRANSITS', 'PETRI_GAME'].includes(type)
+        }
+      },
+      cxType: {
+        type: String,
+        required: false,
+        validator: function (cxType) {
+          return ['INPUT_NET', 'MODEL_CHECKING_NET'].contains(cxType)
+        }
+      }
     },
     data() {
       return {
@@ -214,6 +236,7 @@
 
         const transitionId = d.id
         let requestPromise
+        // TODO #50 Handle case of this.jobKey && this.cxType
         if (this.editorNetId) {
           requestPromise = this.restEndpoints.fireTransitionEditor({
             preMarking: currentState.marking,

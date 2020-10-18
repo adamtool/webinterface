@@ -193,21 +193,6 @@
         type: String,
         required: false
       },
-      // This prop is only present for model checking nets, winning strategies, etc. which are
-      // created via the 'Job' system
-      jobKey: {
-        type: Object,
-        required: false
-      },
-      // The type of the petri net displayed in this GraphEditor instance.
-      // This corresponds to the 'NetType' enum on the server
-      netType: {
-        type: String,
-        required: false,
-        validator: function (type) {
-          return ['PETRI_NET', 'PETRI_NET_WITH_TRANSITS', 'PETRI_GAME'].includes(type)
-        }
-      },
       // When true, the repulsion/gravity/link strength sliders are displayed
       showPhysicsControls: {
         type: Boolean,
