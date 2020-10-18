@@ -811,18 +811,18 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              ({net, loopPoint, markings, transitionsFired} = response.data)
+              ({net, loopPoint, historyStack} = response.data)
               this.simulatorNet = {
                 status: 'netIsPresent',
                 net,
                 jobKey,
                 cxType,
                 cxData: {
-                  loopPoint,
-                  markings,
-                  transitionsFired
+                  loopPoint, // int
+                  historyStack // List<SimulationHistoryState>  (See SimulationHistoryState.java)
                 }
               }
+              this.$refs.simulator.resetSimulation()
               break
             case 'error':
               this.simulatorNet = {

@@ -161,10 +161,10 @@
         }
       }
     },
+    mounted: function () {
+      this.resetSimulation()
+    },
     watch: {
-      graph: function () {
-        this.resetSimulation()
-      },
       'gameSimulationHistory.stack': function () {
         // We must wait until Vue updates the DOM in order to scroll to the true bottom of the log.
         Vue.nextTick(() => {
@@ -205,7 +205,14 @@
           this.graph.initialMarking,
           this.graph.fireableTransitions)
         this.$refs.graphEditor.updateD3()
-        this.gameSimulationHistory = this.gameSimulationHistoryDefault()
+        if (this.cxData) {
+          this.gameSimulationHistory = {
+            currentIndex: 0,
+            stack: this.cxData.historyStack
+          }
+        } else {
+          this.gameSimulationHistory = this.gameSimulationHistoryDefault()
+        }
         logging.sendSuccessNotification('Reset the simulation.')
       },
       gameSimulationHistoryDefault: function () {
