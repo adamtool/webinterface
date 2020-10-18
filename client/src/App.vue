@@ -227,6 +227,7 @@
               </div>
               <Simulator
                 v-else
+                ref="simulator"
                 editorMode="Simulator"
                 :graph="simulatorNet.net"
                 :editorNetId="simulatorNet.uuid"
@@ -793,7 +794,8 @@
               status: 'netIsPresent',
               ...editorNetCopy
             }
-            this.$refs.simulator.resetSimulation()
+            // The ref will be undefined until the Simulator component is rendered by Vue
+            Vue.nextTick(() => this.$refs.simulator.resetSimulation())
           }).catch(error => {
           logging.sendErrorNotification(error)
           this.simulatorNet = {
@@ -823,7 +825,7 @@
                   historyStack // List<SimulationHistoryState>  (See SimulationHistoryState.java)
                 }
               }
-              this.$refs.simulator.resetSimulation()
+              Vue.nextTick(() => this.$refs.simulator.resetSimulation())
               break
             case 'error':
               this.simulatorNet = {
