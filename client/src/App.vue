@@ -78,7 +78,8 @@
           />
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
-          <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve" style="width: 20px;"/>
+          <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"
+                             style="width: 20px;"/>
           <hsc-menu-bar-item label="Analyze ▾" style="width: 100px;">
             <hsc-menu-item @click.native="calculateExistsWinningStrategy"
                            label="Exists Winning Strategy?"/>
@@ -113,7 +114,7 @@
           />
         </template>
         <hsc-menu-bar-item style="width: 5px;"
-          label="?"
+                           label="?"
         />
         <hsc-menu-bar-item
           @click.native="showAboutModal = true; $refs.menubar.deactivate()"
@@ -226,6 +227,7 @@
               </div>
               <Simulator
                 v-else
+                ref="simulatorComponent"
                 editorMode="Simulator"
                 :graph="simulatorNet.net"
                 :editorNetId="simulatorNet.uuid"
@@ -720,6 +722,7 @@
           'updateXYCoordinates',
           'parseApt',
           'copyEditorNet',
+          'loadCxAsEditorNet',
           'saveJobAsApt',
           'insertPlace',
           'createFlow',
@@ -793,6 +796,39 @@
           this.simulatorNet = {
             status: 'error',
             error: error.toString()
+          }
+        })
+      },
+      loadCxInSimulator: function (jobKey, cxType) {
+        this.simulatorNet = {status: 'copyInProgress'}
+        const promise = this.restEndpoints.loadCxAsEditorNet({
+          params: {
+            jobKey,
+            cxType
+          }
+        }).then(response => {
+          switch (response.data.status) {
+            case 'success':
+              ({editorNet, simulationHistory} = response.data)
+              this.simulatorNet = {
+                status: 'netIsPresent',
+                ...editorNet
+              }
+              this.$refs.simulatorComponent.gameSimulationHistory = simulationHistory
+              break
+            case 'error':
+              this.simulatorNet = {
+                status: 'error',
+                error: response.data.message
+              }
+              logging.sendErrorNotification(response.data.messsage)
+              break
+            default:
+              this.simulatorNet = {
+                status: 'error',
+                error: 'Malformed response from server'
+              }
+              logging.sendErrorNotification('Malformed response from server')
           }
         })
       },

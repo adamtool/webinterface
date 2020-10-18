@@ -842,7 +842,17 @@ public class App {
             JsonElement jobKeyJson = requestBody.getAsJsonObject().get("jobKey");
             JobKey jobKey = gson.fromJson(jobKeyJson, t);
             try {
-                return userContext.getPetriNetFromJob(jobKey);
+                switch (jobKey.getJobType()) {
+                    case WINNING_STRATEGY:
+                    case MODEL_CHECKING_NET:
+                        return userContext.getPetriNetFromJob(jobKey);
+                    case MODEL_CHECKING_RESULT:
+                        CxType cxType = CxType.valueOf(requestBody.get("cxType").getAsString());
+                        return userContext.getPetriNetFromMcResult(jobKey, cxType);
+                    default:
+                        throw new IllegalArgumentException("The given job type is not applicable " +
+                                "here.");
+                }
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
                 throw new IllegalArgumentException("An exception was thrown when retrieving the petri net " +
