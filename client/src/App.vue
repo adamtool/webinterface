@@ -231,6 +231,8 @@
                 editorMode="Simulator"
                 :graph="simulatorNet.net"
                 :editorNetId="simulatorNet.uuid"
+                :jobKey="simulatorNet.jobKey"
+                :cxType="simulatorNet.cxType"
                 :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
@@ -801,7 +803,7 @@
       },
       loadCxInSimulator: function (jobKey, cxType) {
         this.simulatorNet = {status: 'copyInProgress'}
-        const promise = this.restEndpoints.loadCxAsEditorNet({
+        const promise = this.restEndpoints.loadCxIntoSimulator({
           params: {
             jobKey,
             cxType
