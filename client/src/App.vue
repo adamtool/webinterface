@@ -793,6 +793,7 @@
               status: 'netIsPresent',
               ...editorNetCopy
             }
+            this.$refs.simulator.resetSimulation()
           }).catch(error => {
           logging.sendErrorNotification(error)
           this.simulatorNet = {
