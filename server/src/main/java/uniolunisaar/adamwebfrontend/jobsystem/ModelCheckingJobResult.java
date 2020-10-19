@@ -15,8 +15,8 @@ public class ModelCheckingJobResult {
     private final ReducedCounterExample reducedCexMc;
     private final ReducedCounterExample reducedCexInputNet;
     private final String formulaRepresentation;
-    private PetriNet modelCheckingNet;
-    private PetriNetWithTransits inputNet;
+    private final PetriNet modelCheckingNet;
+    private final PetriNetWithTransits inputNet;
 
     public ModelCheckingJobResult(ModelCheckingResult modelCheckingResult,
                                   AdamCircuitFlowLTLMCStatistics statistics,
