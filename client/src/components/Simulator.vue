@@ -76,7 +76,7 @@
       </v-tooltip>
       <v-tooltip
         bottom
-        v-if="useModelChecking && gameSimulationHistory.stack.length > 1"
+        v-if="useModelChecking && gameSimulationHistory.stack.length > 1 && netType !== 'PETRI_NET'"
       >
         <template v-slot:activator="{ on }">
           <v-btn
