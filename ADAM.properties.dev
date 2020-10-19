@@ -3,4 +3,5 @@ aigertools=./aiger-1.9.9/
 mcHyper=./mchyper-0.91/mchyper
 abcBin=./abc-master/abc
 time=/usr/bin/time
+dot=/usr/bin/dot
 
