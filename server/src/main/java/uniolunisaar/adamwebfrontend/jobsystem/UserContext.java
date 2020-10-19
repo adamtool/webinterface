@@ -8,6 +8,7 @@ import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adamwebfrontend.BDDGraphExplorer;
 import uniolunisaar.adamwebfrontend.WebSocketHandler;
+import uniolunisaar.adamwebfrontend.wirerepresentations.CxType;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.concurrent.*;
 
 import static uniolunisaar.adamwebfrontend.jobsystem.JobStatus.COMPLETED;
 import static uniolunisaar.adamwebfrontend.jobsystem.JobStatus.FAILED;
+import static uniolunisaar.adamwebfrontend.jobsystem.JobType.MODEL_CHECKING_RESULT;
 
 /**
  * Stores data related to a single user session
@@ -142,7 +144,7 @@ public class UserContext {
     }
 
     public <T> void queueJob(JobKey jobKey, Job<T> job) {
-        assert(!jobsByKey.containsKey(jobKey));
+        assert (!jobsByKey.containsKey(jobKey));
         jobsByKey.put(jobKey, job);
         job.queue(this.executorService);
     }
@@ -170,17 +172,45 @@ public class UserContext {
         return (Job<BDDGraphExplorer>) jobsByKey.get(jobKey);
     }
 
-    public PetriNet getPetriNetFromJob(JobKey jobKey) throws ExecutionException, InterruptedException {
-        if (jobKey.getJobType() != JobType.MODEL_CHECKING_NET &&
-                jobKey.getJobType() != JobType.WINNING_STRATEGY) {
-            throw new IllegalArgumentException("The given jobKey doesn't match a Job that would " +
-                    "produce a Petri Net.  Its 'type' is " + jobKey.getJobType().toString());
-        }
+    public PetriNet getPetriNetFromJob(JobKey jobKey) throws ExecutionException,
+            InterruptedException {
+        JobType jobType = jobKey.getJobType();
         Job<?> job = jobsByKey.get(jobKey);
         if (!job.isFinished()) {
             throw new IllegalArgumentException("The given job is not finished, so the PetriNet it" +
                     " will produce can not be accessed yet.");
         }
-        return (PetriNet)job.getResult();
+        switch (jobType) {
+            case MODEL_CHECKING_NET:
+            case WINNING_STRATEGY:
+                return (PetriNet) job.getResult();
+            default:
+                throw new IllegalArgumentException("The given jobKey doesn't match a Job that would " +
+                        "produce a Petri Net.  Its 'type' is " + jobKey.getJobType().toString());
+        }
+    }
+
+    public PetriNet getPetriNetFromMcResult(JobKey jobKey, CxType cxType) throws ExecutionException,
+            InterruptedException {
+        Job<?> job = jobsByKey.get(jobKey);
+        if (!job.isFinished()) {
+            throw new IllegalArgumentException("The given job is not finished, so the PetriNet it" +
+                    " will produce can not be accessed yet.");
+        }
+        JobType jobType = jobKey.getJobType();
+        if (jobType != MODEL_CHECKING_RESULT) {
+            throw new IllegalArgumentException("The given job key does not correspond to a model " +
+                    "checking job.");
+        }
+        ModelCheckingJobResult result = (ModelCheckingJobResult) job.getResult();
+        switch (cxType) {
+            case INPUT_NET:
+                return result.getInputNet();
+            case MODEL_CHECKING_NET:
+                return result.getModelCheckingNet();
+            default:
+                throw new RuntimeException("This switch case should be unreachable.  Please file " +
+                        "a bug report :)");
+        }
     }
 }

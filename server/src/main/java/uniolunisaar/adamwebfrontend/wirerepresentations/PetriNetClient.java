@@ -239,7 +239,8 @@ public class PetriNetClient {
                 ));
 
         Map<String, Long> initialMarkingMap = PetriNetTools.markingToMap(net.getInitialMarking());
-        Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(net);
+        Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(net,
+                net.getInitialMarking());
 
         Map<Flow, String> flowRelationFromTransitions = getFlowRelationFromTransitions.apply(net);
         for (Flow flow : net.getEdges()) {

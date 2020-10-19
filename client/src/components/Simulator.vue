@@ -104,7 +104,37 @@
     name: 'Simulator',
     components: {GraphEditor},
     props: {
-      ...GraphEditor.props
+      ...GraphEditor.props,
+      // This prop is only present for model checking nets, winning strategies, etc. which are
+      // created via the 'Job' system
+      jobKey: {
+        type: Object,
+        required: false
+      },
+      // The type of the petri net displayed in this GraphEditor instance.
+      // This corresponds to the 'NetType' enum on the server
+      netType: {
+        type: String,
+        required: false,
+        validator: function (type) {
+          return ['PETRI_NET', 'PETRI_NET_WITH_TRANSITS', 'PETRI_GAME'].includes(type)
+        }
+      },
+      cxType: {
+        type: String,
+        required: false,
+        validator: function (cxType) {
+          return ['INPUT_NET', 'MODEL_CHECKING_NET'].includes(cxType)
+        }
+      },
+      cxData: {
+        type: Object,
+        required: false,
+        validator: function (cxData) {
+          return cxData.hasOwnProperty('loopPoint') && // Int
+            cxData.hasOwnProperty('historyStack') // List<SimulationHistoryState> (See Java class)
+        }
+      }
     },
     data() {
       return {
@@ -125,18 +155,15 @@
               {
                 // An empty state which will be shown as <start> in the list
               }
-            ],
-            graph: {
-              fakeGraphShouldNotBeUsed: null // This 'graph' object should never be used
-            }
+            ]
           }
         }
       }
     },
+    mounted: function () {
+      this.resetSimulation()
+    },
     watch: {
-      graph: function () {
-        this.resetSimulation()
-      },
       'gameSimulationHistory.stack': function () {
         // We must wait until Vue updates the DOM in order to scroll to the true bottom of the log.
         Vue.nextTick(() => {
@@ -159,7 +186,7 @@
     methods: {
       // TODO #52 Implement this
       showDataFlow: function () {
-        console.log("Show data flow")
+        console.log('Show data flow')
       },
       // TODO #295 allow moving back and forth in history with arrow keys
       simulationHistoryBack: function () {
@@ -177,7 +204,14 @@
           this.graph.initialMarking,
           this.graph.fireableTransitions)
         this.$refs.graphEditor.updateD3()
-        this.gameSimulationHistory = this.gameSimulationHistoryDefault()
+        if (this.cxData) {
+          this.gameSimulationHistory = {
+            currentIndex: 0,
+            stack: this.cxData.historyStack
+          }
+        } else {
+          this.gameSimulationHistory = this.gameSimulationHistoryDefault()
+        }
         logging.sendSuccessNotification('Reset the simulation.')
       },
       gameSimulationHistoryDefault: function () {
@@ -188,11 +222,7 @@
             marking: null, // Map[String, Number]; i.e. Map[PlaceId, TokenCount]
             transitionFired: null // The transition fired from the previous state to reach this state
           } */
-          stack: [],
-          graph: {
-            nodes: [],
-            links: []
-          }
+          stack: []
         }
       },
       fireTransition: function (d) {
@@ -205,8 +235,7 @@
                 fireableTransitions: this.graph.fireableTransitions,
                 transitionFired: null
               }
-            ],
-            graph: this.deepCopy(this.graph)
+            ]
           }
         }
         const {stack, currentIndex} = this.gameSimulationHistory
@@ -214,7 +243,15 @@
 
         const transitionId = d.id
         let requestPromise
-        if (this.editorNetId) {
+        if (this.jobKey && this.cxType) { // The net belongs to a counter example
+          requestPromise = this.restEndpoints.fireTransitionJob({
+            preMarking: currentState.marking,
+            jobKey: this.jobKey,
+            cxType: this.cxType,
+            transitionId,
+            netType: this.cxType === 'MODEL_CHECKING_NET' ? 'PETRI_NET' : 'PETRI_NET_WITH_TRANSITS'
+          })
+        } else if (this.editorNetId) {
           requestPromise = this.restEndpoints.fireTransitionEditor({
             preMarking: currentState.marking,
             editorNetId: this.editorNetId,
