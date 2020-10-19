@@ -811,7 +811,21 @@
         const promise = this.restEndpoints.saveDataFlowPdf({
           jobKey
         }).then(response => {
+          // response.data is the raw PDF
+          const byteArray = new TextEncoder().encode(response.data);
+          // pass your byte response to this constructor
+          saveByteArray('test name.pdf', response.data)
         }).catch(error => logging.sendErrorNotification(error.toString()))
+
+        function saveByteArray(reportName, byte) {
+          var blob = new Blob([byte], {type: "application/pdf"});
+          var link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          var fileName = reportName;
+          link.download = fileName;
+          link.click();
+        };
+
       },
       loadCxInSimulator: function ({jobKey, cxType}) {
         this.simulatorNet = {status: 'copyInProgress'}
