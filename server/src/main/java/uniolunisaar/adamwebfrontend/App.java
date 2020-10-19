@@ -119,7 +119,7 @@ public class App {
         post("/fireTransitionEditor", this::handleFireTransitionEditor);
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
-        postWithUserContext("/loadCxIntoSimulator", this::handleLoadCxIntoSimulator);
+        postWithUserContext("/loadCxInSimulator", this::handleLoadCxInSimulator);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -948,12 +948,12 @@ public class App {
         return successResponse(result);
     }
 
-    private Object handleLoadCxIntoSimulator(Request req, Response res, UserContext uc) throws ExecutionException, InterruptedException {
-        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+    private Object handleLoadCxInSimulator(Request req, Response res, UserContext uc) throws ExecutionException, InterruptedException {
+        JsonObject params = parser.parse(req.body()).getAsJsonObject().get("params").getAsJsonObject();
 
         Type t = new TypeToken<JobKey>() {
         }.getType();
-        JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+        JsonElement jobKeyJson = params.get("jobKey");
         JobKey jobKey = gson.fromJson(jobKeyJson, t);
         if (jobKey.getJobType() != JobType.MODEL_CHECKING_RESULT) {
             throw new IllegalArgumentException("The given job type is not applicable here.");
@@ -964,7 +964,7 @@ public class App {
                     " will produce can not be accessed yet.");
         }
         ModelCheckingJobResult result = (ModelCheckingJobResult) job.getResult();
-        CxType cxType = CxType.valueOf(body.get("cxType").getAsString());
+        CxType cxType = CxType.valueOf(params.get("cxType").getAsString());
         JsonElement netJson = null;
         PetriNet net = null;
         Integer loopPoint = null;

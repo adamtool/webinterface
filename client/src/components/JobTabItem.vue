@@ -170,7 +170,10 @@
               <!-- TODO #50 Implement loading of counter example into simulator -->
               <v-btn
                 color="blue lighten-3"
-                @click="$emit('loadCounterExampleInSimulator', tab.result)"
+                @click="$emit('loadCxInSimulator', {
+                  jobKey: tab.jobKey,
+                  cxType: 'INPUT_NET'
+                })"
               >
                 Load into simulator
               </v-btn>
@@ -249,7 +252,10 @@
               <!-- TODO #50 Implement loading of counter example into simulator -->
               <v-btn
                 color="blue lighten-3"
-                @click="$emit('loadCounterExampleInSimulator', tab.result)"
+                @click="$emit('loadCxInSimulator', {
+                  jobKey: tab.jobKey,
+                  cxType: 'MODEL_CHECKING_NET'
+                })"
               >
                 Load into simulator
               </v-btn>

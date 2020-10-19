@@ -305,6 +305,7 @@
                 :useModelChecking="useModelChecking"
                 :isTabSelected="shouldShowRightSide && selectedTabRightSide === `tab-${tab.uuid}`"
                 @loadEditorNetFromApt="apt => parseAptForEditorNet(apt).then(() => selectedTabLeftSide = 0)"
+                @loadCxInSimulator="loadCxInSimulator"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="({graphEditorRef, stateId}) => toggleGraphGameStatePostset(graphEditorRef, stateId, tab.jobKey)"
                 @toggleStatePreset="({graphEditorRef, stateId}) => toggleGraphGameStatePreset(graphEditorRef, stateId, tab.jobKey)"
@@ -725,7 +726,7 @@
           'updateXYCoordinates',
           'parseApt',
           'copyEditorNet',
-          'loadCxIntoSimulator',
+          'loadCxInSimulator',
           'saveJobAsApt',
           'insertPlace',
           'createFlow',
@@ -804,9 +805,10 @@
           }
         })
       },
-      loadCxInSimulator: function (jobKey, cxType) {
+      loadCxInSimulator: function ({jobKey, cxType}) {
         this.simulatorNet = {status: 'copyInProgress'}
-        const promise = this.restEndpoints.loadCxIntoSimulator({
+        this.selectedTabLeftSide = 1 // Switch to simulator tab
+        const promise = this.restEndpoints.loadCxInSimulator({
           params: {
             jobKey,
             cxType
@@ -814,7 +816,7 @@
         }).then(response => {
           switch (response.data.status) {
             case 'success':
-              ({net, loopPoint, historyStack} = response.data)
+              const {net, loopPoint, historyStack} = response.data
               this.simulatorNet = {
                 status: 'netIsPresent',
                 net,
