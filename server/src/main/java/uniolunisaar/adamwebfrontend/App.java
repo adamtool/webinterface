@@ -1055,6 +1055,8 @@ public class App {
         String tempFileName = "tmpDataFlowPdf" + uuid.toString();
         String filePath = tempFileDirectory + tempFileName;
         PNWTTools.saveDataFlowTreesToPDF(filePath, dataFlowTrees, uuid.toString());
+        // Delete the temporary "dot" file
+        Files.deleteIfExists(Paths.get(filePath + ".dot"));
         return Paths.get(filePath + ".pdf");
     }
 
@@ -1083,6 +1085,7 @@ public class App {
         raw.getOutputStream().write(bytes);
         raw.getOutputStream().flush();
         raw.getOutputStream().close();
+        Files.deleteIfExists(filePath);
         return res.raw();
     }
 
