@@ -725,7 +725,7 @@
           'updateXYCoordinates',
           'parseApt',
           'copyEditorNet',
-          'loadCxAsEditorNet',
+          'loadCxIntoSimulator',
           'saveJobAsApt',
           'insertPlace',
           'createFlow',
@@ -828,19 +828,18 @@
               Vue.nextTick(() => this.$refs.simulator.resetSimulation())
               break
             case 'error':
-              this.simulatorNet = {
-                status: 'error',
-                error: response.data.message
-              }
-              logging.sendErrorNotification(response.data.messsage)
+              throw new Error(response.data.message)
               break
             default:
-              this.simulatorNet = {
-                status: 'error',
-                error: 'Malformed response from server'
-              }
-              logging.sendErrorNotification('Malformed response from server')
+              throw new Error('Malformed response from server')
           }
+        }).catch(error => {
+          console.error(error);
+          this.simulatorNet = {
+            status: 'error',
+            error: error.toString()
+          }
+          logging.sendErrorNotification(error.toString())
         })
       },
       initializeWebSocket: function (retryAttempts) {

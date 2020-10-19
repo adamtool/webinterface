@@ -80,12 +80,12 @@ public class PetriNetTools {
 
     /**
      * @return A Map<String, Boolean> which indicates for each Transition in the net whether it
-     * is fireable or not.  The Strings are the Transitions' IDs.
+     * is fireable or not in the given marking.  The Strings are the Transitions' IDs.
      */
-    public static Map<String, Boolean> getFireableTransitions(PetriNet petriNet) {
+    public static Map<String, Boolean> getFireableTransitions(PetriNet petriNet, Marking marking) {
         Map<String, Boolean> fireableTransitions = new HashMap<>();
         for (Transition t : petriNet.getTransitions()) {
-            boolean isFireable = PNTools.isFireable(t, petriNet.getInitialMarking());
+            boolean isFireable = PNTools.isFireable(t, marking);
             fireableTransitions.put(t.getId(), isFireable);
         }
         return fireableTransitions;

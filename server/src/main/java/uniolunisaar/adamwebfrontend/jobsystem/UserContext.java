@@ -192,12 +192,12 @@ public class UserContext {
 
     public PetriNet getPetriNetFromMcResult(JobKey jobKey, CxType cxType) throws ExecutionException,
             InterruptedException {
-        JobType jobType = jobKey.getJobType();
         Job<?> job = jobsByKey.get(jobKey);
         if (!job.isFinished()) {
             throw new IllegalArgumentException("The given job is not finished, so the PetriNet it" +
                     " will produce can not be accessed yet.");
         }
+        JobType jobType = jobKey.getJobType();
         if (jobType != MODEL_CHECKING_RESULT) {
             throw new IllegalArgumentException("The given job key does not correspond to a model " +
                     "checking job.");
