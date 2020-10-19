@@ -3,6 +3,7 @@ package uniolunisaar.adamwebfrontend;
  * Created by Ann on 11.09.2017.
  */
 
+import uniol.apt.adt.exception.TransitionFireException;
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.NotSupportedGameException;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotCalculateException;
@@ -992,8 +993,22 @@ public class App {
                 PetriNetTools.markingToMap(currentMarking),
                 null,
                 PetriNetTools.getFireableTransitions(net, currentMarking)));
-        for (Transition transition : firingSequence) {
-            currentMarking = PNTools.fire(transition, currentMarking);
+
+        // There is a bug currently where the transition sequence cannot always be trusted to work
+        // 100%.  E.g. the last transition may fail to fire.  We should handle that case gracefully
+        // by firing as much of the sequence as we can and sending a note to the client at which
+        // index the sequence failed.
+        boolean transitionFailed = false;
+        int transitionFailedIndex = -1;
+        for (int i = 0; i < firingSequence.size(); i++) {
+            Transition transition = firingSequence.get(i);
+            try {
+                currentMarking = PNTools.fire(transition, currentMarking);
+            } catch (TransitionFireException e) {
+                transitionFailed = true;
+                transitionFailedIndex = i;
+                break;
+            }
             Map<String, Long> postMarkingMap = PetriNetTools.markingToMap(currentMarking);
             Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(net, currentMarking);
             simulationHistory.add(new SimulationHistoryState(postMarkingMap, transition.getId(), fireableTransitions));
@@ -1004,6 +1019,12 @@ public class App {
         response.add("net", netJson);
         response.addProperty("loopPoint", loopPoint);
         response.add("historyStack", gson.toJsonTree(simulationHistory));
+        if (transitionFailed) {
+            JsonObject failedObject = new JsonObject();
+            failedObject.addProperty("index", transitionFailedIndex);
+            failedObject.addProperty("id", firingSequence.get(transitionFailedIndex).getId());
+            response.add("transitionFailed", failedObject);
+        }
         return response;
     }
 

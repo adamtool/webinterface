@@ -817,6 +817,8 @@
           switch (response.data.status) {
             case 'success':
               const {net, loopPoint, historyStack} = response.data
+              // Option<{index: Int, id: String}>
+              const transitionFailed = response.data.transitionFailed
               this.simulatorNet = {
                 status: 'netIsPresent',
                 net,
@@ -827,7 +829,15 @@
                   historyStack // List<SimulationHistoryState>  (See SimulationHistoryState.java)
                 }
               }
-              Vue.nextTick(() => this.$refs.simulator.resetSimulation())
+              Vue.nextTick(() => {
+                this.$refs.simulator.resetSimulation()
+                if (transitionFailed) {
+                  const {index, id} = transitionFailed
+                  logging.sendErrorNotification(`The transition ${id} at index ${index} of the firing
+                   sequence was not fireable.  Only part of the firing sequence for this CX has been
+                   loaded.`)
+                }
+              })
               break
             case 'error':
               throw new Error(response.data.message)
@@ -836,7 +846,7 @@
               throw new Error('Malformed response from server')
           }
         }).catch(error => {
-          console.error(error);
+          console.error(error)
           this.simulatorNet = {
             status: 'error',
             error: error.toString()
