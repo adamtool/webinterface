@@ -243,8 +243,15 @@
 
         const transitionId = d.id
         let requestPromise
-        // TODO #50 Handle case of this.jobKey && this.cxType
-        if (this.editorNetId) {
+        if (this.jobKey && this.cxType) { // The net belongs to a counter example
+          requestPromise = this.restEndpoints.fireTransitionJob({
+            preMarking: currentState.marking,
+            jobKey: this.jobKey,
+            cxType: this.cxType,
+            transitionId,
+            netType: this.cxType === 'MODEL_CHECKING_NET' ? 'PETRI_NET' : 'PETRI_NET_WITH_TRANSITS'
+          })
+        } else if (this.editorNetId) {
           requestPromise = this.restEndpoints.fireTransitionEditor({
             preMarking: currentState.marking,
             editorNetId: this.editorNetId,
