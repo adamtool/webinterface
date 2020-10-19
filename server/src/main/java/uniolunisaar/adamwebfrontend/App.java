@@ -1042,17 +1042,20 @@ public class App {
         return response;
     }
 
-    private static Path saveDataFlowPdf(
-                                          PetriNetWithTransits net,
-                                          List<Transition> firingSequence) throws IOException {
+    /**
+     * @return The Path of the generated pdf
+     * @throws IOException
+     */
+    private static Path saveDataFlowPdf(PetriNetWithTransits net,
+                                        List<Transition> firingSequence) throws IOException {
         List<DataFlowTree> dataFlowTrees = PNWTTools.getDataFlowTrees(net, firingSequence);
         String tempFileDirectory = System.getProperty(
                 "ADAMWEB_TEMP_DIRECTORY", "./tmp/");
         UUID uuid = UUID.randomUUID();
-        String tempFileName = "tmpDataFlowPdf" + uuid.toString() + ".pdf";
+        String tempFileName = "tmpDataFlowPdf" + uuid.toString();
         String filePath = tempFileDirectory + tempFileName;
         PNWTTools.saveDataFlowTreesToPDF(filePath, dataFlowTrees, uuid.toString());
-        return Paths.get(filePath);
+        return Paths.get(filePath + ".pdf");
     }
 
     // Save the data flow of the counter-example for the input net of a model checking operation
