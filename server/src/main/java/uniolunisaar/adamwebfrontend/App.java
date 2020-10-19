@@ -5,6 +5,7 @@ package uniolunisaar.adamwebfrontend;
 
 import uniol.apt.adt.exception.TransitionFireException;
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
+import uniolunisaar.adam.ds.petrinetwithtransits.DataFlowTree;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.NotSupportedGameException;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotCalculateException;
 
@@ -32,6 +33,9 @@ import uniolunisaar.adamwebfrontend.wirerepresentations.*;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
@@ -40,6 +44,8 @@ import uniolunisaar.adam.ds.logics.flowlogics.IRunFormula;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.util.PGTools;
+
+import javax.servlet.http.HttpServletResponse;
 
 public class App {
     private final Gson gson = new Gson();
@@ -121,6 +127,7 @@ public class App {
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
         postWithUserContext("/loadCxInSimulator", this::handleLoadCxInSimulator);
+        get("/saveDataFlowToPdf", this::handleSaveDataFlowToPdf);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -1033,6 +1040,32 @@ public class App {
             response.add("transitionFailed", failedObject);
         }
         return response;
+    }
+
+    private static Path saveDataFlowToPdf(
+                                          PetriNetWithTransits net,
+                                          List<Transition> firingSequence) throws IOException {
+        List<DataFlowTree> dataFlowTrees = PNWTTools.getDataFlowTrees(net, firingSequence);
+        String tempFileDirectory = System.getProperty(
+                "ADAMWEB_TEMP_DIRECTORY", "./tmp/");
+        UUID uuid = UUID.randomUUID();
+        String tempFileName = "tmpDataFlowPdf" + uuid.toString() + ".pdf";
+        String filePath = tempFileDirectory + tempFileName;
+        PNWTTools.saveDataFlowTreesToPDF(filePath, dataFlowTrees, uuid.toString());
+        return Paths.get(filePath);
+    }
+
+    private Object handleSaveDataFlowToPdf(Request req, Response res) throws IOException {
+//        PetriNetWithTransits net = null;
+//        List<Transition> firingSequence = null;
+//        Path filePath = saveDataFlowToPdf(net, firingSequence);
+        Path filePath = Paths.get("/home/ann/dev/webinterface/dummy.pdf");
+        byte[] bytes = Files.readAllBytes(filePath);
+        HttpServletResponse raw = res.raw();
+        raw.getOutputStream().write(bytes);
+        raw.getOutputStream().flush();
+        raw.getOutputStream().close();
+        return res.raw();
     }
 
     private Object handleSetFairness(Request req, Response res, PetriNetWithTransits net) {

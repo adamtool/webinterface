@@ -264,7 +264,7 @@ public enum JobType {
         }
     };
 
-    private static String getTempFilePrefix() {
+    public static String getTempFilePrefix() {
         String tempFileDirectory = System.getProperty(
                 "ADAMWEB_TEMP_DIRECTORY", "./tmp/");
         String tempFileName = "tmp" + UUID.randomUUID().toString();
