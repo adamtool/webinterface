@@ -119,6 +119,8 @@ public class App {
         post("/fireTransitionEditor", this::handleFireTransitionEditor);
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
+        postWithUserContext("/loadCxInSimulator", this::handleLoadCxInSimulator);
+
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
             String exceptionAsString = exceptionToString(exception);
@@ -842,7 +844,17 @@ public class App {
             JsonElement jobKeyJson = requestBody.getAsJsonObject().get("jobKey");
             JobKey jobKey = gson.fromJson(jobKeyJson, t);
             try {
-                return userContext.getPetriNetFromJob(jobKey);
+                switch (jobKey.getJobType()) {
+                    case WINNING_STRATEGY:
+                    case MODEL_CHECKING_NET:
+                        return userContext.getPetriNetFromJob(jobKey);
+                    case MODEL_CHECKING_RESULT:
+                        CxType cxType = CxType.valueOf(requestBody.get("cxType").getAsString());
+                        return userContext.getPetriNetFromMcResult(jobKey, cxType);
+                    default:
+                        throw new IllegalArgumentException("The given job type is not applicable " +
+                                "here.");
+                }
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
                 throw new IllegalArgumentException("An exception was thrown when retrieving the petri net " +
@@ -928,12 +940,71 @@ public class App {
         JsonElement postMarkingJson = gson.toJsonTree(postMarkingMap, markingMapTypeToken);
         result.add("postMarking", postMarkingJson);
 
-        Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(netCopy);
+        Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(netCopy, postMarking);
 
         JsonElement fireableTransitionsJson = gson.toJsonTree(fireableTransitions);
         result.add("fireableTransitions", fireableTransitionsJson);
 
         return successResponse(result);
+    }
+
+    private Object handleLoadCxInSimulator(Request req, Response res, UserContext uc) throws ExecutionException, InterruptedException {
+        JsonObject params = parser.parse(req.body()).getAsJsonObject().get("params").getAsJsonObject();
+
+        Type t = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = params.get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, t);
+        if (jobKey.getJobType() != JobType.MODEL_CHECKING_RESULT) {
+            throw new IllegalArgumentException("The given job type is not applicable here.");
+        }
+        Job job = uc.getJobFromKey(jobKey);
+        if (!job.isFinished()) {
+            throw new IllegalArgumentException("The given job is not finished, so the PetriNet it" +
+                    " will produce can not be accessed yet.");
+        }
+        ModelCheckingJobResult result = (ModelCheckingJobResult) job.getResult();
+        CxType cxType = CxType.valueOf(params.get("cxType").getAsString());
+        JsonElement netJson = null;
+        PetriNet net = null;
+        Integer loopPoint = null;
+        List<Transition> firingSequence = null;
+        switch (cxType) {
+            case INPUT_NET:
+                PetriNetWithTransits inputNet = result.getInputNet();
+                net = inputNet;
+                netJson = PetriNetClient.serializeEditorNet(inputNet, inputNet.getNodes());
+                firingSequence = result.getReducedCexInputNet().getFiringSequence();
+                loopPoint = result.getReducedCexInputNet().getLoopingID();
+                break;
+            case MODEL_CHECKING_NET:
+                PetriNet mcNet = result.getModelCheckingNet();
+                net = mcNet;
+                netJson = PetriNetClient.serializePetriNet(mcNet, mcNet.getNodes());
+                firingSequence = result.getReducedCexMc().getFiringSequence();
+                loopPoint = result.getReducedCexMc().getLoopingID();
+                break;
+        }
+
+        List<SimulationHistoryState> simulationHistory = new ArrayList<>();
+        Marking currentMarking = net.getInitialMarking();
+        simulationHistory.add(new SimulationHistoryState(
+                PetriNetTools.markingToMap(currentMarking),
+                null,
+                PetriNetTools.getFireableTransitions(net, currentMarking)));
+        for (Transition transition : firingSequence) {
+            currentMarking = PNTools.fire(transition, currentMarking);
+            Map<String, Long> postMarkingMap = PetriNetTools.markingToMap(currentMarking);
+            Map<String, Boolean> fireableTransitions = PetriNetTools.getFireableTransitions(net, currentMarking);
+            simulationHistory.add(new SimulationHistoryState(postMarkingMap, transition.getId(), fireableTransitions));
+        }
+
+        JsonObject response = new JsonObject();
+        response.addProperty("status", "success");
+        response.add("net", netJson);
+        response.addProperty("loopPoint", loopPoint);
+        response.add("historyStack", gson.toJsonTree(simulationHistory));
+        return response;
     }
 
     private Object handleSetFairness(Request req, Response res, PetriNetWithTransits net) {

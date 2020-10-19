@@ -78,7 +78,8 @@
           />
         </hsc-menu-bar-item>
         <template v-if="useDistributedSynthesis">
-          <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve" style="width: 20px;"/>
+          <hsc-menu-bar-item @click.native="calculateStrategyBDD" label="Solve"
+                             style="width: 20px;"/>
           <hsc-menu-bar-item label="Analyze ▾" style="width: 100px;">
             <hsc-menu-item @click.native="calculateExistsWinningStrategy"
                            label="Exists Winning Strategy?"/>
@@ -113,7 +114,7 @@
           />
         </template>
         <hsc-menu-bar-item style="width: 5px;"
-          label="?"
+                           label="?"
         />
         <hsc-menu-bar-item
           @click.native="showAboutModal = true; $refs.menubar.deactivate()"
@@ -226,9 +227,13 @@
               </div>
               <Simulator
                 v-else
+                ref="simulator"
                 editorMode="Simulator"
                 :graph="simulatorNet.net"
                 :editorNetId="simulatorNet.uuid"
+                :jobKey="simulatorNet.jobKey"
+                :cxType="simulatorNet.cxType"
+                :cxData="simulatorNet.cxData"
                 :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                 :restEndpoints="restEndpoints"
                 :useModelChecking="useModelChecking"
@@ -300,6 +305,7 @@
                 :useModelChecking="useModelChecking"
                 :isTabSelected="shouldShowRightSide && selectedTabRightSide === `tab-${tab.uuid}`"
                 @loadEditorNetFromApt="apt => parseAptForEditorNet(apt).then(() => selectedTabLeftSide = 0)"
+                @loadCxInSimulator="loadCxInSimulator"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="({graphEditorRef, stateId}) => toggleGraphGameStatePostset(graphEditorRef, stateId, tab.jobKey)"
                 @toggleStatePreset="({graphEditorRef, stateId}) => toggleGraphGameStatePreset(graphEditorRef, stateId, tab.jobKey)"
@@ -720,6 +726,7 @@
           'updateXYCoordinates',
           'parseApt',
           'copyEditorNet',
+          'loadCxInSimulator',
           'saveJobAsApt',
           'insertPlace',
           'createFlow',
@@ -788,12 +795,53 @@
               status: 'netIsPresent',
               ...editorNetCopy
             }
+            // The ref will be undefined until the Simulator component is rendered by Vue
+            Vue.nextTick(() => this.$refs.simulator.resetSimulation())
           }).catch(error => {
           logging.sendErrorNotification(error)
           this.simulatorNet = {
             status: 'error',
             error: error.toString()
           }
+        })
+      },
+      loadCxInSimulator: function ({jobKey, cxType}) {
+        this.simulatorNet = {status: 'copyInProgress'}
+        this.selectedTabLeftSide = 1 // Switch to simulator tab
+        const promise = this.restEndpoints.loadCxInSimulator({
+          params: {
+            jobKey,
+            cxType
+          }
+        }).then(response => {
+          switch (response.data.status) {
+            case 'success':
+              const {net, loopPoint, historyStack} = response.data
+              this.simulatorNet = {
+                status: 'netIsPresent',
+                net,
+                jobKey,
+                cxType,
+                cxData: {
+                  loopPoint, // int
+                  historyStack // List<SimulationHistoryState>  (See SimulationHistoryState.java)
+                }
+              }
+              Vue.nextTick(() => this.$refs.simulator.resetSimulation())
+              break
+            case 'error':
+              throw new Error(response.data.message)
+              break
+            default:
+              throw new Error('Malformed response from server')
+          }
+        }).catch(error => {
+          console.error(error);
+          this.simulatorNet = {
+            status: 'error',
+            error: error.toString()
+          }
+          logging.sendErrorNotification(error.toString())
         })
       },
       initializeWebSocket: function (retryAttempts) {
