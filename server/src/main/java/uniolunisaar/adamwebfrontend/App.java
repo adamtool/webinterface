@@ -1023,6 +1023,13 @@ public class App {
             JsonObject failedObject = new JsonObject();
             failedObject.addProperty("index", transitionFailedIndex);
             failedObject.addProperty("id", firingSequence.get(transitionFailedIndex).getId());
+            JsonArray remainingTransitionsJson = new JsonArray();
+            List<Transition> remainingTransitions = firingSequence.subList(transitionFailedIndex,
+                    firingSequence.size());
+            for (Transition remainingTransition : remainingTransitions) {
+                remainingTransitionsJson.add(remainingTransition.getId());
+            }
+            failedObject.add("remainingTransitions", remainingTransitionsJson);
             response.add("transitionFailed", failedObject);
         }
         return response;

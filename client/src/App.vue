@@ -832,10 +832,10 @@
               Vue.nextTick(() => {
                 this.$refs.simulator.resetSimulation()
                 if (transitionFailed) {
-                  const {index, id} = transitionFailed
+                  const {index, id, remainingTransitions} = transitionFailed
                   logging.sendErrorNotification(`The transition ${id} at index ${index} of the firing
-                   sequence was not fireable.  Only part of the firing sequence for this CX has been
-                   loaded.`)
+                   sequence could not be fired. Only the sequence up to that point will be loaded.
+                   The rest of the firing sequence follows: [${remainingTransitions.join(',')}] `)
                 }
               })
               break
