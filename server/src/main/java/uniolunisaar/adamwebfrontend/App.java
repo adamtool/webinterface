@@ -127,7 +127,7 @@ public class App {
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
         postWithUserContext("/loadCxInSimulator", this::handleLoadCxInSimulator);
-        postWithUserContext("/saveDataFlowToPdf", this::handleSaveDataFlowToPdf);
+        postWithUserContext("/saveDataFlowPdf", this::handleSaveDataFlowPdf);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -1042,7 +1042,7 @@ public class App {
         return response;
     }
 
-    private static Path saveDataFlowToPdf(
+    private static Path saveDataFlowPdf(
                                           PetriNetWithTransits net,
                                           List<Transition> firingSequence) throws IOException {
         List<DataFlowTree> dataFlowTrees = PNWTTools.getDataFlowTrees(net, firingSequence);
@@ -1056,12 +1056,12 @@ public class App {
     }
 
     // Save the data flow of the counter-example for the input net of a model checking operation
-    private Object handleSaveDataFlowToPdf(Request req, Response res, UserContext uc) throws IOException, ExecutionException, InterruptedException {
-        JsonObject params = parser.parse(req.body()).getAsJsonObject().get("params").getAsJsonObject();
+    private Object handleSaveDataFlowPdf(Request req, Response res, UserContext uc) throws IOException, ExecutionException, InterruptedException {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
 
         Type t = new TypeToken<JobKey>() {
         }.getType();
-        JsonElement jobKeyJson = params.get("jobKey");
+        JsonElement jobKeyJson = body.get("jobKey");
         JobKey jobKey = gson.fromJson(jobKeyJson, t);
         if (jobKey.getJobType() != JobType.MODEL_CHECKING_RESULT) {
             throw new IllegalArgumentException("The given job type is not applicable here.");
@@ -1074,7 +1074,7 @@ public class App {
         PetriNetWithTransits net = result.getInputNet();
         List<Transition> firingSequence = result.getReducedCexInputNet().getFiringSequence();
 
-        Path filePath = saveDataFlowToPdf(net, firingSequence);
+        Path filePath = saveDataFlowPdf(net, firingSequence);
         byte[] bytes = Files.readAllBytes(filePath);
         HttpServletResponse raw = res.raw();
         raw.getOutputStream().write(bytes);

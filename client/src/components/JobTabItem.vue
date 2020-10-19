@@ -193,7 +193,7 @@
                 <template v-slot:activator="{ on }">
                   <v-btn
                     color="green"
-                    @click="$emit('showDataFlow', tab.result)"
+                    @click="$emit('saveDataFlowPdf', { jobKey: tab.jobKey })"
                     v-on="on">
                     Show data flow
                   </v-btn>

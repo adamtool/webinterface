@@ -306,6 +306,7 @@
                 :isTabSelected="shouldShowRightSide && selectedTabRightSide === `tab-${tab.uuid}`"
                 @loadEditorNetFromApt="apt => parseAptForEditorNet(apt).then(() => selectedTabLeftSide = 0)"
                 @loadCxInSimulator="loadCxInSimulator"
+                @saveDataFlowPdf="saveDataFlowPdf"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="({graphEditorRef, stateId}) => toggleGraphGameStatePostset(graphEditorRef, stateId, tab.jobKey)"
                 @toggleStatePreset="({graphEditorRef, stateId}) => toggleGraphGameStatePreset(graphEditorRef, stateId, tab.jobKey)"
@@ -727,6 +728,7 @@
           'parseApt',
           'copyEditorNet',
           'loadCxInSimulator',
+          'saveDataFlowPdf',
           'saveJobAsApt',
           'insertPlace',
           'createFlow',
@@ -804,6 +806,12 @@
             error: error.toString()
           }
         })
+      },
+      saveDataFlowPdf: function ({jobKey}) {
+        const promise = this.restEndpoints.saveDataFlowPdf({
+          jobKey
+        }).then(response => {
+        }).catch(error => logging.sendErrorNotification(error.toString()))
       },
       loadCxInSimulator: function ({jobKey, cxType}) {
         this.simulatorNet = {status: 'copyInProgress'}
