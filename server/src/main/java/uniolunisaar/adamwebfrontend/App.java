@@ -127,7 +127,7 @@ public class App {
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
         postWithUserContext("/loadCxInSimulator", this::handleLoadCxInSimulator);
-        postWithUserContext("/saveDataFlowPdf", this::handleSaveDataFlowPdf);
+        get("/saveDataFlowPdf", this::handleSaveDataFlowPdf);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -1061,16 +1061,21 @@ public class App {
     }
 
     // Save the data flow of the counter-example for the input net of a model checking operation
-    private Object handleSaveDataFlowPdf(Request req, Response res, UserContext uc) throws IOException, ExecutionException, InterruptedException {
-        JsonObject body = parser.parse(req.body()).getAsJsonObject();
-
+    private Object handleSaveDataFlowPdf(Request req, Response res) throws IOException, ExecutionException, InterruptedException {
         Type t = new TypeToken<JobKey>() {
         }.getType();
-        JsonElement jobKeyJson = body.get("jobKey");
+        String jobKeyJson = req.queryParams("jobKey");
         JobKey jobKey = gson.fromJson(jobKeyJson, t);
         if (jobKey.getJobType() != JobType.MODEL_CHECKING_RESULT) {
             throw new IllegalArgumentException("The given job type is not applicable here.");
         }
+        String clientUuidString = req.queryParams("clientUuid");
+        UUID clientUuid = UUID.fromString(clientUuidString);
+
+        if (!userContexts.containsKey(clientUuid)) {
+            userContexts.put(clientUuid, new UserContext(clientUuid));
+        }
+        UserContext uc =  userContexts.get(clientUuid);
         Job job = uc.getJobFromKey(jobKey);
         if (!job.isFinished()) {
             throw new IllegalArgumentException("The given job is not finished.");
