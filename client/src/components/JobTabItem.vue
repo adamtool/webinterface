@@ -262,28 +262,6 @@
               </v-btn>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item
-            style="margin-top: 0;"
-          >
-            <v-list-item-content
-              style="padding-top: 0;"
-            >
-              <!-- TODO #81 Implement show data flow -->
-              <v-tooltip
-                bottom
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    color="green"
-                    @click="$emit('showDataFlow', tab.result)"
-                    v-on="on">
-                    Show data flow
-                  </v-btn>
-                </template>
-                Download a PDF which shows the data flow for this firing sequence
-              </v-tooltip>
-            </v-list-item-content>
-          </v-list-item>
         </v-list-group>
 
         <!--Expandable statistics panel-->
