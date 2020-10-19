@@ -83,7 +83,7 @@
             color="green"
             style="margin-top: 10px; margin-bottom: 5px; margin-left: 5px; margin-right: 5px;"
             rounded
-            @click="showDataFlow"
+            @click="saveDataFlowPdf"
             v-on="on">
             Show data flow
           </v-btn>
@@ -184,9 +184,15 @@
       }
     },
     methods: {
-      // TODO #52 Implement this
-      showDataFlow: function () {
-        console.log('Show data flow')
+      saveDataFlowPdf: function () {
+        // discard the first state with no transitionFired
+        const firingSequence = this.gameSimulationHistory.stack.slice(1)
+          .map(stackState => stackState.transitionFired)
+        this.$emit('saveDataFlowPdf', {
+          editorNetId: this.editorNetId,
+          jobKey: this.jobKey,
+          firingSequence
+        })
       },
       // TODO #295 allow moving back and forth in history with arrow keys
       simulationHistoryBack: function () {

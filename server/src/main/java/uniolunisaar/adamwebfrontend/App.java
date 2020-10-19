@@ -39,6 +39,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import uniolunisaar.adam.ds.logics.flowlogics.IRunFormula;
 import uniolunisaar.adam.ds.objectives.Condition;
@@ -128,6 +129,7 @@ public class App {
 
         postWithUserContext("/loadCxInSimulator", this::handleLoadCxInSimulator);
         get("/saveDataFlowPdf", this::handleSaveDataFlowPdf);
+        get("/saveSimulatorDataFlowPdf", this::handleSaveSimulatorDataFlowPdf);
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
@@ -1075,7 +1077,7 @@ public class App {
         if (!userContexts.containsKey(clientUuid)) {
             userContexts.put(clientUuid, new UserContext(clientUuid));
         }
-        UserContext uc =  userContexts.get(clientUuid);
+        UserContext uc = userContexts.get(clientUuid);
         Job job = uc.getJobFromKey(jobKey);
         if (!job.isFinished()) {
             throw new IllegalArgumentException("The given job is not finished.");
@@ -1083,6 +1085,54 @@ public class App {
         ModelCheckingJobResult result = (ModelCheckingJobResult) job.getResult();
         PetriNetWithTransits net = result.getInputNet();
         List<Transition> firingSequence = result.getReducedCexInputNet().getFiringSequence();
+
+        Path filePath = saveDataFlowPdf(net, firingSequence);
+        byte[] bytes = Files.readAllBytes(filePath);
+        HttpServletResponse raw = res.raw();
+        raw.getOutputStream().write(bytes);
+        raw.getOutputStream().flush();
+        raw.getOutputStream().close();
+        Files.deleteIfExists(filePath);
+        return res.raw();
+    }
+
+    private Object handleSaveSimulatorDataFlowPdf(Request req, Response res) throws ExecutionException, InterruptedException, IOException {
+        PetriNetWithTransits net;
+        if (req.queryParams().contains("jobKey")) {
+            Type t = new TypeToken<JobKey>() {
+            }.getType();
+            String jobKeyJson = req.queryParams("jobKey");
+            JobKey jobKey = gson.fromJson(jobKeyJson, t);
+            if (jobKey.getJobType() != JobType.MODEL_CHECKING_RESULT) {
+                throw new IllegalArgumentException("The given job type is not applicable here.");
+            }
+            String clientUuidString = req.queryParams("clientUuid");
+            UUID clientUuid = UUID.fromString(clientUuidString);
+
+            if (!userContexts.containsKey(clientUuid)) {
+                userContexts.put(clientUuid, new UserContext(clientUuid));
+            }
+            UserContext uc = userContexts.get(clientUuid);
+            Job job = uc.getJobFromKey(jobKey);
+            if (!job.isFinished()) {
+                throw new IllegalArgumentException("The given job is not finished.");
+            }
+            ModelCheckingJobResult result = (ModelCheckingJobResult) job.getResult();
+            net = result.getInputNet();
+        } else if (req.queryParams().contains("editorNetId")) {
+            String editorNetId = req.queryParams("editorNetId");
+            UUID editorNetUUID = UUID.fromString(editorNetId);
+            net = getEditorNet(editorNetUUID);
+        } else {
+            throw new IllegalArgumentException("Either editorNetId or jobKey must be specified.");
+        }
+
+        Type tt = new TypeToken<List<String>>() {
+        }.getType();
+        String firingSequenceJson = req.queryParams("firingSequence");
+        List<String> firingSequenceIds = gson.fromJson(firingSequenceJson, tt);
+
+        List<Transition> firingSequence = firingSequenceIds.stream().map(net::getTransition).collect(Collectors.toList());
 
         Path filePath = saveDataFlowPdf(net, firingSequence);
         byte[] bytes = Files.readAllBytes(filePath);
