@@ -229,6 +229,7 @@
                 v-else
                 ref="simulator"
                 editorMode="Simulator"
+                @saveDataFlowPdf="saveSimulatorDataFlowPdf"
                 :graph="simulatorNet.net"
                 :editorNetId="simulatorNet.uuid"
                 :jobKey="simulatorNet.jobKey"
@@ -810,6 +811,16 @@
       saveDataFlowPdf: function ({jobKey}) {
         const url =
           `${this.baseUrl}/saveDataFlowPdf?jobKey=${JSON.stringify(jobKey)}&clientUuid=${this.clientUuid}`
+        window.open(url)
+      },
+      saveSimulatorDataFlowPdf: function ({jobKey, editorNetId, firingSequence}) {
+        let url =
+          `${this.baseUrl}/saveSimulatorDataFlowPdf?clientUuid=${this.clientUuid}&firingSequence=${JSON.stringify(firingSequence)}`
+        if (editorNetId) {
+          url = url + `&editorNetId=${editorNetId}`
+        } else if (jobKey) {
+          url = url + `&jobKey=${JSON.stringify(jobKey)}`
+        }
         window.open(url)
       },
       loadCxInSimulator: function ({jobKey, cxType}) {
