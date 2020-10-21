@@ -157,7 +157,7 @@
     </MyVueMenuTheme>
 
     <!-- The main window, split into two resizeable panes using flexbox and splitjs -->
-    <div style="display: flex; flex-direction: row; height: calc(100vh - 34.333px); width: 100%;"
+    <div style="display: flex; flex-direction: row; height: calc(100vh - 34.333px); width: 100%; margin-top: 5px;"
          ref="horizontalSplitDiv">
       <div class="flex-column-divider"
            v-on:click="toggleLeftPane"
@@ -692,7 +692,8 @@
       },
       menuBarStyle: function () {
         const vuetifySidebarPadding = this.$vuetify.application.left
-        return ` width:100%; border-radius: 0 0 4pt 0; padding-left: ${vuetifySidebarPadding + 10}px`
+        return ` width:100%; border-radius: 0 0 4pt 0; padding-left: ${vuetifySidebarPadding + 10}px;
+                 box-shadow: rgba(0, 0, 0, 0.3) 0px 2pt 4pt;`
       },
       aptFileTree: function () {
         if (this.useDistributedSynthesis) {
