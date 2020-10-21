@@ -1140,7 +1140,7 @@ public class App {
         }
         ModelCheckingJobResult result = (ModelCheckingJobResult) job.getResult();
         PetriNetWithTransits net = result.getInputNet();
-        ReducedCounterExample detailedCex = result.getReducedCexInputNet();
+        ReducedCounterExample detailedCex = result.getReducedCexMc();
 
         Path filePath = saveWitnessesPdf(net, detailedCex);
         byte[] bytes = Files.readAllBytes(filePath);
