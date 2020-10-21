@@ -438,8 +438,6 @@
 
   Vue.use(VueWindow)
 
-  import aptExampleLtl from './somewhatSmallExampleLtl.apt'
-  import aptExampleDistributedSynthesis from './somewhatSmallExampleNotLtl.apt'
   import aptExampleEmptySynthesis from './aptExampleEmptySynthesis.apt'
   import aptExampleEmptyModelChecking from './aptExampleEmptyModelChecking.apt'
   import HscMenuBarDirectory from './components/hsc-menu-bar-directory'
@@ -525,7 +523,7 @@
     data: function () {
       return {
         // The contents of the APT editor
-        apt: this.useModelChecking ? aptExampleLtl : aptExampleDistributedSynthesis,
+        apt: this.useModelChecking ? aptExampleEmptyModelChecking : aptExampleEmptySynthesis,
         aptParseStatus: 'success',
         aptParseError: '',
         aptParseErrorLineNumber: -1,
