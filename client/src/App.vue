@@ -1662,6 +1662,11 @@
           if (this.selectedTabLeftSide === 1) {  // If simulator is open
             this.selectedTabLeftSide = 0 // Switch to editor to show the newly loaded net
           }
+          // The graph editor will import the new graph asynchronously via a watcher. We register a callback to run
+          // after that's done.  Otherwise, the zoom command may fail.
+          this.$refs.graphEditor.afterImportGraph(() => {
+            this.$refs.graphEditor.zoomToFitAllNodes()
+          })
         })
         this.isLeftPaneVisible = true
       },

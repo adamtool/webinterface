@@ -296,6 +296,9 @@
         // { x: ..., y: ...}
         lastUserClick: undefined,
 
+        // Callbacks to be executed after importGraph() is called.  They are only called once and then deleted.
+        afterImportGraphCallbacks: [],
+
         // The force-directed graph layout which has nodes attract/repel each other
         // https://github.com/d3/d3-force
         physicsSimulation: d3.forceSimulation()
@@ -319,13 +322,18 @@
     mounted: function () {
       this.nodes = []
       this.links = []
+      this.initializeD3()
       this.importGraph(this.graph)
       this.applyMarking(this.graph.initialMarking, this.graph.fireableTransitions)
-      this.initializeD3()
+      this.updateD3()
       this.updateRepulsionStrength(this.repulsionStrength)
       this.updateLinkStrength(this.linkStrength)
       this.updateGravityStrength(this.gravityStrength)
-      this.updateSvgDimensions()
+      // Ensure that the svg has its proper dimensions set before we attempt to zoom.
+      requestAnimationFrame(() => {
+        this.updateSvgDimensions()
+        setTimeout(() => this.zoomToFitAllNodes())
+      })
       this.$refs.rootElement.addEventListener('keyup', (event) => {
         logging.logObject(event)
         switch (event.key) {
@@ -1369,25 +1377,21 @@
       graph: function (graph) {
         console.log('GraphEditor: graph changed:')
         console.log(graph)
-        /* When graph changes, this most likely means that the user changed something in the
-         APT editor, causing the APT to be parsed on the server, yielding a new graph.
-         And then they hit the button "Send Graph to Editor".
-
-         This would also be fired if the 'graph' prop changed in response to any other
-         events, such as after "Load"ing a saved graph in the main App's UI.
-
-         In response, we will update the graph that is being edited in the drag-and-drop GUI of
-         this component.
-         */
         this.importGraph(graph)
         this.applyMarking(graph.initialMarking, graph.fireableTransitions)
         this.updateD3()
+        this.afterImportGraphCallbacks.forEach(callback => callback())
+        this.afterImportGraphCallbacks = []
       },
       dimensions: function () {
         this.updateSvgDimensions()
       }
     },
     methods: {
+      // Register a callback to be called after importGraph completes.
+      afterImportGraph: function (callback) {
+        this.afterImportGraphCallbacks.push(callback)
+      },
       // When a transition gets fired (whether successful or not), it and its connected Places
       // should flash red or green.
       showTransitionFired: function ({transitionId, wasSuccessful}) {
@@ -1584,7 +1588,7 @@
         // should not be carried over.
         this.randomizeAllNodesPositions()
         // Reset the formula
-        // this.ltlFormula = ''
+        this.ltlFormula = ''
       },
       randomizeAllNodesPositions: function () {
         this.nodes.forEach(node => {
@@ -1662,10 +1666,14 @@
         const bbox = this.container.node().getBBox()
         const svgWidth = this.svgWidth()
         const svgHeight = this.svgHeight()
+        if (!bbox || !svgWidth || !svgHeight) {
+          console.log('zoomToFitAllNodes failed.  bbox or svgWidth/Height not found.')
+          return
+        }
         const containerCenter = [
           bbox.x + bbox.width / 2,
           bbox.y + bbox.height / 2]
-        const scale = 0.8 / Math.max(bbox.width / svgWidth, bbox.height / svgHeight)
+        const scale = Math.min(1, 0.8 / Math.max(bbox.width / svgWidth, bbox.height / svgHeight))
         const translate = [
           // Add 40 to account for the vertical toolbar on the left side of the screen
           // and the 'ltl formula' / 'winning condition' input
@@ -1823,8 +1831,6 @@
           .attr('stroke', 'black')
           .attr('fill', 'none')
           .attr('stroke-width', 2)
-
-        this.updateD3()
 
 //        d3.selectAll('*').on('click', function (d) { console.log(d) })
       },
