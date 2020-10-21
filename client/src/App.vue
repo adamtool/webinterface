@@ -1307,6 +1307,8 @@
         // Switch to the tab
         const tabId = `tab-${JSON.stringify(jobKey)}`
         this.selectedTabRightSide = tabId
+        // Ensure that the right-hand panel is open
+        this.showRightPanelToggle = true
       },
       closeTabIfOpen: function (jobKey) {
         this.visibleJobsRightSide = this.visibleJobsRightSide.filter(
