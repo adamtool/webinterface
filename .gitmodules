@@ -1,24 +1,24 @@
 [submodule "backend/examples"]
 	path = backend/examples
-	url = git@github.com:adamtool/examples.git
+	url = https://github.com:adamtool/examples.git
 [submodule "backend/framework"]
 	path = backend/framework
-	url = git@github.com:adamtool/framework.git
+	url = https://github.com:adamtool/framework.git
 [submodule "backend/logics"]
 	path = backend/logics
-	url = git@github.com:adamtool/logics.git
+	url = https://github.com:adamtool/logics.git
 [submodule "backend/modelchecker"]
 	path = backend/modelchecker
-	url = git@github.com:adamtool/modelchecker.git
+	url = https://github.com:adamtool/modelchecker.git
 [submodule "backend/synthesizer"]
 	path = backend/synthesizer
-	url = git@github.com:adamtool/synthesizer.git
+	url = https://github.com:adamtool/synthesizer.git
 [submodule "backend/webinterface-backend"]
 	path = backend/webinterface-backend
-	url = git@github.com:adamtool/webinterface-backend.git
+	url = https://github.com:adamtool/webinterface-backend.git
 [submodule "backend/libs"]
 	path = backend/libs
-	url = git@github.com:adamtool/libs.git
+	url = https://github.com:adamtool/libs.git
 [submodule "backend/high-level"]
 	path = backend/high-level
-	url = git@github.com:adamtool/high-level.git
+	url = https://github.com:adamtool/high-level.git
