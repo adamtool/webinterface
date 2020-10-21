@@ -170,7 +170,9 @@
             </v-icon>
           </v-card-title>
           <v-card-text>
-            <Help/>
+            <Help
+              :useModelChecking="useModelChecking"
+            />
           </v-card-text>
         </v-card>
       </v-dialog>
