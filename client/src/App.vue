@@ -127,8 +127,9 @@
           style="width: 25px;"
         />
         <hsc-menu-bar-item
-          label="X"
+          label="Home"
           style="width: 5px;"
+          @click.native="onClickHome(); $refs.menubar.deactivate()"
         />
       </hsc-menu-bar>
       <v-dialog
@@ -786,6 +787,11 @@
       }
     },
     methods: {
+      onClickHome: function () {
+        if (window.confirm('Go back to the main menu?  (The net in the editor will be lost.)')) {
+          this.$router.push('/')
+        }
+      },
       openGithub: function () {
         window.open('https://github.com/adamtool/webinterface')
       },
