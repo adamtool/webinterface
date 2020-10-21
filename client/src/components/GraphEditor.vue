@@ -1582,6 +1582,8 @@
         // When we load a new petri game, the positions of nodes from the previously loaded Petri Game
         // should not be carried over.
         this.randomizeAllNodesPositions()
+        // Reset the formula
+        // this.ltlFormula = ''
       },
       randomizeAllNodesPositions: function () {
         this.nodes.forEach(node => {
