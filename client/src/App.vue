@@ -7,7 +7,7 @@
     <MyVueMenuTheme
       style="z-index: 999; display: flex; flex-direction: row; justify-content: space-between;">
       <hsc-menu-bar :style="menuBarStyle" ref="menubar">
-        <hsc-menu-bar-item style="width: 70px;" label="File ▾">
+        <hsc-menu-bar-item style="width: 60px;" label="File ▾">
           <hsc-menu-item
             :label="useModelChecking ? 'New Petri net with transits' : 'New Petri game'"
             @click.native="createNewEditorNet"/>
@@ -114,7 +114,8 @@
           />
         </template>
         <hsc-menu-bar-item style="width: 5px;"
-                           label="?"
+                           label="Help"
+                           @click.native="showHelpModal = true; $refs.menubar.deactivate()"
         />
         <hsc-menu-bar-item
           @click.native="showAboutModal = true; $refs.menubar.deactivate()"
@@ -149,6 +150,27 @@
           </v-card-title>
           <v-card-text>
             <AboutAdamWeb/>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+
+      <v-dialog
+        style="display: block;"
+        max-width="600"
+        v-model="showHelpModal"
+        @keydown.esc="showHelpModal = false">
+        <v-card>
+          <v-card-title
+            primary-title
+            style="justify-content: space-between;">
+            <span>Help</span>
+            <v-icon standard right
+                    @click="showHelpModal = false">
+              close
+            </v-icon>
+          </v-card-title>
+          <v-card-text>
+            <Help/>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -420,6 +442,7 @@
   import GraphEditor from './components/GraphEditor'
   import Simulator from './components/Simulator'
   import AboutAdamWeb from './components/AboutAdamWeb'
+  import Help from './components/Help'
   import LogViewer from './components/LogViewer'
   import JobList from './components/JobList'
   import Vue from 'vue'
@@ -484,7 +507,8 @@
       JobList,
       JobTab,
       JobTabItem,
-      AboutAdamWeb
+      AboutAdamWeb,
+      Help
     },
     created: function () {
       console.log(`AdamWEB App.vue Configuration:
@@ -552,6 +576,7 @@
         showSaveAptModal: false,
         showJobList: false,
         showAboutModal: false,
+        showHelpModal: false,
         showRightPanelToggle: true, // In "View" menu, allow hiding the right panel completely
         // The contents of the 'save apt' filename box
         aptFilename: 'apt.txt',
