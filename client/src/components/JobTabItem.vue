@@ -186,19 +186,18 @@
             <v-list-item-content
               style="padding-top: 0;"
             >
-              <!-- TODO #81 Implement show data flow-->
               <v-tooltip
                 bottom
               >
                 <template v-slot:activator="{ on }">
                   <v-btn
                     color="green"
-                    @click="$emit('saveDataFlowPdf', { jobKey: tab.jobKey })"
+                    @click="$emit('saveWitnessesPdf', { jobKey: tab.jobKey })"
                     v-on="on">
-                    Show data flow
+                    Show witnesses
                   </v-btn>
                 </template>
-                Download a PDF which shows the data flow for this firing sequence
+                Download a PDF which shows the witnesses for this counter example.
               </v-tooltip>
             </v-list-item-content>
           </v-list-item>

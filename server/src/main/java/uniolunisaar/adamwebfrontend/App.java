@@ -4,6 +4,7 @@ package uniolunisaar.adamwebfrontend;
  */
 
 import uniol.apt.adt.exception.TransitionFireException;
+import uniolunisaar.adam.ds.modelchecking.cex.ReducedCounterExample;
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
 import uniolunisaar.adam.ds.petrinetwithtransits.DataFlowTree;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.NotSupportedGameException;
@@ -26,6 +27,7 @@ import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.tools.Tools;
+import uniolunisaar.adam.util.MCTools;
 import uniolunisaar.adam.util.PNTools;
 import uniolunisaar.adam.util.PNWTTools;
 import uniolunisaar.adamwebfrontend.jobsystem.*;
@@ -128,7 +130,7 @@ public class App {
         post("/fireTransitionJob", this::handleFireTransitionJob);
 
         postWithUserContext("/loadCxInSimulator", this::handleLoadCxInSimulator);
-        get("/saveDataFlowPdf", this::handleSaveDataFlowPdf);
+        get("/saveWitnessesPdf", this::handleSaveWitnessesPdf);
         get("/saveSimulatorDataFlowPdf", this::handleSaveSimulatorDataFlowPdf);
 
         exception(Exception.class, (exception, request, response) -> {
@@ -1062,8 +1064,24 @@ public class App {
         return Paths.get(filePath + ".pdf");
     }
 
-    // Save the data flow of the counter-example for the input net of a model checking operation
-    private Object handleSaveDataFlowPdf(Request req, Response res) throws IOException, ExecutionException, InterruptedException {
+
+    private Path saveWitnessesPdf(PetriNetWithTransits inputNet,
+                                  ReducedCounterExample detailedCex) throws IOException {
+
+        String tempFileDirectory = System.getProperty(
+                "ADAMWEB_TEMP_DIRECTORY", "./tmp/");
+        UUID uuid = UUID.randomUUID();
+        String tempFileName = "tmpWitnessesPdf" + uuid.toString();
+        String filePath = tempFileDirectory + tempFileName;
+        MCTools.saveDataFlowWitnessToPDF(filePath, inputNet, detailedCex, uuid.toString());
+        // Delete the temporary "dot" file
+        Files.deleteIfExists(Paths.get(filePath + ".dot"));
+        return Paths.get(filePath + ".pdf");
+    }
+
+    // Show a PDF of the witnesses of the counter-example for the input net of a model checking
+    // operation
+    private Object handleSaveWitnessesPdf(Request req, Response res) throws IOException, ExecutionException, InterruptedException {
         Type t = new TypeToken<JobKey>() {
         }.getType();
         String jobKeyJson = req.queryParams("jobKey");
@@ -1084,9 +1102,9 @@ public class App {
         }
         ModelCheckingJobResult result = (ModelCheckingJobResult) job.getResult();
         PetriNetWithTransits net = result.getInputNet();
-        List<Transition> firingSequence = result.getReducedCexInputNet().getFiringSequence();
+        ReducedCounterExample detailedCex = result.getReducedCexInputNet();
 
-        Path filePath = saveDataFlowPdf(net, firingSequence);
+        Path filePath = saveWitnessesPdf(net, detailedCex);
         byte[] bytes = Files.readAllBytes(filePath);
         HttpServletResponse raw = res.raw();
         raw.getOutputStream().write(bytes);

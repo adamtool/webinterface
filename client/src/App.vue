@@ -307,7 +307,7 @@
                 :isTabSelected="shouldShowRightSide && selectedTabRightSide === `tab-${tab.uuid}`"
                 @loadEditorNetFromApt="apt => parseAptForEditorNet(apt).then(() => selectedTabLeftSide = 0)"
                 @loadCxInSimulator="loadCxInSimulator"
-                @saveDataFlowPdf="saveDataFlowPdf"
+                @saveWitnessesPdf="saveWitnessesPdf"
                 @cancelJob="cancelJob"
                 @toggleStatePostset="({graphEditorRef, stateId}) => toggleGraphGameStatePostset(graphEditorRef, stateId, tab.jobKey)"
                 @toggleStatePreset="({graphEditorRef, stateId}) => toggleGraphGameStatePreset(graphEditorRef, stateId, tab.jobKey)"
@@ -729,7 +729,6 @@
           'parseApt',
           'copyEditorNet',
           'loadCxInSimulator',
-          'saveDataFlowPdf',
           'saveJobAsApt',
           'insertPlace',
           'createFlow',
@@ -808,9 +807,9 @@
           }
         })
       },
-      saveDataFlowPdf: function ({jobKey}) {
+      saveWitnessesPdf: function ({jobKey}) {
         const url =
-          `${this.baseUrl}/saveDataFlowPdf?jobKey=${JSON.stringify(jobKey)}&clientUuid=${this.clientUuid}`
+          `${this.baseUrl}/saveWitnessesPdf?jobKey=${JSON.stringify(jobKey)}&clientUuid=${this.clientUuid}`
         window.open(url)
       },
       saveSimulatorDataFlowPdf: function ({jobKey, editorNetId, firingSequence}) {
