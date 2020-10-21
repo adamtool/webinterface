@@ -115,6 +115,7 @@
         </v-list-item>
         <v-list-item
           v-for="{label, callback} in additionalSaveActions"
+          :key="label"
           link
           @click="callback"
           >
