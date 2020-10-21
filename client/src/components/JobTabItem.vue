@@ -398,6 +398,24 @@
         }).catch(logging.sendErrorNotification)
         return requestPromise
       },
+      saveJobAsPnml: function (jobKey, getNodePositions, filename) {
+        const nodePositions = getNodePositions()
+        const requestPromise = this.restEndpoints.saveJobAsPnml({
+          jobKey,
+          nodeXYCoordinateAnnotations: nodePositions
+        })
+        requestPromise.then(response => {
+          if (response.data.status === 'success') {
+            const resultString = response.data.result
+            saveFileAs(resultString, filename)
+          } else if (response.data.status === 'error') {
+            logging.sendErrorNotification(response.data.message)
+          } else {
+            logging.sendErrorNotification('Invalid response from server')
+          }
+        }).catch(logging.sendErrorNotification)
+        return requestPromise
+      },
       saveActionsMcNet: function (jobKey) {
         return [{
           label: 'Save as APT',
@@ -405,7 +423,14 @@
             jobKey,
             this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
             'model-checking-net.apt')
-        }]
+        },
+          {
+            label: 'Save as PNML',
+            callback: () => this.saveJobAsPnml(
+              jobKey,
+              this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+              'model-checking-net.pnml')
+          }]
       },
       saveActionsWinningStrategy: function (jobKey) {
         return [{

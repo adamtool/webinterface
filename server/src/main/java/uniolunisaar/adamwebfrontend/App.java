@@ -90,6 +90,8 @@ public class App {
 
         postWithUserContext("/saveJobAsApt", this::handleSaveJobAsApt);
 
+        postWithUserContext("/saveJobAsPnml", this::handleSaveJobAsPnml);
+
         postWithEditorNet("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
 
         postWithEditorNet("/updateXYCoordinates", this::handleUpdateXYCoordinates);
@@ -435,6 +437,42 @@ public class App {
         Job job = uc.getJobFromKey(jobKey);
         job.cancel();
         return successResponse(new JsonPrimitive(true));
+    }
+
+    // Convert the net produced by a given job to PNML.
+    // Add X/Y coordinate annotations if provided.
+    private Object handleSaveJobAsPnml(Request req, Response res, UserContext uc) throws RenderException, ExecutionException, InterruptedException {
+        JsonElement body = parser.parse(req.body());
+
+        Type t = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, t);
+
+        if (!uc.hasJobWithKey(jobKey)) {
+            return errorResponse("The requested job was not found.");
+        }
+        Job<?> job = uc.getJobFromKey(jobKey);
+        if (!job.isFinished()) {
+            return errorResponse("The requested job is not finished.");
+        }
+
+        Object result = job.getResult();
+        PetriNet netCopy;
+        if (result instanceof PetriNet) {
+            netCopy = new PetriNet((PetriNet) result);
+        } else {
+            throw new IllegalArgumentException("The job specified did not produce a net " +
+                    "which can be saved as PNML.");
+        }
+        JsonObject nodesXYCoordinatesJson =
+                body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        Type type = new TypeToken<Map<String, NodePosition>>() {
+        }.getType();
+        Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
+        PetriNetTools.saveXYCoordinates(netCopy, nodePositions);
+        String pnml = PNTools.pn2pnml(netCopy);
+        return successResponse(new JsonPrimitive(pnml));
     }
 
     // Convert the net produced by a given job to APT format.

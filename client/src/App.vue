@@ -728,6 +728,7 @@
           'copyEditorNet',
           'loadCxInSimulator',
           'saveJobAsApt',
+          'saveJobAsPnml',
           'insertPlace',
           'createFlow',
           'createTransit',
