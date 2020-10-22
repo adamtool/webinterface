@@ -66,6 +66,7 @@ Clicking a node with the right mouse button opens a context menu for the node wh
   * **Delete** - deletes the node
   * **Rename** - allows to enter a new name
   * **Set initial token** -  allows to enter a number of initial token. Note that the current approach only allows for model checking safe, i.e. 1-bounded, Petri nets with transits.
+  * **Toggle is special** - allows to mark this place as special. This is used to automatically generate the Flow-LTL formulas for a Büchi, reachability, and safety condition (only visible if the Büchi, Reachability, or Safety condition is selected in the drop down menu left to the formula field).
 - Transition
   * **Delete** - deletes the node
   * **Rename** - allows to enter a new name
@@ -79,6 +80,7 @@ Clicking a node with the right mouse button opens a context menu for the node wh
 
 Syntax Flow-LTL:
 ----------------
+<a name="syntaxFlowLTL"></a> 
 Flow-LTL contains of two different kind of formulas. The *run formulas* for the control part and the *flow formulas* for the data part.
 In both standard LTL can be used with the following operators:
 
@@ -113,5 +115,26 @@ The following picture shows the parser's grammar for Flow-LTL:
 
 Model Checking Petri Nets with Transits:
 ----------------------------------------
+To model check a Petri net with transits against Flow-LTL a Flow-LTL formula have to be available in the input field:
+
+![Formula Input](screenshots/mc_formula_input.png)
+
+With the drop down menu you can select to either input an own **Flow-LTL formula**, or the select **Büchi**, **Reachability**, or **Safety** as condition. The latter uses the in this mode as special selected places to generate a Flow-LTL formula. The syntax for the Flow-LTL formula can be seen [here](#syntaxFlowLTL). Note that the fairness assumptions of the transitions are automatically added while checking the formula and the interleaving maximality assumption is added. This means we only consider runs which satisfy that whenever a transition is enabled, some transition fires.
+
+Clicking the **Check** item of the top menu bar creates a new tab to the left and starts the model checking procedure. For a **satisfying** Flow-LTL formula the result looks like this:
+
+![Model Checking Sat](screenshots/mc_sat.png)
+
+The slider splitting the left and the right panel can be used to customize the panel sizes. The result and the checked formula is given, and some statistically insides of this model checking run can be shown.
+
+In the negative case, i.e., the formula is **not satisfied**, the picture looks like this:
+
+![Model Checking Unsat](screenshots/mc_unsat.png)
+
+Again the formula and the result is printed, but in addition to that a **counter example** as a firing sequence which violates the formula is given. When clicking **LOAD INTO SIMULATOR** this firing sequence can be given to the simulator (see [here](#simulator)). Furthermore, with **SHOW WITNESSES** you can create a PDF showing the witnesses regarding all flow subformulas for this counter example. This PDF shows the firing sequence of the control and connected to that the violating flow chain for each flow subformula:
+
+![Witnesses](screenshots/mc_witnesses.png)
+
+The model checking procedure for model checking Petri nets with transits against Flow-LTL is based on a reduction to model checking Petri net against LTL (see [here](#reduction)). A **counter example** for this **constructed Petri net** is also given and can be loaded into the simulator with the corresponding Petri net. The technical details regarding the latches of the circuit can be seen when clicking on the counter example for the constructed Petri net.
 
 
