@@ -30,8 +30,8 @@
                 select desired runs of the system (e.g., only fair and maximal runs) and check the
                 local data flow of only those selected runs against LTL.</p>
               <p>Internally, the problem is reduced to a verification problem of circuits which
-                is checked by <a href="https://people.eecs.berkeley.edu/~alanmi/abc/"
-                                 rel="nofollow">ABC</a> using its large toolbox of hardware
+                is checked by <a href="https://people.eecs.berkeley.edu/~alanmi/abc/">ABC</a> using its large toolbox of
+                hardware
                 verification algorithms. <strong>Software defined networks</strong> are, due to
                 the separation of data and control plane, a natural application domain for Petri
                 nets with transits and Flow-LTL.</p>
@@ -47,26 +47,30 @@
               </ul>
               </p>
               <p>
-              <h2>Documentation:</h2></p>
+              <h2>Documentation:</h2>
+              <ul>
+                <li><a href="https://github.com/adamtool/webinterface/tree/master/doc/mc">https://github.com/adamtool/webinterface/tree/master/doc/mc</a>
+                </li>
+              </ul>
+              </p>
               <p>
               <h2>Related Publications: </h2>
               <ul>
                 <li><em>Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch,
                   Ernst-Rüdiger
                   Olderog:</em>
-                  <a href="https://doi.org/10.1007/978-3-030-53291-8_5" rel="nofollow">AdamMC: A
+                  <a href="https://doi.org/10.1007/978-3-030-53291-8_5">AdamMC: A
                     Model
                     Checker for Petri Nets with Transits against Flow-LTL</a>. CAV (2) 2020:
                   64-76 (<a
-                    href="https://arxiv.org/abs/2005.07130" rel="nofollow">full version</a>)
+                    href="https://arxiv.org/abs/2005.07130">full version</a>)
                 </li>
                 <li><em>Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch,
                   Ernst-Rüdiger
                   Olderog:</em>
-                  <a href="https://doi.org/10.1007/978-3-030-31784-3_30" rel="nofollow">Model
-                    Checking
+                  <a href="https://doi.org/10.1007/978-3-030-31784-3_30"> Model Checking
                     Data Flows in Concurrent Network Updates</a>. ATVA 2019: 515-533 (<a
-                    href="http://arxiv.org/abs/1907.11061" rel="nofollow">full version</a>)
+                    href="http://arxiv.org/abs/1907.11061">full version</a>)
                 </li>
               </ul>
               </p>
@@ -116,21 +120,26 @@
                 <li>Visualization and simulation of the strategies</li>
               </ul>
               <p>
-              <h2>Documentation:</h2></p>
+              <h2>Documentation:</h2>
+              <ul>
+                <li><a href="https://github.com/adamtool/webinterface/tree/master/doc/synt">https://github.com/adamtool/webinterface/tree/master/doc/synt</a>
+                </li>
+              </ul>
+              </p>
               <p>
               <h2>Related Publications:</h2>
               <ul>
                 <li><em>Bernd Finkbeiner, Manuel Gieseking, Ernst-Rüdiger Olderog:</em><br>
-                  <a href="https://doi.org/10.1007/978-3-319-21690-4_25" rel="nofollow">Adam:
+                  <a href="https://doi.org/10.1007/978-3-319-21690-4_25">Adam:
                     Causality-Based Synthesis of Distributed Systems</a>. CAV (1) 2015: 433-439
                 </li>
                 <li><em>Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch,
                   Ernst-Rüdiger Olderog:</em><br>
-                  <a href="https://doi.org/10.4204/EPTCS.260.5" rel="nofollow">Symbolic vs.
+                  <a href="https://doi.org/10.4204/EPTCS.260.5">Symbolic vs.
                     Bounded Synthesis for Petri Games</a>. SYNT@CAV 2017: 23-43
                 </li>
                 <li><em>Bernd Finkbeiner, Ernst-Rüdiger Olderog:</em><br>
-                  <a href="https://doi.org/10.1016/j.ic.2016.07.006" rel="nofollow">Petri games:
+                  <a href="https://doi.org/10.1016/j.ic.2016.07.006">Petri games:
                     Synthesis of distributed systems with causal memory</a>. Inf. Comput. 253:
                   181-203 (2017)
                 </li>
