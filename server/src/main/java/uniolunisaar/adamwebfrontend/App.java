@@ -27,9 +27,7 @@ import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.tools.Tools;
-import uniolunisaar.adam.util.MCTools;
-import uniolunisaar.adam.util.PNTools;
-import uniolunisaar.adam.util.PNWTTools;
+import uniolunisaar.adam.util.*;
 import uniolunisaar.adamwebfrontend.jobsystem.*;
 import uniolunisaar.adamwebfrontend.wirerepresentations.*;
 
@@ -46,7 +44,6 @@ import java.util.stream.Collectors;
 import uniolunisaar.adam.ds.logics.flowlogics.IRunFormula;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotFindSuitableConditionException;
-import uniolunisaar.adam.util.PGTools;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -403,7 +400,7 @@ public class App {
         }
 
         // Create the job and queue it up in the user's job queue
-        Job job = jobType.makeJob(netCopy, jobParams);
+        Job job = jobType.makeJob(netCopy, jobParams, true);
         userContext.queueJob(jobKey, job);
 
         /*

@@ -37,7 +37,8 @@ public class JobStatisticsTest {
         params.addProperty("formula", "A(p0 AND p4)");
         Job<?> job = JobType.MODEL_CHECKING_RESULT.makeJob(
                 net,
-                params
+                params,
+                true
         );
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();

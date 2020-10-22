@@ -16,6 +16,8 @@ import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PGTools;
+import uniolunisaar.adam.util.PgwtPreconditionChecker;
+import uniolunisaar.adam.util.PnwtPreconditionChecker;
 import uniolunisaar.adamwebfrontend.*;
 import uniolunisaar.adamwebfrontend.wirerepresentations.BDDGraphClient;
 import uniolunisaar.adamwebfrontend.wirerepresentations.PetriNetClient;
@@ -43,10 +45,17 @@ public enum JobType {
         }
 
         public Job<Boolean> makeJob(PetriNetWithTransits net,
-                JsonObject params) {
+                                    JsonObject params,
+                                    boolean checkPreconditions) {
             // TODO #293 refactor
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
+                if (checkPreconditions) {
+                    boolean satisfied = new PgwtPreconditionChecker(petriGame).check();
+                    if (!satisfied) {
+                        throw new IllegalArgumentException("The preconditions are not satisfied.");
+                    }
+                }
                 // TODO #172 add options for the solving algorithms
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
                 return existsWinningStrategy;
@@ -76,10 +85,17 @@ public enum JobType {
         }
 
         public Job<PetriGameWithTransits> makeJob(PetriNetWithTransits net,
-                JsonObject params) {
+                                                  JsonObject params,
+                                                  boolean checkPreconditions) {
             // TODO #293 refactor
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
+                if (checkPreconditions) {
+                    boolean satisfied = new PgwtPreconditionChecker(petriGame).check();
+                    if (!satisfied) {
+                        throw new IllegalArgumentException("The preconditions are not satisfied.");
+                    }
+                }
                 // TODO #172 add options for the solving algorithms
                 PetriGameWithTransits strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
                 return strategyBDD;
@@ -92,10 +108,17 @@ public enum JobType {
         }
 
         public Job<BDDGraph> makeJob(PetriNetWithTransits net,
-                JsonObject params) {
+                                     JsonObject params,
+                                     boolean checkPreconditions) {
             // TODO #293 refactor
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
+                if (checkPreconditions) {
+                    boolean satisfied = new PgwtPreconditionChecker(petriGame).check();
+                    if (!satisfied) {
+                        throw new IllegalArgumentException("The preconditions are not satisfied.");
+                    }
+                }
                 // TODO #172 add options for the solving algorithms
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
                 return graphStrategyBDD;
@@ -126,9 +149,17 @@ public enum JobType {
             return resultJson;
         }
 
-        public Job<ModelCheckingJobResult> makeJob(PetriNetWithTransits inputNet, JsonObject params) {
+        public Job<ModelCheckingJobResult> makeJob(PetriNetWithTransits inputNet,
+                                                   JsonObject params,
+                                                   boolean checkPreconditions) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
+                if (checkPreconditions) {
+                    boolean satisfied = new PnwtPreconditionChecker(inputNet).check();
+                    if (!satisfied) {
+                        throw new IllegalArgumentException("The preconditions are not satisfied.");
+                    }
+                }
                 RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(inputNet, formula);
 
                 // TODO #172 add options for the solving algorithms
@@ -180,9 +211,16 @@ public enum JobType {
             return json;
         }
 
-        public Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params) {
+        public Job<PetriNet> makeJob(PetriNetWithTransits net, JsonObject params,
+                                     boolean checkPreconditions) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
+                if (checkPreconditions) {
+                    boolean satisfied = new PnwtPreconditionChecker(net).check();
+                    if (!satisfied) {
+                        throw new IllegalArgumentException("The preconditions are not satisfied.");
+                    }
+                }
                 RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
 
                 // TODO #172 add options for the solving algorithms        
@@ -207,9 +245,17 @@ public enum JobType {
         }
 
         @Override
-        public Job<ILTLFormula> makeJob(PetriNetWithTransits net, JsonObject params) {
+        public Job<ILTLFormula> makeJob(PetriNetWithTransits net, JsonObject params,
+                                        boolean checkPreconditions) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
+
+                if (checkPreconditions) {
+                    boolean satisfied = new PnwtPreconditionChecker(net).check();
+                    if (!satisfied) {
+                        throw new IllegalArgumentException("The preconditions are not satisfied.");
+                    }
+                }
                 RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
                 // TODO #172 add options for the solving algorithms
                 String tempFilePrefix = getTempFilePrefix();
@@ -233,7 +279,8 @@ public enum JobType {
         }
 
         public Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
-                JsonObject params) {
+                                             JsonObject params,
+                                             boolean checkPreconditions) {
             // TODO #293 consider refactoring
             if (!(petriGame1 instanceof PetriGameWithTransits)) {
                 throw new IllegalArgumentException("The given net is not a PetriGame, but merely a PetriNetWithTransits.");
@@ -251,6 +298,12 @@ public enum JobType {
 
             boolean shouldSolveStepwise = params.get("incremental").getAsBoolean();
             return new Job<>(() -> {
+                if (checkPreconditions) {
+                    boolean satisfied = new PgwtPreconditionChecker(petriGame).check();
+                    if (!satisfied) {
+                        throw new IllegalArgumentException("The preconditions are not satisfied.");
+                    }
+                }
                 // TODO #172 add options for the solving algorithms
                 if (shouldSolveStepwise) {
                     BDDGraphExplorerStepwise bddGraphExplorerStepwise
@@ -274,7 +327,18 @@ public enum JobType {
 
     abstract JsonElement serialize(Object result) throws SerializationException;
 
-    public abstract Job<?> makeJob(PetriNetWithTransits net, JsonObject params);
+    /**
+     * @param net A copy of the net to be operated upon
+     * @param params Additional parameters (e.g. ltl formula)
+     * @param mustCheckPreconditions If true, the preconditions should be checked at the start of
+     *                               the job (i.e. inside of the {} in 'new Job(() -> {...}').
+     *                               This flag is always true for now but in the future could be
+     *                               used to elide this check in case it has already been
+     *                               performed for a given net.
+     * @return
+     */
+    public abstract Job<?> makeJob(PetriNetWithTransits net, JsonObject params,
+                                   boolean mustCheckPreconditions);
 
     // Serialize a statistics object, including only its primitive and String fields
     public static JsonElement serializeStatistics(AdamCircuitFlowLTLMCStatistics stats) {
