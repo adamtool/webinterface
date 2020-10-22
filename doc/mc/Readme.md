@@ -21,7 +21,7 @@ At the top of the screen you have a menu bar where you have the items
   * **Show right panel** - expands or collapses the right panel which is shown when having any results created. This can also be done with the slider, which can be used to customize the sizes of the panel
   * **Show physics controls** - this adds the following slider to the bottom of the side
 ![Physics Control](screenshots/mc_physics_control_4k.png)
-Here the behavior of the physics control for the nodes of the visualized objects, i.e., the Petri net with transits or the constructed Petri net, can be customized. When the nodes are unfreezed (see **todo** section create Petri net with Transits) the nodes can freely move over the panel. To created clearer views and to minimize the overlapping the *Repulsion Strength*, the *Link strength*, and the *Gravity strength* can be modified.
+Here the behavior of the physics control for the nodes of the visualized objects, i.e., the Petri net with transits or the constructed Petri net, can be customized. When the nodes are unfreezed (see [here](#unfreeze)) the nodes can freely move over the panel. To created clearer views and to minimize the overlapping the *Repulsion Strength*, the *Link strength*, and the *Gravity strength* can be modified.
   * **Show node labels instead of IDs** - Most of the nodes of the  constructed Petri net for the reduction methods for checking Petri nets with transits against Flow-LTL have a correspondence to the input Petri net with transits. With this button you can toggle between showing the names of corresponding nodes or the original ones.
 - **Check** - this starts the model checking procedure and results in opening a tab to the right showing the answer whether the input Petri net with transit satisfies the Flow-LTL formula formula. If it is not satisfied a counter example is given.
 - **Reduction**
@@ -56,7 +56,7 @@ Here the following features are available
 - **Zoom to fit** - Zooms into or out of the panel such that all nodes are visible in the cutout.
 - **Move all nodes to the visible area** - Changes the position of the nodes out of the current cutout of the panel, such that they fit into the current cutout.
 - **Freeze all nodes** - With an active physics control this stops the moving of the nodes.
-- **Unfreeze all nodes** - This starts again the physics control and deletes all current coordinates of the nodes.
+- **Unfreeze all nodes** - This starts again the physics control and deletes all current coordinates of the nodes.<a name="unfreeze"></a> 
 
 **Drag and drop** can be used to move the **nodes** (when clicking the nodes) and the **panel** when clicking into the free space and holding the *shift-key*. Dragging a node with a pressed *ctrl-key* **snaps** the node **to a grid**. **Zoom in and out** can be done with the mouse wheel. **Enabled transitions** are visualized with an asterisk *.
 
@@ -88,6 +88,7 @@ In both standard LTL can be used with the following operators:
 | false    | FALSE    |
 | atoms     | place and transition ids    |
 | Negation    | NEG or !    |
+| Next    | X   |
 | Conjunction | AND         |
 | Disjunction | OR         |
 | Implication | IMP or ->         |
@@ -110,7 +111,7 @@ The following picture shows the parser's grammar for Flow-LTL:
 
 ![Syntax Flow-LTL](screenshots/mc_syntax_flowLTL.png)
 
-
-
 Model Checking Petri Nets with Transits:
 ----------------------------------------
+
+
