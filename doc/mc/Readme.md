@@ -76,3 +76,12 @@ Clicking a node with the right mouse button opens a context menu for the node wh
   * **Delete Flow** - deletes the flow
   * **Set inhibitor arc** - marks the flow as an inhibitor arc (only visible for ingoing arcs from transitions, which are not already inhibitor arcs). Inhibitor arcs are visualized by a circle at the end of the arc instead of the arrow head.
   * **Set not inhibitor arc** - removes the inhibitor marker of a flow (only visible for inhibitor arcs) 
+
+Syntax Flow-LTL:
+----------------
+![Syntax Flow-LTL](screenshots/mc_syntax_flowLTL.png)
+
+
+
+Model Checking Petri Nets with Transits:
+----------------------------------------
