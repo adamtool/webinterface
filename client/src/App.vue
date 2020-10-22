@@ -150,7 +150,7 @@
 
       <v-dialog
         style="display: block;"
-        max-width="600"
+        max-width="800px"
         v-model="showHelpModal"
         @keydown.esc="showHelpModal = false">
         <v-card>
