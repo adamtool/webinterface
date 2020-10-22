@@ -10,7 +10,8 @@ SYNT_FOLDER=../client/src/assets/apt-examples-synthesis/
 EXAMPLES_MC_FOLDER=./examples/modelchecking/ltl/
 EXAMPLES_SYNT_FOLDER=./examples/synthesis/forallsafety/
 SYNT_EXCLUDING_FOLDERS="-not -path */boundedunfolding/* -not -path */ndet/*"
-SYNT_EXCLUDING_FILES=''
+SYNT_EXCLUDING_FILES='-not -path */forallsafety/burglar/burglar.apt'
+#SYNT_EXCLUDING_FILES=''
 MC_EXCLUDING_FOLDERS=''
 MC_EXCLUDING_FILES=''
 
