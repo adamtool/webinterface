@@ -1248,7 +1248,7 @@
               }
               break
           }
-        })
+        }).catch(ex => logging.sendErrorNotification('Error while queueing job: ' + ex.toString()))
       },
       calculateModelCheckingNet: function () {
         this.$refs.menubar.deactivate()
