@@ -2,8 +2,16 @@ User's Guide to the Web Interface (Model Checking)
 ==================================================
 With this user's guide we want to give on overview of some common workflows of the web interface corresponding to AdamMC.
 
+- [General Items](#GeneralItems)
+- [Create a new Petri net with transits](#CreateANewPetriNetWithTransits)
+- [Simulating a Petri net with transits](#SimulatingAPetriNetWithTransits)
+- [Syntax Flow-LTL](#syntaxFlowLTL)
+- [Model checking Petri nets with transits](#ModelCheckingPetriNetswithTransits)
+- [Reduction](#reduction)
+
 General Items:
 --------------
+<a name="GeneralItems"></a> 
 When entering the interface for the model checking approach you get the following picture:
 ![Initial Screen For Model Checking Approach](screenshots/mc_initial_4k.png)
 
@@ -37,11 +45,13 @@ The items to the right gives you the following features
 
 Create a New Petri Net with Transits
 ------------------------------------
+<a name="CreateANewPetriNetWithTransits"></a>
 To model your own Petri net with transits the menu bar to the left can be used.
 
 ![Create New Petri Net with Transits](screenshots/mc_expanded_toolbar_4k_small.png)
 
 Here the following features are available
+<a name="leftMenu"></a>
 
 - **Collapse** - Collapses the menu bar to make more space for the actual drawing panel, or expands it again
 - **Select** - Changes to the mode that a single node can be selected by clicking the node or several nodes can be selected by holding the ctrl-key while clicking the next node. In general clicking and holding the left button down in a free area allows you to create a rectangle which selects all the inner nodes.
@@ -77,6 +87,16 @@ Clicking a node with the right mouse button opens a context menu for the node wh
   * **Delete Flow** - deletes the flow
   * **Set inhibitor arc** - marks the flow as an inhibitor arc (only visible for ingoing arcs from transitions, which are not already inhibitor arcs). Inhibitor arcs are visualized by a circle at the end of the arc instead of the arrow head.
   * **Set not inhibitor arc** - removes the inhibitor marker of a flow (only visible for inhibitor arcs) 
+
+Simulating a Petri Net with Transits:
+-------------------------------------
+Clicking on the **SIMULATOR** tab allows to fire enabled transitions (indicated by the asterisk *) in the Petri net with transits:
+
+![APT Editor](screenshots/mc_simulator.png)
+
+When the **thunderbolt** item of the left menu bar is activated, the transitions are clickable and a visual feedback (flashing green or red) is provided whether the transition has fired or not. To the right the list of fired transition is remembered in the **Simulating History** panel. By clicking the transitions in the history, the Petri net with transits is set back or forth to the corresponding state. Note that many examples have transitions which take token but also but them back to the same place. This may look like nothing has changed. The button **RESET** removes all transitions from the history. The button **SHOW DATA FLOW** generates a PDF showing all data flow trees corresponding to the giving firing sequence. Note that real tree behavior is only achieved if at least one transition with branching behavior transiting an existing data flow occur in the firing sequence.
+
+The other items of the **left menu** belong to the layout of the nodes. See [here](#leftMenu) for the explanations. This layout does not change anything for the input Petri net with transits. The simulated net stays in the state even if the tab is hidden. It only changes when loading a new net by the **LOAD NET FROM EDITOR** button or with loading the counter examples (see [here](#ModelCheckingPetriNetswithTransits)).
 
 Syntax Flow-LTL:
 ----------------
@@ -115,6 +135,7 @@ The following picture shows the parser's grammar for Flow-LTL:
 
 Model Checking Petri Nets with Transits:
 ----------------------------------------
+<a name="ModelCheckingPetriNetswithTransits"></a>
 To model check a Petri net with transits against Flow-LTL a Flow-LTL formula have to be available in the input field:
 
 ![Formula Input](screenshots/mc_formula_input.png)
@@ -137,4 +158,11 @@ Again the formula and the result is printed, but in addition to that a **counter
 
 The model checking procedure for model checking Petri nets with transits against Flow-LTL is based on a reduction to model checking Petri net against LTL (see [here](#reduction)). A **counter example** for this **constructed Petri net** is also given and can be loaded into the simulator with the corresponding Petri net. The technical details regarding the latches of the circuit can be seen when clicking on the counter example for the constructed Petri net.
 
+Reduction:
+----------
+<a name="Reduction"></a>
 
+
+![Reduction LTL formula](screenshots/mc_reduction_formula.png)
+![Reduction Petri net](screenshots/mc_reduction_net.png)
+![APT Editor](screenshots/mc_apt_editor.png)
