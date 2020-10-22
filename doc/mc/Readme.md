@@ -7,7 +7,8 @@ With this user's guide we want to give on overview of some common workflows of t
 - [Simulating a Petri net with transits](#SimulatingAPetriNetWithTransits)
 - [Syntax Flow-LTL](#syntaxFlowLTL)
 - [Model checking Petri nets with transits](#ModelCheckingPetriNetswithTransits)
-- [Reduction](#reduction)
+- [Reduction from Petri nets with transits and Flow-LTL to Petri nets and LTL](#reduction)
+- [Text Editor](#textEditor)
 
 General Items:
 --------------
@@ -19,8 +20,8 @@ At the top of the screen you have a menu bar where you have the items
 
 - **File**
   * **New Petri net with transits** - to clear the old Petri net with transits and create a new fresh one.
-  * **Load APT from file** - to load a file from your disk in the APT format (see **todo** format description section)
-  * **Save APT to file** - saves the current Petri net with transits to your disk in the APT format (see **todo** format description section)
+  * **Load APT from file** - to load a file from your disk in the APT format (see [here](https://github.com/adamtool/adammc/blob/master/doc/documentation.pdf) for a format description (Section 4.1))
+  * **Save APT to file** - saves the current Petri net with transits to your disk in the APT format (see [here](https://github.com/adamtool/adammc/blob/master/doc/documentation.pdf) for a format description (Section 4.1))
   * **Load example** - lets you choose some of the provided example Petri nets with transits of the server
 - **View**
   * **Log Window** - shows a logging window for debugging information for the advanced user
@@ -30,11 +31,11 @@ At the top of the screen you have a menu bar where you have the items
   * **Show physics controls** - this adds the following slider to the bottom of the side
 ![Physics Control](screenshots/mc_physics_control_4k.png)
 Here the behavior of the physics control for the nodes of the visualized objects, i.e., the Petri net with transits or the constructed Petri net, can be customized. When the nodes are unfreezed (see [here](#unfreeze)) the nodes can freely move over the panel. To created clearer views and to minimize the overlapping the *Repulsion Strength*, the *Link strength*, and the *Gravity strength* can be modified.
-  * **Show node labels instead of IDs** - Most of the nodes of the  constructed Petri net for the reduction methods for checking Petri nets with transits against Flow-LTL have a correspondence to the input Petri net with transits. With this button you can toggle between showing the names of corresponding nodes or the original ones.
-- **Check** - this starts the model checking procedure and results in opening a tab to the right showing the answer whether the input Petri net with transit satisfies the Flow-LTL formula formula. If it is not satisfied a counter example is given.
+  * **Show node labels instead of IDs** - Most of the nodes of the  constructed Petri net for the reduction methods for checking Petri nets with transits against Flow-LTL have a correspondence to the input Petri net with transits. With this button you can toggle between showing the names of corresponding nodes or the original ones. See [here](#Reduction).
+- **Check** - this starts the model checking procedure and results in opening a tab to the right showing the answer whether the input Petri net with transit satisfies the Flow-LTL formula formula. If it is not satisfied a counter example is given. See [here](#ModelCheckingPetriNetswithTransits).
 - **Reduction**
-  * **Petri net** - this creates the constructed *Petri net* for the reduction method from the given input Petri net with transits and Flow-LTL formula and shows it in the right panel.
-  * **LTL formula** - this created the constructed *LTL formula* for the reduction method from the given input Petri net with transits and Flow-LTL formula and shows it in the right panel.
+  * **Petri net** - this creates the constructed *Petri net* for the reduction method from the given input Petri net with transits and Flow-LTL formula and shows it in the right panel. See [here](#ReductionNet).
+  * **LTL formula** - this created the constructed *LTL formula* for the reduction method from the given input Petri net with transits and Flow-LTL formula and shows it in the right panel. See [here](#ReductionFormula).
 
 The items to the right gives you the following features
 
@@ -90,6 +91,7 @@ Clicking a node with the right mouse button opens a context menu for the node wh
 
 Simulating a Petri Net with Transits:
 -------------------------------------
+<a name="SimulatingAPetriNetWithTransits"></a>
 Clicking on the **SIMULATOR** tab allows to fire enabled transitions (indicated by the asterisk *) in the Petri net with transits:
 
 ![APT Editor](screenshots/mc_simulator.png)
@@ -158,11 +160,23 @@ Again the formula and the result is printed, but in addition to that a **counter
 
 The model checking procedure for model checking Petri nets with transits against Flow-LTL is based on a reduction to model checking Petri net against LTL (see [here](#reduction)). A **counter example** for this **constructed Petri net** is also given and can be loaded into the simulator with the corresponding Petri net. The technical details regarding the latches of the circuit can be seen when clicking on the counter example for the constructed Petri net.
 
-Reduction:
-----------
+Reduction from Petri nets with transits and Flow-LTL to Petri nets and LTL:
+---------------------------------------------------------------------------
 <a name="Reduction"></a>
+In the background the problem of model checking Petri nets with transits against Flow-LTL is reduced to the problem of model checking Petri nets against LTL. The corresponding constructed parts can be shown with the **Reduction** item of the main menu bar.
 
+The constructed Petri net is shown in the right panel when hitting the subitem **Petri Net** from the main menu bar:<a name="ReductionNet"></a>
 
-![Reduction LTL formula](screenshots/mc_reduction_formula.png)
 ![Reduction Petri net](screenshots/mc_reduction_net.png)
-![APT Editor](screenshots/mc_apt_editor.png)
+
+Here we have the same features as for the simulation tab (see [here](#SimulatingAPetriNetWithTransits)) apart from showing the data flow, since a standard Petri net has not data flows. Hitting the **floppy** symbol allows to save the net as SVG, PNML, or APT.
+
+The constructed LTL formula is shown in the right panel when clicking the subitem **LTL Formula** from the main menu bar: <a name="ReductionFormula"></a>
+![Reduction LTL formula](screenshots/mc_reduction_formula.png)
+
+Text Editor:
+------------
+<a name="textEditor"></a>
+A text editor is provided to change and also edit the input Petri net with transits:
+![Text Editor](screenshots/mc_apt_editor.png)
+For the format please see [here](https://github.com/adamtool/adammc/blob/master/doc/documentation.pdf) (Section 4.1).
