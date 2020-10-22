@@ -101,18 +101,12 @@
             />
           </hsc-menu-bar-item>
         </template>
-        <template v-if="useModelChecking">
-          <hsc-menu-bar-item
-            label="AdamWEB — Model Checker"
-            style="text-align: center;"
-          />
-        </template>
-        <template v-if="useDistributedSynthesis">
-          <hsc-menu-bar-item
-            label="AdamWEB — Synthesizer"
-            style="text-align: center;"
-          />
-        </template>
+        <hsc-menu-bar-item
+          :label="useModelChecking ? 'AdamWEB — Model Checker' : 'AdamWEB — Synthesizer'"
+          style="text-align: center;"
+          class="adam-web-button"
+          @click.native="$refs.menubar.deactivate()"
+        />
         <hsc-menu-bar-item style="width: 5px;"
                            label="Help"
                            @click.native="showHelpModal = true; $refs.menubar.deactivate()"
@@ -1707,6 +1701,12 @@
 </script>
 
 <style>
+  /* This button should not change appearance upon mouseover.  It is a non-button */
+  .adam-web-button {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: black !important;
+  }
+
   /*Text inside of v-cards should be pure black.*/
   .theme--light.v-card .v-card__subtitle, .theme--light.v-card > .v-card__text {
     color: #000000;
