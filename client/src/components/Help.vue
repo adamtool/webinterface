@@ -8,7 +8,7 @@
           Documentation
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          <a target="_blank" v-if="useModelChecking"
+          <a target="_blank"
              :href="useModelChecking ? 'https://github.com/adamtool/webinterface/tree/master/doc/mc' :
                                        'https://github.com/adamtool/webinterface/tree/master/doc/synt'">
             User guide (opens in new tab)
