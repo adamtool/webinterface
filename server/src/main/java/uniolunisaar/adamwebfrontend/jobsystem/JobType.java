@@ -14,6 +14,7 @@ import uniolunisaar.adam.ds.modelchecking.statistics.AdamCircuitFlowLTLMCStatist
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
 import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
+import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.PGTools;
 import uniolunisaar.adam.util.PgwtPreconditionChecker;
@@ -51,10 +52,12 @@ public enum JobType {
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 if (checkPreconditions) {
+                    Logger.getInstance().addMessage("Checking preconditions", false);
                     boolean satisfied = new PgwtPreconditionChecker(petriGame).check();
                     if (!satisfied) {
                         throw new IllegalArgumentException("The preconditions are not satisfied.");
                     }
+                    Logger.getInstance().addMessage("Checked preconditions", false);
                 }
                 // TODO #172 add options for the solving algorithms
                 boolean existsWinningStrategy = AdamSynthesizer.existsWinningStrategyBDD(petriGame);
@@ -91,10 +94,12 @@ public enum JobType {
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 if (checkPreconditions) {
+                    Logger.getInstance().addMessage("Checking preconditions", false);
                     boolean satisfied = new PgwtPreconditionChecker(petriGame).check();
                     if (!satisfied) {
                         throw new IllegalArgumentException("The preconditions are not satisfied.");
                     }
+                    Logger.getInstance().addMessage("Checked preconditions", false);
                 }
                 // TODO #172 add options for the solving algorithms
                 PetriGameWithTransits strategyBDD = AdamSynthesizer.getStrategyBDD(petriGame);
@@ -114,10 +119,12 @@ public enum JobType {
             PetriGameWithTransits petriGame = promoteToPetriGame(net);
             return new Job<>(() -> {
                 if (checkPreconditions) {
+                    Logger.getInstance().addMessage("Checking preconditions", false);
                     boolean satisfied = new PgwtPreconditionChecker(petriGame).check();
                     if (!satisfied) {
                         throw new IllegalArgumentException("The preconditions are not satisfied.");
                     }
+                    Logger.getInstance().addMessage("Checked preconditions", false);
                 }
                 // TODO #172 add options for the solving algorithms
                 BDDGraph graphStrategyBDD = AdamSynthesizer.getGraphStrategyBDD(petriGame);
@@ -155,10 +162,12 @@ public enum JobType {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
                 if (checkPreconditions) {
+                    Logger.getInstance().addMessage("Checking preconditions", false);
                     boolean satisfied = new PnwtPreconditionChecker(inputNet).check();
                     if (!satisfied) {
                         throw new IllegalArgumentException("The preconditions are not satisfied.");
                     }
+                    Logger.getInstance().addMessage("Checked preconditions", false);
                 }
                 RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(inputNet, formula);
 
@@ -216,10 +225,12 @@ public enum JobType {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
                 if (checkPreconditions) {
+                    Logger.getInstance().addMessage("Checking preconditions", false);
                     boolean satisfied = new PnwtPreconditionChecker(net).check();
                     if (!satisfied) {
                         throw new IllegalArgumentException("The preconditions are not satisfied.");
                     }
+                    Logger.getInstance().addMessage("Checked preconditions", false);
                 }
                 RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
 
@@ -249,12 +260,13 @@ public enum JobType {
                                         boolean checkPreconditions) {
             String formula = params.get("formula").getAsString();
             return new Job<>(() -> {
-
                 if (checkPreconditions) {
+                    Logger.getInstance().addMessage("Checking preconditions", false);
                     boolean satisfied = new PnwtPreconditionChecker(net).check();
                     if (!satisfied) {
                         throw new IllegalArgumentException("The preconditions are not satisfied.");
                     }
+                    Logger.getInstance().addMessage("Checked preconditions", false);
                 }
                 RunLTLFormula runFormula = AdamModelChecker.parseFlowLTLFormula(net, formula);
                 // TODO #172 add options for the solving algorithms
@@ -299,10 +311,12 @@ public enum JobType {
             boolean shouldSolveStepwise = params.get("incremental").getAsBoolean();
             return new Job<>(() -> {
                 if (checkPreconditions) {
+                    Logger.getInstance().addMessage("Checking preconditions", false);
                     boolean satisfied = new PgwtPreconditionChecker(petriGame).check();
                     if (!satisfied) {
                         throw new IllegalArgumentException("The preconditions are not satisfied.");
                     }
+                    Logger.getInstance().addMessage("Checked preconditions", false);
                 }
                 // TODO #172 add options for the solving algorithms
                 if (shouldSolveStepwise) {
