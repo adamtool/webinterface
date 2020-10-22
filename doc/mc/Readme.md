@@ -79,6 +79,35 @@ Clicking a node with the right mouse button opens a context menu for the node wh
 
 Syntax Flow-LTL:
 ----------------
+Flow-LTL contains of two different kind of formulas. The *run formulas* for the control part and the *flow formulas* for the data part.
+In both standard LTL can be used with the following operators:
+
+| LTL         | Syntax      |
+| ----------- | ----------- |
+| true     | TRUE    |
+| false    | FALSE    |
+| atoms     | place and transition ids    |
+| Negation    | NEG or !    |
+| Conjunction | AND         |
+| Disjunction | OR         |
+| Implication | IMP or ->         |
+| Bimplication| BIMP or <->         |
+| Until | U         |
+| Weak Until | W         |
+| Release | R         |
+
+Binary operators have to be in brackets, unary operators not. For example (!phi0 -> (phi1 AND G F phi2)). Note that the ids for the places and transitions are more restricted for the formula as for the web interface. For the restrictions please see the detailed syntax below.
+
+The start of a **flow formula** is indicated by the operator 'A'.
+
+For a **Flow-LTL formula** phi we allow the syntax
+
+```
+phi = LTL | (phi AND phi) | (phi OR phi) | (LTL -> phi) | A LTL
+```
+
+The following picture shows the parser's grammar for Flow-LTL:
+
 ![Syntax Flow-LTL](screenshots/mc_syntax_flowLTL.png)
 
 
