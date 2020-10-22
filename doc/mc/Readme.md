@@ -35,4 +35,24 @@ The items to the right gives you the following features
 
 Create a New Petri Net with Transits
 ------------------------------------
-![Create New Petri Net with Transits](screenshots/mc_expanded_toolbar_4k.png)
+To model your own Petri net with transits the menu bar to the left can be used.
+
+![Create New Petri Net with Transits](screenshots/mc_expanded_toolbar_4k_small.png)
+
+Here the following features are available
+- **Collapse** - Collapses the menu bar to make more space for the actual drawing panel, or expands it again
+- **Select** - Changes to the mode that a single node can be selected by clicking the node or several nodes can be selected by holding the ctrl-key while clicking the next node. In general clicking and holding the left button down in a free area allows you to create a rectangle which selects all the inner nodes.
+- **Delete** - Changes to the mode that clicking a node or an arc deletes the node or the arc.
+- **Draw Flow** - Changes to the mode to draw the control flows (the black arcs) between the nodes. Clicking on a node, and holding the left mouse button allows you to move the visualized arc to the desired successor node. Note that only arcs between places and transitions are allowed.
+- **Draw Transit** - Changes to the mode to draw transits (the colored and/or labeled arcs) between the nodes. First you click the place where the transit should start, second the transition used for the transit, and third as many successor places as you want to connect with the data flow. Hitting *enter* ends the selection. For creating initial transits, the first node can already be the transition. Note that a control flow is added between the nodes when none is existing.
+- **Add Place** - Changes to the mode that each click creates a new place at this position.
+- **Add Transition** - Changes to the mode that each click creates a new transition at this position. 
+- **Invert selection** - Inverts the current selection.
+- **Delete selected nodes** - Deselects all currently selected nodes.
+- **Auto-Layout** - Each click creates a new random automatic layout of the nodes.
+- **Zoom to fit** - Zooms into or out of the panel such that all nodes are visible in the cutout.
+- **Move all nodes to the visible area** - Changes the position of the nodes out of the current cutout of the panel, such that they fit into the current cutout.
+- **Freeze all nodes** - With an active physics control this stops the moving of the nodes.
+- **Unfreeze all nodes** - This starts again the physics control and deletes all current coordinates of the nodes.
+
+
