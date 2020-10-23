@@ -417,29 +417,40 @@
         return requestPromise
       },
       saveActionsMcNet: function (jobKey) {
-        return [{
-          label: 'Save as APT',
-          callback: () => this.saveJobAsApt(
-            jobKey,
-            this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
-            'model-checking-net.apt')
-        },
+        return [
+          {
+            label: 'Save as APT',
+            callback: () => this.saveJobAsApt(
+              jobKey,
+              this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+              'model-checking-net.apt')
+          },
           {
             label: 'Save as PNML',
             callback: () => this.saveJobAsPnml(
               jobKey,
               this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
               'model-checking-net.pnml')
-          }]
+          }
+        ]
       },
       saveActionsWinningStrategy: function (jobKey) {
-        return [{
-          label: 'Save as APT',
-          callback: () => this.saveJobAsApt(
-            jobKey,
-            this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
-            'winning-strategy.apt')
-        }]
+        return [
+          {
+            label: 'Save as APT',
+            callback: () => this.saveJobAsApt(
+              jobKey,
+              this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+              'winning-strategy.apt')
+          },
+          {
+            label: 'Save as PNML',
+            callback: () => this.saveJobAsPnml(
+              jobKey,
+              this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+              'winning-strategy.pnml')
+          }
+        ]
       }
     }
   }
