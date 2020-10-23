@@ -52,7 +52,45 @@ The items to the right gives you the following features
 Create a New Petri Game:
 ------------------------
 <a name="CreateAPetriGame"></a>
+To model a Petri game, the menu bar on the left is used:
+
 ![Creating a New Petri Game](screenshots/synt_leftMenu.png)
+
+Here the following features are available
+<a name="leftMenu"></a>
+
+- **Collapse** - collapses the menu bar to make more space for the actual drawing panel, or expands it again.
+- **Select** - changes to the mode where a single node can be selected by clicking the node or several nodes can be selected by holding the ctrl-key while clicking the next node. Clicking and holding the left mouse button in a free area creates a rectangle which selects all nodes in the rectangle.
+- **Delete** - changes to the mode where clicking a node or an arc deletes the node or the arc.
+- **Draw Flow** - changes to the mode to draw the flow (the black arcs) between the nodes. Clicking and holding the left mouse button on a node allows you to move the visualized arc to the desired successor node. Note that only arcs between places and transitions are allowed.
+- **Add System Place** - changes to the mode where each click creates a new system place (gray circle) at this position.
+- **Add Environment Place** - changes to the mode where each click creates a new environment place (white circle) at this position.
+- **Add Transition** - changes to the mode where each click creates a new transition (white square) at this position.
+- **Invert selection** - inverts the current selection.
+- **Delete selected nodes** - deselects all currently selected nodes.
+- **Auto-Layout** - creates a new random automatic layout of the nodes.
+- **Zoom to fit** - zooms into or out of the panel such that all nodes are visible.
+- **Move all nodes to the visible area** - changes the position of the invisible nodes of the current cutout of the panel such that they fit into the current cutout.
+- **Freeze all nodes** - deactivates the physics control and the movability of all nodes.
+- **Unfreeze all nodes** - reactivates the physics control, deletes the current coordinates of all nodes, and reactivates the movability of all nodes.<a name="unfreeze"></a>
+
+**Drag and drop** can be used to move the **nodes** (when clicking the nodes) and the **panel** when clicking into the free space and holding the *shift-key*. Dragging a node with a pressed *ctrl-key* **snaps** the node **to a grid**. **Zoom in and out** can be done with the mouse wheel. **Enabled transitions** are visualized with an asterisk *.
+
+**Clicking a node** with the **right mouse button** opens a context menu for the node which shows the name in the first line and the label in square brackets in the second. The options for the nodes are:
+
+- Place
+  * **Delete** - deletes the node.
+  * **Rename** - allows to enter a new name.
+  * **Change to environment place** - changes this place to an environment place (white circle). Only visible if it is currently a system place.
+  * **Change to system place** - changes this place to a system place (gray circle). Only visible if it is currently an environment place.
+  * **Set partition** -  allows to enter a number to which partition this place belongs. Environment token are automatically added to partition 0. When no automatic partitioning is possible (getting a corresponding message when trying to solve a game without annotated partitions), the user has to annotate the places manually. The places have to be partitioned into disjunctive sets such that in each reachable marking no two places of the same partition occur. Thus, partition the places regarding the token they can host. The less partitions you use the faster the algorithms work.<a name=partition></a>
+  * **Set initial token** -  allows to enter a number of initial tokens. Note that the current approach only allows for the synthesis of safe, i.e. 1-bounded, Petri games.
+  * **Toggle is special** - allows to mark or unmark this place as a **bad** place.
+- Transition
+  * **Delete** - deletes the node.
+  * **Rename** - allows to enter a new name.
+- Flow
+  * **Delete Flow** - deletes the flow.
 
 Simulating a Petri game:
 ------------------------
@@ -80,3 +118,6 @@ Text Editor:
 A text editor is provided to change and also edit the input Petri game:
 ![Text Editor](screenshots/synt_apt_editor.png)
 For the format please see [here](https://uol.de/f/2/dept/informatik/ag/csd/adam/Format.pdf).
+
+Common Problems:
+----------------
