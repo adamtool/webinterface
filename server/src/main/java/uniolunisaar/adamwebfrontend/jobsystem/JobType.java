@@ -291,6 +291,10 @@ public enum JobType {
             JsonObject resultJson = new JsonObject();
             if (builder.isBuilt()) {
                 resultJson.addProperty("state", "built");
+                if (builder.isIncremental()) {
+                    resultJson.addProperty("withRecurrentlyInterferingEnv",
+                            builder.getWithRecurrentlyInterferingEnv());
+                }
                 resultJson.add("graph", builder.getExplorer().getVisibleGraph());
             } else {
                 resultJson.addProperty("state", "not_built");

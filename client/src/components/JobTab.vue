@@ -70,9 +70,17 @@
           const mcFormulaText = ` for "${this.tab.jobKey.requestParams.formula}"`
           return typePrettyPrinted.concat(mcFormulaText)
         } else if (this.tab.type === 'GRAPH_GAME_BDD') {
-          const incrementalOrCompleteLabel =
-            this.tab.jobKey.requestParams['incremental'] ? ' (I)' : ' (C)'
-          return typePrettyPrinted.concat(incrementalOrCompleteLabel)
+          let extraLabel;
+          if (this.tab.jobKey.requestParams['incremental']) {
+            if (this.tab.result && this.tab.result.state === 'built') { // job is 'finished''
+              extraLabel = this.tab.result.withRecurrentlyInterferingEnv ? ' (I) (General approach)' : ' (I) (Restricted approach)'
+            } else {
+              extraLabel = ' (I)'
+            }
+          } else {
+            extraLabel = ' (C)'
+          }
+          return typePrettyPrinted.concat(extraLabel)
         } else {
           return typePrettyPrinted
         }
