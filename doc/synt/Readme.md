@@ -95,8 +95,13 @@ Here the following features are available
 Simulating a Petri game:
 ------------------------
 <a name="SimulatingAPetriGame"></a>
+Clicking on the **SIMULATOR** tab allows to fire enabled transitions (indicated by the asterisk *) in the Petri game:
+
 ![Simulating a Petri Game](screenshots/synt_simulator.png)
 
+When the **thunderbolt** item of the left menu bar is chosen, transitions are clickable and a visual feedback (flashing green or red) is provided whether the transition has fired or not. On the right, the list of fired transition is remembered in the **Simulating History** panel. By clicking the transitions in the history, the Petri game is set back or forth to the corresponding state. The button **RESET** removes all transitions from the history.
+
+The other items of the **left menu** belong to the layout of the nodes. See [here](#leftMenu) for the explanations. This layout does not change anything for the input Petri game. The simulated game stays in the state even if the tab is hidden. It only changes when loading a new game by the **LOAD GAME FROM EDITOR** button.
 
 Synthesis of Distributed Systems with Petri Games:
 --------------------------------------------------
