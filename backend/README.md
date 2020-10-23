@@ -40,7 +40,7 @@ then execute
 ```
 make publish_backend ver=<version>
 ```
-with your desired version number _ver_ (the past version numbers can be found in _./server/pom.xml_).
+with your desired version number _ver_ (the past version numbers can be found in _./server/pom.xml_ and can be printed with ```make print_current_backend_version ```).
 This pulls all submodules to get the latest version of all submodules building the backend.
 Then, it builds the jar for the backend, integrates it and links this version in the pom.xml of the server. 
 Finally, it adds, commits, and pushes these changes to the repository _webinterface_.
