@@ -24,21 +24,21 @@
       <td>{{ formatJobType(listing.type) }}</td>
 
       <!--Options-->
-      <template v-if="JSON.stringify(listing.jobKey.requestParams).length > 40">
+      <template v-if="JSON.stringify(filterHiddenParams(listing.jobKey.requestParams)).length > 40">
         <v-tooltip bottom style="display: none;">
           <template #activator="data">
             <td v-on="data.on"
                 class="highlightable">
-              {{ JSON.stringify(listing.jobKey.requestParams).slice(0, 40) }}...
+              {{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams)).slice(0, 40) }}...
               <v-icon>more</v-icon>
             </td>
           </template>
-          <div>{{ JSON.stringify(listing.jobKey.requestParams, null, 2) }}</div>
+          <div>{{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams), null, 2) }}</div>
         </v-tooltip>
       </template>
       <template v-else>
         <td>
-          {{ JSON.stringify(listing.jobKey.requestParams) }}
+          {{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams)) }}
         </td>
       </template>
 
@@ -64,7 +64,7 @@
         v-else-if="listing.jobStatus === 'COMPLETED'
                         && listing.type === 'EXISTS_WINNING_STRATEGY'">
         <td :style="`color: ${listing.result ? 'blue' : 'red'}`">
-          {{ listing.result ? '(There is a strategy)' : '(There is no strategy)'}}
+          {{ listing.result ? '(There is a strategy)' : '(There is no strategy)' }}
         </td>
       </template>
       <template
@@ -106,9 +106,9 @@
 </template>
 
 <script>
-  import { format } from 'date-fns'
+  import {format} from 'date-fns'
   import logging from '../logging'
-  import { formatJobType, modelCheckingResultColor } from '../jobType'
+  import {formatJobType, modelCheckingResultColor} from '../jobType'
 
   export default {
     name: 'JobList',
@@ -144,13 +144,24 @@
       }
     },
     methods: {
-      canBeDisplayedInTab (jobType) {
+      // Filter out hidden params that should not be shown in the UI
+      // TODO #97 refactor
+      filterHiddenParams(requestParams) {
+        if (!requestParams.hasOwnProperty('hiddenUuid97')) {
+          return requestParams
+        } else {
+          const copy = {...requestParams}
+          delete copy['hiddenUuid97']
+          return copy
+        }
+      },
+      canBeDisplayedInTab(jobType) {
         const displayableJobTypes =
           ['GRAPH_GAME_BDD', 'WINNING_STRATEGY', 'GRAPH_STRATEGY_BDD',
-          'MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT']
+            'MODEL_CHECKING_NET', 'MODEL_CHECKING_RESULT']
         return displayableJobTypes.includes(jobType)
       },
-      formatDate (secondsSinceUnixEpoch) {
+      formatDate(secondsSinceUnixEpoch) {
         if (secondsSinceUnixEpoch === 0) {
           return '-'
         }
@@ -159,7 +170,7 @@
       },
       formatJobType,
       modelCheckingResultColor,
-      modelCheckingResultText (result) {
+      modelCheckingResultText(result) {
         return result.satisfied
       }
     }
