@@ -24,21 +24,21 @@
       <td>{{ formatJobType(listing.type) }}</td>
 
       <!--Options-->
-      <template v-if="JSON.stringify(filterHiddenParams(listing.jobKey.requestParams)).length > 40">
+      <template v-if="JSON.stringify(filterHiddenParams(listing.jobKey.requestParams, listing)).length > 40">
         <v-tooltip bottom style="display: none;">
           <template #activator="data">
             <td v-on="data.on"
                 class="highlightable">
-              {{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams)).slice(0, 40) }}...
+              {{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams, listing)).slice(0, 40) }}...
               <v-icon>more</v-icon>
             </td>
           </template>
-          <div>{{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams), null, 2) }}</div>
+          <div>{{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams, listing), null, 2) }}</div>
         </v-tooltip>
       </template>
       <template v-else>
         <td>
-          {{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams)) }}
+          {{ JSON.stringify(filterHiddenParams(listing.jobKey.requestParams, listing)) }}
         </td>
       </template>
 
@@ -144,14 +144,21 @@
       }
     },
     methods: {
-      // Filter out hidden params that should not be shown in the UI
+      // Filter out hidden params that should not be shown in the UI and show general/restricted approach as a fake param
       // TODO #97 refactor
-      filterHiddenParams(requestParams) {
+      filterHiddenParams(requestParams, listing) {
         if (!requestParams.hasOwnProperty('hiddenUuid97')) {
           return requestParams
         } else {
           const copy = {...requestParams}
           delete copy['hiddenUuid97']
+          if (listing.result) {
+            if (listing.jobKey.requestParams.incremental && listing.result.state === 'built') {
+              copy.approach = listing.result.withRecurrentlyInterferingEnv ? 'general' : 'restricted'
+            } else if (listing.jobKey.requestParams.incremental && listing.result.state === 'not_built') {
+              copy.approach = ''
+            }
+          }
           return copy
         }
       },
