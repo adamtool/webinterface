@@ -315,8 +315,7 @@
   import GraphEditor from './GraphEditor'
   import Simulator from './Simulator'
   import {modelCheckingResultColor, formatSatisfied} from '../jobType'
-  import {saveFileAs} from '../fileutilities'
-  import logging from '../logging'
+  import {saveJobAsApt, saveJobAsPnml} from "../routes"
 
   export default {
     name: 'JobTabItem',
@@ -380,56 +379,22 @@
             return 'This job is finished.'
         }
       },
-      saveJobAsApt: function (jobKey, getNodePositions, filename) {
-        const nodePositions = getNodePositions()
-        const requestPromise = this.restEndpoints.saveJobAsApt({
-          jobKey,
-          nodeXYCoordinateAnnotations: nodePositions
-        })
-        requestPromise.then(response => {
-          if (response.data.status === 'success') {
-            const apt = response.data.result
-            saveFileAs(apt, filename)
-          } else if (response.data.status === 'error') {
-            logging.sendErrorNotification(response.data.message)
-          } else {
-            logging.sendErrorNotification('Invalid response from server')
-          }
-        }).catch(logging.sendErrorNotification)
-        return requestPromise
-      },
-      saveJobAsPnml: function (jobKey, getNodePositions, filename) {
-        const nodePositions = getNodePositions()
-        const requestPromise = this.restEndpoints.saveJobAsPnml({
-          jobKey,
-          nodeXYCoordinateAnnotations: nodePositions
-        })
-        requestPromise.then(response => {
-          if (response.data.status === 'success') {
-            const resultString = response.data.result
-            saveFileAs(resultString, filename)
-          } else if (response.data.status === 'error') {
-            logging.sendErrorNotification(response.data.message)
-          } else {
-            logging.sendErrorNotification('Invalid response from server')
-          }
-        }).catch(logging.sendErrorNotification)
-        return requestPromise
-      },
       saveActionsMcNet: function (jobKey) {
         return [
           {
             label: 'Save as APT',
-            callback: () => this.saveJobAsApt(
+            callback: () => saveJobAsApt(
+              this.restEndpoints,
               jobKey,
-              this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+              this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed(),
               'model-checking-net.apt')
           },
           {
             label: 'Save as PNML',
-            callback: () => this.saveJobAsPnml(
+            callback: () => saveJobAsPnml(
+              this.restEndpoints,
               jobKey,
-              this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+              this.$refs.mcNetSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed(),
               'model-checking-net.pnml')
           }
         ]
@@ -438,16 +403,18 @@
         return [
           {
             label: 'Save as APT',
-            callback: () => this.saveJobAsApt(
+            callback: () => saveJobAsApt(
+              this.restEndpoints,
               jobKey,
-              this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+              this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed(),
               'winning-strategy.apt')
           },
           {
             label: 'Save as PNML',
-            callback: () => this.saveJobAsPnml(
+            callback: () => saveJobAsPnml(
+              this.restEndpoints,
               jobKey,
-              this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed,
+              this.$refs.winningStratSimulator.$refs.graphEditor.getNodeXYCoordinatesFixed(),
               'winning-strategy.pnml')
           }
         ]

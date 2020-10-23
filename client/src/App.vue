@@ -199,6 +199,7 @@
               <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :editorNetId='editorNet.uuid'
+                           :additionalSaveActions="saveActionsEditor()"
                            editorMode='Editor'
                            ref='graphEditor'
                            v-on:dragDropEnd='onDragDropEnd'
@@ -477,6 +478,7 @@
   import draggable from 'vuedraggable'
 
   import {deepCopy, sleep} from './util'
+  import {saveEditorNetAsPnml, saveJobAsPnml} from "./routes";
 
   const uuidv4 = require('uuid/v4')
 
@@ -752,6 +754,7 @@
           'loadCxInSimulator',
           'saveJobAsApt',
           'saveJobAsPnml',
+          'saveEditorNetAsPnml',
           'insertPlace',
           'createFlow',
           'createTransit',
@@ -808,6 +811,22 @@
       }
     },
     methods: {
+      saveActionsEditor: function () {
+        if (this.useModelChecking) {
+          return []
+        } else {
+          return [
+            {
+              label: 'Save as PNML',
+              callback: () => saveEditorNetAsPnml(
+                this.restEndpoints,
+                this.editorNet.uuid,
+                this.$refs.graphEditor.getNodeXYCoordinatesFixed(),
+                'editor-net.pnml')
+            }
+          ]
+        }
+      },
       onClickHome: function () {
         if (window.confirm('Go back to the main menu?  (The net in the editor will be lost.)')) {
           this.$router.push('/')
