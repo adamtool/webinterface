@@ -118,7 +118,7 @@ For the realizability problem, i.e., to only check whether a strategy exists, th
 
 Reduction from Petri games to Two-Player Games over Finite Graphs:
 ------------------------------------------------------------------
-In the background the synthesis problem for Petri games is reduced to the synthesis problem for a two-player game over a finite graph with complete information. Insides of this reduction can be achieved by using the items 2-Player Strategy, 2-Player game (complete), and 2-Player game (incremental) of the main menu bar under item **Analyze**. When using **2-Player Strategy** a tab is opened which either shows the two-player strategy, which can be arranged and saved as an SVG, or the message that there is not strategy existent.
+In the background the synthesis problem for Petri games is reduced to the synthesis problem for a two-player game over a finite graph with complete information. Insides of this reduction can be achieved by using the items 2-Player Strategy, 2-Player game (complete), and 2-Player game (incremental) of the main menu bar under item **Analyze**. When using **2-Player Strategy** a tab is opened which either shows the two-player strategy, which can be arranged and saved as an SVG, or the message that there is no strategy existent.
 <a name="reduction"></a>
 ![Winning Strategy](screenshots/synt_twoplayer_strat.png)
 
