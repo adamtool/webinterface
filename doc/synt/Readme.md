@@ -113,11 +113,12 @@ For synthesizing local controllers for the input Petri game it can just be click
 
 In case there is a strategy, this strategy can be **simulated** as described [here](#SimulatingAPetriGame). The strategy can be **saved** as SVG, APT, or PNML by clicking on the **floppy** symbol. In case of the PNML export only the underlying Petri net is exported without the game semantics.
 
-For the realizability problem, i.e., to only check whether a strategy exists, the item **Exists Winning Strategy** under the main menu bar item **Analyze** can be used.
+For the realizability problem, i.e., to only check whether a strategy exists, the item **Exists Winning Strategy** under the main menu bar item **Analyze** can be used. This opens a tab with the respective answer:
 ![Exists Winning Strategy](screenshots/synt_exstrat.png)
 
 Reduction from Petri games to Two-Player Games over Finite Graphs:
 ------------------------------------------------------------------
+In the background the synthesis problem for Petri games is reduced to the synthesis problem for a two-player game over a finite graph with complete information. Insides of this reduction can be achieved by using the items 2-Player Strategy, 2-Player game (complete), and 2-Player game (incremental) of the main menu bar under item **Analyze**. When using **2-Player Strategy** a tab is opened which either shows the two-player strategy, which can be arranged and saved as an SVG, or the message that there is not strategy existent.
 <a name="reduction"></a>
 ![Winning Strategy](screenshots/synt_twoplayer_strat.png)
 
