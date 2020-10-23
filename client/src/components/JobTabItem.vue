@@ -80,8 +80,11 @@
                :showNodeLabels="showNodeLabels"
                :isVisible="isTabSelected"
   />
-  <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
-               :graph='tab.result'
+  <div v-else-if="tab.type === 'GRAPH_GAME_BDD' && tab.result.state === 'not_built'">
+    The graph editor is not yet initialized.
+  </div>
+  <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD' && tab.result.state === 'built'"
+               :graph='tab.result.graph'
                editorMode="Viewer"
                @toggleStatePostset="stateId => $emit('toggleStatePostset', stateId)"
                @toggleStatePreset="stateId => $emit('toggleStatePreset', stateId)"

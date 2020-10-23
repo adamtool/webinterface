@@ -26,6 +26,7 @@ import uniolunisaar.adam.AdamModelChecker;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.synthesis.pgwt.PetriGameWithTransits;
 import uniolunisaar.adam.ds.petrinetwithtransits.PetriNetWithTransits;
+import uniolunisaar.adam.exceptions.synthesis.pgwt.SolvingException;
 import uniolunisaar.adam.tools.Tools;
 import uniolunisaar.adam.util.*;
 import uniolunisaar.adamwebfrontend.jobsystem.*;
@@ -88,6 +89,9 @@ public class App {
         postWithUserContext("/saveJobAsApt", this::handleSaveJobAsApt);
 
         postWithUserContext("/saveJobAsPnml", this::handleSaveJobAsPnml);
+
+        postWithUserContext("/initializeGraphGameBDDExplorer",
+                this::handleInitializeGraphGameBDDExplorer);
 
         postWithEditorNet("/saveEditorNetAsPnml", this::handleSaveEditorNetAsPnml);
 
@@ -571,6 +575,34 @@ public class App {
         return successResponse(new JsonPrimitive(true));
     }
 
+    private Object handleInitializeGraphGameBDDExplorer(Request req, Response res, UserContext uc) throws ExecutionException, InterruptedException, SolvingException, CouldNotFindSuitableConditionException {
+        JsonElement body = parser.parse(req.body());
+        System.out.println("body: " + body.toString());
+
+        Type type = new TypeToken<JobKey>() {
+        }.getType();
+        JsonElement jobKeyJson = body.getAsJsonObject().get("jobKey");
+        JobKey jobKey = gson.fromJson(jobKeyJson, type);
+        if (!uc.hasJobWithKey(jobKey)) {
+            return errorResponse("The requested Graph Game BDD does not exist.");
+        }
+
+        Job<BDDGraphExplorerBuilder> job = uc.getGraphGameBDDJob(jobKey);
+        if (!job.isFinished()) {
+            return errorResponse("The job for that Graph Game BDD is not yet finished" +
+                    ".  Its status: " + job.getStatus());
+        }
+
+        BDDGraphExplorerBuilder bddGraphExplorerBuilder = job.getResult();
+        if (bddGraphExplorerBuilder.isBuilt()) {
+            return errorResponse("The Graph Game BDD Explorer has already been initialized.");
+        }
+
+        boolean withRecurrentlyInterferingEnv = body.getAsJsonObject().get("withRecurrentlyInterferingEnv").getAsBoolean();
+        bddGraphExplorerBuilder.initializeStepwise(withRecurrentlyInterferingEnv);
+        return successResponse(new JsonPrimitive(true));
+    }
+
     private Object handleToggleGraphGameBDDNodePostset(Request req, Response res, UserContext uc)
             throws ExecutionException, InterruptedException {
         JsonElement body = parser.parse(req.body());
@@ -587,12 +619,17 @@ public class App {
             return errorResponse("The requested Graph Game BDD does not exist.");
         }
 
-        Job<BDDGraphExplorer> job = uc.getGraphGameBDDJob(jobKey);
+        Job<BDDGraphExplorerBuilder> job = uc.getGraphGameBDDJob(jobKey);
         if (!job.isFinished()) {
             return errorResponse("The job for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + job.getStatus());
         }
-        BDDGraphExplorer bddGraphExplorer = job.getResult();
+
+        BDDGraphExplorerBuilder bddGraphExplorerBuilder = job.getResult();
+        if (!bddGraphExplorerBuilder.isBuilt()) {
+            return errorResponse("The Graph Game BDD Explorer has not yet been initialized.");
+        }
+        BDDGraphExplorer bddGraphExplorer = bddGraphExplorerBuilder.getExplorer();
         // Synchronizing here should prevent data corruption in case a client calls this endpoint
         // for the same BDD graph multiple times in quick succession
         synchronized (bddGraphExplorer) {
@@ -620,13 +657,17 @@ public class App {
         if (!uc.hasJobWithKey(jobKey)) {
             return errorResponse("The requested Graph Game BDD does not exist.");
         }
-
-        Job<BDDGraphExplorer> job = uc.getGraphGameBDDJob(jobKey);
+        Job<BDDGraphExplorerBuilder> job = uc.getGraphGameBDDJob(jobKey);
         if (!job.isFinished()) {
             return errorResponse("The job for that Graph Game BDD is not yet finished" +
                     ".  Its status: " + job.getStatus());
         }
-        BDDGraphExplorer bddGraphExplorer = job.getResult();
+
+        BDDGraphExplorerBuilder bddGraphExplorerBuilder = job.getResult();
+        if (!bddGraphExplorerBuilder.isBuilt()) {
+            return errorResponse("The Graph Game BDD Explorer has not yet been initialized.");
+        }
+        BDDGraphExplorer bddGraphExplorer = bddGraphExplorerBuilder.getExplorer();
         // Synchronizing here should prevent data corruption in case a client calls this endpoint
         // for the same BDD graph multiple times in quick succession
         synchronized (bddGraphExplorer) {

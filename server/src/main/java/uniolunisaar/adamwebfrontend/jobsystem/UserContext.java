@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.tools.Logger;
 import uniolunisaar.adamwebfrontend.BDDGraphExplorer;
+import uniolunisaar.adamwebfrontend.BDDGraphExplorerBuilder;
 import uniolunisaar.adamwebfrontend.WebSocketHandler;
 import uniolunisaar.adamwebfrontend.wirerepresentations.CxType;
 
@@ -165,11 +166,11 @@ public class UserContext {
         WebSocketHandler.queueWebsocketMessage(this.clientUuid, jobDeletedMessage);
     }
 
-    public Job<BDDGraphExplorer> getGraphGameBDDJob(JobKey jobKey) {
+    public Job<BDDGraphExplorerBuilder> getGraphGameBDDJob(JobKey jobKey) {
         if (jobKey.getJobType() != JobType.GRAPH_GAME_BDD) {
             throw new IllegalArgumentException("The given jobKey doesn't correspond to a Graph Game BDD.");
         }
-        return (Job<BDDGraphExplorer>) jobsByKey.get(jobKey);
+        return (Job<BDDGraphExplorerBuilder>) jobsByKey.get(jobKey);
     }
 
     public PetriNet getPetriNetFromJob(JobKey jobKey) throws ExecutionException,
