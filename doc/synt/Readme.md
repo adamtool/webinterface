@@ -27,7 +27,7 @@ At the top of the screen you have a menu bar where you find the items
 - **View**
   * **Log Window** - shows a logging window for debugging information for the advanced user
   * **Job Queue** - shows a panel with the recent jobs and results of the user and the possibility to load the results back into the interface, or delete or cancel them. Note that only the text and not the colored layer is clickable. You can even exchange your unique identifier of the browser to show others your job list, results, and problems.
-![Job Queue](screenshots/mc_job_queue.png)
+![Job Queue](screenshots/synt_job_queue.png)
   * **Show right panel** - expands or collapses the right panel which is shown when having any results created. This can also be done with the slider, which can be used to customize the sizes of the panel
   * **Show physics controls** - this adds the following slider to the bottom of the side
 ![Physics Control](../mc/screenshots/mc_physics_control_4k.png)
