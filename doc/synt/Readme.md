@@ -38,9 +38,10 @@ Here the behavior of the physics control for the nodes of the visualized objects
 - **Analyze**
   * **Exists winning strategy** - opens a new tap to the right with the answer whether a strategy for the input Petri game exists or not
   * **2-Player Strategy** - opens a new tap showing either the strategy of two-player game corresponding to the input Petri game or that no strategy exists (see the [reduction section](#reduction)).
-  * **2-Player game (complete, BDD)** - creates the two-player game to the given Petri game (see the [reduction section](#reduction)). This method creates the complete graph and is very expensive due to the huge state-space of most examples.
-  * **2-Player game (incremental, explicit)** - creates the two-player game to the given Petri game (see the [reduction section](#reduction)). This method creates the state space incrementally by interactively only calculating the next successor states. It only considers cases where in every infinite sequence of transitions there are infinitely many transitions involving the environment. This allows a faster calculation and clearer view, but only considers a subclass of Petri games.
-  * **2-Player game (incremental, BDD)** - creates the two-player game to the given Petri game (see the [reduction section](#reduction)). This method creates the state space incrementally by interactively only calculating the next successor states. Due to the usage of BDDs the calculation of the first successor state may take a long time, since already a lot of the state-space has to be calculated.
+  * **2-Player game (complete)** - creates the two-player game to the given Petri game (see the [reduction section](#reduction)). This method creates the complete graph and is very expensive due to the huge state-space of most examples.
+  * **2-Player game (incremental)** - creates the two-player game to the given Petri game (see the [reduction section](#reduction)). This method creates the state-space incrementally by interactively only calculating the next successor states. Two approaches are available:
+	* **Explicit approach** - It only considers cases where in every infinite sequence of transitions there are infinitely many transitions involving the environment. This allows for a faster calculation and clearer view, but only considers this subclass of Petri games.
+  	* **General approach** - Due to the usage of BDDs the calculation of the first successor state may take a long time, since already a lot of the state-space has to be calculated for that.
 
 The items to the right gives you the following features
 
@@ -106,9 +107,14 @@ The other items of the **left menu** belong to the layout of the nodes. See [her
 Synthesis of Distributed Systems with Petri Games:
 --------------------------------------------------
 <a name="SynthesisOfDistributedSystemsWithPetriGames"></a>
+For synthesizing local controllers for the input Petri game it can just be clicked **Solve** from the top menu bar. This results in opening a new tab which either shows the constructed strategy or a message that no strategy exists.
 
-![Exists Winning Strategy](screenshots/synt_exstrat.png)
 ![Winning Strategy](screenshots/synt_strat.png)
+
+In case there is a strategy, this strategy can be **simulated** as described [here](#SimulatingAPetriGame). The strategy can be **saved** as SVG, APT, or PNML by clicking on the **floppy** symbol. In case of the PNML export only the underlying Petri net is exported without the game semantics.
+
+For the realizability problem, i.e., to only check whether a strategy exists, the item **Exists Winning Strategy** under the main menu bar item **Analyze** can be used.
+![Exists Winning Strategy](screenshots/synt_exstrat.png)
 
 Reduction from Petri games to Two-Player Games over Finite Graphs:
 ------------------------------------------------------------------

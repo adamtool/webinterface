@@ -81,18 +81,29 @@
                :isVisible="isTabSelected"
   />
   <div v-else-if="tab.type === 'GRAPH_GAME_BDD' && tab.result.state === 'not_built'">
-    <v-row>
+  <v-row>
+    <div style="margin-left: 15px;">
+      <br>
+      <b>Explicit approach (for a subclass)</b><br>
+      It only considers cases where in every infinite sequence of transitions there are infinitely many transitions involving the environment.
+      This allows for a faster calculation and clearer view, but only considers this subclass of Petri games.
+      <br><br>
       <v-btn
         @click="$emit('initializeGraphGameBDDExplorer', true)"
         >
-        General approach (maybe slow for the first successor)
+        Start
       </v-btn>
+    </div>
+  <div style="margin-left: 15px;">
+      <br><br>
+      <b>General approach (maybe slow for the first successor)</b><br>
+    Due to the usage of BDDs the calculation of the first successor state may take a long time, since already a lot of the state-space has to be calculated for that.<br><br>
       <v-btn
         @click="$emit('initializeGraphGameBDDExplorer', false)"
       >
-        Restricted approach to consider cases where in every infinite sequence of transitions there
-        are infinitely many transitions involving the environment (faster)
+       Start
       </v-btn>
+  </div>
     </v-row>
   </div>
   <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD' && tab.result.state === 'built'"
