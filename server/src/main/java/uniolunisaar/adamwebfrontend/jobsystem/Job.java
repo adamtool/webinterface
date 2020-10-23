@@ -29,8 +29,11 @@ public class Job<T> {
 
     private boolean isQueued = false;
 
-    public Future<T> getFuture() {
-        return futurePair.getSecond();
+    public Future<?> getFuture() {
+        if (futurePair == null) {
+            return null;
+        }
+        return futurePair.getFirst();
     }
 
     public void addObserver(JobObserver observer) {
@@ -58,7 +61,6 @@ public class Job<T> {
             return;
         }
         isQueued = true;
-        fireJobStatusChanged();
         this.futurePair = asFuture(() -> {
             isStarted = true;
             timeStarted = Instant.now();
@@ -74,6 +76,7 @@ public class Job<T> {
                 throw e;
             }
         }, executorService);
+        fireJobStatusChanged();
         this.futurePair.getSecond().whenComplete((result, exception) -> {
             this.fireJobStatusChanged();
             if (exception != null) {

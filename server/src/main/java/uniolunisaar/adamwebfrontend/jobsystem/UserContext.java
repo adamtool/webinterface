@@ -123,14 +123,14 @@ public class UserContext {
      * @return -1 if the job's not running or in the queue, else 1, 2, 3, ... for queued jobs
      * (skipping the number zero).
      */
-    private int getQueuePosition(Job job) {
+    private int getQueuePosition(Job<?> job) {
         if (job.getStatus() == JobStatus.RUNNING) {
             return 0;
         }
-        if (job.getFuture() == null) {
+        Future<?> future = job.getFuture();
+        if (future == null) {
             return -1;
         }
-        Future future = job.getFuture();
         if (!jobQueue.contains(future)) {
             return -1;
         }
