@@ -600,6 +600,7 @@ public class App {
 
         boolean withRecurrentlyInterferingEnv = body.getAsJsonObject().get("withRecurrentlyInterferingEnv").getAsBoolean();
         bddGraphExplorerBuilder.initializeStepwise(withRecurrentlyInterferingEnv);
+        job.fireJobStatusChanged();
         return successResponse(new JsonPrimitive(true));
     }
 

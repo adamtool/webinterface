@@ -81,7 +81,19 @@
                :isVisible="isTabSelected"
   />
   <div v-else-if="tab.type === 'GRAPH_GAME_BDD' && tab.result.state === 'not_built'">
-    The graph editor is not yet initialized.
+    <v-row>
+      <v-btn
+        @click="$emit('initializeGraphGameBDDExplorer', true)"
+        >
+        General approach (maybe slow for the first successor)
+      </v-btn>
+      <v-btn
+        @click="$emit('initializeGraphGameBDDExplorer', false)"
+      >
+        Restricted approach to consider cases where in every infinite sequence of transitions there
+        are infinitely many transitions involving the environment (faster)
+      </v-btn>
+    </v-row>
   </div>
   <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD' && tab.result.state === 'built'"
                :graph='tab.result.graph'
