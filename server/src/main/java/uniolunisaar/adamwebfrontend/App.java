@@ -89,6 +89,8 @@ public class App {
 
         postWithUserContext("/saveJobAsPnml", this::handleSaveJobAsPnml);
 
+        postWithEditorNet("/saveEditorNetAsPnml", this::handleSaveEditorNetAsPnml);
+
         postWithEditorNet("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
 
         postWithEditorNet("/updateXYCoordinates", this::handleUpdateXYCoordinates);
@@ -436,6 +438,25 @@ public class App {
         return successResponse(new JsonPrimitive(true));
     }
 
+    // Save the editor net as PNML, including the given x/y coordinate annotations if present.
+    private Object handleSaveEditorNetAsPnml(Request req, Response res, PetriNetWithTransits net) throws RenderException {
+        JsonElement body = parser.parse(req.body());
+        PetriNet netCopy;
+        if (net instanceof PetriGameWithTransits) {
+            netCopy = new PetriGameWithTransits((PetriGameWithTransits) net);
+        } else {
+            netCopy = new PetriNetWithTransits(net);
+        }
+        JsonObject nodesXYCoordinatesJson =
+                body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        Type type = new TypeToken<Map<String, NodePosition>>() {
+        }.getType();
+        Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
+        PetriNetTools.saveXYCoordinates(netCopy, nodePositions);
+        String pnml = PNTools.pn2pnml(netCopy);
+        return successResponse(new JsonPrimitive(pnml));
+    }
+
     // Convert the net produced by a given job to PNML.
     // Add X/Y coordinate annotations if provided.
     private Object handleSaveJobAsPnml(Request req, Response res, UserContext uc) throws RenderException, ExecutionException, InterruptedException {
@@ -456,7 +477,11 @@ public class App {
 
         Object result = job.getResult();
         PetriNet netCopy;
-        if (result instanceof PetriNet) {
+        if (result instanceof PetriGameWithTransits) {
+            netCopy = new PetriGameWithTransits((PetriGameWithTransits) result);
+        } else if (result instanceof PetriNetWithTransits) {
+            netCopy = new PetriNetWithTransits((PetriNetWithTransits) result);
+        } else if (result instanceof PetriNet) {
             netCopy = new PetriNet((PetriNet) result);
         } else {
             throw new IllegalArgumentException("The job specified did not produce a net " +
