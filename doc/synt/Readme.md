@@ -57,7 +57,8 @@ Create a New Petri Game:
 Simulating a Petri game:
 ------------------------
 <a name="SimulatingAPetriGame"></a>
-![Simulating a Petri Game](screenshots/synt_simulation.png)
+![Simulating a Petri Game](screenshots/synt_simulator.png)
+
 
 Synthesis of Distributed Systems with Petri Games:
 --------------------------------------------------
