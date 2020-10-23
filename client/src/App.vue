@@ -1687,6 +1687,7 @@
           // after that's done.  Otherwise, the zoom command may fail.
           this.$refs.graphEditor.afterImportGraph(() => {
             this.$refs.graphEditor.zoomToFitAllNodes()
+            this.$refs.graphEditor.physicsSimulation.alpha(0.5).restart()
           })
         })
         this.isLeftPaneVisible = true
