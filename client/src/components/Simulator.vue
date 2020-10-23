@@ -49,6 +49,7 @@
           <v-list-item
             v-for="(historyState, i) in visibleSimulationHistory.stack"
             :key="i"
+            @click="onClickHistoryState(historyState, index)"
           >
             <v-list-item-content
             >
@@ -184,6 +185,14 @@
       }
     },
     methods: {
+      onClickHistoryState: function (historyState, index) {
+        if (index !== this.gameSimulationHistory.currentIndex) {
+          this.$refs.graphEditor.showTransitionFired({
+            transitionId: historyState.transitionFired,
+            wasSuccessful: true
+          })
+        }
+      },
       saveDataFlowPdf: function () {
         // discard the first state with no transitionFired
         const firingSequence = this.gameSimulationHistory.stack.slice(1)
