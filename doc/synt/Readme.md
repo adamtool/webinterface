@@ -9,6 +9,7 @@ With this user's guide we want to give on overview of some common workflows of t
 - [Synthesis of Distributed Systems with Petri Games](#SynthesisOfDistributedSystemsWithPetriGames)
 - [Reduction from Petri games to Two-Player Games over Finite Graphs](#reduction)
 - [Text Editor](#textEditor)
+- [Some Common Error Messages](#commonProblems)
 
 
 General Items:
@@ -143,3 +144,14 @@ Text Editor:
 A text editor is provided to change and also edit the input Petri game:
 ![Text Editor](screenshots/synt_apt_editor.png)
 For the format please see [here](https://uol.de/f/2/dept/informatik/ag/csd/adam/Format.pdf).
+
+Some Common Error Messages:
+---------------------------
+<a name="commonProblems"></a>
+
+- *The places are not properly annotated with partition ids.*
+<br>Please add a correct partition ID to each place of the input Petri game by using a right click on the place. See [here](#partitions). With *View->Show partitions* these partitions can be visualized.
+- *There are more than one environment player in the game*
+<br>The synthesis approach is only implemented for a bounded number of system players and one environment player. This means at most one environment place is allowed in every reachable marking of the Petri game. Please change the structure of the Petri game to use only one environment player.
+- *Net is not safe.*
+<br>The synthesis approach is only implemented for safe Petri games, i.e., Petri games where in every reachable marking each place occur at most once. Please change the structure of the Petri game to obtain a safe one.
