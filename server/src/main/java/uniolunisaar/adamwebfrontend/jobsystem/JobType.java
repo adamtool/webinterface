@@ -287,10 +287,22 @@ public enum JobType {
         }
     }, GRAPH_GAME_BDD {
         JsonElement serialize(Object result) {
-            return ((BDDGraphExplorer) result).getVisibleGraph();
+            BDDGraphExplorerBuilder builder = (BDDGraphExplorerBuilder) result;
+            JsonObject resultJson = new JsonObject();
+            if (builder.isBuilt()) {
+                resultJson.addProperty("state", "built");
+                if (builder.isIncremental()) {
+                    resultJson.addProperty("withRecurrentlyInterferingEnv",
+                            builder.getWithRecurrentlyInterferingEnv());
+                }
+                resultJson.add("graph", builder.getExplorer().getVisibleGraph());
+            } else {
+                resultJson.addProperty("state", "not_built");
+            }
+            return resultJson;
         }
 
-        public Job<BDDGraphExplorer> makeJob(PetriNetWithTransits petriGame1,
+        public Job<BDDGraphExplorerBuilder> makeJob(PetriNetWithTransits petriGame1,
                                              JsonObject params,
                                              boolean checkPreconditions) {
             // TODO #293 consider refactoring
@@ -320,12 +332,11 @@ public enum JobType {
                 }
                 // TODO #172 add options for the solving algorithms
                 if (shouldSolveStepwise) {
-                    BDDGraphExplorerStepwise bddGraphExplorerStepwise
-                            = new BDDGraphExplorerStepwise(petriGame, false); //TODO add the correct flag here depending on the approach
-                    return bddGraphExplorerStepwise;
+                    BDDGraphExplorerBuilder builder = new BDDGraphExplorerBuilder(petriGame);
+                    return builder;
                 } else {
                     BDDGraph graphGameBDD = AdamSynthesizer.getGraphGameBDD(petriGame);
-                    return BDDGraphExplorerCompleteGraph.of(graphGameBDD);
+                    return new BDDGraphExplorerBuilder(graphGameBDD);
                 }
             }, PetriNetExtensionHandler.getProcessFamilyID(petriGame));
         }

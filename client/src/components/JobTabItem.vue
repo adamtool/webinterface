@@ -80,8 +80,23 @@
                :showNodeLabels="showNodeLabels"
                :isVisible="isTabSelected"
   />
-  <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD'"
-               :graph='tab.result'
+  <div v-else-if="tab.type === 'GRAPH_GAME_BDD' && tab.result.state === 'not_built'">
+    <v-row>
+      <v-btn
+        @click="$emit('initializeGraphGameBDDExplorer', true)"
+        >
+        General approach (maybe slow for the first successor)
+      </v-btn>
+      <v-btn
+        @click="$emit('initializeGraphGameBDDExplorer', false)"
+      >
+        Restricted approach to consider cases where in every infinite sequence of transitions there
+        are infinitely many transitions involving the environment (faster)
+      </v-btn>
+    </v-row>
+  </div>
+  <GraphEditor v-else-if="tab.type === 'GRAPH_GAME_BDD' && tab.result.state === 'built'"
+               :graph='tab.result.graph'
                editorMode="Viewer"
                @toggleStatePostset="stateId => $emit('toggleStatePostset', stateId)"
                @toggleStatePreset="stateId => $emit('toggleStatePreset', stateId)"

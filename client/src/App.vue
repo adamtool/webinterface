@@ -331,6 +331,7 @@
                 @cancelJob="cancelJob"
                 @toggleStatePostset="({graphEditorRef, stateId}) => toggleGraphGameStatePostset(graphEditorRef, stateId, tab.jobKey)"
                 @toggleStatePreset="({graphEditorRef, stateId}) => toggleGraphGameStatePreset(graphEditorRef, stateId, tab.jobKey)"
+                @initializeGraphGameBDDExplorer="withRecurrentlyInterferingEnv => initializeGraphGameBDDExplorer(tab.jobKey, withRecurrentlyInterferingEnv)"
               />
             </keep-alive>
           </v-tab-item>
@@ -747,6 +748,7 @@
           'deleteJob',
           'toggleGraphGameBDDNodePostset',
           'toggleGraphGameBDDNodePreset',
+          'initializeGraphGameBDDExplorer',
           'getAptOfEditorNet',
           'updateXYCoordinates',
           'parseApt',
@@ -1418,6 +1420,12 @@
           // visible states will "pop out" appropriately.
           graphEditorRef.physicsSimulation.alpha(0.5).restart()
         })
+      },
+      initializeGraphGameBDDExplorer: function (jobKey, withRecurrentlyInterferingEnv) {
+        this.restEndpoints.initializeGraphGameBDDExplorer({
+          jobKey,
+          withRecurrentlyInterferingEnv
+        }).catch(error => logging.showErrorNotification(error.toString()))
       },
       onAptEditorInput: function (apt) {
         this.apt = apt
