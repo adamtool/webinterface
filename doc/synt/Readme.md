@@ -121,11 +121,20 @@ Reduction from Petri games to Two-Player Games over Finite Graphs:
 In the background the synthesis problem for Petri games is reduced to the synthesis problem for a two-player game over a finite graph with complete information. Insides of this reduction can be achieved by using the items 2-Player Strategy, 2-Player game (complete), and 2-Player game (incremental) of the main menu bar under item **Analyze**. When using **2-Player Strategy** a tab is opened which either shows the two-player strategy, which can be arranged and saved as an SVG, or the message that there is no strategy existent.
 <a name="reduction"></a>
 ![2-Player Winning Strategy](screenshots/synt_twoplayer_strat.png)
+When there is no strategy but the user expects that a strategy should exist, the web interface allows to create the complete two-player game with the item **2-Player game (complete)**. A new tab opens and the user can unfold the successors of a state by left clicking a node with an asterisk * to the right of the ID and the predecessors by right clicking the node when there is an asterisk * to the left of the ID. Left clicking an unfolded node, folds the successors back in.
 ![2-Player Complete](screenshots/synt_twoplayer_complete.png)
-![2-Player Incremental Approach Overview](screenshots/synt_twoplayer_incremental.png)
-![2-Player Incremental General Approach](screenshots/synt_twoplayer_general.png)
-![2-Player Incremental Restricted Approach](screenshots/synt_twoplayer_restricted.png)
+Therewith the user can create the expected strategy step by step, by unfolding the successors, moving the expected node (or nodes for an environment state) out of the bunch of nodes, and repeat these steps. Adapting the physics control settings, zooming, and moving the panel may also help to get a clearer view. This  helps to find the cause of the unexpected behavior since all bad states are marked with a bold black border.
 
+This approach is very expensive due to the already for small examples huge state-space of the system. That is way there is also the option to calculate only the by the user desired parts of the two-player game. When clicking **2-Player game (incremental)** a new tab opens showing two possible approaches.
+![2-Player Incremental Approach Overview](screenshots/synt_twoplayer_incremental.png)
+
+The first approach even further improves the size and the clearness of the presentation by only considering a subclass of Petri games. Only cases are considered where in every infinite sequence of transitions there are infinitely many transitions involving the environment. This means no type-2 case, i.e., situations where the system players can play infinitely long without any interaction with the environment, is existent. The user could first leave out these situations, since those cases do not have to react on an nondeterministic environment and therewith can be decided more easily. 
+![2-Player Incremental Restricted Approach](screenshots/synt_twoplayer_restricted.png)
+Here only the left click on nodes for calculating and showing all successors and the folding of unfolded nodes is available.
+
+The general approach takes the type-2 case into account. Due to calculating the successors with BDDs especially the calculation of the first successors can be quite time consuming.
+![2-Player Incremental General Approach](screenshots/synt_twoplayer_general.png)
+The usage is the same as in the previous approach.
 
 
 Text Editor:
@@ -134,6 +143,3 @@ Text Editor:
 A text editor is provided to change and also edit the input Petri game:
 ![Text Editor](screenshots/synt_apt_editor.png)
 For the format please see [here](https://uol.de/f/2/dept/informatik/ag/csd/adam/Format.pdf).
-
-Common Problems:
-----------------
