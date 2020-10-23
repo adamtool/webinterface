@@ -73,7 +73,7 @@
           let extraLabel;
           if (this.tab.jobKey.requestParams['incremental']) {
             if (this.tab.result && this.tab.result.state === 'built') { // job is 'finished''
-              extraLabel = this.tab.result.withRecurrentlyInterferingEnv ? ' (I) (General approach)' : ' (I) (Restricted approach)'
+              extraLabel = !this.tab.result.withRecurrentlyInterferingEnv ? ' (I) (General approach)' : ' (I) (Restricted approach)'
             } else {
               extraLabel = ' (I)'
             }

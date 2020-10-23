@@ -85,8 +85,8 @@
     <div style="margin-left: 15px;">
       <br>
       <b>Explicit approach (for a subclass)</b><br>
-      It only considers cases where in every infinite sequence of transitions there are infinitely many transitions involving the environment.
-      This allows for a faster calculation and clearer view, but only considers this subclass of Petri games.
+      Only cases are considered where in every infinite sequence of transitions there are infinitely many transitions involving the environment.
+      This allows for a faster calculation and clearer view, but only considers this subclass of Petri games (no type-2 case existent).
       <br><br>
       <v-btn
         @click="$emit('initializeGraphGameBDDExplorer', true)"
