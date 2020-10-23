@@ -377,6 +377,19 @@ public class App {
 
         // TODO #293 refactor
         PetriNetWithTransits netCopy = (net instanceof PetriGameWithTransits) ? new PetriGameWithTransits((PetriGameWithTransits) net) : new PetriNetWithTransits(net);
+        // TODO #97 refactor this.  See #82.
+        // For incremental graph game BDD jobs, add a random UUID so that you can open up the Graph
+        // Game BDD as many times as you want for a given Petri Game.
+        // (I.e. you will never run into JobKey collisions, even if the 'jobParams' and
+        // 'canonicalApt' are the same.  See the definition of JobKey.)
+        // This is necessary because the user may want to open up the "incremental graph game BDD"
+        // two times, once for the general approach and once for the restricted approach,
+        // and the approach flag is not included in the jobParams, since it is provided by the user
+        // after the "Job" has already been queued up.
+        if (jobType == JobType.GRAPH_GAME_BDD && jobParams.has("incremental") &&
+                jobParams.get("incremental").getAsBoolean()) {
+            jobParams.addProperty("hiddenUuid97", UUID.randomUUID().toString());
+        }
         JobKey jobKey = new JobKey(
                 PNWTTools.getAPT(netCopy, true, true),
                 jobParams,
