@@ -11,6 +11,12 @@
         AdamMC
       </a>.
     </span>
+      <span v-if="!useModelChecking">
+        The synthesis of distributed systems approach is based on the algorithms of the command-line tool
+      <a href="https://github.com/adamtool/adamsynt" target="_blank">
+        AdamSYNT
+      </a>.
+    </span>
     </p>
       <v-expansion-panels multiple v-model="openPanels">
         <v-expansion-panel v-if="useModelChecking" value="true">
