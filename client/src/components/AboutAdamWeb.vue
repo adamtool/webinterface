@@ -12,7 +12,7 @@
       </a>.
     </span>
     </p>
-      <v-expansion-panels >
+      <v-expansion-panels multiple v-model="openPanels">
         <v-expansion-panel v-if="useModelChecking" value="true">
           <v-expansion-panel-header>
             Overview
@@ -84,12 +84,7 @@
               <li>
                 The web interface AdamWEB is developed by
                 <a href="mailto:ann.yanich@posteo.de" target="_blank">
-                  Ann Yanich
-                </a>
-                under the supervision of
-                <a href="https://uol.de/en/csd/persons-contacts/manuel-gieseking-msce" target="_blank">
-                  Manuel Gieseking
-                </a>
+                  Ann Yanich</a>
                 in the <a href="https://uol.de/en/computingscience/csd" target="_blank">Correct System Design Group</a> at the University of Oldenburg.
               </p>
               </li>
@@ -104,6 +99,92 @@
             </ul>
        </v-expansion-panel-content>
       </v-expansion-panel>
+
+        <v-expansion-panel v-if="!useModelChecking" value="true">
+          <v-expansion-panel-header>
+            Overview
+          </v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <p><strong>AdamSYNT</strong> is a synthesizer for asynchronous distributed systems
+              modeled with
+              Petri games.</p>
+            <p><strong>Petri games</strong> extend Petri nets with a game semantics. The
+              tokens of the net are the players in the game. Players remember their own causal
+              past and do not know anything about the others as long as they do not communicate
+              (whereby a communication is modelled as the participation in a joint transition).
+              During a communication, all information is passed to all participating players.
+            </p>
+            <p>For <strong>local safety winning conditions</strong>, the synthesis problem for
+              Petri games with a bounded number of controllable components and one
+              uncontrollable component is solved, i.e., a local controller for each component
+              is created iff a solution exists.</p>
+            <p>Internally, the problem is reduced to a two-player game over a finite graph
+              with complete information, and <strong>BDD</strong> solving algorithms are used
+              to obtain a strategy.</p>
+            <h2>Features:</h2>
+            <p style="margin-bottom: 2mm;"></p>
+            <ul>
+              <li>Modeling, visualization, and simulation of Petri games</li>
+              <li>Synthesis of Petri games with one environment player and a bounded number of
+                system players with a local safety objective
+              </li>
+              <li>Interactive visualization of the corresponding two-player game to aid in
+                finding modeling bugs
+              </li>
+              <li>Visualization and simulation of the strategies</li>
+            </ul>
+            <p>
+            <h2>Documentation:</h2>
+            <p style="margin-bottom: 2mm;"></p>
+            <ul>
+              <li><a href="https://github.com/adamtool/webinterface/tree/master/doc/synt">https://github.com/adamtool/webinterface/tree/master/doc/synt</a>
+              </li>
+            </ul>
+            </p>
+            <p>
+            <h2>Related Publications:</h2>
+            <p style="margin-bottom: 2mm;"></p>
+            <ul>
+              <li><em>Bernd Finkbeiner, Manuel Gieseking, Ernst-Rüdiger Olderog:</em><br>
+                <a href="https://doi.org/10.1007/978-3-319-21690-4_25">Adam:
+                  Causality-Based Synthesis of Distributed Systems</a>. CAV (1) 2015: 433-439
+              </li>
+              <li><em>Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch,
+                Ernst-Rüdiger Olderog:</em><br>
+                <a href="https://doi.org/10.4204/EPTCS.260.5">Symbolic vs.
+                  Bounded Synthesis for Petri Games</a>. SYNT@CAV 2017: 23-43
+              </li>
+              <li><em>Bernd Finkbeiner, Ernst-Rüdiger Olderog:</em><br>
+                <a href="https://doi.org/10.1016/j.ic.2016.07.006">Petri games:
+                  Synthesis of distributed systems with causal memory</a>. Inf. Comput. 253:
+                181-203 (2017)
+              </li>
+            </ul>
+            </p>
+
+            <p>
+            <h2>Authors: </h2>
+            <p style="margin-bottom: 2mm;"></p>
+            <ul>
+              <li>
+                The web interface AdamWEB is developed by
+                <a href="mailto:ann.yanich@posteo.de" target="_blank">
+                  Ann Yanich</a>
+                in the <a href="https://uol.de/en/computingscience/csd" target="_blank">Correct System Design Group</a> at the University of Oldenburg.
+                </p>
+              </li>
+              <li>
+                The back end is a cooperation of the <a href="https://www.react.uni-saarland.de/" target="_blank">Reactive Systems Group</a> of Saarland University and the
+                <a href="https://uol.de/en/computingscience/csd" target="_blank">Correct System Design Group</a> of the University of Oldenburg by
+                <a href="https://www.react.uni-saarland.de/people/finkbeiner.html" target="_blank">Bernd Finkbeiner</a>,
+                <a href="https://uol.de/en/csd/persons-contacts/manuel-gieseking-msc" target="_blank">Manuel Gieseking</a>,
+                <a href="https://www.react.uni-saarland.de/people/hecking-harbusch.html" target="_blank">Jesko Hecking-Harbusch</a>, and
+                <a href="https://uol.de/en/computingscience/csd/persons-contacts/prof-dr-ernst-ruediger-olderog" target="_blank">Ernst-Rüdiger Olderog</a>.
+              </li>
+            </ul>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+
       <v-expansion-panel>
         <v-expansion-panel-header>
           Version
@@ -155,6 +236,11 @@
         return format(this.buildDate, 'HH:mm:ss, MMMM Do, YYYY ')
       },
       sourceCodeRevision: () => ____ADAM_WEB_BUILD_SHA____
+    },
+    data: function () {
+      return {
+        openPanels: [0]
+      }
     },
     props: {
       useModelChecking: {
