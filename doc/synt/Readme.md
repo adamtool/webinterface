@@ -11,10 +11,9 @@ With this user guide, we give an overview of some common workflows of the web in
 - [Text Editor](#textEditor)
 - [Common Error Messages](#commonProblems)
 
-
+<a name="GeneralItems"></a>
 General Items:
 --------------
-<a name="GeneralItems"></a>
 When opening the interface for the synthesis of distributed systems approach in your browser, you get the following picture:
 ![Initial Screen For Synthesis Approach](screenshots/synt_start.png)
 
@@ -51,15 +50,15 @@ The items to the right give you the following features:
 - **GitHub** - opens the source code for the web interface on GitHub.
 - **Home** - leads you back to the index page to choose between the model checking and the distributed synthesis approach.
 
-Create a Petri Game:
-------------------------
 <a name="CreateAPetriGame"></a>
+Create a Petri Game:
+--------------------
 To model a Petri game, the menu bar on the left is used:
 
 ![Creating a New Petri Game](screenshots/synt_leftMenu.png)
 
-Here the following features are available
 <a name="leftMenu"></a>
+Here, the following features are available:
 
 - **Collapse** - collapses the menu bar to make more space for the actual drawing panel, or expands it again.
 - **Select** - changes to the mode where a single node can be selected by clicking the node or several nodes can be selected by holding the ctrl-key while clicking the next node. Clicking and holding the left mouse button in a free area creates a rectangle which selects all nodes in the rectangle.
@@ -74,7 +73,8 @@ Here the following features are available
 - **Zoom to fit** - zooms into or out of the panel such that all nodes are visible.
 - **Move all nodes to the visible area** - changes the position of the invisible nodes of the current cutout of the panel such that they fit into the current cutout.
 - **Freeze all nodes** - deactivates the physics control and the movability of all nodes.
-- **Unfreeze all nodes** - reactivates the physics control, deletes the current coordinates of all nodes, and reactivates the movability of all nodes.<a name="unfreeze"></a>
+<a name="unfreeze"></a>
+- **Unfreeze all nodes** - reactivates the physics control, deletes the current coordinates of all nodes, and reactivates the movability of all nodes.
 
 **Drag and drop** can be used to move the **nodes** (when clicking the nodes) and the **panel** when clicking into the free space and holding the *shift-key*. Dragging a node with a pressed *ctrl-key* **snaps** the node **to a grid**. **Zoom in and out** can be done with the mouse wheel. **Enabled transitions** are visualized with an asterisk *.
 
@@ -85,7 +85,8 @@ Here the following features are available
   * **Rename** - allows to enter a new name.
   * **Change to environment place** - changes this place to an environment place (white circle). Only visible if it is currently a system place.
   * **Change to system place** - changes this place to a system place (gray circle). Only visible if it is currently an environment place.
-  * **Set partition** -  allows to enter a number to which partition this place belongs. Environment token are automatically added to partition 0. When no automatic partitioning is possible (getting a corresponding message when trying to solve a game without annotated partitions), the user has to annotate the places manually. The places have to be partitioned into disjunctive sets such that in each reachable marking no two places of the same partition occur. Thus, you should partition the places with regard to the tokens that can reside in the place. The less partitions you use the faster the algorithms work.<a name=partition></a>
+  <a name=partitions></a>
+  * **Set partition** -  allows to enter a number to which partition this place belongs. Environment token are automatically added to partition 0. When no automatic partitioning is possible (getting a corresponding message when trying to solve a game without annotated partitions), the user has to annotate the places manually. The places have to be partitioned into disjunctive sets such that in each reachable marking no two places of the same partition occur. Thus, you should partition the places with regard to the tokens that can reside in the place. The less partitions you use the faster the algorithms work.
   * **Set initial token** -  allows to enter a number of initial tokens. Note that the current approach only allows for the synthesis of safe, i.e., 1-bounded Petri games.
   * **Toggle is special** - allows to mark or unmark this place as a **bad** place.
 - Transition
@@ -94,9 +95,9 @@ Here the following features are available
 - Flow
   * **Delete Flow** - deletes the flow.
 
-Simulate a Petri game:
-------------------------
 <a name="SimulatingAPetriGame"></a>
+Simulate a Petri game:
+----------------------
 Clicking on the **SIMULATOR** tab allows to fire enabled transitions (indicated by the asterisk *) in the Petri game:
 
 ![Simulating a Petri Game](screenshots/synt_simulator.png)
@@ -105,9 +106,9 @@ When the **thunderbolt** item of the left menu bar is chosen, transitions are cl
 
 The other items of the **left menu** belong to the layout of the nodes. See [here](#leftMenu) for the explanations. This layout does not change anything for the input Petri game. The simulated game stays in the state even if the tab is hidden. It only changes when loading a new game by the **LOAD GAME FROM EDITOR** button.
 
+<a name="SynthesisOfDistributedSystemsWithPetriGames"></a>
 Synthesis of Distributed Systems with Petri Games:
 --------------------------------------------------
-<a name="SynthesisOfDistributedSystemsWithPetriGames"></a>
 To synthesize local controllers for the input Petri game, you click **Solve** from the top menu bar. This results in opening a new tab which either shows a deadlock-avoiding winning strategy or a message that no such strategy exists.
 
 ![Winning Strategy](screenshots/synt_strat.png)
@@ -117,10 +118,10 @@ For a positive result, the strategy can be **simulated** as described [here](#Si
 For the realizability problem, i.e., to only check whether a strategy exists, the item **Exists Winning Strategy** under the main menu bar item **Analyze** can be used. This opens a tab with the respective answer:
 ![Exists Winning Strategy](screenshots/synt_exstrat.png)
 
+<a name="reduction"></a>
 Reduction from Petri games to Two-Player Games over Finite Graphs:
 ------------------------------------------------------------------
 In the background, the synthesis problem for Petri games is reduced to the synthesis problem for a two-player game over a finite graph with complete information. Insides about this reduction can be obtained by using the items 2-Player Strategy, 2-Player game (complete), and 2-Player game (incremental) of the main menu bar under item **Analyze**. When using **2-Player Strategy**, a tab is opened which either shows the two-player strategy, which can be arranged and saved as an SVG, or the message that there is no strategy existent.
-<a name="reduction"></a>
 ![2-Player Winning Strategy](screenshots/synt_twoplayer_strat.png)
 When there is no strategy but the user expects that a strategy should exist, the web interface allows to create the complete two-player game with the item **2-Player game (complete)**. A new tab opens and the user can unfold the successors of a state by left clicking a node with an asterisk * to the right of the ID and the predecessors by right clicking the node when there is an asterisk * to the left of the ID. Left clicking an unfolded node, folds the successors back in.
 ![2-Player Complete](screenshots/synt_twoplayer_complete.png)
@@ -137,18 +138,16 @@ The general approach takes the type-2 case into account. Due to calculating the 
 ![2-Player Incremental General Approach](screenshots/synt_twoplayer_general.png)
 The usage is the same as in the previous approach.
 
-
+<a name="textEditor"></a>
 Text Editor:
 ------------
-<a name="textEditor"></a>
 A text editor is provided to change and also edit the input Petri game:
 ![Text Editor](screenshots/synt_apt_editor.png)
 For the format please refer to [here](https://uol.de/f/2/dept/informatik/ag/csd/adam/Format.pdf).
 
+<a name="commonProblems"></a>
 Common Error Messages:
 ---------------------------
-<a name="commonProblems"></a>
-
 - *The places are not properly annotated with partition ids.*
 <br>Please add a correct partition ID to each place of the input Petri game by using a right click on the place. See [here](#partitions). With *View->Show partitions* these partitions can be visualized.
 - *There are more than one environment player in the game.*
