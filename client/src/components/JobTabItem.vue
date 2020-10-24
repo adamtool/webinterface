@@ -97,7 +97,7 @@
   <div style="margin-left: 15px;">
       <br><br>
       <b>General approach (maybe slow for the first successor)</b><br>
-    Due to the usage of BDDs the calculation of the first successor state may take a long time, since already a lot of the state-space has to be calculated for that.<br><br>
+    Due to the usage of BDDs, the calculation of especially the first successor state can take longer. This method is complete<br><br>
       <v-btn
         @click="$emit('initializeGraphGameBDDExplorer', false)"
       >

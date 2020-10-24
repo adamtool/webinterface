@@ -37,6 +37,7 @@
                 nets with transits and Flow-LTL.</p>
               <p>
               <h2>Features:</h2>
+              <p style="margin-bottom: 2mm;"></p>
               <ul>
                 <li>Modeling, visualization, and simulation of Petri nets with transits</li>
                 <li>Model checking of Petri nets with transits against Flow-LTL</li>
@@ -48,6 +49,7 @@
               </p>
               <p>
               <h2>Documentation:</h2>
+              <p style="margin-bottom: 2mm;"></p>
               <ul>
                 <li><a href="https://github.com/adamtool/webinterface/tree/master/doc/mc">https://github.com/adamtool/webinterface/tree/master/doc/mc</a>
                 </li>
@@ -55,6 +57,7 @@
               </p>
               <p>
               <h2>Related Publications: </h2>
+              <p style="margin-bottom: 2mm;"></p>
               <ul>
                 <li><em>Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch,
                   Ernst-Rüdiger
@@ -109,6 +112,7 @@
                 with complete information, and <strong>BDD</strong> solving algorithms are used
                 to obtain a strategy.</p>
               <h2>Features:</h2>
+              <p style="margin-bottom: 2mm;"></p>
               <ul>
                 <li>Modeling, visualization, and simulation of Petri games</li>
                 <li>Synthesis of Petri games with one environment player and a bounded number of
@@ -121,6 +125,7 @@
               </ul>
               <p>
               <h2>Documentation:</h2>
+              <p style="margin-bottom: 2mm;"></p>
               <ul>
                 <li><a href="https://github.com/adamtool/webinterface/tree/master/doc/synt">https://github.com/adamtool/webinterface/tree/master/doc/synt</a>
                 </li>
@@ -128,6 +133,7 @@
               </p>
               <p>
               <h2>Related Publications:</h2>
+              <p style="margin-bottom: 2mm;"></p>
               <ul>
                 <li><em>Bernd Finkbeiner, Manuel Gieseking, Ernst-Rüdiger Olderog:</em><br>
                   <a href="https://doi.org/10.1007/978-3-319-21690-4_25">Adam:

@@ -129,21 +129,24 @@
       </hsc-menu-bar>
       <v-dialog
         style="display: block;"
-        max-width="600"
+        max-width="800px"
         v-model="showAboutModal"
         @keydown.esc="showAboutModal = false">
         <v-card>
           <v-card-title
             primary-title
             style="justify-content: space-between;">
-            <span>About AdamWEB</span>
+            <span v-if="useModelChecking">About AdamWEB — Model Checker</span>
+            <span v-if="!useModelChecking">About AdamWEB — Synthesizer</span>
             <v-icon standard right
                     @click="showAboutModal = false">
               close
             </v-icon>
           </v-card-title>
           <v-card-text>
-            <AboutAdamWeb/>
+            <AboutAdamWeb
+              :useModelChecking="useModelChecking"
+            />
           </v-card-text>
         </v-card>
       </v-dialog>
