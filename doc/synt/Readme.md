@@ -42,7 +42,7 @@ Here, the behavior of the physics control for the nodes of the visualized object
   * **2-Player game (complete)** - creates the two-player game for the given Petri game (see the [reduction section](#reduction)). This method creates the complete graph and is expensive due to the huge state-space of most examples.
   * **2-Player game (incremental)** - creates the two-player game for the given Petri game (see the [reduction section](#reduction)). This method creates the state-space incrementally by only calculating the next successor states for clicked states. Two approaches are available:
 	* **Explicit approach** - Only cases are considered where in every infinite sequence of transitions there are infinitely many transitions involving the environment. This allows for a faster calculation and clearer view, but only considers this subclass of Petri games (no type-2 case existent).
-   * **General approach** - Due to the usage of BDDs, the calculation of the first successor state can take longer, because already a large portion of the state-space has to be calculated, but this method is complete.
+   * **General approach** - Due to the usage of BDDs, the calculation of especially the first successor state can take longer. This method is complete.
 
 The items to the right give you the following features:
 
