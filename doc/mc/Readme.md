@@ -20,19 +20,19 @@ When opening the web interface for the model checking approach in your browser, 
 At the top of the screen, there is a menu bar with the following items:
 
 - **File**
-  * **New Petri net with transits** - to clear the old Petri net with transits and create a new one.
-  * **Load APT from file** - to load a file from your disk in the APT format (see [here](https://github.com/adamtool/adammc/blob/master/doc/documentation.pdf) for a format description (Section 4.1)).
-  * **Save APT to file** - to save the current Petri net with transits to your disk in the APT format (see [here](https://github.com/adamtool/adammc/blob/master/doc/documentation.pdf) for a format description (Section 4.1)).
-  * **Load example** - to load one of the provided example Petri nets with transits.
+  * **New Petri net with transits** - clears the old Petri net with transits and create a new one.
+  * **Load APT from file** - loads a file from your disk in the APT format (see [here](https://github.com/adamtool/adammc/blob/master/doc/documentation.pdf) for a format description (Section 4.1)).
+  * **Save APT to file** - saves the current Petri net with transits to your disk in the APT format (see [here](https://github.com/adamtool/adammc/blob/master/doc/documentation.pdf) for a format description (Section 4.1)).
+  * **Load example** - loads one of the provided example Petri nets with transits.
 - **View**
   * **Log Window** - shows a logging window with debugging information for advanced users.
   * **Job Queue** - shows a panel with the recent jobs and results of the user and the possibility to load the results back into the interface, or to delete or cancel them. Note that only the text and not the colored layer is clickable. You can exchange your unique identifier of the browser to show others your job list, results, and problems.
 ![Job Queue](screenshots/mc_job_queue_4k.png)
   * **Show right panel** - expands or collapses the right panel which is shown after a result is obtained. This can also be done with the slider, which can be used to customize the sizes of the panel.
-  * **Show physics controls** - adds the following slider to the bottom of the screen
+  * **Show physics controls** - adds the following slider to the bottom of the screen.
 ![Physics Control](screenshots/mc_physics_control_4k.png)
-Here, the behavior of the physics control for the nodes of the visualized objects, i.e., the Petri net with transits or the constructed Petri net, can be customized. When the nodes are unfreezed (see [here](#unfreeze)), the nodes can freely move over the panel. To created clearer views and to minimize the overlapping, the *Repulsion Strength*, the *Link strength*, and the *Gravity strength* can be modified.
-  * **Show node labels instead of IDs** - Most of the nodes of the  constructed Petri net for the reduction methods for checking Petri nets with transits against Flow-LTL have a correspondence to the input Petri net with transits. With this button, you can toggle between showing the names of corresponding nodes or the original ones. See [here](#Reduction).
+Here, the behavior of the physics control for the nodes of the visualized objects, i.e., the Petri net with transits or the constructed Petri net, can be customized. When the nodes are unfreezed (see [here](#unfreeze)), the nodes can freely move in the panel. To minimize overlapping, the *Repulsion Strength*, the *Link strength*, and the *Gravity strength* can be modified.
+  * **Show node labels instead of IDs** - Most of the nodes of the  constructed Petri net for the reduction methods for checking Petri nets with transits against Flow-LTL have a correspondence to the input Petri net with transits. With this button, you can toggle between showing the names of corresponding nodes or the original names as labels. See [here](#Reduction).
 - **Check** - starts the model checking procedure and afterward opens a tab on the right showing the answer if the input Petri net with transit satisfies the Flow-LTL formula formula. If it is not satisfied a counterexample is given. See [here](#ModelCheckingPetriNetswithTransits).
 - **Reduction**
   * **Petri net** - creates the constructed *Petri net* for the reduction method from the given input Petri net with transits and Flow-LTL formula and shows it on the right. See [here](#ReductionNet).
@@ -77,7 +77,7 @@ Here the following features are available
 - Place
   * **Delete** - deletes the node.
   * **Rename** - allows to enter a new name.
-  * **Set initial token** -  allows to enter a number of initial tokens. Note that the current approach only allows for model checking safe, i.e. 1-bounded, Petri nets with transits.
+  * **Set initial token** -  allows to enter a number of initial tokens. Note that the current approach only allows for model checking safe, i.e., 1-bounded Petri nets with transits.
   * **Toggle is special** - allows to mark this place as special. This is used to automatically generate the Flow-LTL formulas for a Büchi, reachability, and safety condition (only visible if the Büchi, Reachability, or Safety condition is selected in the drop down menu left to the formula field).
 - Transition
   * **Delete** - deletes the node.
@@ -164,7 +164,7 @@ The model checking procedure for model checking Petri nets with transits against
 Reduction from Petri nets with transits and Flow-LTL to Petri nets and LTL:
 ---------------------------------------------------------------------------
 <a name="Reduction"></a>
-In the background the problem of model checking Petri nets with transits against Flow-LTL is reduced to the problem of model checking Petri nets against LTL. The corresponding constructed parts can be shown with the **Reduction** item of the main menu bar.
+In the background, the problem of model checking Petri nets with transits against Flow-LTL is reduced to the problem of model checking Petri nets against LTL. The corresponding constructed parts can be shown with the **Reduction** item of the main menu bar.
 
 The constructed Petri net is shown in the right panel when hitting the subitem **Petri Net** from the main menu bar:<a name="ReductionNet"></a>
 
