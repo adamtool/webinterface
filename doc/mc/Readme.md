@@ -5,15 +5,15 @@ With this user guide, we give on overview of some common workflows of the web in
 
 - [General Items](#GeneralItems)
 - [Create a Petri net with transits](#CreateAPetriNetWithTransits)
-- [Simulate a Petri net with transits](#SimulaeAPetriNetWithTransits)
+- [Simulate a Petri net with transits](#SimulateAPetriNetWithTransits)
 - [Syntax of Flow-LTL](#syntaxFlowLTL)
 - [Model checking Petri nets with transits](#ModelCheckingPetriNetswithTransits)
-- [Reduction from Petri nets with transits and Flow-LTL to Petri nets and LTL](#reduction)
+- [Reduction from Petri nets with transits and Flow-LTL to Petri nets and LTL](#Reduction)
 - [Text Editor](#textEditor)
 
+<a name="GeneralItems"></a>
 General Items:
 --------------
-<a name="GeneralItems"></a>
 When opening the web interface for the model checking approach in your browser, you get the following picture:
 ![Initial Screen For Model Checking Approach](screenshots/mc_initial_4k.png)
 
@@ -45,15 +45,15 @@ The items to the right give you the following features:
 - **GitHub** - opens the source code for the web interface on GitHub.
 - **Home** - leads you back to the index page to choose between the model checking and the distributed synthesis approach.
 
-Create a Petri Net with Transits
-------------------------------------
 <a name="CreateAPetriNetWithTransits"></a>
+Create a Petri Net with Transits:
+---------------------------------
 To model a Petri net with transits, the menu bar on the left is used:
 
 ![Create New Petri Net with Transits](screenshots/mc_expanded_toolbar_4k_small.png)
 
-Here the following features are available
 <a name="leftMenu"></a>
+Here, the following features are available:
 
 - **Collapse** - collapses the menu bar to make more space for the actual drawing panel, or expands it again.
 - **Select** - changes to the mode where a single node can be selected by clicking the node or several nodes can be selected by holding the ctrl-key while clicking the next node. Clicking and holding the left mouse button in a free area creates a rectangle which selects all nodes in the rectangle.
@@ -68,7 +68,8 @@ Here the following features are available
 - **Zoom to fit** - zooms into or out of the panel such that all nodes are visible.
 - **Move all nodes to the visible area** - changes the position of the invisible nodes of the current cutout of the panel such that they fit into the current cutout.
 - **Freeze all nodes** - deactivates the physics control and the movability of all nodes.
-- **Unfreeze all nodes** - reactivates the physics control, deletes the current coordinates of all nodes, and reactivates the movability of all nodes.<a name="unfreeze"></a>
+<a name="unfreeze"></a>
+- **Unfreeze all nodes** - reactivates the physics control, deletes the current coordinates of all nodes, and reactivates the movability of all nodes.
 
 **Drag and drop** can be used to move the **nodes** (when clicking the nodes) and the **panel** when clicking into the free space and holding the *shift-key*. Dragging a node with a pressed *ctrl-key* **snaps** the node **to a grid**. **Zoom in and out** can be done with the mouse wheel. **Enabled transitions** are visualized with an asterisk *.
 
@@ -90,9 +91,9 @@ Here the following features are available
   * **Set inhibitor arc** - marks the flow as an inhibitor arc (only visible for ingoing arcs from transitions, which are not already inhibitor arcs). Inhibitor arcs are visualized by a circle at the end of the arc instead of the arrow head.
   * **Set not inhibitor arc** - removes the inhibitor marker of a flow (only visible for inhibitor arcs.
 
+<a name="SimulateAPetriNetWithTransits"></a>
 Simulate a Petri Net with Transits:
 -------------------------------------
-<a name="SimulateAPetriNetWithTransits"></a>
 Clicking on the **SIMULATOR** tab allows to fire enabled transitions (indicated by the asterisk *) in the Petri net with transits:
 
 ![APT Editor](screenshots/mc_simulator.png)
@@ -101,9 +102,9 @@ When the **thunderbolt** item of the left menu bar is chosen, transitions are cl
 
 The other items of the **left menu** belong to the layout of the nodes. See [here](#leftMenu) for the explanations. This layout does not change anything for the input Petri net with transits. The simulated net stays in the state even if the tab is hidden. It only changes when loading a new net by the **LOAD NET FROM EDITOR** button or when loading a counterexamples (see [here](#ModelCheckingPetriNetswithTransits)).
 
-Syntax of Flow-LTL:
-----------------
 <a name="syntaxFlowLTL"></a>
+Syntax of Flow-LTL:
+-------------------
 Flow-LTL consists of two different kind of formulas. The *run formulas* for the control part and the *flow formulas* for the data part.
 In both, standard LTL can be used with the following operators:
 
@@ -136,9 +137,9 @@ The following picture shows the parser's grammar for Flow-LTL:
 
 ![Syntax Flow-LTL](screenshots/mc_syntax_flowLTL.png)
 
+<a name="ModelCheckingPetriNetswithTransits"></a>
 Model Checking Petri Nets with Transits:
 ----------------------------------------
-<a name="ModelCheckingPetriNetswithTransits"></a>
 To model check a Petri net with transits against Flow-LTL, a Flow-LTL formula has to be available in the input field:
 
 ![Formula Input](screenshots/mc_formula_input.png)
@@ -155,29 +156,31 @@ In the negative case, i.e., when the formula is **not satisfied**, the picture l
 
 ![Model Checking Unsat](screenshots/mc_unsat.png)
 
-Again the formula and the result are printed. In addition, a **counterexample** as a firing sequence which violates the formula is given. When clicking **LOAD INTO SIMULATOR**, this firing sequence is given to the simulator (see [here](#simulator)). With **SHOW WITNESSES**, you can create a PDF showing the witnesses regarding all flow subformulas for this counterexample. This PDF shows the firing sequence of the control and connected to that the violating flow chain for each flow subformula:
+Again the formula and the result are printed. In addition, a **counterexample** as a firing sequence which violates the formula is given. When clicking **LOAD INTO SIMULATOR**, this firing sequence is given to the simulator (see [here](#SimulateAPetriNetWithTransits)). With **SHOW WITNESSES**, you can create a PDF showing the witnesses regarding all flow subformulas for this counterexample. This PDF shows the firing sequence of the control and connected to that the violating flow chain for each flow subformula:
 
 ![Witnesses](screenshots/mc_witnesses.png)
 
-The model checking procedure for model checking Petri nets with transits against Flow-LTL is based on a reduction to model checking Petri net against LTL (see [here](#reduction)). A **counterexample** for this **constructed Petri net** is also given and can be loaded into the simulator with the corresponding Petri net. The technical details regarding the latches of the circuit can be seen when clicking on the counterexample for the constructed Petri net.
+The model checking procedure for model checking Petri nets with transits against Flow-LTL is based on a reduction to model checking Petri net against LTL (see [here](#Reduction)). A **counterexample** for this **constructed Petri net** is also given and can be loaded into the simulator with the corresponding Petri net. The technical details regarding the latches of the circuit can be seen when clicking on the counterexample for the constructed Petri net.
 
+<a name="Reduction"></a>
 Reduction from Petri nets with transits and Flow-LTL to Petri nets and LTL:
 ---------------------------------------------------------------------------
-<a name="Reduction"></a>
 In the background, the problem of model checking Petri nets with transits against Flow-LTL is reduced to the problem of model checking Petri nets against LTL. The corresponding constructed parts can be shown with the **Reduction** item of the main menu bar.
 
-The constructed Petri net is shown in the right panel when hitting the subitem **Petri Net** from the main menu bar:<a name="ReductionNet"></a>
+<a name="ReductionNet"></a>
+The constructed Petri net is shown in the right panel when hitting the subitem **Petri Net** from the main menu bar:
 
 ![Reduction Petri net](screenshots/mc_reduction_net.png)
 
-Here, we have the same features as for the simulation tab (see [here](#SimulatingAPetriNetWithTransits)) apart from showing the data flow, since a standard Petri net does not have data flows. Clicking the **floppy disk** symbol in the top right corner of the panel allows to save the net in SVG, PNML, or APT file format.
+Here, we have the same features as for the simulation tab (see [here](#SimulateAPetriNetWithTransits)) apart from showing the data flow, since a standard Petri net does not have data flows. Clicking the **floppy disk** symbol in the top right corner of the panel allows to save the net in SVG, PNML, or APT file format.
 
-The constructed LTL formula is shown in the right panel when clicking the subitem **LTL Formula** from the main menu bar: <a name="ReductionFormula"></a>
+ <a name="ReductionFormula"></a>
+The constructed LTL formula is shown in the right panel when clicking the subitem **LTL Formula** from the main menu bar:
 ![Reduction LTL formula](screenshots/mc_reduction_formula.png)
 
+<a name="textEditor"></a>
 Text Editor:
 ------------
-<a name="textEditor"></a>
 A text editor is provided to change and also edit the input Petri net with transits:
 ![Text Editor](screenshots/mc_apt_editor.png)
 For the format please refer to [here](https://github.com/adamtool/adammc/blob/master/doc/documentation.pdf) (Section 4.1).
