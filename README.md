@@ -47,14 +47,32 @@ https://doi.org/10.1007/978-3-030-59152-6_22). ATVA 2020: 394-410 [(Full Version
   [Symbolic vs. Bounded Synthesis for Petri Games](https://doi.org/10.4204/EPTCS.260.5). SYNT@CAV 2017: 23-43
 
 
-How To Build:
--------------
-Run the following commands:
-cd server/
-mvn clean package && java -jar target/web-frontend-1.0-SNAPSHOT-jar-with-dependencies.jar
-    
-Then open localhost:4567 in your browser.
+How To Build and Run:
+---------------------
+If you have not cloned the repository with the ```--recursive``` flag, please first use
+```
+git submodule update --init
+```
+to get all the code of the backend.
+
+To **compile** the web interface please use the script
+```
+./buildWithBackend.sh
+```
+This also generates the corresponding backend jar file of Adam and integrates it. All other dependencies are downloaded
+by maven. This could take a while. For more details regarding the backend, e.g., how to update to a newer version, please see the [ReadMe](./backend/README.md) of the backend.
+
+To **start** the web interface please use the script
+```
+./run.sh
+```
+and open 
+```localhost:4567```
+in your browser.
+
+All temporary files created by the web interface or external tools are stored by default in folder ```./tmp/``` in the server's working directory. This location can be overridden using the command line flag ```-DADAMWEB_TEMP_DIRECTORY=/path/to/store/temporary/files/```.
+
 
 For model checking to work, you have to have the tools abc, aiger and mchyper, as well as GNU 'time', installed on your system and update the file ADAM.properties to have the correct paths to each one. The source code of each one is in a .tar.gz or a .zip file in this repository.  The README for mchyper explains how to compile them.
 
-The temporary files created by abc, mchyper, etc. are stored by default in './tmp/' in the server's working directory.  This location can be overridden using the command line flag ```-DADAMWEB_TEMP_DIRECTORY=/path/to/store/temporary/files/```
+
