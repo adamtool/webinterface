@@ -30,13 +30,23 @@ This module depends on the
 
 How To Build:
 -------------
-How to build and deploy server and client
+I you have not cloned the repository with the ```--recursive``` flag, please first use
+```
+git submodule update --init
+```
+to get all code of the backend.
 
-Run the following commands:
-cd server/
-mvn clean package && java -jar target/web-frontend-1.0-SNAPSHOT-jar-with-dependencies.jar
-    
-Then open localhost:4567 in your browser.
+To compile the web interface please use the script
+
+```
+./buildWithBackend.sh
+```
+This also generates the corresponding backend jar file of Adam and integrates it. All other dependencies are downloaded
+by maven. This could take a while.
+
+Then open 
+```localhost:4567```
+in your browser and have fun with the web interface.
 
 For model checking to work, you have to have the tools abc, aiger and mchyper, as well as GNU 'time', installed on your system and update the file ADAM.properties to have the correct paths to each one. The source code of each one is in a .tar.gz or a .zip file in this repository.  The README for mchyper explains how to compile them.
 
