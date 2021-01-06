@@ -45,7 +45,8 @@
             The syntax for Flow-LTL is given by:
           </p>
           <p class="code">phi = LTL | ( phi AND phi ) | ( phi OR phi ) | ( LTL -> phi ) | A LTL</p>
-          <p>with standard LTL formulas with the following operators:</p>
+          <p>where for AND, OR, ->, and A also the ASCII symbols ⋀, ⋁, ⇒, and 𝔸 can be used</p>
+          <p>and the standard LTL formulas use the following syntax for their operators:</p>
           <table role="table" class="ltl-formula-table">
             <thead>
             <tr>
@@ -56,11 +57,11 @@
             <tbody>
             <tr>
               <td>true</td>
-              <td>TRUE</td>
+              <td>TRUE | ⊤</td>
             </tr>
             <tr>
               <td>false</td>
-              <td>FALSE</td>
+              <td>FALSE | ⊥ </td>
             </tr>
             <tr>
               <td>atoms</td>
@@ -68,39 +69,39 @@
             </tr>
             <tr>
               <td>Negation</td>
-              <td>NEG or !</td>
+              <td>NEG | ! | ¬ </td>
             </tr>
             <tr>
               <td>Next</td>
-              <td>X</td>
+              <td>X | ◯</td>
             </tr>
             <tr>
               <td>Conjunction</td>
-              <td>AND</td>
+              <td>AND | ⋏</td>
             </tr>
             <tr>
               <td>Disjunction</td>
-              <td>OR</td>
+              <td>OR | ⋎</td>
             </tr>
             <tr>
               <td>Implication</td>
-              <td>IMP or -&gt;</td>
+              <td>IMP | -&gt; | →</td>
             </tr>
             <tr>
               <td>Bimplication</td>
-              <td>BIMP or &lt;-&gt;</td>
+              <td>BIMP | &lt;-&gt; | ↔</td>
             </tr>
             <tr>
               <td>Until</td>
-              <td>U</td>
+              <td>U | 𝓤</td>
             </tr>
             <tr>
               <td>Weak Until</td>
-              <td>W</td>
+              <td>W | 𝓦</td>
             </tr>
             <tr>
               <td>Release</td>
-              <td>R</td>
+              <td>R | 𝓡</td>
             </tr>
             </tbody>
           </table>
