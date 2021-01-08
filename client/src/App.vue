@@ -200,12 +200,11 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;">
               <div class="load-example-message" v-if="showTutorialText">
-                <v-btn @click="loadRandomAptFile(); showTutorialText = false;">
+                <v-btn @click="loadRandomAptFile">
                   Click here to load a random example
                 </v-btn>
                 <div>Or create your own net using the tools on the left.</div>
-                <div>(Other examples are listed under File > Load Example.)</div>
-                <div>This message will disappear when you begin editing.</div>
+                <div>(A complete listing of all examples can be found under File > Load Example.)</div>
               </div>
               <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
@@ -448,7 +447,12 @@
 
 <script>
   import {fakeTabs} from './testData'
-  import {aptFileTreeSynthesis, aptFileTreeModelChecking, aptFileListSynthesis, aptFileListModelChecking} from './aptExamples'
+  import {
+    aptFileTreeSynthesis,
+    aptFileTreeModelChecking,
+    aptFileListSynthesis,
+    aptFileListModelChecking
+  } from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import Simulator from './components/Simulator'
   import AboutAdamWeb from './components/AboutAdamWeb'
@@ -649,6 +653,14 @@
       }
     },
     watch: {
+      editorNet: {
+        deep: true, // watches 'editorNet' as well as 'editorNet.net', 'editorNet.uuid', ...
+        handler: function (newNet, oldNet) {
+          if (oldNet.uuid !== 'abcfakeuuid123') { // This should not trigger upon the initial load of the empty net
+            this.showTutorialText = false
+          }
+        }
+      },
       // When our client UUID is changed, we should reload the list of jobs and tell the server
       // we want to subscribe to job status updates and ADAM's logs corresponding to our new UUID
       clientUuid: function () {
