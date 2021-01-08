@@ -14,22 +14,29 @@ const aptFileTreeModelChecking = {
   children: []
 }
 
-importAll(aptFilesContextSynthesis, aptFileTreeSynthesis)
-importAll(aptFilesContextModelChecking, aptFileTreeModelChecking)
-export { aptFileTreeSynthesis, aptFileTreeModelChecking }
+const aptFileListSynthesis = []
+const aptFileListModelChecking = []
 
-function importAll (r, tree) {
+importAll(aptFilesContextSynthesis, aptFileTreeSynthesis, aptFileListSynthesis)
+importAll(aptFilesContextModelChecking, aptFileTreeModelChecking, aptFileListModelChecking)
+export { aptFileTreeSynthesis, aptFileTreeModelChecking, aptFileListSynthesis, aptFileListModelChecking }
+
+function importAll (r, tree, fileList) {
   r.keys().forEach(key => {
     // Use substring to discard the './' at the start of each path
-    importPath(key.substring(2), r(key), tree)
+    importPath(key.substring(2), r(key), tree, fileList)
   })
 }
 
-function importPath (path, fileContents, tree) {
+function importPath (path, fileContents, tree, fileList) {
   const positionSlash = path.indexOf('/')
   if (positionSlash === -1) {
     tree.children.push({
       type: 'file',
+      name: path,
+      body: fileContents
+    })
+    fileList.push({
       name: path,
       body: fileContents
     })
@@ -47,6 +54,6 @@ function importPath (path, fileContents, tree) {
       }
       tree.children.push(subDirectory)
     }
-    importPath(newPath, fileContents, subDirectory)
+    importPath(newPath, fileContents, subDirectory, fileList)
   }
 }

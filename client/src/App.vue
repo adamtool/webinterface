@@ -199,6 +199,13 @@
         >
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;">
+              <div class="load-example-message" v-if="showTutorialText">
+                <v-btn @click="loadRandomAptFile">
+                  Click here to load a random example
+                </v-btn>
+                <div>Or create your own net using the tools on the left.</div>
+                <div>(A complete listing of all examples can be found under File > Load Example.)</div>
+              </div>
               <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :editorNetId='editorNet.uuid'
@@ -440,7 +447,12 @@
 
 <script>
   import {fakeTabs} from './testData'
-  import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
+  import {
+    aptFileTreeSynthesis,
+    aptFileTreeModelChecking,
+    aptFileListSynthesis,
+    aptFileListModelChecking
+  } from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import Simulator from './components/Simulator'
   import AboutAdamWeb from './components/AboutAdamWeb'
@@ -581,6 +593,9 @@
         showAboutModal: false,
         showHelpModal: false,
         showRightPanelToggle: true, // In "View" menu, allow hiding the right panel completely
+        // Toggle showing the tutorial text and button offering to load a random example
+        showTutorialText: true,
+
         // The contents of the 'save apt' filename box
         aptFilename: 'apt.txt',
 
@@ -638,6 +653,14 @@
       }
     },
     watch: {
+      editorNet: {
+        deep: true, // watches 'editorNet' as well as 'editorNet.net', 'editorNet.uuid', ...
+        handler: function (newNet, oldNet) {
+          if (oldNet.uuid !== 'abcfakeuuid123') { // This should not trigger upon the initial load of the empty net
+            this.showTutorialText = false
+          }
+        }
+      },
       // When our client UUID is changed, we should reload the list of jobs and tell the server
       // we want to subscribe to job status updates and ADAM's logs corresponding to our new UUID
       clientUuid: function () {
@@ -817,6 +840,12 @@
       }
     },
     methods: {
+      loadRandomAptFile: function () {
+        const fileList = this.useModelChecking ? aptFileListModelChecking : aptFileListSynthesis
+        const randomAptFile = fileList[Math.floor(Math.random() * fileList.length)];
+        this.onAptExampleSelected(randomAptFile.body);
+        logging.sendSuccessNotification(`Loaded the example '${randomAptFile.name}'`)
+      },
       saveActionsEditor: function () {
         if (this.useModelChecking) {
           return []
@@ -1733,6 +1762,16 @@
 </script>
 
 <style>
+  .load-example-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+  }
+
   /* This button should not change appearance upon mouseover.  It is a non-button */
   .adam-web-button {
     background-color: rgba(255, 255, 255, 0.9) !important;
