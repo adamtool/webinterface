@@ -39,14 +39,14 @@
     >
       <v-layout justify-center>
         <template v-if="useModelChecking">
-          <v-flex xs3>
+          <v-flex sm3>
             <v-select
               v-if="editorMode === 'Editor'"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Condition"/>
           </v-flex>
-          <v-flex xs3 sm7>
+          <v-flex sm3 md6>
             <v-text-field
               style="flex: 1 1 auto;"
               :disabled="selectedWinningCondition !== 'LTL'"
@@ -57,7 +57,9 @@
               placeholder="Enter an LTL or Flow-LTL formula here"
               label="Formula"/>
           </v-flex>
-          <v-tooltip bottom>
+          <v-tooltip bottom
+            v-if="editorMode === 'Editor' && useModelChecking"
+          >
             <template v-slot:activator="{ on: tooltip }">
               <v-btn
                 icon
