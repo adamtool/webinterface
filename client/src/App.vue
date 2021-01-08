@@ -200,7 +200,7 @@
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;">
               <div class="load-example-message" v-if="showTutorialText">
-                <v-btn @click="showTutorialText = false;">
+                <v-btn @click="loadRandomAptFile(); showTutorialText = false;">
                   Click here to load a random example
                 </v-btn>
                 <div>Or create your own net using the tools on the left.</div>
@@ -448,7 +448,7 @@
 
 <script>
   import {fakeTabs} from './testData'
-  import {aptFileTreeSynthesis, aptFileTreeModelChecking} from './aptExamples'
+  import {aptFileTreeSynthesis, aptFileTreeModelChecking, aptFileListSynthesis, aptFileListModelChecking} from './aptExamples'
   import GraphEditor from './components/GraphEditor'
   import Simulator from './components/Simulator'
   import AboutAdamWeb from './components/AboutAdamWeb'
@@ -828,6 +828,12 @@
       }
     },
     methods: {
+      loadRandomAptFile: function () {
+        const fileList = this.useModelChecking ? aptFileListModelChecking : aptFileListSynthesis
+        const randomAptFile = fileList[Math.floor(Math.random() * fileList.length)];
+        this.onAptExampleSelected(randomAptFile.body);
+        logging.sendSuccessNotification(`Loaded the example '${randomAptFile.name}'`)
+      },
       saveActionsEditor: function () {
         if (this.useModelChecking) {
           return []
