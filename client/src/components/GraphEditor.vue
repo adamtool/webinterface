@@ -39,14 +39,14 @@
     >
       <v-layout justify-center>
         <template v-if="useModelChecking">
-          <v-flex xs3>
+          <v-flex sm3>
             <v-select
               v-if="editorMode === 'Editor'"
               v-model="selectedWinningCondition"
               :items="winningConditions"
               label="Condition"/>
           </v-flex>
-          <v-flex xs3 sm7>
+          <v-flex sm3 md6>
             <v-text-field
               style="flex: 1 1 auto;"
               :disabled="selectedWinningCondition !== 'LTL'"
@@ -57,6 +57,24 @@
               placeholder="Enter an LTL or Flow-LTL formula here"
               label="Formula"/>
           </v-flex>
+          <v-tooltip bottom
+            v-if="editorMode === 'Editor' && useModelChecking"
+          >
+            <template v-slot:activator="{ on: tooltip }">
+              <v-btn
+                icon
+                color="blue"
+                large
+                light
+                fab
+                v-on="{ ...tooltip }"
+                @click="$emit('checkLtlFormula')"
+              >
+                <v-icon>play_circle_filled</v-icon>
+              </v-btn>
+            </template>
+            <span>Check the LTL formula</span>
+          </v-tooltip>
         </template>
         <template v-else>
           <v-flex xs6 sm5 offset-sm1 md4 offset-md2>
@@ -118,7 +136,7 @@
           :key="label"
           link
           @click="callback"
-          >
+        >
           <v-list-item-title>{{ label }}</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -249,7 +267,9 @@
       additionalSaveActions: {
         type: Array,
         required: false,
-        default: function () { return [] },
+        default: function () {
+          return []
+        },
         validator: function (actions) {
           return actions.every(action => action.label && action.callback)
         }

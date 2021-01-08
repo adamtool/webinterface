@@ -220,6 +220,7 @@
                            v-on:setWinningCondition='setWinningCondition'
                            v-on:setFairness='setFairness'
                            v-on:setInhibitorArc='setInhibitorArc'
+                           v-on:checkLtlFormula='checkLtlFormula'
                            :restEndpoints="restEndpoints"
                            :useModelChecking="useModelChecking"
                            :useDistributedSynthesis="useDistributedSynthesis"
