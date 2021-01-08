@@ -66,13 +66,14 @@
                 color="blue"
                 large
                 light
+                fab
                 v-on="{ ...tooltip }"
                 @click="$emit('checkLtlFormula')"
               >
                 <v-icon>play_circle_filled</v-icon>
               </v-btn>
             </template>
-            <span>Check LTL formula</span>
+            <span>Check the LTL formula</span>
           </v-tooltip>
         </template>
         <template v-else>
