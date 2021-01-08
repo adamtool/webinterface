@@ -199,6 +199,14 @@
         >
           <keep-alive>
             <div style="position: relative; height: 100%; width: 100%;">
+              <div class="load-example-message" v-if="showTutorialText">
+                <v-btn @click="showTutorialText = false;">
+                  Click here to load a random example
+                </v-btn>
+                <div>Or create your own net using the tools on the left.</div>
+                <div>(Other examples are listed under File > Load Example.)</div>
+                <div>This message will disappear when you begin editing.</div>
+              </div>
               <GraphEditor :graph='editorNet.net'
                            :netType='useModelChecking ? "PETRI_NET_WITH_TRANSITS" : "PETRI_GAME"'
                            :editorNetId='editorNet.uuid'
@@ -581,6 +589,9 @@
         showAboutModal: false,
         showHelpModal: false,
         showRightPanelToggle: true, // In "View" menu, allow hiding the right panel completely
+        // Toggle showing the tutorial text and button offering to load a random example
+        showTutorialText: true,
+
         // The contents of the 'save apt' filename box
         aptFilename: 'apt.txt',
 
@@ -1733,6 +1744,16 @@
 </script>
 
 <style>
+  .load-example-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+  }
+
   /* This button should not change appearance upon mouseover.  It is a non-button */
   .adam-web-button {
     background-color: rgba(255, 255, 255, 0.9) !important;
