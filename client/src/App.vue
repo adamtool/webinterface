@@ -343,6 +343,7 @@
                 @toggleStatePostset="({graphEditorRef, stateId}) => toggleGraphGameStatePostset(graphEditorRef, stateId, tab.jobKey)"
                 @toggleStatePreset="({graphEditorRef, stateId}) => toggleGraphGameStatePreset(graphEditorRef, stateId, tab.jobKey)"
                 @initializeGraphGameBDDExplorer="withRecurrentlyInterferingEnv => initializeGraphGameBDDExplorer(tab.jobKey, withRecurrentlyInterferingEnv)"
+                @calculateWinningStrategyFromApt="calculateWinningStrategyFromApt"
               />
             </keep-alive>
           </v-tab-item>
@@ -1203,6 +1204,43 @@
         } else {
           this.saveEditorNetAsAPT().then(() => saveFileAs(this.apt, this.aptFilename))
         }
+      },
+      // Queue a job to calculate the winning strategy of a net given in APT format
+      calculateWinningStrategyFromApt: function (apt) {
+        const promise = this.parseApt(apt)
+        promise.then(editorNetClient => {
+          this.queueJob(editorNetClient.uuid, 'WINNING_STRATEGY', {})
+          logging.sendSuccessNotification('Sent request to server to calculate the winning strategy')
+        })
+      },
+      /**
+       * Send apt to be parsed in the background on the server.  Only give feedback if there is an error
+       * @Returns {Promise<EditorNetClient>}
+       */
+      parseApt: function (apt) {
+        const promise = this.restEndpoints.parseApt({
+          params: {
+            apt: apt,
+            netType: this.useModelChecking ? 'PETRI_NET_WITH_TRANSITS' : 'PETRI_GAME'
+          }
+        }).then(response => {
+          switch (response.data.status) {
+            case 'success':
+              logging.logVerbose('Successfully parsed APT.')
+              return response.data.editorNet
+              break
+            case 'error':
+              throw new Error(`The APT given could not be parsed.  Server error: ${response.data.message}`)
+            default:
+              logging.logError("Unexpected response:")
+              logging.logObject(response);
+              throw new Error(`Unexpected response from server.  See console for more details.`)
+          }
+        }).catch(error => {
+          logging.sendErrorNotification(
+            'Error: ' + error.toString())
+        })
+        return promise
       },
       /**
        * Send APT to the server to be parsed, then update the net displayed in the editor.

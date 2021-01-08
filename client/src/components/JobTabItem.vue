@@ -45,7 +45,14 @@
   </v-card>
   <div v-else-if="tab.type === 'EXISTS_WINNING_STRATEGY'">
     <template v-if="tab.result === true">
-      Yes, there is a winning strategy for this net.
+      <div style="display: flex; flex-direction: column;">
+        Yes, there is a winning strategy for this net.
+        <v-btn
+          @click="$emit('calculateWinningStrategyFromApt', tab.jobKey.canonicalApt)"
+        >
+          Calculate winning strategy
+        </v-btn>
+      </div>
     </template>
     <template v-else-if="tab.result === false">
       No, there is no winning strategy for this net.
