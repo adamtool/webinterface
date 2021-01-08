@@ -57,6 +57,21 @@
               placeholder="Enter an LTL or Flow-LTL formula here"
               label="Formula"/>
           </v-flex>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on: tooltip }">
+              <v-btn
+                icon
+                color="blue"
+                large
+                light
+                v-on="{ ...tooltip }"
+                @click="$emit('checkLtlFormula')"
+              >
+                <v-icon>play_circle_filled</v-icon>
+              </v-btn>
+            </template>
+            <span>Check LTL formula</span>
+          </v-tooltip>
         </template>
         <template v-else>
           <v-flex xs6 sm5 offset-sm1 md4 offset-md2>
@@ -118,7 +133,7 @@
           :key="label"
           link
           @click="callback"
-          >
+        >
           <v-list-item-title>{{ label }}</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -249,7 +264,9 @@
       additionalSaveActions: {
         type: Array,
         required: false,
-        default: function () { return [] },
+        default: function () {
+          return []
+        },
         validator: function (actions) {
           return actions.every(action => action.label && action.callback)
         }
