@@ -32,17 +32,21 @@
       :class="sidebarCardClass"
       :tabIndex="-1"
     >
-      <v-card-title class="flex-grow-0 flex-shrink-0">
+      <v-card-title
+        class="flex-grow-0 flex-shrink-0"
+        v-if="!isSidebarCollapsed"
+      >
         Simulation History
       </v-card-title>
       <v-btn
-        style="margin-bottom: 10px; margin-left: 5px; margin-right: 5px;"
+        style=""
+        :class="hideShowButtonClass"
         rounded
         @click="isSidebarCollapsed = !isSidebarCollapsed"
       >
         <template v-if="isSidebarCollapsed">
           <v-icon class="mr-1">visibility</v-icon>
-          Show
+          Show history
         </template>
         <template v-else>
           <v-icon class="mr-1">visibility_off</v-icon>
@@ -158,6 +162,13 @@
       }
     },
     computed: {
+      hideShowButtonClass: function () {
+        if (this.isSidebarCollapsed) {
+          return "hide-show-button-collapsed"
+        } else {
+          return "hide-show-button-expanded"
+        }
+      },
       sidebarCardClass: function () {
         if (this.isSidebarCollapsed) {
           return "d-flex flex-column sidebar-card-collapsed"
@@ -348,6 +359,19 @@
 </script>
 
 <style scoped>
+  .hide-show-button-collapsed {
+    margin-bottom: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 10px;
+  }
+
+  .hide-show-button-expanded {
+    margin-bottom: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
   .sidebar-card-expanded {
     position: absolute;
     top: 75px;
