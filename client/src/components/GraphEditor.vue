@@ -12,12 +12,12 @@
     >
       <div class="graph-editor-toolbar" v-if="showPhysicsControls">
         <div>Repulsion Strength</div>
-        <input type="range" min="30" max="1000" step="1"
+        <input type="range" min="30" max="1500" step="1"
                class="forceStrengthSlider"
                v-model="repulsionStrength">
         <div class="forceStrengthNumber">{{ repulsionStrength }}</div>
         <div>Link strength</div>
-        <input type="range" min="0" max="0.2" step="0.001"
+        <input type="range" min="0" max="0.3" step="0.001"
                class="forceStrengthSlider"
                v-model="linkStrength">
         <div class="forceStrengthNumber">{{ linkStrength }}</div>
