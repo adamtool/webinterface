@@ -31,6 +31,8 @@
     <v-card
       :class="sidebarCardClass"
       :tabIndex="-1"
+      @mouseover="hover = true"
+      @mouseleave="hover = false"
     >
       <v-card-title
         class="flex-grow-0 flex-shrink-0"
@@ -42,14 +44,14 @@
         style=""
         :class="hideShowButtonClass"
         rounded
-        @click="isSidebarCollapsed = !isSidebarCollapsed"
+        @click="onClickHideShow"
       >
         <template v-if="isSidebarCollapsed">
-          <v-icon class="mr-1">visibility</v-icon>
-          Show history
+          <v-icon :class="hover ? 'mr-1' : ''">visibility</v-icon>
+          {{ hover ? 'Show history' : '' }}
         </template>
         <template v-else>
-          <v-icon class="mr-1">visibility_off</v-icon>
+          <v-icon>visibility_off</v-icon>
           Hide
         </template>
       </v-btn>
@@ -158,7 +160,8 @@
       return {
         // The history of markings and transitions fired if a net is being simulated
         gameSimulationHistory: this.gameSimulationHistoryDefault(),
-        isSidebarCollapsed: false
+        isSidebarCollapsed: false,
+        hover: false
       }
     },
     computed: {
@@ -217,6 +220,14 @@
       }
     },
     methods: {
+      onClickHideShow: function () {
+        this.isSidebarCollapsed = !this.isSidebarCollapsed;
+        if (this.isSidebarCollapsed) {
+          // The mouseout event does not fire if the mouse leaves the element via the
+          // element shrinking in size, so we must handle that case ourselves.
+          this.hover = false
+        }
+      },
       onClickHistoryState: function (historyState, index) {
         if (index !== this.gameSimulationHistory.currentIndex) {
           this.$refs.graphEditor.showTransitionFired({
