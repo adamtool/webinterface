@@ -29,18 +29,31 @@
 
     <!-- Simulation history sidebar -->
     <v-card
-      style="position: absolute; top: 75px; right: 5px; bottom: 10px; z-index: 5;
-             padding: 6px; border-radius: 30px;"
-      class="d-flex flex-column"
+      :class="sidebarCardClass"
       :tabIndex="-1"
     >
       <v-card-title class="flex-grow-0 flex-shrink-0">
         Simulation History
       </v-card-title>
+      <v-btn
+        style="margin-bottom: 10px; margin-left: 5px; margin-right: 5px;"
+        rounded
+        @click="isSidebarCollapsed = !isSidebarCollapsed"
+      >
+        <template v-if="isSidebarCollapsed">
+          <v-icon class="mr-1">visibility</v-icon>
+          Show
+        </template>
+        <template v-else>
+          <v-icon class="mr-1">visibility_off</v-icon>
+          Hide
+        </template>
+      </v-btn>
       <v-list dense
               class="overflow-y-auto flex-grow-1"
               style="padding-top: 0;"
               ref="simulationHistoryListEl"
+              v-if="!isSidebarCollapsed"
       >
         <v-list-item-group
           v-model="gameSimulationHistory.currentIndex"
@@ -61,7 +74,7 @@
       </v-list>
       <v-tooltip
         bottom
-        v-if="gameSimulationHistory.stack.length > 1"
+        v-if="!isSidebarCollapsed && gameSimulationHistory.stack.length > 1"
       >
         <template v-slot:activator="{ on }">
           <v-btn
@@ -77,7 +90,7 @@
       </v-tooltip>
       <v-tooltip
         bottom
-        v-if="useModelChecking && gameSimulationHistory.stack.length > 1 && netType !== 'PETRI_NET' && cxType !== 'MODEL_CHECKING_NET'"
+        v-if="!isSidebarCollapsed && useModelChecking && gameSimulationHistory.stack.length > 1 && netType !== 'PETRI_NET' && cxType !== 'MODEL_CHECKING_NET'"
       >
         <template v-slot:activator="{ on }">
           <v-btn
@@ -140,10 +153,18 @@
     data() {
       return {
         // The history of markings and transitions fired if a net is being simulated
-        gameSimulationHistory: this.gameSimulationHistoryDefault()
+        gameSimulationHistory: this.gameSimulationHistoryDefault(),
+        isSidebarCollapsed: false
       }
     },
     computed: {
+      sidebarCardClass: function () {
+        if (this.isSidebarCollapsed) {
+          return "d-flex flex-column sidebar-card-collapsed"
+        } else {
+          return "d-flex flex-column sidebar-card-expanded"
+        }
+      },
       // This is used in order to show a fake <start> state in the simulation history if no
       // transitions have yet been fired.
       visibleSimulationHistory: function () {
@@ -325,3 +346,24 @@
     }
   }
 </script>
+
+<style scoped>
+  .sidebar-card-expanded {
+    position: absolute;
+    top: 75px;
+    right: 5px;
+    bottom: 10px;
+    z-index: 5;
+    padding: 6px;
+    border-radius: 30px !important;
+  }
+
+  .sidebar-card-collapsed {
+    position: absolute;
+    top: 75px;
+    right: 5px;
+    z-index: 5;
+    padding: 6px;
+    border-radius: 30px !important;
+  }
+</style>
