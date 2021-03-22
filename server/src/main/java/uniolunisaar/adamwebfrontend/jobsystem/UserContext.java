@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import uniol.apt.adt.pn.PetriNet;
 import uniolunisaar.adam.tools.Logger;
-import uniolunisaar.adamwebfrontend.BDDGraphExplorer;
 import uniolunisaar.adamwebfrontend.BDDGraphExplorerBuilder;
 import uniolunisaar.adamwebfrontend.WebSocketHandler;
 import uniolunisaar.adamwebfrontend.wirerepresentations.CxType;

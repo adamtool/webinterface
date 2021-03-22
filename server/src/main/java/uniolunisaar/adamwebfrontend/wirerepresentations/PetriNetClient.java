@@ -255,13 +255,15 @@ public class PetriNetClient {
 
     static class PetriNetLink extends GraphLink {
         private final String type = "petriNetLink";
+        private final int weight;
         private final String transit; // Null if there is no transit given
         private final boolean isInhibitorArc; // Is it an inhibitor arc?
         // This is only present for PNWT and Petri Games
         private Float transitHue; // In the interval (0, 1].  Null if no color should be used.
 
-        private PetriNetLink(String sourceId, String targetId, String transit, Float transitHue, boolean isInhibitorArc) {
+        private PetriNetLink(String sourceId, int weight, String targetId, String transit, Float transitHue, boolean isInhibitorArc) {
             super(sourceId, targetId);
+            this.weight = weight;
             this.transit = transit;
             this.transitHue = transitHue;
             this.isInhibitorArc = isInhibitorArc;
@@ -293,7 +295,7 @@ public class PetriNetClient {
             boolean isInhibitorArc = PetriNetExtensionHandler.isInhibitor(flow);
             Float transitHue = null;
 
-            return new PetriNetLink(sourceId, targetId, arcLabel, transitHue, isInhibitorArc);
+            return new PetriNetLink(sourceId, flow.getWeight(), targetId, arcLabel, transitHue, isInhibitorArc);
         }
 
         void setTransitHue(float transitHue) {

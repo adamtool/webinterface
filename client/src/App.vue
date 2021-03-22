@@ -227,6 +227,7 @@
                            v-on:setWinningCondition='setWinningCondition'
                            v-on:setFairness='setFairness'
                            v-on:setInhibitorArc='setInhibitorArc'
+                           v-on:setArcWeight='setArcWeight'
                            v-on:checkLtlFormula='checkLtlFormula'
                            :restEndpoints="restEndpoints"
                            :useModelChecking="useModelChecking"
@@ -800,7 +801,8 @@
           'setPartition',
           'setWinningCondition',
           'setFairness',
-          'setInhibitorArc'
+          'setInhibitorArc',
+          'setArcWeight'
         ]
         const funs = {}
         endpoints.forEach(endpointName => {
@@ -1734,6 +1736,19 @@
           sourceId,
           targetId,
           isInhibitorArc
+        }).then(response => {
+          this.withErrorHandling(response, response => {
+            this.editorNet.net = response.data.result
+          })
+        })
+      },
+      setArcWeight: function ({sourceId, targetId, weight}) {
+        logging.logVerbose(`setArcWeight(${sourceId}, ${targetId}, ${weight})`)
+        this.restEndpoints.setArcWeight({
+          editorNetId: this.editorNet.uuid,
+          sourceId,
+          targetId,
+          weight
         }).then(response => {
           this.withErrorHandling(response, response => {
             this.editorNet.net = response.data.result

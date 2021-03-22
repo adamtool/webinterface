@@ -663,6 +663,10 @@
               })
             }
           }
+          const setArcWeight = {
+            title: 'Set Weight',
+            action: this.setWeightInteractively
+          }
           const setInhibitorArc = {
             title: (d) => d.isInhibitorArc ? 'Set not inhibitor arc' : 'Set inhibitor arc',
             action: (d) => {
@@ -680,9 +684,9 @@
             return [title]
           }
           if (this.useModelChecking && clickedLink.target.type === 'TRANSITION') {
-            return [title, deleteFlow, setInhibitorArc]
+            return [title, setArcWeight, deleteFlow, setInhibitorArc]
           } else {
-            return [title, deleteFlow]
+            return [title, setArcWeight, deleteFlow]
           }
         }
       },
@@ -1540,6 +1544,23 @@
         }
         this.getTextInput(`Set partition for ${d.id}`, callback)
       },
+      setWeightInteractively: function (d) {
+        const callback = (text) => {
+          const weight = parseInt(text)
+          if (isNaN(weight)) {
+            throw new Error('The text entered can\'t be parsed into an integer, so we can\'t set' +
+              ' the weight to that.')
+          } else {
+            console.log('Emitting setArcWeight')
+            this.$emit('setArcWeight', {
+                sourceId: d.source.id,
+                targetId: d.target.id,
+                weight: weight
+             })
+          }
+        }
+        this.getTextInput(`Set weight for ${d.source.id} -> ${d.target.id}`, callback)
+      },
       // Open a text input field in the svg and focus it.  Let the user type stuff in, and call
       // callback with whatever text the user entered.
       // This is meant to be called in a mouse click handler so that the text input box appears by
@@ -1825,6 +1846,7 @@
         this.container = this.svg.append('g')
         this.linkGroup = this.container.append('g').attr('class', 'links')
         this.linkTextGroup = this.container.append('g').attr('class', 'linkTexts')
+        this.linkTextGroupWeights = this.container.append('g').attr('class', 'linkTexts')
         this.nodeGroup = this.container.append('g').attr('class', 'nodes')
         this.isSpecialGroup = this.container.append('g').attr('class', 'isSpecialHighlights')
         this.drawTransitPreviewGroup = this.container.append('g').attr('class', 'drawTransitPreview')
@@ -2065,7 +2087,7 @@
         this.linkTextElements
           .attr('fill', link => {
             if (link.transitHue !== undefined) {
-              return this.getTransitColor(link.transitHue)
+              return this.getTransitColor(link.transitHue)                    // here the color of the transit is chosen
             } else {
               return 'black'
             }
@@ -2078,9 +2100,42 @@
               return link.transitionId
             } else if (link.transit !== undefined) {
               // This is for Petri Games
-              return link.transit
+              return link.transit                                               // this is the arc label for the transit
             } else {
               throw new Error('Both transitionId and transit are both undefined.')
+            }
+          })
+
+        // Added for showing the weights  todo: make it nicer
+        const newLinkTextElementsWeights = this.linkTextGroupWeights
+          .selectAll('text')
+          .data(this.links.filter(link => link.transit !== undefined)) // only those belonging the Petri nets (not the two-player graphs)
+        const linkTextEnterWeight = newLinkTextElementsWeights
+          .enter().append('text')
+          .attr('font-size', 20)
+          .attr("dy", 20)
+          //.attr("transform", "rotate(90)")
+          .call(this.applyLinkEventHandler)
+        linkTextEnterWeight.append('textPath')
+          .call(this.applyLinkEventHandler)
+        newLinkTextElementsWeights.exit().remove()
+        this.linkTextElementsWeights = linkTextEnterWeight.merge(newLinkTextElementsWeights)
+        this.linkTextElementsWeights
+          .attr('fill', 'black')
+          .select('textPath')
+          .attr('xlink:href', link => '#' + this.generateLinkId(link))
+          .attr("startOffset", "50%")
+     //     .attr("dy", -5)
+      //    .attr("transform", "rotate(90)")
+          //.style("text-anchor","top")
+          .text(link => {
+            if (link.transit !== undefined) {
+              // This is for Petri nets and all derivates
+              if (link.weight !== 1) {
+                return link.weight
+              }
+            } else {
+              throw new Error('Transit is undefined.')
             }
           })
 

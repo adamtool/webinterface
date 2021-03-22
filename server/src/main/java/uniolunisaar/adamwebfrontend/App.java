@@ -129,6 +129,8 @@ public class App {
 
         postWithEditorNet("/setInhibitorArc", this::handleSetInhibitorArc);
 
+        postWithEditorNet("/setArcWeight", this::handleSetArcWeight);
+
         postWithEditorNet("/copyEditorNet", this::handleCopyEditorNet);
 
         post("/fireTransitionEditor", this::handleFireTransitionEditor);
@@ -1321,6 +1323,18 @@ public class App {
         } else {
             net.removeInhibitor(flow);
         }
+        return successResponse(PetriNetClient.serializeEditorNet(net));
+    }
+    
+    
+    private Object handleSetArcWeight(Request req, Response response, PetriNetWithTransits net) {
+        JsonObject body = parser.parse(req.body()).getAsJsonObject();
+        String sourceId = body.get("sourceId").getAsString();
+        String targetId = body.get("targetId").getAsString();
+        int weight = body.get("weight").getAsInt();
+       
+        Flow flow = net.getFlow(sourceId, targetId);
+        flow.setWeight(weight);
         return successResponse(PetriNetClient.serializeEditorNet(net));
     }
 
