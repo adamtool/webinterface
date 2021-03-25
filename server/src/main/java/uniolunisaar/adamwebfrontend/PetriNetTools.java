@@ -10,6 +10,7 @@ import uniolunisaar.adamwebfrontend.wirerepresentations.NodePosition;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import uniolunisaar.adam.util.ExtensionManagement;
 
 /**
  * This class just has some useful static methods for dealing with Petri Nets which are used
@@ -36,10 +37,10 @@ public class PetriNetTools {
         Set<Node> nodes = strategyBDD.getNodes();
         for (Node node : nodes) {
             if (strategyBDD.hasXCoord(node)) {
-                node.removeExtension(AdamExtensions.xCoord.name());
+                ExtensionManagement.getInstance().removeExtension(node, AdamExtensions.xCoord);
             }
             if (strategyBDD.hasYCoord(node)) {
-                node.removeExtension(AdamExtensions.yCoord.name());
+                ExtensionManagement.getInstance().removeExtension(node, AdamExtensions.yCoord);
             }
         }
     }
