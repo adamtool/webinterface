@@ -22,3 +22,6 @@
 [submodule "backend/high-level"]
 	path = backend/high-level
 	url = https://github.com/adamtool/high-level.git
+[submodule "backend/synthesisDistrEnv"]
+	path = backend/synthesisDistrEnv
+	url = https://github.com/adamtool/synthesisDistrEnv
