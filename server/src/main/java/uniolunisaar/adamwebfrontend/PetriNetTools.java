@@ -47,7 +47,7 @@ public class PetriNetTools {
 
 
     /**
-     * Update the x/y coordinate annotations of the given petri net.
+     * Update the x/y coordinate annotations of the given Petri net.
      * There has to be an annotation for every node.
      */
     public static void saveXYCoordinates(PetriNet petriGame,

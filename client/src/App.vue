@@ -599,7 +599,7 @@
         showTutorialText: true,
 
         // The contents of the 'save apt' filename box
-        aptFilename: 'apt.txt',
+        aptFilename: 'net.apt',
 
         // The contents of the 'notification bar' at the bottom of the window, e.g. error messages
         // and warnings and other feedback

@@ -1,7 +1,7 @@
 ## @author Manuel Gieseking
 
 # All repositories the backend depends on
-DEPENDENCIES_FOLDERS="libs,examples,framework,logics,modelchecker,synthesizer,high-level,webinterface-backend"
+DEPENDENCIES_FOLDERS="libs,examples,framework,logics,modelchecker,synthesizer,synthesisDistrEnv,high-level,webinterface-backend"
 #TARGETS=tools petrinetwithtransits logics mc petrigames bounded symbolic
 
 t=javac
@@ -16,6 +16,7 @@ t=javac
 		bdd
 		mtbdd
 		highlevel
+		synthesisDistrEnv
 		backend
 #		javadoc
 		setClean
@@ -56,10 +57,13 @@ mtbdd: petrigames
 
 symbolic: bdd mtbdd
 
+synthesisDistrEnv: bdd
+	ant -buildfile ./synthesisDistrEnv/build.xml $(t)
+
 highlevel: petrigames
 	ant -buildfile ./high-level/build.xml $(t)
 
-backend: mc symbolic highlevel
+backend: mc symbolic synthesisDistrEnv highlevel
 	ant -buildfile ./webinterface-backend/build.xml $(t)
 
 setJavac:
@@ -90,7 +94,7 @@ pull_backend:
 
 clean_backend: clean-all
 
-deploy_backend: setJavac mc symbolic highlevel setDeploy backend
+deploy_backend: setJavac mc symbolic synthesisDistrEnv highlevel setDeploy backend
 
 integrate_backend: clean_backend 	
 	./integrate_backend.sh

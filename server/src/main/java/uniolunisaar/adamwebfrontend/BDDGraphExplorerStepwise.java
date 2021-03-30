@@ -15,14 +15,15 @@ import java.util.stream.Stream;
 import uniolunisaar.adam.AdamSynthesizer;
 import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.ds.synthesis.solver.symbolic.bddapproach.BDDSolverOptions;
+import uniolunisaar.adam.ds.synthesis.solver.symbolic.bddapproach.BDDSolvingObject;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotFindSuitableConditionException;
 import uniolunisaar.adam.logic.synthesis.builder.twoplayergame.explicit.GGBuilderStepwise;
-import uniolunisaar.adam.logic.synthesis.solver.symbolic.bddapproach.distrsys.mcutscheduling.safe.DistrSysBDDSolver;
+import uniolunisaar.adam.logic.synthesis.solver.symbolic.bddapproach.BDDSolver;
 
 public class BDDGraphExplorerStepwise implements BDDGraphExplorer {
 
     private final GGBuilderStepwise builder;
-    private final DistrSysBDDSolver<? extends Condition> solver;
+    private final BDDSolver<? extends Condition<?>, ? extends BDDSolvingObject<?>, ? extends BDDSolverOptions> solver;
     private final BDDGraph bddGraph;
     // States whose postset (children) should be visible
     private final Set<BDDState> postsetExpandedStates;
