@@ -30,6 +30,9 @@ This module depends on the
 
 Related Publications:
 ---------------------
+- AdamWEB: 
+	- _Manuel Gieseking, Jesko Hecking-Harbusch, Ann Yanich:_
+	  [A Web Interface for Petri Nets with Transits and Petri Games](https://doi.org/10.1007/978-3-030-72013-1_22). TACAS (2) 2021: 381-388
 - AdamMC:
 	- **Flow-LTL**: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
   [Model Checking Data Flows in Concurrent Network Updates](https://doi.org/10.1007/978-3-030-31784-3_30). ATVA 2019: 515-533 [(Full Version)](http://arxiv.org/abs/1907.11061).
