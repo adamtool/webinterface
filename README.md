@@ -30,7 +30,7 @@ This module depends on the
 
 Related Publications:
 ---------------------
-- AdamWEB: 
+- **AdamWEB**: 
 	- _Manuel Gieseking, Jesko Hecking-Harbusch, Ann Yanich:_
 	  [A Web Interface for Petri Nets with Transits and Petri Games](https://doi.org/10.1007/978-3-030-72013-1_22). TACAS (2) 2021: 381-388
 - AdamMC:
