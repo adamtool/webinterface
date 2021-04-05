@@ -30,7 +30,7 @@ This module depends on the
 
 Related Publications:
 ---------------------
-- **AdamWEB**: 
+- **AdamWEB** <img src="./doc/images/ae-badge-tacas_outer_trans.png" alt="TACAS Artifact Evaluation Badge" width="25mm" height="25mm">: 
 	- _Manuel Gieseking, Jesko Hecking-Harbusch, Ann Yanich:_
 	  [A Web Interface for Petri Nets with Transits and Petri Games](https://doi.org/10.1007/978-3-030-72013-1_22). TACAS (2) 2021: 381-388
 - AdamMC:
@@ -39,12 +39,12 @@ Related Publications:
   	- **Flow-CTL**: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
   [Model Checking Branching Properties on Petri Nets with Transits](
 https://doi.org/10.1007/978-3-030-59152-6_22). ATVA 2020: 394-410 [(Full Version)](https://arxiv.org/abs/2007.07235).
-	- **Tool AdamMC**<img src="https://raw.githubusercontent.com/adamtool/adammc/master/doc/images/aec-badge-cav_outer_trans.png" alt="CAV Artifact Evaluation Badge" width="25mm" height="25mm">: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
+	- **Tool AdamMC** <img src="https://raw.githubusercontent.com/adamtool/adammc/master/doc/images/aec-badge-cav_outer_trans.png" alt="CAV Artifact Evaluation Badge" width="25mm" height="25mm">: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
   [AdamMC: A Model Checker for Petri Nets with Transits against Flow-LTL](https://doi.org/10.1007/978-3-030-53291-8_5). CAV (2) 2020: 64-76 [(Full Version)](https://arxiv.org/abs/2005.07130).
  - AdamSYNT:
  	- **Theoretical Background**: _Bernd Finkbeiner, Ernst-Rüdiger Olderog:_
   [Petri games: Synthesis of distributed systems with causal memory](https://doi.org/10.1016/j.ic.2016.07.006). Inf. Comput. 253: 181-203 (2017)
-  	- **Tool AdamSYNT**: _Bernd Finkbeiner, Manuel Gieseking, Ernst-Rüdiger Olderog:_
+  	- **Tool AdamSYNT** <img src="https://raw.githubusercontent.com/adamtool/synthesizer/master/doc/images/aec-badge_outer_trans.png" alt="CAV Artifact Evaluation Badge" width="25mm" height="25mm">: _Bernd Finkbeiner, Manuel Gieseking, Ernst-Rüdiger Olderog:_
   [Adam: Causality-Based Synthesis of Distributed Systems](https://doi.org/10.1007/978-3-319-21690-4_25). CAV (1) 2015: 433-439
 	- _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
   [Symbolic vs. Bounded Synthesis for Petri Games](https://doi.org/10.4204/EPTCS.260.5). SYNT@CAV 2017: 23-43
