@@ -34,12 +34,12 @@ Related Publications:
 	- _Manuel Gieseking, Jesko Hecking-Harbusch, Ann Yanich:_
 	  [A Web Interface for Petri Nets with Transits and Petri Games](https://doi.org/10.1007/978-3-030-72013-1_22). TACAS (2) 2021: 381-388
 - AdamMC:
-	- **Flow-LTL**: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
+	- **Flow-LTL** <img src="https://raw.githubusercontent.com/adamtool/framework/master/doc/images/ae-badge-atva_outer_trans.png" alt="ATVA Artifact Evaluation Badge" width="25mm" height="25mm">: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
   [Model Checking Data Flows in Concurrent Network Updates](https://doi.org/10.1007/978-3-030-31784-3_30). ATVA 2019: 515-533 [(Full Version)](http://arxiv.org/abs/1907.11061).
   	- **Flow-CTL**: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
   [Model Checking Branching Properties on Petri Nets with Transits](
 https://doi.org/10.1007/978-3-030-59152-6_22). ATVA 2020: 394-410 [(Full Version)](https://arxiv.org/abs/2007.07235).
-	- **Tool AdamMC**: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
+	- **Tool AdamMC**<img src="https://raw.githubusercontent.com/adamtool/adammc/master/doc/images/aec-badge-cav_outer_trans.png" alt="CAV Artifact Evaluation Badge" width="25mm" height="25mm">: _Bernd Finkbeiner, Manuel Gieseking, Jesko Hecking-Harbusch, Ernst-Rüdiger Olderog:_
   [AdamMC: A Model Checker for Petri Nets with Transits against Flow-LTL](https://doi.org/10.1007/978-3-030-53291-8_5). CAV (2) 2020: 64-76 [(Full Version)](https://arxiv.org/abs/2005.07130).
  - AdamSYNT:
  	- **Theoretical Background**: _Bernd Finkbeiner, Ernst-Rüdiger Olderog:_
