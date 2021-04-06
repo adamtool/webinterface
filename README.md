@@ -5,7 +5,7 @@ This is the web interface for the command-line tools [AdamMC](https://github.com
 - AdamMC is a model checker for asynchronous distributed systems modeled with Petri nets with transits and specifications given in Flow-LTL.
 - AdamSYNT is a synthesizer for asynchronous distributed systems modeled with Petri games.
 
-A deployed version runs [here](adam.informatik.uni-oldenburg.de).
+A deployed version runs [here](http://adam.informatik.uni-oldenburg.de).
 
 Features:
 ---------
