@@ -493,7 +493,7 @@ public class App {
 
         String tikz;
         if (net instanceof PetriGameWithTransits) {
-            PetriNet netCopy = new PetriGameWithTransits((PetriGameWithTransits) net);
+            PetriGameWithTransits netCopy = new PetriGameWithTransits((PetriGameWithTransits) net);
             PetriNetTools.saveXYCoordinates(netCopy, nodePositions);
             tikz = PGWT2Tikz.get(netCopy);
         } else {
