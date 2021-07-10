@@ -20,6 +20,24 @@ function saveEditorNetAsPnml(restEndpoints, editorNetId, nodePositions, filename
   return requestPromise
 }
 
+function saveEditorNetAsTikz(restEndpoints, editorNetId, nodePositions, filename) {
+  const requestPromise = restEndpoints.saveEditorNetAsTikz({
+    editorNetId,
+    nodeXYCoordinateAnnotations: nodePositions
+  })
+  requestPromise.then(response => {
+    if (response.data.status === 'success') {
+      const resultString = response.data.result
+      saveFileAs(resultString, filename)
+    } else if (response.data.status === 'error') {
+      logging.sendErrorNotification(response.data.message)
+    } else {
+      logging.sendErrorNotification('Invalid response from server')
+    }
+  }).catch(logging.sendErrorNotification)
+  return requestPromise
+}
+
 function saveJobAsPnml(restEndpoints, jobKey, nodePositions, filename) {
   const requestPromise = restEndpoints.saveJobAsPnml({
     jobKey,
@@ -57,4 +75,4 @@ function saveJobAsApt(restEndpoints, jobKey, nodePositions, filename) {
 }
 
 
-export {saveJobAsPnml, saveEditorNetAsPnml, saveJobAsApt}
+export {saveJobAsPnml, saveEditorNetAsPnml, saveEditorNetAsTikz, saveJobAsApt}

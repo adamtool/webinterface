@@ -1,8 +1,8 @@
 package uniolunisaar.adamwebfrontend;
+
 /**
  * Created by Ann on 11.09.2017.
  */
-
 import uniol.apt.adt.exception.TransitionFireException;
 import uniolunisaar.adam.ds.modelchecking.cex.ReducedCounterExample;
 import uniolunisaar.adam.ds.petrinet.PetriNetExtensionHandler;
@@ -47,8 +47,11 @@ import uniolunisaar.adam.ds.objectives.Condition;
 import uniolunisaar.adam.exceptions.synthesis.pgwt.CouldNotFindSuitableConditionException;
 
 import javax.servlet.http.HttpServletResponse;
+import uniolunisaar.adam.logic.transformers.PGWT2Tikz;
+import uniolunisaar.adam.logic.transformers.petrinet.PN2Tikz;
 
 public class App {
+
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
 
@@ -94,6 +97,7 @@ public class App {
                 this::handleInitializeGraphGameBDDExplorer);
 
         postWithEditorNet("/saveEditorNetAsPnml", this::handleSaveEditorNetAsPnml);
+        postWithEditorNet("/saveEditorNetAsTikz", this::handleSaveEditorNetAsTikz);
 
         postWithEditorNet("/getAptOfEditorNet", this::handleGetAptOfEditorNet);
 
@@ -162,8 +166,8 @@ public class App {
     }
 
     /**
-     * Shorthand to register a route that operates upon a specific client's UserContext, given the
-     * client's UUID.
+     * Shorthand to register a route that operates upon a specific client's
+     * UserContext, given the client's UUID.
      */
     private void postWithUserContext(String path, RouteWithUserContext handler) {
         post(path, (req, res) -> {
@@ -177,7 +181,8 @@ public class App {
     }
 
     /**
-     * Register a route that operates upon a net in the editor, given the net's UUID.
+     * Register a route that operates upon a net in the editor, given the net's
+     * UUID.
      */
     private void postWithEditorNet(String path, EditorNetRoute handler) {
         post(path, (req, res) -> {
@@ -195,18 +200,19 @@ public class App {
      */
     private PetriNetWithTransits getEditorNet(UUID uuid) {
         if (!editorNets.containsKey(uuid)) {
-            throw new IllegalArgumentException("We have no PG/PetriNetWithTransits with the given UUID.  " +
-                    "You might see this error if the server has been restarted after you opened the " +
-                    "web UI.");
+            throw new IllegalArgumentException("We have no PG/PetriNetWithTransits with the given UUID.  "
+                    + "You might see this error if the server has been restarted after you opened the "
+                    + "web UI.");
         }
         return editorNets.get(uuid);
     }
 
     /**
-     * @return the UserContext corresponding to the given client UUID.
-     * If there isn't any UserContext object for the given UUID, create one.
-     * TODO #304 Prevent DDOS: The server could run out of memory if a lot of requests would be sent
-     * with different UUIDs resulting in the creation of too many UserContext objects.
+     * @return the UserContext corresponding to the given client UUID. If there
+     * isn't any UserContext object for the given UUID, create one. TODO #304
+     * Prevent DDOS: The server could run out of memory if a lot of requests
+     * would be sent with different UUIDs resulting in the creation of too many
+     * UserContext objects.
      */
     private UserContext getUserContext(UUID clientUuid) {
         if (!userContexts.containsKey(clientUuid)) {
@@ -260,8 +266,8 @@ public class App {
     }
 
     /**
-     * @return a list containing an entry for each pending/completed job
-     * (e.g. Graph Game BDD, Get Winning Condition) on the server.
+     * @return a list containing an entry for each pending/completed job (e.g.
+     * Graph Game BDD, Get Winning Condition) on the server.
      */
     private Object handleGetListOfJobs(Request req, Response res, UserContext uc) {
         JsonArray result = uc.getJobList();
@@ -287,19 +293,19 @@ public class App {
                     net = AdamSynthesizer.getPetriGame(apt);
                     break;
                 case PETRI_NET:
-                    throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is " +
-                            "this a mistake?  (In model checking mode, we expect to see " +
-                            "PETRI_NET_WITH_TRANSITS here, and in synthesis, PETRI_GAME." +
-                            "Please file a bug report.");
+                    throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is "
+                            + "this a mistake?  (In model checking mode, we expect to see "
+                            + "PETRI_NET_WITH_TRANSITS here, and in synthesis, PETRI_GAME."
+                            + "Please file a bug report.");
                 default:
                     throw new IllegalArgumentException("Unrecognized net type: " + netType);
             }
         } catch (ParseException | NotSupportedGameException | IOException | CouldNotFindSuitableConditionException | CouldNotCalculateException e) {
-            JsonObject errorResponse =
-                    errorResponseObject(e.getClass().getSimpleName() + ": " + e.getMessage());
+            JsonObject errorResponse
+                    = errorResponseObject(e.getClass().getSimpleName() + ": " + e.getMessage());
             if (e instanceof ParseException) {
-                Pair<Integer, Integer> errorLocation =
-                        Tools.getErrorLocation((ParseException) e);
+                Pair<Integer, Integer> errorLocation
+                        = Tools.getErrorLocation((ParseException) e);
                 errorResponse.addProperty("lineNumber", errorLocation.getFirst());
                 errorResponse.addProperty("columnNumber", errorLocation.getSecond());
             }
@@ -323,10 +329,10 @@ public class App {
                 netJson = PetriNetClient.serializePetriGame((PetriGameWithTransits) net, net.getNodes(), true);
                 break;
             case PETRI_NET:
-                throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is " +
-                        "this a mistake?  (In model checking mode, we expect to see " +
-                        "PETRI_NET_WITH_TRANSITS here, and in synthesis, PETRI_GAME." +
-                        "Please file a bug report.");
+                throw new IllegalArgumentException("'netType' = 'PETRI_NET' in parseApt.  Is "
+                        + "this a mistake?  (In model checking mode, we expect to see "
+                        + "PETRI_NET_WITH_TRANSITS here, and in synthesis, PETRI_GAME."
+                        + "Please file a bug report.");
             default:
                 throw new IllegalArgumentException("Unrecognized net type: " + netType);
         }
@@ -345,8 +351,9 @@ public class App {
     }
 
     /**
-     * Copy a given editor net, store the copy in 'editorNets', and return the UUID of the copy
-     * TODO #305 a DOS attack is possible by calling this route an excessive number of times
+     * Copy a given editor net, store the copy in 'editorNets', and return the
+     * UUID of the copy TODO #305 a DOS attack is possible by calling this route
+     * an excessive number of times
      */
     private Object handleCopyEditorNet(Request req, Response res, PetriNetWithTransits net) {
         PetriNetWithTransits copy;
@@ -364,7 +371,6 @@ public class App {
         responseJson.addProperty("uuid", newUuid.toString());
         return responseJson.toString();
     }
-
 
     private Object handleQueueJob(Request req, Response res, UserContext userContext) throws RenderException {
         // Read request parameters.  Get the Petri Net that should be operated upon and the other
@@ -388,8 +394,8 @@ public class App {
         // two times, once for the general approach and once for the restricted approach,
         // and the approach flag is not included in the jobParams, since it is provided by the user
         // after the "Job" has already been queued up.
-        if (jobType == JobType.GRAPH_GAME_BDD && jobParams.has("incremental") &&
-                jobParams.get("incremental").getAsBoolean()) {
+        if (jobType == JobType.GRAPH_GAME_BDD && jobParams.has("incremental")
+                && jobParams.get("incremental").getAsBoolean()) {
             jobParams.addProperty("hiddenUuid97", UUID.randomUUID().toString());
         }
         JobKey jobKey = new JobKey(
@@ -406,8 +412,8 @@ public class App {
                 case QUEUED:
                 case RUNNING:
                 case COMPLETED: {
-                    JsonObject response = errorResponseObject("An identical job has already been queued.  Its status: " +
-                            userContext.getJobFromKey(jobKey).getStatus());
+                    JsonObject response = errorResponseObject("An identical job has already been queued.  Its status: "
+                            + userContext.getJobFromKey(jobKey).getStatus());
                     response.addProperty("errorType", "JOB_ALREADY_QUEUED");
                     response.add("jobKey", gson.toJsonTree(jobKey));
                     return response;
@@ -466,14 +472,37 @@ public class App {
         } else {
             netCopy = new PetriNetWithTransits(net);
         }
-        JsonObject nodesXYCoordinatesJson =
-                body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        JsonObject nodesXYCoordinatesJson
+                = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
         Type type = new TypeToken<Map<String, NodePosition>>() {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
         PetriNetTools.saveXYCoordinates(netCopy, nodePositions);
         String pnml = PNTools.pn2pnml(netCopy);
         return successResponse(new JsonPrimitive(pnml));
+    }
+
+    // Save the editor net as PNML, including the given x/y coordinate annotations if present.
+    private Object handleSaveEditorNetAsTikz(Request req, Response res, PetriNetWithTransits net) throws RenderException {
+        JsonElement body = parser.parse(req.body());
+        JsonObject nodesXYCoordinatesJson
+                = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        Type type = new TypeToken<Map<String, NodePosition>>() {
+        }.getType();
+        Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
+
+        String tikz;
+        if (net instanceof PetriGameWithTransits) {
+            PetriNet netCopy = new PetriGameWithTransits((PetriGameWithTransits) net);
+            PetriNetTools.saveXYCoordinates(netCopy, nodePositions);
+            tikz = PGWT2Tikz.get(netCopy);
+        } else {
+            PetriNet netCopy = new PetriNetWithTransits(net);
+            PetriNetTools.saveXYCoordinates(netCopy, nodePositions);
+            tikz = PN2Tikz.get(netCopy);
+        }
+
+        return successResponse(new JsonPrimitive(tikz));
     }
 
     // Convert the net produced by a given job to PNML.
@@ -503,11 +532,11 @@ public class App {
         } else if (result instanceof PetriNet) {
             netCopy = new PetriNet((PetriNet) result);
         } else {
-            throw new IllegalArgumentException("The job specified did not produce a net " +
-                    "which can be saved as PNML.");
+            throw new IllegalArgumentException("The job specified did not produce a net "
+                    + "which can be saved as PNML.");
         }
-        JsonObject nodesXYCoordinatesJson =
-                body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        JsonObject nodesXYCoordinatesJson
+                = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
         Type type = new TypeToken<Map<String, NodePosition>>() {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
@@ -542,11 +571,11 @@ public class App {
         } else if (result instanceof PetriNet) {
             netCopy = new PetriNet((PetriNet) result);
         } else {
-            throw new IllegalArgumentException("The job specified did not produce a net " +
-                    "which can be saved as APT.");
+            throw new IllegalArgumentException("The job specified did not produce a net "
+                    + "which can be saved as APT.");
         }
-        JsonObject nodesXYCoordinatesJson =
-                body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        JsonObject nodesXYCoordinatesJson
+                = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
         Type type = new TypeToken<Map<String, NodePosition>>() {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
@@ -557,8 +586,8 @@ public class App {
         } else if (netCopy instanceof PetriNet) {
             apt = Tools.getPN(netCopy);
         } else {
-            throw new IllegalArgumentException("The job specified did not produce a net " +
-                    "which can be saved as APT."); // This should be unreachable
+            throw new IllegalArgumentException("The job specified did not produce a net "
+                    + "which can be saved as APT."); // This should be unreachable
         }
         return successResponse(new JsonPrimitive(apt));
 
@@ -577,8 +606,8 @@ public class App {
         }
         Job job = uc.getJobFromKey(jobKey);
         if (job.getStatus() == JobStatus.CANCELING) {
-            return errorResponse("That job is still in the process of being canceled.  " +
-                    "You can't delete it until it has finished canceling.");
+            return errorResponse("That job is still in the process of being canceled.  "
+                    + "You can't delete it until it has finished canceling.");
         }
         try {
             job.cancel();
@@ -604,8 +633,8 @@ public class App {
 
         Job<BDDGraphExplorerBuilder> job = uc.getGraphGameBDDJob(jobKey);
         if (!job.isFinished()) {
-            return errorResponse("The job for that Graph Game BDD is not yet finished" +
-                    ".  Its status: " + job.getStatus());
+            return errorResponse("The job for that Graph Game BDD is not yet finished"
+                    + ".  Its status: " + job.getStatus());
         }
 
         BDDGraphExplorerBuilder bddGraphExplorerBuilder = job.getResult();
@@ -637,8 +666,8 @@ public class App {
 
         Job<BDDGraphExplorerBuilder> job = uc.getGraphGameBDDJob(jobKey);
         if (!job.isFinished()) {
-            return errorResponse("The job for that Graph Game BDD is not yet finished" +
-                    ".  Its status: " + job.getStatus());
+            return errorResponse("The job for that Graph Game BDD is not yet finished"
+                    + ".  Its status: " + job.getStatus());
         }
 
         BDDGraphExplorerBuilder bddGraphExplorerBuilder = job.getResult();
@@ -675,8 +704,8 @@ public class App {
         }
         Job<BDDGraphExplorerBuilder> job = uc.getGraphGameBDDJob(jobKey);
         if (!job.isFinished()) {
-            return errorResponse("The job for that Graph Game BDD is not yet finished" +
-                    ".  Its status: " + job.getStatus());
+            return errorResponse("The job for that Graph Game BDD is not yet finished"
+                    + ".  Its status: " + job.getStatus());
         }
 
         BDDGraphExplorerBuilder bddGraphExplorerBuilder = job.getResult();
@@ -712,8 +741,8 @@ public class App {
     // Send them back to the client to confirm it worked
     private Object handleUpdateXYCoordinates(Request req, Response res, PetriNetWithTransits petriNet) throws CouldNotFindSuitableConditionException {
         JsonElement body = parser.parse(req.body());
-        JsonObject nodesXYCoordinatesJson =
-                body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
+        JsonObject nodesXYCoordinatesJson
+                = body.getAsJsonObject().get("nodeXYCoordinateAnnotations").getAsJsonObject();
         Type type = new TypeToken<Map<String, NodePosition>>() {
         }.getType();
         Map<String, NodePosition> nodePositions = gson.fromJson(nodesXYCoordinatesJson, type);
@@ -904,9 +933,9 @@ public class App {
 
     private Object handleCreateTransit(Request req, Response res, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
-        Optional<String> sourceId = body.has("source") ?
-                Optional.of(body.get("source").getAsString()) :
-                Optional.empty();
+        Optional<String> sourceId = body.has("source")
+                ? Optional.of(body.get("source").getAsString())
+                : Optional.empty();
         String transitionId = body.get("transition").getAsString();
         JsonArray postsetJson = body.get("postset").getAsJsonArray();
         List<String> postsetIds = new ArrayList<>();
@@ -981,13 +1010,13 @@ public class App {
                         CxType cxType = CxType.valueOf(requestBody.get("cxType").getAsString());
                         return userContext.getPetriNetFromMcResult(jobKey, cxType);
                     default:
-                        throw new IllegalArgumentException("The given job type is not applicable " +
-                                "here.");
+                        throw new IllegalArgumentException("The given job type is not applicable "
+                                + "here.");
                 }
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
-                throw new IllegalArgumentException("An exception was thrown when retrieving the petri net " +
-                        "on the server.  Please file a bug and include the server logs if possible.");
+                throw new IllegalArgumentException("An exception was thrown when retrieving the petri net "
+                        + "on the server.  Please file a bug and include the server logs if possible.");
             }
         };
         return handleFireTransition(req, res, getPetriNetFromJob);
@@ -1001,22 +1030,20 @@ public class App {
         return handleFireTransition(req, res, getPetriNetFromEditor);
     }
 
-
     /**
-     * Simulate firing a transition in a given petri net with a given marking, and return the new
-     * marking that would result.
+     * Simulate firing a transition in a given petri net with a given marking,
+     * and return the new marking that would result.
      *
-     * @param petriNetGetter: We may want to operate upon PetriNets from the editor, which are
-     *                        stored in the Map<UUID, PetriNet> editorNets, or upon
-     *                        model checking nets / winning strategies, which are stored in Jobs in
-     *                        individual users' UserContexts and are referenced by the combination
-     *                        of clientUuid and JobKey.
-     *                        Accordingly, there are two corresponding routes
-     *                        ('/fireTransitionEditor' and '/fireTransitionJob') which are
-     *                        implemented using different getters.
+     * @param petriNetGetter: We may want to operate upon PetriNets from the
+     * editor, which are stored in the Map<UUID, PetriNet> editorNets, or upon
+     * model checking nets / winning strategies, which are stored in Jobs in
+     * individual users' UserContexts and are referenced by the combination of
+     * clientUuid and JobKey. Accordingly, there are two corresponding routes
+     * ('/fireTransitionEditor' and '/fireTransitionJob') which are implemented
+     * using different getters.
      */
     private Object handleFireTransition(Request req, Response res,
-                                        Function<JsonObject, PetriNet> petriNetGetter) {
+            Function<JsonObject, PetriNet> petriNetGetter) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
 
         JsonObject preMarkingJson = body.get("preMarking").getAsJsonObject();
@@ -1055,8 +1082,8 @@ public class App {
         // Fire the transition and save it to the net
         Marking preMarking = netCopy.getInitialMarking();
         if (!PNTools.isFireable(transition, preMarking)) {
-            JsonObject response = errorResponseObject("The transition " + transitionId +
-                    " is not fireable in the given marking.");
+            JsonObject response = errorResponseObject("The transition " + transitionId
+                    + " is not fireable in the given marking.");
             response.addProperty("errorType", "TRANSITION_NOT_FIREABLE");
             return response;
         }
@@ -1089,8 +1116,8 @@ public class App {
         }
         Job job = uc.getJobFromKey(jobKey);
         if (!job.isFinished()) {
-            throw new IllegalArgumentException("The given job is not finished, so the PetriNet it" +
-                    " will produce can not be accessed yet.");
+            throw new IllegalArgumentException("The given job is not finished, so the PetriNet it"
+                    + " will produce can not be accessed yet.");
         }
         ModelCheckingJobResult result = (ModelCheckingJobResult) job.getResult();
         CxType cxType = CxType.valueOf(params.get("cxType").getAsString());
@@ -1168,7 +1195,7 @@ public class App {
      * @throws IOException
      */
     private static Path saveDataFlowPdf(PetriNetWithTransits net,
-                                        List<Transition> firingSequence) throws IOException {
+            List<Transition> firingSequence) throws IOException {
         List<DataFlowTree> dataFlowTrees = PNWTTools.getDataFlowTrees(net, firingSequence);
         String tempFileDirectory = System.getProperty(
                 "ADAMWEB_TEMP_DIRECTORY", "./tmp/");
@@ -1181,9 +1208,8 @@ public class App {
         return Paths.get(filePath + ".pdf");
     }
 
-
     private Path saveWitnessesPdf(PetriNetWithTransits inputNet,
-                                  ReducedCounterExample detailedCex) throws IOException {
+            ReducedCounterExample detailedCex) throws IOException {
 
         String tempFileDirectory = System.getProperty(
                 "ADAMWEB_TEMP_DIRECTORY", "./tmp/");
@@ -1325,14 +1351,13 @@ public class App {
         }
         return successResponse(PetriNetClient.serializeEditorNet(net));
     }
-    
-    
+
     private Object handleSetArcWeight(Request req, Response response, PetriNetWithTransits net) {
         JsonObject body = parser.parse(req.body()).getAsJsonObject();
         String sourceId = body.get("sourceId").getAsString();
         String targetId = body.get("targetId").getAsString();
         int weight = body.get("weight").getAsInt();
-       
+
         Flow flow = net.getFlow(sourceId, targetId);
         flow.setWeight(weight);
         return successResponse(PetriNetClient.serializeEditorNet(net));

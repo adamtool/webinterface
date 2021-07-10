@@ -497,7 +497,7 @@
   import draggable from 'vuedraggable'
 
   import {deepCopy, sleep} from './util'
-  import {saveEditorNetAsPnml, saveJobAsPnml} from "./routes";
+  import {saveEditorNetAsPnml, saveEditorNetAsTikz, saveJobAsPnml} from "./routes";
 
   const uuidv4 = require('uuid/v4')
 
@@ -786,6 +786,7 @@
           'saveJobAsApt',
           'saveJobAsPnml',
           'saveEditorNetAsPnml',
+          'saveEditorNetAsTikz',
           'insertPlace',
           'createFlow',
           'createTransit',
@@ -851,7 +852,24 @@
       },
       saveActionsEditor: function () {
         if (this.useModelChecking) {
-          return []
+          return [
+            {
+              label: 'Save as PNML',
+              callback: () => saveEditorNetAsPnml(
+                this.restEndpoints,
+                this.editorNet.uuid,
+                this.$refs.graphEditor.getNodeXYCoordinatesFixed(),
+                'editor-net.pnml')
+            },
+            {
+              label: 'Save as Tikz',
+              callback: () => saveEditorNetAsTikz(
+                this.restEndpoints,
+                this.editorNet.uuid,
+                this.$refs.graphEditor.getNodeXYCoordinatesFixed(),
+                'editor-net.tex')
+            }
+          ]
         } else {
           return [
             {
@@ -861,6 +879,14 @@
                 this.editorNet.uuid,
                 this.$refs.graphEditor.getNodeXYCoordinatesFixed(),
                 'editor-net.pnml')
+            },
+            {
+              label: 'Save as Tikz',
+              callback: () => saveEditorNetAsTikz(
+                this.restEndpoints,
+                this.editorNet.uuid,
+                this.$refs.graphEditor.getNodeXYCoordinatesFixed(),
+                'editor-net.tex')
             }
           ]
         }
